@@ -1,0 +1,178 @@
+<DOCTYPE! html>
+<html>
+<head>
+    <title>WC Tank</title>
+
+    <style type="text/css">
+        body, html {
+            padding: 0;
+            margin: 0;
+        }
+
+        #map-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        #overlay {
+            display: none;
+            overflow: auto;
+
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            width: 40%;
+            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            font-family: 'Arial';
+            padding: 15px;
+        }
+
+        #overlay.photo {
+            width: 60%;
+        }
+
+        #overlay a {
+            color: #fff;
+        }
+
+        #overlay img {
+            width: 100%;
+        }
+
+        .close-post {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+        
+        #overlay .video iframe {
+            width: 100%;
+            min-height: 400px;
+        }
+    </style>
+
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false"></script>
+    <script type="text/javascript">
+        $(document).on('click', '.close-post', function(e) {
+            e.preventDefault();
+            $(this).parent().fadeOut('fast');
+        });
+
+        var renderPost = function(post, $template) {
+            var content = '';
+
+            if(typeof post.body !== 'undefined') {
+                content += post.body;
+            }
+
+            if(typeof post.caption !== 'undefined') {
+                content += post.caption;
+            }
+
+            if(typeof post.photos !== 'undefined') {
+                content += '<img src="' + post.photos[0].alt_sizes[0].url + '"/>';
+            }
+
+            if(typeof post.text !== 'undefined') {
+                content += post.text;
+            }
+
+            if(typeof post.player !== 'undefined') {
+                content += post.player[0].embed_code;
+            }
+
+            if(typeof post.source !== 'undefined') {
+                content += post.source;
+            }
+
+            if(typeof post.title !== 'undefined') {
+                content += '<h3>'+post.title+'</h3>';
+            }
+
+            var post_data = {
+                'type': post.type,
+                'date': post.date,
+                'link': post.short_url,
+                'content': content
+            }
+
+            var template = $template.html();
+            $.each(post_data, function(i, v) {
+                var rg = "~!" + i;
+                var r = new RegExp(rg, "g");
+                template = template.replace(r, v);
+            });
+            
+            return template;
+        };
+
+        var init = function() {
+            var map = new google.maps.Map(document.getElementById("map-canvas"), {
+                center: new google.maps.LatLng(43.1, -87.107180),
+                zoom: 11,
+                mapTypeId: google.maps.MapTypeId.SATELLITE,
+                disableDefaultUI: true,
+                zoomControl: true
+            });
+
+            var bounds = new google.maps.LatLngBounds(
+                new google.maps.LatLng(42.96, -87.3159),
+                new google.maps.LatLng(43.25, -86.9059)
+            );
+
+            overlay = new google.maps.GroundOverlay(
+                'static/virgo-logo.png',
+                bounds
+            );
+
+            overlay.setMap(map);
+
+            google.maps.event.addListener(overlay, 'click', function() {
+                map.setZoom(9);
+            });
+
+            google.maps.event.addListener(map, 'idle', function() {
+                var visibleBounds = map.getBounds();
+                var sw = visibleBounds.getSouthWest();
+                var ne = visibleBounds.getNorthEast();
+
+                var url = '/'+sw.k+'/'+sw.A+'/'+ne.k+'/'+ne.A;
+                $.getJSON(url, function(data) {
+                    var m;
+                    $.each(data, function(i, post) {
+                        var loc = new google.maps.LatLng(post.lat, post.long);
+                        m = new google.maps.Marker({
+                            position: loc,
+                            map: map
+                        });
+
+                        google.maps.event.addListener(m, 'click', function() {
+                            var $post = renderPost(post, $('#post-template'));
+                            $('#overlay').html($post).removeClass().addClass(post.type);
+                            $('#overlay').fadeIn('fast');
+                        });
+                    });
+                });
+
+            });
+        }
+
+        google.maps.event.addDomListener(window, 'load', init);
+    </script>
+</head>
+
+<body>
+<div id="map-canvas"></div>
+<div id="overlay"></div>
+
+<script type="text/html" id="post-template">
+    <p>~!type</p>
+    <button class="close-post" type="button">Close</button>
+    <div class="~!type">~!content</div>
+    <a class="permalink" href="~!link"><p>view on tumblr</p></a>
+</script>
+</body>
