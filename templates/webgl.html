@@ -1,0 +1,27 @@
+<DOCTYPE! html>
+<html>
+<head>
+    <title>WC Tank</title>
+
+    <style type="text/css">
+        body {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false"></script>
+
+    {% for src in js.lib %}
+    <script src="/static/lib/{{ src}}"></script>
+    {% endfor %}
+    
+    {% for src in js.js %}
+    <script src="/static/js/{{ src}}"></script>
+    {% endfor %}
+</head>
+
+<body>
+</body>
+</html>
