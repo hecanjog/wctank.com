@@ -6,22 +6,16 @@ import pytumblr
 import re
 import os
 import sys
-import glob
 
 app = Flask(__name__)
 
 @app.route('/webgl')
 def webgl():
-    js = {
-        'js': glob.glob('static/js/*.js'),
-        'lib': glob.glob('static/lib/*.js'),
-    }
-
-    return render_template('webgl.html', js=js)
+    return render_template('webgl.html')
 
 @app.route('/')
 def index():
-    return render_template('index.html', js=js)
+    return render_template('index.html')
 
 @app.route('/<swk>/<swa>/<nek>/<nea>')
 def getPosts(swk, swa, nek, nea):
