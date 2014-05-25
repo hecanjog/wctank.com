@@ -37,7 +37,6 @@ var Ü = (function(Ü) {
 		world_texture = new THREE.Texture(this.canvas[0]);
         depth_loader.load(this.panoId);
 
-        $('body').append(this.canvas[0]);
 	};
 	
 	function makeDisplacementMap() {
