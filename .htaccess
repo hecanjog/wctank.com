@@ -1,0 +1,4 @@
+RewriteEngine On
+RewriteBase /
+RewriteRule ^uwsgi.fcgi/ - [L]
+RewriteRule ^(.*)$ uwsgi.fcgi/$1 [L]
