@@ -1,3 +1,5 @@
+// by @theSpite
+// c.f. https://github.com/spite/GSVPano.js
 var GSVPANO = GSVPANO || {};
 GSVPANO.PanoLoader = function (parameters) {
 
@@ -151,9 +153,7 @@ GSVPANO.PanoLoader = function (parameters) {
 		var self = this;
 		for( var y = 0; y < h; y++ ) {
 			for( var x = 0; x < w; x++ ) {
-				//var url = 'https://cbks2.google.com/cbk?cb_client=maps_sv.tactile&authuser=0&hl=en&panoid=' + _panoId + '&output=tile&zoom=' + _zoom + '&x=' + x + '&y=' + y + '&' + Date.now();
 				var url = 'https://cbks2.google.com/cbk?panoid=' + _panoId + '&output=tile&zoom=' + _zoom + '&x=' + x + '&y=' + y + '&' + Date.now();
-				//url = 'https://geo0.ggpht.com/cbk?cb_client=maps_sv.tactile&authuser=0&hl=en&panoid=' + _panoId + '&output=tile&x=' + x + '&y=' + y + '&zoom=' + _zoom + '&nbt&fover=2';
 				url = 'https://geo0.ggpht.com/cbk?panoid=' + _panoId + '&output=tile&x=' + x + '&y=' + y + '&zoom=' + _zoom + '&nbt&fover=2';
 
 				( function( x, y ) { 
@@ -181,9 +181,7 @@ GSVPANO.PanoLoader = function (parameters) {
 		//console.log('Load for', location);
 		var self = this;
 
-		//var url = 'https://maps.google.com/cbk?output=json&hl=x-local&ll=' + location.lat() + ',' + location.lng() + '&cb_client=maps_sv&v=3';
 		var url = 'https://maps.google.com/cbk?output=json&hl=x-local&ll=' + location.lat() + ',' + location.lng() + '&cb_client=maps_sv&v=3';
-	//	url = 'https://cbks0.google.com/cbk?cb_client=maps_sv.tactile&authuser=0&hl=en&output=polygon&it=1%3A1&rank=closest&ll=' + location.lat() + ',' + location.lng() + '&radius=350';
 		url = 'https://maps.google.com/cbk?output=polygon&it=1%3A1&rank=closest&ll=' + location.lat() + ',' + location.lng() + '&radius=350';
 		
 		var http_request = new XMLHttpRequest();

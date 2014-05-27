@@ -1,3 +1,5 @@
+//c.f https://github.com/proog128/GSVPanoDepth.js
+//see LICENSES
 var GSVPANO = GSVPANO || {};
 GSVPANO.PanoDepthLoader = function (parameters) {
 
