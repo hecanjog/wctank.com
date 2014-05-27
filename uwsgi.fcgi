@@ -1,2 +1,2 @@
 #!/bin/sh
-/home/westank/bin/uwsgi /home/westank/wctank.com/wctank.com.ini
+/home/westank/uwsgi/bin/uwsgi /home/westank/wctank.com/wctank.com.ini
