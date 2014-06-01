@@ -153,8 +153,7 @@ var Ü = (function(Ü) {
 			//make planes
 			var planes = [];
 			for (i = 0; i < 6; i++) {
-				planes[i] = new THREE.PlaneGeometry(cube_width, cube_width, 255, 255);
-				planes[i].computeTangents();
+				planes[i] = new THREE.PlaneGeometry(cube_width, cube_width, 255, 255); 
 			}
 				
 			//make meshes
