@@ -10,7 +10,7 @@ var Ü = (function(Ü) {
 		var location = new google.maps.LatLng(lat, lng);
 		
 		var	loader = new GSVPANO.PanoLoader();
-			loader.setZoom(4);//////////////////////////
+			loader.setZoom(4);
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
 		
@@ -102,7 +102,7 @@ var Ü = (function(Ü) {
 			document.body.appendChild(map_pano);
 			document.body.appendChild(disp_pano);
 			
-			//project faces to sides of cubes and textures
+			//get faces of cube
 			var map_faces = Ü._utils.QSCP.transform(map_pano),
 				disp_faces = Ü._utils.QSCP.transform(disp_pano);
 			
