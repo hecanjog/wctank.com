@@ -2,11 +2,7 @@
  * try other types of projections! mapping to cube for mvt closer to walls
  * collision detection
  * start loading more than one panorama:
- * 	abstract out world creation to create instances
- * 	concatenate multiple panoramas and deformation maps
- * 	interpolate depth data between panos(!)
  * 	preloading schemes
- * 	placing objects in world
  * further along:
  * 	'walking' instead of creepy hover
  * 	procedural sound!
@@ -15,9 +11,6 @@
  * DECORATIVE ANIMATION
  */
 	
-//TODO: modularize opal and quad_sphere
-//TODO: remove opal layer    		
-
 var Ü = (function(Ü) {
 
 	var scene = {};
