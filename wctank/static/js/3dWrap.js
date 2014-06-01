@@ -27,7 +27,6 @@ var Ü = (function(Ü) {
 	
 	//interface for building initial scene
 	Ü.init = function() {
-		//Ü._scene = new THREE.Scene();
 		scene = new THREE.Scene();
 		wgl_renderer = new THREE.WebGLRenderer();
 			
@@ -47,13 +46,13 @@ var Ü = (function(Ü) {
 	};
 	window.addEventListener('resize', resizeCanvas);
 	
-	//use this function to set first location and preload        
+	//use this function to set first location and preload
+	// final version will have determined KNOCKOUT array        
 	Ü.setStartingLocation = function(lat, lng) {
 		scene.add(Ü._utils.unitBuilder(lat, lng, []));
 	};
 	
-	//place first objects in scene when ready
-	//TODO: add first world when that's ready to use
+	//place objects in scene when ready
 	Ü.start = function() {
 		Ü._utils.omnibus.start();
 	};
