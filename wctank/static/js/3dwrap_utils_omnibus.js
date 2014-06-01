@@ -1,5 +1,5 @@
 //1st person view omnibus and controls
-//variable access via getters and setters
+
 var Ü = (function(Ü) {
 	
 	Ü._utils = Ü._utils || {};
