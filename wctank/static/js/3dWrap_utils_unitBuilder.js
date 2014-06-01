@@ -19,7 +19,7 @@ var Ü = (function(Ü) {
 			
 			var map = (function(map) {
 				var height = 0, width = 0, pano = {};	
-				map.setMapData = function(mpano) {
+				sphere.setMapData = function(mpano) {
 					height = mpano.height;
 					width = mpano.width;
 					pano = mpano;
@@ -54,7 +54,7 @@ var Ü = (function(Ü) {
 						pano = canvas;
 				}
 				
-				disp.setDispDataAndMakeMap = function(dheight, dwidth, ddepths) {
+				sphere.setDispDataAndMakeMap = function(dheight, dwidth, ddepths) {
 					height = dheight;
 					width = dwidth;
 					depths = ddepths;
@@ -69,13 +69,7 @@ var Ü = (function(Ü) {
 				};
 				return disp;	
 			})({});		
-			
-			sphere.setMapData = function(pano) {
-				map.setMapData(pano);
-			};
-			sphere.setDispDataAndMakeMap = function(height, width, depths) {
-				disp.setDispDataAndMakeMap(height, width, depths);
-			};
+
 			sphere.getDimensions = function() {
 				return [sphere.map.getDimensions(), sphere.disp.getDimensions()];
 			};
