@@ -11,7 +11,7 @@ var Ü = (function(Ü) {
 		 * omnibus movement 
 		 */
 		
-	});
+	})({});
 	
 	return Ü;
 	
