@@ -191,12 +191,7 @@ var Ü = (function(Ü) {
 				cube.add(meshes[i]);
 			}
 		};
-		 
-		go();	
-				
-		function go() {
-			loader.load(location);
-		};							
+		loader.load(location);						
 		loader.onPanoramaLoad = function() {
 			sphere.setMapData(this.canvas[0]);
      	   	d_loader.load(this.panoId);  	
