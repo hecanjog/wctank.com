@@ -10,7 +10,7 @@ var Ü = (function(Ü) {
 		var location = new google.maps.LatLng(lat, lng);
 		
 		var	loader = new GSVPANO.PanoLoader();
-			loader.setZoom(3);//////////////////////////
+			loader.setZoom(4);//////////////////////////
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
 		
@@ -153,7 +153,7 @@ var Ü = (function(Ü) {
 			//make planes
 			var planes = [];
 			for (i = 0; i < 6; i++) {
-				planes[i] = new THREE.PlaneGeometry(cube_width, cube_width, 255, 255); 
+				planes[i] = new THREE.PlaneGeometry(cube_width, cube_width, 100, 100);
 			}
 				
 			//make meshes
