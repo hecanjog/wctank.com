@@ -1,4 +1,22 @@
-//contains methods for building world unit cubes
+/*
+ * Ü._utils.unitBuilder builds world unit cubes!
+ * 
+ * makes this.cube on construction
+ * gets numbers lat, lng, array 'knockout'
+ * 
+ * KNOCKOUT: an array of strings indicating which faces NOT to construct
+ * possible values: y_pos, z_neg, x_neg, z_pos, x_pos, y_neg (order not important)
+ * 
+ * persists location data (as google.maps.LatLng object)
+ * persists knockout data
+ * 
+ * e.g.
+ * var unit = new Ü._utils.unitBuilder(43.038706, -87.907486, ['z_neg']);
+ * scene.add(unit.cube)
+ * var where_am_I = [unit.location.lat(), unit.location.lng()];
+ * 
+ */
+
 var Ü = (function(Ü) {
 	
 	Ü._utils = Ü._utils || {};
@@ -11,7 +29,7 @@ var Ü = (function(Ü) {
 		
 		this.knockouts = knockout;
 		
-		var yeeah = this;
+		var that = this;
 		
 		var loader = new GSVPANO.PanoLoader();
 			loader.setZoom(4);
@@ -23,7 +41,8 @@ var Ü = (function(Ü) {
 			
 			var map = (function(map) {
 				var height = 0, width = 0, pano = {};	
-				sphere.setMapData = function(mpano) {
+				
+				sphere.setMapData = function(mpano) { //!!sphere!!//
 					height = mpano.height;
 					width = mpano.width;
 					pano = mpano;
@@ -58,7 +77,7 @@ var Ü = (function(Ü) {
 						pano = canvas;
 				}
 				
-				sphere.setDispDataAndMakeMap = function(dheight, dwidth, ddepths) {
+				sphere.setDispDataAndMakeMap = function(dheight, dwidth, ddepths) { //!!sphere!!//
 					height = dheight;
 					width = dwidth;
 					depths = ddepths;
@@ -164,34 +183,34 @@ var Ü = (function(Ü) {
 			}
 				
 			//assemble cube
-			if (yeeah.knockouts.indexOf('y_pos') === -1) {
+			if (that.knockouts.indexOf('y_pos') === -1) {
 				meshes[0].rotation.x = Math.PI/2;
 				meshes[0].position.y = cube_half;
-				yeeah.cube.add(meshes[0]);
+				that.cube.add(meshes[0]);
 			}
-			if (yeeah.knockouts.indexOf('z_neg') === -1) {
+			if (that.knockouts.indexOf('z_neg') === -1) {
 				meshes[1].position.z = -cube_half;
-				yeeah.cube.add(meshes[1]);
+				that.cube.add(meshes[1]);
 			}
-			if (yeeah.knockouts.indexOf('x_neg') === -1) {
+			if (that.knockouts.indexOf('x_neg') === -1) {
 				meshes[2].rotation.y = Math.PI/2;
 				meshes[2].position.x = -cube_half;
-				yeeah.cube.add(meshes[2]);
+				that.cube.add(meshes[2]);
 			}
-			if (yeeah.knockouts.indexOf('z_pos') === -1) {
+			if (that.knockouts.indexOf('z_pos') === -1) {
 				meshes[3].rotation.y = Math.PI;
 				meshes[3].position.z = cube_half;
-				yeeah.cube.add(meshes[3]);
+				that.cube.add(meshes[3]);
 			}
-			if (yeeah.knockouts.indexOf('x_pos') === -1) {
+			if (that.knockouts.indexOf('x_pos') === -1) {
 				meshes[4].rotation.y = -Math.PI/2;
 				meshes[4].position.x = cube_half;
-				yeeah.cube.add(meshes[4]);
+				that.cube.add(meshes[4]);
 			}
-			if (yeeah.knockouts.indexOf('y_neg') === -1) {
+			if (that.knockouts.indexOf('y_neg') === -1) {
 				meshes[5].rotation.x = -Math.PI/2;
 				meshes[5].position.y = -cube_half;
-				yeeah.cube.add(meshes[5]);
+				that.cube.add(meshes[5]);
 			}	
 		};
 		
