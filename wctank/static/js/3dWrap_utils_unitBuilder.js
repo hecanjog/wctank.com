@@ -137,8 +137,8 @@ var Ü = (function(Ü) {
 				uniforms["enableDisplacement"].value = true;
 				uniforms["map"].value = map_textures[i];
 				uniforms["tDisplacement"].value = disp_textures[i];
-				uniforms["uDisplacementBias"].value = 100;
-				uniforms["uDisplacementScale"].value = 10000;
+				uniforms["uDisplacementBias"].value = 0;
+				uniforms["uDisplacementScale"].value = 1;
 
 				face_materials[i] = new THREE.ShaderMaterial({	
 								uniforms: uniforms, 
@@ -152,7 +152,7 @@ var Ü = (function(Ü) {
 			//make planes
 			var planes = [];
 			for (i = 0; i < 6; i++) {
-				planes[i] = new THREE.PlaneGeometry(cube_width, cube_width, 100, 100);
+				planes[i] = new THREE.PlaneGeometry(cube_width, cube_width, 1, 1);
 			}
 				
 			//make meshes
@@ -165,8 +165,8 @@ var Ü = (function(Ü) {
 				
 			//assemble cube
 			if (yeeah.knockouts.indexOf('y_pos') === -1) {
-				meshes[0].position.z = cube_half;
 				meshes[0].rotation.x = Math.PI/2;
+				meshes[0].position.y = cube_half;
 				yeeah.cube.add(meshes[0]);
 			}
 			if (yeeah.knockouts.indexOf('z_neg') === -1) {
@@ -174,21 +174,23 @@ var Ü = (function(Ü) {
 				yeeah.cube.add(meshes[1]);
 			}
 			if (yeeah.knockouts.indexOf('x_neg') === -1) {
-				meshes[2].position.z = cube_half;
-				meshes[2].rotation.y = -Math.PI/2;
+				meshes[2].rotation.y = Math.PI/2;
+				meshes[2].position.x = -cube_half;
 				yeeah.cube.add(meshes[2]);
 			}
 			if (yeeah.knockouts.indexOf('z_pos') === -1) {
+				meshes[3].rotation.y = Math.PI;
 				meshes[3].position.z = cube_half;
 				yeeah.cube.add(meshes[3]);
 			}
 			if (yeeah.knockouts.indexOf('x_pos') === -1) {
-				meshes[4].rotation.y = Math.PI/2;
+				meshes[4].rotation.y = -Math.PI/2;
+				meshes[4].position.x = cube_half;
 				yeeah.cube.add(meshes[4]);
 			}
 			if (yeeah.knockouts.indexOf('y_neg') === -1) {
-				meshes[5].position.z = -cube_half;
-				meshes[5].rotation.x = Math.PI/2;
+				meshes[5].rotation.x = -Math.PI/2;
+				meshes[5].position.y = -cube_half;
 				yeeah.cube.add(meshes[5]);
 			}	
 		};
