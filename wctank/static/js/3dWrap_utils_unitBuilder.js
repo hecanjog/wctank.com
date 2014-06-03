@@ -13,7 +13,7 @@ var Ü = (function(Ü) {
 		
 		var yeeah = this;
 		
-		var	loader = new GSVPANO.PanoLoader();
+		var loader = new GSVPANO.PanoLoader();
 			loader.setZoom(4);
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
@@ -86,14 +86,14 @@ var Ü = (function(Ü) {
 		})({});
 			
 		/*
-		 * ACTIONMAN assembles the world unit cube;
+		 * makeCube assembles the world unit cube;
 		 * it takes an array of strings indicating 
 		 * which faces to knockout
 		 * 
 		 * possible values:
 		 * y_pos, z_neg, x_neg, z_pos, x_pos, y_neg
 		 */
-		var ACTIONMAN = function() { 
+		var makeCube = function() { 
 				
 			var cube_width = 10000,
 				cube_half = cube_width/2;
@@ -138,7 +138,7 @@ var Ü = (function(Ü) {
 				uniforms["map"].value = map_textures[i];
 				uniforms["tDisplacement"].value = disp_textures[i];
 				uniforms["uDisplacementBias"].value = 0;
-				uniforms["uDisplacementScale"].value = 1;
+				uniforms["uDisplacementScale"].value = 10000;
 
 				face_materials[i] = new THREE.ShaderMaterial({	
 							uniforms: uniforms, 
@@ -206,7 +206,7 @@ var Ü = (function(Ü) {
 				this.depthMap.width,
 				this.depthMap.depthMap	);	
 					
-			ACTIONMAN();
+			makeCube();
 		};
 	};
 		
