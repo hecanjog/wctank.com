@@ -144,7 +144,7 @@ var Ü = (function(Ü) {
 								uniforms: uniforms, 
 								fragmentShader: shader.fragmentShader,
 								vertexShader: shader.vertexShader,
-   	                      		map: map_textures[i],
+								map: map_textures[i],
 								tDisplacement: disp_textures[i]	});
 				
 			}
