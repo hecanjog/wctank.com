@@ -23,35 +23,37 @@ var Ü = (function(Ü) {
 			face_tex[i].width = face_tex[i].height = side_length;
 		}		
 
-		var multiplier = 2 / side_length;
-		function cartesianScalar(point) {
-			return point * multiplier - 1;
+		//normalizes point in texels between -1 and 1
+		function normalizeCartesian(point) {
+			return point * (2 / side_length) - 1;
 		}
 		function phiToX(phi) {
-			return phi + Math.PI * width;
+			return phi + Math.PI * (width/(2 * Math.PI));
 		}
 		function thetaToY(theta) {
-			return theta + (Math.PI/2) * height;
+			return height - (theta + (Math.PI/2) * (height/Math.PI));
 		}
 		
 		//get location on face, retreive proper pixel on original sphere
 		var tex_ctx = canvas_to_transform.getContext('2d');
 		var	tex_dat = tex_ctx.getImageData(0, 0, width, height);
 		var tex_px = new Int32Array(tex_dat.data.buffer);
+		
 				
-		for (i = 0; i < 6; i++) {
-			var face_ctx = face_tex[i].getContext('2d');
+		for (face = 0; face < 6; face++) {
+			var face_ctx = face_tex[face].getContext('2d');
 			var face_dat = face_ctx.getImageData(0, 0, side_length, side_length);
 			var face_px = new Int32Array(face_dat.data.buffer);
 			
 			for (y = 0; y < side_length; y++) {
-				var csy = cartesianScalar(y);
+				var csy = normalizeCartesian(y) * -1;
 				for (x = 0; x < side_length; x++) {
-					var	loc = transforms.inverse(i, cartesianScalar(x), csy);
+					var	loc = transforms.inverse(face, normalizeCartesian(x), csy);
 					
-					var	sph_pt = Math.round(phiToX(loc[0]) + side_length * thetaToY(loc[1]));
-					
-					face_px[x + side_length * y] = tex_px[sph_pt];
+					var	sph_pt = Math.floor(phiToX(loc[0]) + (width * thetaToY(loc[1])));
+					var face_pt = x + side_length * y;
+					//console.log('face = '+face+' lat lng = '+loc+' sph_pt ='+sph_pt+' face_pt = '+face_pt+' x = '+x+' y = '+y+' side = '+side_length);
+					face_px[face_pt] = tex_px[sph_pt];
 				}
 			}		
 			
@@ -97,15 +99,15 @@ var Ü = (function(Ü) {
         				(-0.27292696 - 0.07629969 * x2 -
          				0.22797056 * x4 + 0.54852384 * x6 -
          				0.62930065 * x8 + 0.25795794 * x10 +
-        				0.02584375 * x12 - 0.02819452 * y2 -
-         				0.01471565 * x2 * y2 + 0.48051509 * x4 * y2 -
-         				1.74114454 * x6 * y2 + 1.71547508 * x8 * y2 -
+     				    0.02584375 * x12 - 0.02819452 * y2 -
+      				  	0.01471565 * x2 * y2 + 0.48051509 * x4 * y2 -
+       					1.74114454 * x6 * y2 + 1.71547508 * x8 * y2 -
          				0.53022337 * x10 * y2 + 0.27058160 * y4 -
          				0.56800938 * x2 * y4 + 0.30803317 * x4 * y4 +
-         				0.98938102 * x6 * y4 - 0.83180469 * x8 * y4 -
+        				0.98938102 * x6 * y4 - 0.83180469 * x8 * y4 -
          				0.60441560 * y6 + 1.50880086 * x2 * y6 -
          				0.93678576 * x4 * y6 + 0.08693841 * x6 * y6 +
-         				0.93412077 * y8 - 1.41601920 * x2 * y8 +
+        				0.93412077 * y8 - 1.41601920 * x2 * y8 +
          				0.33887446 * x4 * y8 - 0.63915306 * y10 +
          				0.52032238 * x2 * y10 + 0.14381585 * y12);
       			
