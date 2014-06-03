@@ -49,7 +49,8 @@ var Ü = (function(Ü) {
 	//use this function to set first location and preload
 	// final version will have determined KNOCKOUT array        
 	Ü.setStartingLocation = function(lat, lng) {
-		scene.add(Ü._utils.unitBuilder(lat, lng, []));
+		var unit = new Ü._utils.unitBuilder(lat, lng, ['suck a dick']);
+		scene.add(unit.cube);
 	};
 	
 	//place objects in scene when ready

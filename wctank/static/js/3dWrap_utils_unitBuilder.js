@@ -3,11 +3,15 @@ var Ü = (function(Ü) {
 	
 	Ü._utils = Ü._utils || {};
 	
-	Ü._utils.unitBuilder = function(lat, lng, knockouts) {	
+	Ü._utils.unitBuilder = function(lat, lng, knockout) {	
 		
-		var cube = new THREE.Object3D();
+		this.cube = new THREE.Object3D();
 		
-		var location = new google.maps.LatLng(lat, lng);
+		this.location = new google.maps.LatLng(lat, lng);
+		
+		this.knockouts = knockout;
+		
+		var yeeah = this;
 		
 		var	loader = new GSVPANO.PanoLoader();
 			loader.setZoom(4);
@@ -89,7 +93,7 @@ var Ü = (function(Ü) {
 		 * possible values:
 		 * y_pos, z_neg, x_neg, z_pos, x_pos, y_neg
 		 */
-		function ACTIONMAN (knockouts) { 
+		var ACTIONMAN = function() { 
 				
 			var cube_width = 10000,
 				cube_half = cube_width/2;
@@ -136,11 +140,12 @@ var Ü = (function(Ü) {
 				uniforms["uDisplacementBias"].value = 100;
 				uniforms["uDisplacementScale"].value = 10000;
 
-				face_materials[i] = new THREE.ShaderMaterial({	uniforms: uniforms, 
-														fragmentShader: shader.fragmentShader,
-														vertexShader: shader.vertexShader,
-   	                                      				map: map_textures[i],
-														tDisplacement: disp_textures[i]	});
+				face_materials[i] = new THREE.ShaderMaterial({	
+										uniforms: uniforms, 
+										fragmentShader: shader.fragmentShader,
+										vertexShader: shader.vertexShader,
+   	                      				map: map_textures[i],
+										tDisplacement: disp_textures[i]	});
 				
 			}
 			
@@ -159,32 +164,36 @@ var Ü = (function(Ü) {
 			}
 				
 			//assemble cube
-			if (knockouts.indexOf('y_pos') === -1) {
+			if (yeeah.knockouts.indexOf('y_pos') === -1) {
 				meshes[0].position.z = cube_half;
 				meshes[0].rotation.x = Math.PI/2;
+				yeeah.cube.add(meshes[0]);
 			}
-			if (knockouts.indexOf('z_neg') === -1) {
+			if (yeeah.knockouts.indexOf('z_neg') === -1) {
 				meshes[1].position.z = -cube_half;
+				yeeah.cube.add(meshes[1]);
 			}
-			if (knockouts.indexOf('x_neg') === -1) {
+			if (yeeah.knockouts.indexOf('x_neg') === -1) {
 				meshes[2].position.z = cube_half;
 				meshes[2].rotation.y = -Math.PI/2;
+				yeeah.cube.add(meshes[2]);
 			}
-			if (knockouts.indexOf('z_pos') === -1) {
+			if (yeeah.knockouts.indexOf('z_pos') === -1) {
 				meshes[3].position.z = cube_half;
+				yeeah.cube.add(meshes[3]);
 			}
-			if (knockouts.indexOf('x_pos') === -1) {
+			if (yeeah.knockouts.indexOf('x_pos') === -1) {
 				meshes[4].rotation.y = Math.PI/2;
+				yeeah.cube.add(meshes[4]);
 			}
-			if (knockouts.indexOf('y_neg') === -1) {
+			if (yeeah.knockouts.indexOf('y_neg') === -1) {
 				meshes[5].position.z = -cube_half;
 				meshes[5].rotation.x = Math.PI/2;
+				yeeah.cube.add(meshes[5]);
 			}	
-			for (i = 0; i < 6; i++) {
-				cube.add(meshes[i]);
-			}
 		};
-		loader.load(location);						
+		
+		loader.load(this.location);						
 		loader.onPanoramaLoad = function() {
 			sphere.setMapData(this.canvas[0]);
      	   	d_loader.load(this.panoId);  	
@@ -192,13 +201,9 @@ var Ü = (function(Ü) {
 		d_loader.onDepthLoad = function() {
 			sphere.setDispDataAndMakeMap(	this.depthMap.height,
 											this.depthMap.width,
-											this.depthMap.depthMap	);	
-			ACTIONMAN(knockouts);	
-			//cube.scale.x = -1;	
+											this.depthMap.depthMap	);		
+			ACTIONMAN();
 		};
-
-		return cube;	
-		
 	};
 		
 	return Ü;
