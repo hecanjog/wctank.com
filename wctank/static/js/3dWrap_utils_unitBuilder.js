@@ -141,11 +141,11 @@ var Ü = (function(Ü) {
 				uniforms["uDisplacementScale"].value = 10000;
 
 				face_materials[i] = new THREE.ShaderMaterial({	
-										uniforms: uniforms, 
-										fragmentShader: shader.fragmentShader,
-										vertexShader: shader.vertexShader,
-   	                      				map: map_textures[i],
-										tDisplacement: disp_textures[i]	});
+								uniforms: uniforms, 
+								fragmentShader: shader.fragmentShader,
+								vertexShader: shader.vertexShader,
+   	                      		map: map_textures[i],
+								tDisplacement: disp_textures[i]	});
 				
 			}
 			
@@ -199,9 +199,11 @@ var Ü = (function(Ü) {
      	   	d_loader.load(this.panoId);  	
 		};
 		d_loader.onDepthLoad = function() {
-			sphere.setDispDataAndMakeMap(	this.depthMap.height,
-											this.depthMap.width,
-											this.depthMap.depthMap	);		
+			sphere.setDispDataAndMakeMap(	
+				this.depthMap.height,
+				this.depthMap.width,
+				this.depthMap.depthMap	);	
+					
 			ACTIONMAN();
 		};
 	};

@@ -1,6 +1,6 @@
 /*
  * this file, with the exception of the "QSCP.transform" function, 
- * is a port of the "QuadSphere" gem
+ * is a partial port of the "QuadSphere" gem
  * license: https://github.com/cix/QuadSphere/blob/master/COPYING
  */
 
