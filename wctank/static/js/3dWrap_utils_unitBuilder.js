@@ -7,8 +7,9 @@
  * KNOCKOUT: an array of strings indicating which faces NOT to construct
  * possible values: y_pos, z_neg, x_neg, z_pos, x_pos, y_neg (order not important)
  * 
- * persists location data (as google.maps.LatLng object)
- * persists knockout data
+ * holds unit cube
+ * holds location data (as google.maps.LatLng object)
+ * holds knockout data
  * 
  * e.g.
  * var unit = new Ü._utils.unitBuilder(43.038706, -87.907486, ['z_neg']);
