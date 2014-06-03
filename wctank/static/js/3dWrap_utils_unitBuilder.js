@@ -105,14 +105,6 @@ var Ü = (function(Ü) {
 			
 		})({});
 			
-		/*
-		 * makeCube assembles the world unit cube;
-		 * it takes an array of strings indicating 
-		 * which faces to knockout
-		 * 
-		 * possible values:
-		 * y_pos, z_neg, x_neg, z_pos, x_pos, y_neg
-		 */
 		var makeCube = function() { 
 				
 			var cube_width = 10000,
