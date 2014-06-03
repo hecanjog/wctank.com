@@ -141,11 +141,11 @@ var Ü = (function(Ü) {
 				uniforms["uDisplacementScale"].value = 1;
 
 				face_materials[i] = new THREE.ShaderMaterial({	
-								uniforms: uniforms, 
-								fragmentShader: shader.fragmentShader,
-								vertexShader: shader.vertexShader,
-								map: map_textures[i],
-								tDisplacement: disp_textures[i]	});
+							uniforms: uniforms, 
+							fragmentShader: shader.fragmentShader,
+							vertexShader: shader.vertexShader,
+							map: map_textures[i],
+							tDisplacement: disp_textures[i]	});
 				
 			}
 			
