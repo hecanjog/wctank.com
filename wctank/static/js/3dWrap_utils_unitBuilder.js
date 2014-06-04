@@ -25,85 +25,65 @@ var Ü = (function(Ü) {
 	Ü._utils.unitBuilder = function(lat, lng, knockout) {	
 		
 		this.cube = new THREE.Object3D();
-		
 		this.location = new google.maps.LatLng(lat, lng);
-		
 		this.knockouts = knockout;
 		
 		var that = this;
 		
 		var loader = new GSVPANO.PanoLoader();
-			loader.setZoom(4);
+			loader.setZoom(3);
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
 		
 		//object to stage pre qscp.transform -ed data
 		var sphere = (function(sphere) {
+			var map_height = 0,
+				map_width = 0,
+				map_pano = {};
 			
-			var map = (function(map) {
-				var height = 0, width = 0, pano = {};	
+			var disp_height = 0,
+				disp_width = 0,
+				disp_depths = [],
+				disp_pano = {};
+							
+				sphere.setMapData = function(mpano) {
+					map_height = mpano.height;
+					map_width = mpano.width;
+					map_pano = mpano;
+				};
+				sphere.setDispDataAndMakeMap = function(dheight, dwidth, ddepths) { 
+					disp_height = dheight;
+					disp_width = dwidth;
+					disp_depths = ddepths;
+					
+					makeDisplacementMap();
+				};
+				sphere.getPanos = function() {
+					return [map_pano, disp_pano];
+				};
 				
-				sphere.setMapData = function(mpano) { //!!sphere!!//
-					height = mpano.height;
-					width = mpano.width;
-					pano = mpano;
-				};
-				map.getDimensions = function() {
-					return [height, width];
-				};
-				map.getPano = function() {
-					return pano;
-				};
-				return map;
-			})({});
-			
-			var disp = (function(disp) {
-				var height = 0, width = 0, depths = [], pano = {};
 				function makeDisplacementMap() {
 					
 					var canvas = document.createElement('canvas');
-						canvas.height = height;
-						canvas.width = width;
+						canvas.height = disp_height;
+						canvas.width = disp_width;
 						
 					var	ctx = canvas.getContext('2d'),
 						did = ctx.createImageData(canvas.width, canvas.height);
 					
-					for ( i = 0 ; i < depths.length; i++ ) {
-						var q = depths[i] / 200 * 255; 
+					for ( i = 0 ; i < disp_depths.length; i++ ) {
+						var q = disp_depths[i] / 200 * 255; 
 						var x = i*4;
 						did.data[x] = did.data[x+1] = did.data[x+2] = q;
 						did.data[x+3] = 255;
 					}
 						ctx.putImageData(did, 0, 0);
-						pano = canvas;
+						disp_pano = canvas;
 				}
-				
-				sphere.setDispDataAndMakeMap = function(dheight, dwidth, ddepths) { //!!sphere!!//
-					height = dheight;
-					width = dwidth;
-					depths = ddepths;
-					
-					makeDisplacementMap();
-				};
-				disp.getDimensions = function() {
-					return [height, width];
-				};
-				disp.getPano = function() {
-					return pano;
-				};
-				return disp;	
-			})({});		
-
-			sphere.getDimensions = function() {
-				return [sphere.map.getDimensions(), sphere.disp.getDimensions()];
-			};
-			sphere.getPanos = function() {
-				return [map.getPano(), disp.getPano()];
-			};
 			
-			return sphere;	
+			return sphere;
 			
-		})({});
+		})({});		
 			
 		var makeCube = function() { 
 				
@@ -150,7 +130,7 @@ var Ü = (function(Ü) {
 				uniforms["map"].value = map_textures[i];
 				uniforms["tDisplacement"].value = disp_textures[i];
 				uniforms["uDisplacementBias"].value = 0;
-				uniforms["uDisplacementScale"].value = 10000;
+				uniforms["uDisplacementScale"].value = 0;
 
 				face_materials[i] = new THREE.ShaderMaterial({	
 							uniforms: uniforms, 
@@ -158,7 +138,6 @@ var Ü = (function(Ü) {
 							vertexShader: shader.vertexShader,
 							map: map_textures[i],
 							tDisplacement: disp_textures[i]	});
-				
 			}
 			
 			//make planes
@@ -209,11 +188,11 @@ var Ü = (function(Ü) {
 		
 		loader.load(this.location);						
 		loader.onPanoramaLoad = function() {
-			sphere.setMapData(this.canvas[0]);
+			sphere.setMapData(this.canvas[0]);///
      	   	d_loader.load(this.panoId);  	
 		};
 		d_loader.onDepthLoad = function() {
-			sphere.setDispDataAndMakeMap(	
+			sphere.setDispDataAndMakeMap(	////
 				this.depthMap.height,
 				this.depthMap.width,
 				this.depthMap.depthMap	);	
