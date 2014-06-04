@@ -1,7 +1,4 @@
 /* next steps: 
- * try other types of projections! mapping to cube for mvt closer to walls
- * collision detection
- * start loading more than one panorama:
  * 	preloading schemes
  * further along:
  * 	'walking' instead of creepy hover
@@ -16,7 +13,6 @@ var Ü = (function(Ü) {
 	var scene = {};
 	var wgl_renderer = {};
 	
-	//interface for building initial scene
 	Ü._setScene = function(new_scene) {
 		scene = new_scene;
 	};
@@ -25,16 +21,13 @@ var Ü = (function(Ü) {
 		return scene;
 	};
 	
-	//interface for building initial scene
 	Ü.init = function() {
 		scene = new THREE.Scene();
 		wgl_renderer = new THREE.WebGLRenderer();
 			
 			wgl_renderer.sortObjects = false;
 			wgl_renderer.setSize( window.innerWidth, window.innerHeight );
-			
-			//body must exist!
-			document.body.appendChild(wgl_renderer.domElement);	
+			document.body.appendChild(wgl_renderer.domElement);	//body must exist!
 			
 	};
 		
@@ -46,11 +39,16 @@ var Ü = (function(Ü) {
 	};
 	window.addEventListener('resize', resizeCanvas);
 	
-	//use this function to set first location and preload
-	// final version will have determined KNOCKOUT array        
+	//use this function to set first location and load
 	Ü.setStartingLocation = function(lat, lng) {
-		var unit = new Ü._utils.unitBuilder(lat, lng, []);
+		var unit = new Ü._utils.unitBuilder(lat, lng, ['z_neg', 'x_neg']);
 		scene.add(unit.cube);
+		var unit2 = new Ü._utils.unitBuilder(40.74872,-73.985222, ['z_pos']);
+		unit2.cube.position.z = -10000;
+		scene.add(unit2.cube);
+		var unit3 =  new Ü._utils.unitBuilder(lat,lng, ['x_pos']);
+		unit3.cube.position.x = -10000;
+		scene.add(unit3.cube);
 	};
 	
 	//place objects in scene when ready

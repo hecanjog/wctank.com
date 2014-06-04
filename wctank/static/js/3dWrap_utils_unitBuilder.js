@@ -38,13 +38,13 @@ var Ü = (function(Ü) {
 		//object to stage pre qscp.transform -ed data
 		var sphere = (function(sphere) {
 			var map_height = 0,
-				map_width = 0,
-				map_pano = {};
+			map_width = 0,
+			map_pano = {};
 			
 			var disp_height = 0,
-				disp_width = 0,
-				disp_depths = [],
-				disp_pano = {};
+			disp_width = 0,
+			disp_depths = [],
+			disp_pano = {};
 							
 				sphere.setMapData = function(mpano) {
 					map_height = mpano.height;
@@ -188,11 +188,11 @@ var Ü = (function(Ü) {
 		
 		loader.load(this.location);						
 		loader.onPanoramaLoad = function() {
-			sphere.setMapData(this.canvas[0]);///
+			sphere.setMapData(this.canvas[0]);
      	   	d_loader.load(this.panoId);  	
 		};
 		d_loader.onDepthLoad = function() {
-			sphere.setDispDataAndMakeMap(	////
+			sphere.setDispDataAndMakeMap(	
 				this.depthMap.height,
 				this.depthMap.width,
 				this.depthMap.depthMap	);	
