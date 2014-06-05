@@ -12,83 +12,61 @@ var Ü = (function(Ü) {
 	Ü._utils.QSCP.transform = function(canvas) {
 		var canvas_to_transform = canvas,
 			width = canvas_to_transform.width,
-			height = canvas_to_transform.height,
-			total = width * height;
+			height = canvas_to_transform.height;
 		
-		var side_length = Math.floor(Math.sqrt(total / 6));
+		var side_length = Math.floor(Math.sqrt(width * height / 6));
 
-		//make canvas, context, and data objects for each face	
+		//make canvas, context, and data objects for each face
+		var face_tex = [];
+		for (i = 0; i < 6; i++) {
+			face_tex[i] = document.createElement('canvas');
+			face_tex[i].width = face_tex[i].height = side_length;
+		}		
 
 		//normalizes point in texels between -1 and 1
 		function normalizeCartesian(point) {
 			return point * (2 / side_length) - 1;
 		}
 		function phiToX(phi) {
-			//return (phi * Math.cos(std_parallel)) + Math.PI * (width/(2 * Math.PI));
-			return phi + Math.PI * (width/(2 * Math.PI)) * (1/Math.sin(phi));
+			return phi + Math.PI * (width/(2 * Math.PI));
 		}
 		function thetaToY(theta) {
-			return height - (theta + (Math.PI/2) * (height/Math.PI)) * Math.cos(theta);
+			return height - (theta + (Math.PI/2) * (height/Math.PI));
 		}
 		
-		//make canvas, context, and data objects for each face
-		var tex_ctx = canvas_to_transform.getContext('2d'),
-			tex_dat = tex_ctx.getImageData(0, 0, width, height),
-			tex_px = new Int32Array(tex_dat.data.buffer);
-
-		var face_tex = [];
-		for (i = 0; i < 6; i++) {
-			var canvas = document.createElement('canvas');
-				canvas.width = canvas.height = side_length;
-							
-			var	ctx = canvas.getContext('2d'),
-				dat = ctx.getImageData(0, 0, side_length, side_length),
-				px = new Int32Array(dat.data.buffer);
-			
-			face_tex[i] = [canvas, ctx, dat, px];
-		}	
+		//get location on face, retreive proper pixel on original sphere
+		var tex_ctx = canvas_to_transform.getContext('2d');
+		var	tex_dat = tex_ctx.getImageData(0, 0, width, height);
+		var tex_px = new Int32Array(tex_dat.data.buffer);
 		
-		//pixel on image, to cartesian, to spherical (-pi., pi, -pi/2, pi/2)
-		//get location on image, place proper pixel on face		
-		for (tex_pt = 0; tex_pt < total; tex_pt++) {
-			
-			var x = tex_pt % width,
-				y = Math.floor(tex_pt / width);
-			
-			//normalize x between -pi - pi, y between -pi/2, pi/2
-			var phi = ((x / width) * 2 * Math.PI) - Math.PI,
-				theta = ((y / height) * Math.PI) - (Math.PI / 2);
 				
-			var loc = transforms.forward(phi, theta),
-				face = loc[0],
-				sx = (loc[1] + 1) * (side_length / 2),
-				sy = side_length - ((loc[2] + 1) * (side_length / 2));
-			
-			var texel = Math.floor(sy * side_length + sx);
-			
-			face_tex[face][3][texel] = tex_px[tex_pt]; 
-			
-			//console.log(x, y, phi, theta, texel, face, sx, sy );
-		}
-		
 		for (face = 0; face < 6; face++) {
-			face_tex[face][1].putImageData(face_tex[face][2], 0, 0);
+			var face_ctx = face_tex[face].getContext('2d');
+			var face_dat = face_ctx.getImageData(0, 0, side_length, side_length);
+			var face_px = new Int32Array(face_dat.data.buffer);
+			
+			for (y = 0; y < side_length; y++) {
+				var csy = normalizeCartesian(y) * -1;
+				for (x = 0; x < side_length; x++) {
+					var	loc = transforms.inverse(face, normalizeCartesian(x), csy);
+					
+					var	sph_pt = Math.floor(phiToX(loc[0]) + (width * thetaToY(loc[1])));
+					var face_pt = x + side_length * y;
+					//console.log('face = '+face+' lat lng = '+loc+' sph_pt ='+sph_pt+' face_pt = '+face_pt+' x = '+x+' y = '+y+' side = '+side_length);
+					face_px[face_pt] = tex_px[sph_pt];
+				}
+			}		
+			
+			face_ctx.putImageData(face_dat, 0, 0);
+
 		}
 						
-		return [face_tex[0][0], face_tex[1][0], face_tex[2][0], face_tex[3][0], face_tex[4][0], face_tex[5][0]];
+		return face_tex;
 		
 	};
 
 		var transforms = (function(transforms) {
-			
-			transforms.forward = function(phi, theta) {
-				var tgf = tangential.forward(phi, theta),
-					face = tgf[0],
-					chi = tgf[1],
-					psi = tgf[2];
-				
-				return [face, distort.forward(chi, psi), distort.forward(psi, chi)];	
-			};	
+					
 			transforms.inverse = function(face, x, y) {
 				var chi = distort.inverse(x, y),
 					psi = distort.inverse(y, x);
@@ -101,25 +79,6 @@ var Ü = (function(Ü) {
 		})({});
 		
 		var distort = (function(distort) {
-			
-			distort.forward = function(chi, psi) {
-				var chi2 = Math.pow(chi, 2),
-					chi3 = Math.pow(chi, 3),
-					psi2 = Math.pow(psi, 2),
-					omchi2 = 1 - chi2;
-					
-				return chi*(1.37484847732 - 0.37484847732*chi2) +
-        					chi*psi2*omchi2*(-0.13161671474 +
-                         						0.136486206721*chi2 +
-                         						(1.0 - psi2) *
-                         						(0.141189631152 +
-                         						 psi2*(-0.281528535557 + 0.106959469314*psi2) +
-                         						 chi2*(0.0809701286525 +
-                                						0.15384112876*psi2 -
-                                						0.178251207466*chi2))) +
-        				chi3*omchi2*(-0.159596235474 -
-                     				(omchi2 * (0.0759196200467 - 0.0217762490699*chi2)));
-			};
 						
 			distort.inverse = function(x, y) {
 				
@@ -159,44 +118,7 @@ var Ü = (function(Ü) {
 		})({});
 		
 		var tangential = (function(tangential) {
-			
-			var FORWARD_PARAMETERS = [	function (l, m, n) { return [  m, -l,  n ]; },
-										function (l, m, n) { return [  m,  n,  l ]; },
-										function (l, m, n) { return [ -l,  n,  m ]; },
-										function (l, m, n) { return [ -m,  n, -l ]; },
-										function (l, m, n) { return [  l,  n, -m ]; },
-										function (l, m, n) { return [  m,  l, -n ]; } ];
-										
-			tangential.forward = function(phi, theta) {
-				var l = Math.cos(theta) * Math.cos(phi),
-					m = Math.cos(theta) * Math.sin(phi),
-					n = Math.sin(theta);
-				
-				var max = null,
-					face = -1;
-					
-				var arr = [ n, l, m, -l, -m, -n ];
-				
-				for (i = 0; i < 6; i++) {
-					var v = arr[i];
-					if (typeof max === "undefined" || v > max) {
-						max = v;
-						face = i;
-					}
-				}
-				
-				var xietazeta = FORWARD_PARAMETERS[face](l, m, n),
-					xi = xietazeta[0],
-					eta = xietazeta[1],
-					zeta = xietazeta[2];
-				
-				var chi = xi / zeta,
-					psi = eta / zeta;
-					
-				return [face, chi, psi];
-				
-			};
-													
+						
 			var INVERSE_PARAMETERS = [ function (xi, eta, zeta) { return [-eta, xi, zeta]; }, 
 									   function (xi, eta, zeta) { return [zeta, xi, eta]; },
 									   function (xi, eta, zeta) { return [-xi, zeta, eta]; },

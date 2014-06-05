@@ -38,13 +38,13 @@ var Ü = (function(Ü) {
 		//object to stage pre qscp.transform -ed data
 		var sphere = (function(sphere) {
 			var map_height = 0,
-				map_width = 0,
-				map_pano = {};
+			map_width = 0,
+			map_pano = {};
 			
 			var disp_height = 0,
-				disp_width = 0,
-				disp_depths = [],
-				disp_pano = {};
+			disp_width = 0,
+			disp_depths = [],
+			disp_pano = {};
 							
 				sphere.setMapData = function(mpano) {
 					map_height = mpano.height;
@@ -95,19 +95,19 @@ var Ü = (function(Ü) {
 				map_pano = panos[0],
 				disp_pano = panos[1];
 			
-			//document.body.appendChild(map_pano);
-			//document.body.appendChild(disp_pano);
+			document.body.appendChild(map_pano);
+			document.body.appendChild(disp_pano);
 			
 			//get faces of cube
 			var map_faces = Ü._utils.QSCP.transform(map_pano),
 				disp_faces = Ü._utils.QSCP.transform(disp_pano);
-			/*
+			
 			for (i = 0; i < 6; i++) {
 				document.body.appendChild(map_faces[i]);
 			}
 			for (i = 0; i < 6; i++) {
 				document.body.appendChild(disp_faces[i]);
-			}	*/		
+			}			
 			//make textures
 			var map_textures = [],
 				disp_textures = [];
@@ -130,7 +130,7 @@ var Ü = (function(Ü) {
 				uniforms["map"].value = map_textures[i];
 				uniforms["tDisplacement"].value = disp_textures[i];
 				uniforms["uDisplacementBias"].value = 0;
-				uniforms["uDisplacementScale"].value = 10000;
+				uniforms["uDisplacementScale"].value = 0;
 
 				face_materials[i] = new THREE.ShaderMaterial({	
 							uniforms: uniforms, 

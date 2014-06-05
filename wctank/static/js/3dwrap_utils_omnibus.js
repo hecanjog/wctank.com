@@ -8,7 +8,7 @@ var Ü = (function(Ü) {
 	//make omnibus 
 	var	fov = 70, //70
 		frustum_near = 1,
-		frustum_far = 90000,
+		frustum_far = 40000,
 		van = new THREE.Object3D(),
 		van_x_axis = new THREE.Vector3(1,0,0),
 		van_z_axis = new THREE.Vector3(0,0,-1);
