@@ -1,9 +1,3 @@
-/*
- * this file, with the exception of the "QSCP.transform" function, 
- * is a port of the "QuadSphere" gem
- * license: https://github.com/cix/QuadSphere/blob/master/COPYING
- */
-
 var Ü = (function(Ü) {
 	
 	Ü._utils = Ü._utils || {};
