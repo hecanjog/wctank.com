@@ -48,12 +48,8 @@ var Ü = (function(Ü) {
 			var x = texel % width,
 				y = FLOOR(texel / width);
 			
-			//console.log(x, y);
-			
 			var phi = ((2 * PI * x) / width) - PI,
 				theta = (PI / 2) - ((PI * y) / height);
-			
-			//console.log(phi, theta);
 			
 			//transform, get face, x, y
 			var loc = Ü._utils.project.eq2Cube.forward(phi, theta),
@@ -85,12 +81,10 @@ var Ü = (function(Ü) {
 		//simple cubic projection from equirectangular panorama
 		//OR, wherein we make javascript look like COBOL and call it optimized
 					
-		var sx = COS(phi) * SIN(theta),
-			sy = SIN(phi) * SIN(theta),
+		var sx = COS(phi) * COS(theta),
+			sy = COS(phi) * SIN(theta),
 			sz = COS(theta);
-		
-		//console.log('sx = '+sx+' sy = '+sy+' sz = '+sz);
-				
+						
 		var mmax = 0, 
 			idx = 0; 
 			
@@ -138,9 +132,7 @@ var Ü = (function(Ü) {
 				if (sign === 0)  { y = -y; }
 				break;
 		}
-		
-		//console.log('face = '+face+' x = '+x+' y = '+y);
-			
+					
 		return [face, x, y];
 			
 	};

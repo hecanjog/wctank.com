@@ -95,9 +95,6 @@ var Ü = (function(Ü) {
 				map_pano = panos[0],
 				disp_pano = panos[1];
 			
-			document.body.appendChild(map_pano);
-			document.body.appendChild(disp_pano);
-			
 			//get faces of cube
 			var map_faces = Ü._utils.project.eq2Cube.transCanvas(map_pano),
 				disp_faces = Ü._utils.project.eq2Cube.transCanvas(disp_pano);
@@ -156,33 +153,33 @@ var Ü = (function(Ü) {
 				
 			//assemble cube
 			if (that.knockouts.indexOf('x_neg') === -1) {
-				meshes[0].rotation.x = Math.PI/2;
-				meshes[0].position.y = cube_half;
-				that.cube.add(meshes[0]);
+				meshes[0].rotation.y = Math.PI/2;
+  				meshes[0].position.x = -cube_half;
+  				that.cube.add(meshes[0]);
 			}
 			if (that.knockouts.indexOf('x_pos') === -1) {
-				meshes[1].position.z = -cube_half;
-				that.cube.add(meshes[1]);
+				meshes[1].rotation.y = -Math.PI/2;
+  				meshes[1].position.x = cube_half;
+  				that.cube.add(meshes[1]);
 			}
 			if (that.knockouts.indexOf('y_neg') === -1) {
-				meshes[2].rotation.y = Math.PI/2;
-				meshes[2].position.x = -cube_half;
-				that.cube.add(meshes[2]);
+				meshes[2].rotation.x = -Math.PI/2;
+  				meshes[2].position.y = -cube_half;
+  				that.cube.add(meshes[2]);
 			}
 			if (that.knockouts.indexOf('y_pos') === -1) {
-				meshes[3].rotation.y = Math.PI;
-				meshes[3].position.z = cube_half;
-				that.cube.add(meshes[3]);
+				meshes[3].rotation.x = Math.PI/2;
+  				meshes[3].position.y = cube_half;
+  				that.cube.add(meshes[3]);
 			}
 			if (that.knockouts.indexOf('z_neg') === -1) {
-				meshes[4].rotation.y = -Math.PI/2;
-				meshes[4].position.x = cube_half;
-				that.cube.add(meshes[4]);
+				meshes[4].position.z = -cube_half;
+  				that.cube.add(meshes[4]);
 			}
 			if (that.knockouts.indexOf('z_pos') === -1) {
-				meshes[5].rotation.x = -Math.PI/2;
-				meshes[5].position.y = -cube_half;
-				that.cube.add(meshes[5]);
+				meshes[5].rotation.y = Math.PI;
+  				meshes[5].position.z = cube_half;
+  				that.cube.add(meshes[5]);
 			}	
 		};
 		
