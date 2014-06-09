@@ -99,12 +99,29 @@ var Ü = (function(Ü) {
 			var map_faces = Ü._utils.project.eq2Cube.transCanvas(map_pano),
 				disp_faces = Ü._utils.project.eq2Cube.transCanvas(disp_pano);
 			
+			/*****************	DEBUG CANVASES	**********************/
+			$("body").append("<h1>PANORAMA FROM GOOG MAPS</h1>");
+			document.body.appendChild(map_pano);
+			$("body").append("<h1>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</h1><br>");
+			$("body").append("<h1>DEPTH MAP</h1>");
+			document.body.appendChild(disp_pano);
+			$("body").append("<h1>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</h1><br>");
+			$("body").append("<h1>FACES OF PANORAMA CUBE</h1><br>");
 			for (i = 0; i < 6; i++) {
+				$("body").append("<h1>FACE "+i+"</h1>");
 				document.body.appendChild(map_faces[i]);
+				$("body").append("______________<br>");
 			}
+			$("body").append("<h1>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</h1><br>");
+			$("body").append("<h1>FACES OF DEPTH CUBE</h1><br>");
 			for (i = 0; i < 6; i++) {
+				$("body").append("<h1>FACE "+i+"</h1>");
 				document.body.appendChild(disp_faces[i]);
-			}			
+				$("body").append("___________<br>");
+			}		
+			/*********************************************************/
+			
+				
 			//make textures
 			var map_textures = [],
 				disp_textures = [];

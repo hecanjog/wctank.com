@@ -41,7 +41,7 @@ var Ü = (function(Ü) {
 	
 	//use this function to set first location and load
 	Ü.setStartingLocation = function(lat, lng) {
-		var unit = new Ü._utils.unitBuilder(lat, lng, ['yup']);
+		var unit = new Ü._utils.unitBuilder(lat, lng, []);
 		scene.add(unit.cube);
 		/*var unit2 = new Ü._utils.unitBuilder(40.74872,-73.985222, ['z_pos']);
 		unit2.cube.position.z = -10000;
