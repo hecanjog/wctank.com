@@ -31,20 +31,20 @@ var Ü = (function(Ü) {
 		var that = this;
 		
 		var loader = new GSVPANO.PanoLoader();
-			loader.setZoom(4);
+			loader.setZoom(3);
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
 		
 		//object to stage pre qscp.transform -ed data
 		var sphere = (function(sphere) {
 			var map_height = 0,
-			map_width = 0,
-			map_pano = {};
-			
+				map_width = 0,
+				map_pano = {};
+				
 			var disp_height = 0,
-			disp_width = 0,
-			disp_depths = [],
-			disp_pano = {};
+				disp_width = 0,
+				disp_depths = [],
+				disp_pano = {};
 							
 				sphere.setMapData = function(mpano) {
 					map_height = mpano.height;
