@@ -17,13 +17,13 @@ var Ü = (function(Ü) {
 			height = can.height,
 			total = width * height;
 			
-		//prepare data
+		//prepare pixels of input image as array of 32-bit Ints
 		var ctx = can.getContext('2d'),
 			dat = ctx.getImageData(0, 0, width, height),
 			px = new Int32Array(dat.data.buffer);
 		
-		//length of side on face on output cube
-		var slen = FLOOR(SQRT((width * height) / 6));
+		//length of side of face on output cube
+		var slen = FLOOR(SQRT((width * height) / 6));
 		
 		//create canvas and init data for each face
 		var faces = [];
@@ -38,16 +38,17 @@ var Ü = (function(Ü) {
 			faces[face] = [_can, _ctx, _dat, _px];
 		}
 		
+		//texel = pixel on original panorama
 		for (texel = 0; texel < total; texel++) {
 			
 			//get spherical coord (phi, theta) of texel in rad
-			var x = ((texel % width) / (width / 2)) - 1,
-				y = 1 - (FLOOR(texel / width) / (height / 2));
+			var x = (((texel % width) / width) * 2) - 1,
+				y = 1 - ((FLOOR(texel / width) / height) * 2);
 			
 			var phi = PI * x,
 				theta = (PI / 2) * y;
 						
-			//project, get normalized face, x, y
+			//project, get face, and normalized x, y
 			var loc = Ü._utils.project.eq2Cube.forward(phi, theta),
 				face = loc[0],
 				norx = loc[1],
@@ -81,9 +82,9 @@ var Ü = (function(Ü) {
 		
 		//phi, theta to spherical coordinates, with y and z same as world space:
 		//z = in/out (depth), y = elevation	
-		var sx = SIN(theta) * COS(phi),
-			sy = COS(theta),
-			sz = SIN(theta) * SIN(theta);
+		var sx = COS(theta) * COS(phi),
+			sy = SIN(phi),
+			sz = SIN(theta) * COS(phi);
 						
 		var mmax = 0, 
 			idx = 0; 
@@ -105,10 +106,10 @@ var Ü = (function(Ü) {
 			mmax = msz;
 			idx = 4;
 		}
-		
 		/*
 		 * For each value of idx, if the value of the vector with the largest magnitude is positive, increment sign
-		 * and get face index by adding sign and idx so that 1 = x_pos, 3 = y_pos, 5 = z_pos.
+		 * and get face index by adding sign and idx so that 
+		 * 0 = x_neg, 1 = x_pos, 2 = y_neg, 3 = y_pos, 4 = z_neg, 5 = z_pos.
 		 * 
 		 * Then, normalize (x, y) by maximum magnitude, and invert so that (x, y) on each face
 		 * corresponds to world space, e.g. +x dimen of face 0 (x_neg - to the left at world origin) = 
@@ -142,11 +143,11 @@ var Ü = (function(Ü) {
 				if (sign === 1)  { x = -x; }
 				break;
 		}
-	
+		//console.log(face);
 		return [face, x, y];
 			
 	};
-		
+			
 	return Ü;
 	
 }(Ü || {}));
