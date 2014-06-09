@@ -45,8 +45,6 @@ var Ü = (function(Ü) {
 			disp_width = 0,
 			disp_depths = [],
 			disp_pano = {};
-			
-			var FLOOR = Math.floor;
 							
 				sphere.setMapData = function(mpano) {
 					map_height = mpano.height;
@@ -84,7 +82,7 @@ var Ü = (function(Ü) {
 						if(in2d > 255) {
 							q = 255;
 						} else {
-							q = FLOOR(in2d / 200 * 255);
+							q = in2d / 200 * 255;
 						}
 						
 						if (little_endian) {
