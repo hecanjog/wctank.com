@@ -16,7 +16,7 @@ var Ü = (function(Ü) {
 		 * for projection onto a sphere, return 6 canvases
 		 * corresponding to faces of cube
 		 */
-		
+					
 		//clearly need to rewrite this using the inverse transform
 		//here, phi = azimuth, theta = inclination
 		var can = canvas, 
@@ -30,7 +30,8 @@ var Ü = (function(Ü) {
 			px = new Int32Array(dat.data.buffer);
 		
 		//length of side of face on output cube
-		var slen = FLOOR(SQRT((width * height) / 6));
+		var slen = FLOOR(SQRT((width * height) / 6));
+
 		//create canvas and prepare data for each face
 		var faces = [];
 		for (face = 0; face < 6; face++) {
