@@ -45,6 +45,8 @@ var Ü = (function(Ü) {
 			disp_width = 0,
 			disp_depths = [],
 			disp_pano = {};
+			
+			var FLOOR = Math.floor;
 							
 				sphere.setMapData = function(mpano) {
 					map_height = mpano.height;
@@ -62,22 +64,37 @@ var Ü = (function(Ü) {
 					return [map_pano, disp_pano];
 				};
 				
+				var little_endian = Ü._utils.littleEndian;
 				function makeDisplacementMap() {
 					
 					var canvas = document.createElement('canvas');
-						canvas.height = disp_height;
 						canvas.width = disp_width;
+						canvas.height = disp_height;
 						
-					var	ctx = canvas.getContext('2d'),
-						did = ctx.createImageData(canvas.width, canvas.height);
+					var	width = canvas.width,
+						height = canvas.height,
+						ctx = canvas.getContext('2d'),
+						dat = ctx.createImageData(canvas.width, canvas.height),
+						px = new Int32Array(dat.data.buffer);
 					
-					for ( i = 0 ; i < disp_depths.length; i++ ) {
-						var q = disp_depths[i] / 200 * 255; 
-						var x = i*4;
-						did.data[x] = did.data[x+1] = did.data[x+2] = q;
-						did.data[x+3] = 255;
+					for (i = 0; i < disp_depths.length; i++) {
+						var in2d = disp_depths[i],
+							q = 0;
+						
+						if(in2d > 255) {
+							q = 255;
+						} else {
+							q = FLOOR(in2d / 200 * 255);
+						}
+						
+						if (little_endian) {
+							px[i] = (255 << 24) | (q << 16) | (q << 8) | q;
+						} else {
+							px[i] = (q << 24) | (q << 16) | (q << 8) | 255;
+						}
+
 					}
-						ctx.putImageData(did, 0, 0);
+						ctx.putImageData(dat, 0, 0);
 						disp_pano = canvas;
 				}
 			
