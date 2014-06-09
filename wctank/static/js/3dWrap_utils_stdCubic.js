@@ -5,13 +5,20 @@ var Ü = (function(Ü) {
 	Ü._utils.project.eq2Cube = {};
 	
 	var FLOOR = Math.floor,
+		ASIN = Math.asin,
 		SQRT = Math.sqrt,
 		RND = Math.round,
 		PI = Math.PI;
 	
 	Ü._utils.project.eq2Cube.transCanvas = function(canvas) {
-		//clearly need to rewrite this using the inverse transform
+		/*
+		 * given a canvas containing an equirectangular image
+		 * for projection onto a sphere, return 6 canvases
+		 * corresponding to faces of cube
+		 */
 		
+		//clearly need to rewrite this using the inverse transform
+		//here, phi = azimuth, theta = inclination
 		var can = canvas, 
 			width = can.width,
 			height = can.height,
@@ -24,8 +31,7 @@ var Ü = (function(Ü) {
 		
 		//length of side of face on output cube
 		var slen = FLOOR(SQRT((width * height) / 6));
-		
-		//create canvas and init data for each face
+		//create canvas and prepare data for each face
 		var faces = [];
 		for (face = 0; face < 6; face++) {
 			var _can = document.createElement('canvas');
@@ -42,21 +48,28 @@ var Ü = (function(Ü) {
 		for (texel = 0; texel < total; texel++) {
 			
 			//get spherical coord (phi, theta) of texel in rad
-			var x = (((texel % width) / width) * 2) - 1,
-				y = 1 - ((FLOOR(texel / width) / height) * 2);
+			//u, v for point in original image
+			var u = texel % width,
+				v = FLOOR(texel / width);
 			
-			var phi = PI * x,
-				theta = (PI / 2) * y;
+			//normalize between -1 and 1 in both dimensions
+			var nu = (2 * u / width) - 1,
+				nv = 1 - (2 * v / height);
+			
+			//normalize between azimuth [-pi, pi] and inclination [-pi/2, pi/2],
+			//correcting for vertical spherical distortion 
+			var phi = PI * nu,
+				theta = ASIN(nv);
 						
-			//project, get face, and normalized x, y
+			//call projection, get face and normalized x, y
 			var loc = Ü._utils.project.eq2Cube.forward(phi, theta),
 				face = loc[0],
-				norx = loc[1],
-				nory = loc[2];
+				x = loc[1],
+				y = loc[2];
 			
-			//denormalize x, y to coords on face with (0,0) at upper left
-			var facx = (norx + 1) * (slen / 2),
-				facy = slen - ((nory + 1) * (slen / 2));
+			//denormalize x, y to coords in image space with (0,0) at upper left
+			var facx = (x + 1) * (slen / 2),
+				facy = slen - ((y + 1) * (slen / 2));
 
 			//copy over point from pano into face
 			faces[face][3][RND(facy * slen + facx)] = px[texel];
@@ -77,14 +90,16 @@ var Ü = (function(Ü) {
 		ABS = Math.abs;
 	
 	Ü._utils.project.eq2Cube.forward = function(phi, theta) {
-		//simpler cubic projection from equirectangular panorama
-		//here, phi = azimuth, theta = inclination
-		
+		/*
+		 * given phi (azimuth) and theta (inclination), 
+		 * get normalized x, y coord and face of cube containing it
+		 */
+
 		//phi, theta to spherical coordinates, with y and z same as world space:
-		//z = in/out (depth), y = elevation	
-		var sx = COS(theta) * COS(phi),
-			sy = SIN(phi),
-			sz = SIN(theta) * COS(phi);
+		//z = in/out (depth), y = elevation
+		var sx = COS(phi) * COS(theta),
+			sy = SIN(theta),
+			sz = SIN(phi) * COS(theta);
 						
 		var mmax = 0, 
 			idx = 0; 
@@ -106,8 +121,9 @@ var Ü = (function(Ü) {
 			mmax = msz;
 			idx = 4;
 		}
+		
 		/*
-		 * For each value of idx, if the value of the vector with the largest magnitude is positive, increment sign
+		 * For each value of idx, if the value of the largest vector is positive, increment sign
 		 * and get face index by adding sign and idx so that 
 		 * 0 = x_neg, 1 = x_pos, 2 = y_neg, 3 = y_pos, 4 = z_neg, 5 = z_pos.
 		 * 
@@ -143,7 +159,7 @@ var Ü = (function(Ü) {
 				if (sign === 1)  { x = -x; }
 				break;
 		}
-		//console.log(face);
+
 		return [face, x, y];
 			
 	};
