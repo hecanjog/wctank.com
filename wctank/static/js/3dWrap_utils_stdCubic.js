@@ -130,7 +130,7 @@ var Ü = (function(Ü) {
 		 * 
 		 * Then, normalize (x, y) by maximum magnitude, and invert so that (x, y) on each face
 		 * corresponds to world space, e.g. +x dimen of face 0 (x_neg - to the left at world origin) = 
-		 * -z in world space, or 'away' from camera along world axis from the camera's initial positon.
+		 * -z in world space, or 'away' from camera along world axis at its initial positon.
 		 */		
 		var sign = 0,
 			face = 0,
