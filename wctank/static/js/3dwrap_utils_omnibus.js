@@ -82,7 +82,7 @@ var Ü = (function(Ü) {
 				break;
 			case 68:
 				trans_x = 50;
-				break;
+				break;		
 		}
 	}
 	window.addEventListener('keydown', onKeydown, false);
@@ -110,7 +110,6 @@ var Ü = (function(Ü) {
 	};
 
 	Ü._utils.omnibus.update = function() {
-		//reinit projection matrix, mostly for resize events
 		_camera.projectionMatrix.makePerspective(
 			fov, window.innerWidth / window.innerHeight,
 			frustum_near, frustum_far);

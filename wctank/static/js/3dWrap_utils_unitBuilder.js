@@ -111,8 +111,8 @@ var Ü = (function(Ü) {
 				disp_pano = panos[1];
 			
 			//get faces of cube
-			var map_faces = Ü._utils.project.eq2Cube.transCanvas(map_pano),
-				disp_faces = Ü._utils.project.eq2Cube.transCanvas(disp_pano);
+			var map_faces = Ü._utils.project.cubic(map_pano),
+				disp_faces = Ü._utils.project.cubic(disp_pano);
 				
 			//make textures
 			var map_textures = [],
@@ -174,10 +174,12 @@ var Ü = (function(Ü) {
 			if (that.knockouts.indexOf('y_neg') === -1) {
 				meshes[2].rotation.x = -Math.PI/2;
   				meshes[2].position.y = -cube_half;
+  				meshes[2].rotation.z = 0.5*Math.PI;
   				that.cube.add(meshes[2]);
 			}
 			if (that.knockouts.indexOf('y_pos') === -1) {
 				meshes[3].rotation.x = Math.PI/2;
+				meshes[3].rotation.z = -Math.PI/2;
   				meshes[3].position.y = cube_half;
   				that.cube.add(meshes[3]);
 			}

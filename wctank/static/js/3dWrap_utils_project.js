@@ -2,17 +2,10 @@ var Ü = (function(Ü) {
 	
 	Ü._utils = Ü._utils || {};
 	Ü._utils.project = {};
-	Ü._utils.project.eq2Cube = {};
-	
-	var FLOOR = Math.floor,
-		ASIN = Math.asin,
-		SQRT = Math.sqrt,
-		RND = Math.round,
-		PI = Math.PI;
-	
+		
 	var rend = new THREE.WebGLRenderer();
 	
-	Ü._utils.project.eq2Cube.transCanvas = function(canvas) {
+	Ü._utils.project.cubic = function(canvas) {
 		/*
 		 * given a canvas containing an equirectangular image
 		 * for projection onto a sphere, return 6 canvases
@@ -23,21 +16,19 @@ var Ü = (function(Ü) {
 			height = can.height;
 			
 		//length of side of face of cube
-		var slen = FLOOR(SQRT((width * height) / 6));
+		var slen = Math.floor(Math.sqrt((width * height) / 6));
 		
 		rend.setSize( slen, slen );
 		
 		//prepare 
 		var scene = new THREE.Scene(),
-			camera = new THREE.PerspectiveCamera(90, 1, 0.1, 20000);	
-		
-		//camera.setLens(12);
+			camera = new THREE.PerspectiveCamera(90, 1, 0.0001, 10000);	
 		
 		//prepare sphere, map texture to, add to scene
 		var parent = new THREE.Texture(can),
-			geometry = new THREE.SphereGeometry(10000, 100, 100),
+			geometry = new THREE.SphereGeometry(100, 100, 100),
 			material = new THREE.MeshBasicMaterial({map: parent});
-		
+				
 		var sphere = new THREE.Mesh(geometry, material);
 		sphere.scale.x = -1;
 		sphere.material.map.needsUpdate = true;
@@ -45,12 +36,12 @@ var Ü = (function(Ü) {
 		scene.add(sphere);	
 		scene.add(camera);
 		
-		var copyCanvas = function(canvas) {
+		var copyCanvas = function(canvas_to_copy) {
 			var ret_canv = document.createElement('canvas');
-			ret_canv.width = slen;
-			ret_canv.height = slen;
+			ret_canv.width = canvas_to_copy.width;
+			ret_canv.height = canvas_to_copy.height;
 			ret_ctx = ret_canv.getContext('2d');
-			ret_ctx.drawImage(canvas, 0, 0);
+			ret_ctx.drawImage(canvas_to_copy, 0, 0);
 			
 			return ret_canv;
 		};
@@ -60,34 +51,33 @@ var Ü = (function(Ü) {
 		var fzn = copyCanvas(rend.domElement);
 		
 		//x_pos
-		camera.rotation.y = -0.5 * Math.PI;
+		camera.lookAt(new THREE.Vector3(1, 0, 0));
 		rend.render(scene, camera);
 		var fxp = copyCanvas(rend.domElement);
 		
 		//z_pos
-		camera.rotation.y += -0.5 * Math.PI;
+		camera.lookAt(new THREE.Vector3(0, 0, 1));
 		rend.render(scene, camera);
 		var fzp = copyCanvas(rend.domElement);
 		
 		//x_neg
-		camera.rotation.y += -0.5 * Math.PI;
+		camera.lookAt(new THREE.Vector3(-1, 0, 0));
 		rend.render(scene, camera);
 		var fxn = copyCanvas(rend.domElement);
 		
 		//y_neg
-		camera.rotation.y += -0.5 * Math.PI;
-		camera.rotation.x = -0.5 * Math.PI;
+		camera.lookAt(new THREE.Vector3(0, -1, 0));
 		rend.render(scene, camera);
 		var fyn = copyCanvas(rend.domElement);
 		
 		//y_pos
-		camera.rotation.y = 2 * Math.PI;
-		camera.rotation.x = 0.5 * Math.PI;
+		camera.lookAt(new THREE.Vector3(0, 1, 0));
 		rend.render(scene, camera);
 		var fyp = copyCanvas(rend.domElement);
-	
+		
 		//return canvases -x, +x, -y, +y, -z, +z
 		return [fxn, fxp, fyn, fyp, fzn, fzp];
+		
 			
 	};	
 			
