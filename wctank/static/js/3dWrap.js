@@ -10,21 +10,11 @@
 	
 var Ü = (function(Ü) {
 
-	var scene = {};
-	
-	Ü.wgl_renderer = {};
-	
-	Ü._setScene = function(new_scene) {
-		scene = new_scene;
-	};
-	
-	Ü._getScene = function() {
-		return scene;
-	};
-	
+	Ü.scene = {};
+	Ü.wgl_renderer = {};	
 	
 	Ü.init = function() {
-		scene = new THREE.Scene();
+		Ü.scene = new THREE.Scene();
 		Ü.wgl_renderer = new THREE.WebGLRenderer();
 		Ü.wgl_renderer.sortObjects = false;
 		Ü.wgl_renderer.setSize( window.innerWidth, window.innerHeight );
@@ -41,25 +31,21 @@ var Ü = (function(Ü) {
 	
 	//use this function to set first location and load
 	Ü.setStartingLocation = function(lat, lng) {
-		var unit = new Ü._utils.unitBuilder(lat, lng, []);//'z_neg', 'x_neg']);
-		scene.add(unit.cube);
-		/*var unit2 = new Ü._utils.unitBuilder(40.74872,-73.985222, ['z_pos']);
+		var unit = new Ü._utils.unitBuilder(lat, lng, ['z_neg', 'x_neg']);//'z_neg', 'x_neg']);
+		Ü.scene.add(unit.cube);
+		var unit2 = new Ü._utils.unitBuilder(40.74872,-73.985222, ['z_pos']);
 		unit2.cube.position.z = -10000;
-		scene.add(unit2.cube);
+		Ü.scene.add(unit2.cube);
 		var unit3 =  new Ü._utils.unitBuilder(lat,lng, ['x_pos']);
 		unit3.cube.position.x = -10000;
-		scene.add(unit3.cube);*/
-	};
-	
-	//place objects in scene when ready
-	Ü.start = function() {
-		Ü._utils.omnibus.start();
+		Ü.scene.add(unit3.cube);
+		Ü.scene.add(Ü._utils.omnibus.van);
 	};
 				
 	Ü.animate = function() {
 		requestAnimationFrame(Ü.animate);
-   		Ü._utils.omnibus.toAnimate();		
-		Ü.wgl_renderer.render(scene, Ü._utils.omnibus.getCamera());
+		Ü.masterAnimate.bang();		
+		Ü.wgl_renderer.render(Ü.scene, Ü._utils.omnibus.camera);
 	};
 	
 	return Ü;	

@@ -31,7 +31,7 @@ var Ü = (function(Ü) {
 		var that = this;
 		
 		var loader = new GSVPANO.PanoLoader();
-			loader.setZoom(4);
+			loader.setZoom(2);
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
 		

@@ -6,25 +6,24 @@ var Ü = (function(Ü) {
 	Ü._utils.omnibus = {};
 	
 	//make omnibus 
-	var	fov = 70, //70
-		frustum_near = 1,
-		frustum_far = 40000,
-		van = new THREE.Object3D(),
-		van_x_axis = new THREE.Vector3(1,0,0),
+	//Object3D to hold camera and rotational axis
+	Ü._utils.omnibus.van = new THREE.Object3D();
+	
+	var	van_x_axis = new THREE.Vector3(1,0,0),
 		van_z_axis = new THREE.Vector3(0,0,-1);
 	
-	_camera = new THREE.PerspectiveCamera(
-			fov, window.innerWidth / window.innerHeight,
-			frustum_near, frustum_far);
+	var	fov = 70, //70
+		frustum_near = 1,
+		frustum_far = 40000;
+	
+	Ü._utils.omnibus.camera = new THREE.PerspectiveCamera(
+					fov, window.innerWidth / window.innerHeight,
+					frustum_near, frustum_far);
 
-			van.add(van_x_axis);
-			van.add(van_z_axis);
-			van.add(_camera);
-	
-	Ü._utils.omnibus.getCamera = function() {
-		return _camera;
-	};
-	
+	Ü._utils.omnibus.van.add(van_x_axis);
+	Ü._utils.omnibus.van.add(van_z_axis);
+	Ü._utils.omnibus.van.add(Ü._utils.omnibus.camera);
+		
 	//controls
 	//TODO: install cool tweening obvi					
 	var down = false,
@@ -105,33 +104,27 @@ var Ü = (function(Ü) {
 	}
 	window.addEventListener('keyup', onKeyup, false);
 
-	Ü._utils.omnibus.getPosition = function() {
-		return van.positon;
-	};
+	/*
+	 * Ü._utils.omnibus.getPosition...
+	 * create position property and continually update...
+	 * make available to whatever needs it
+	 */
 
 	Ü._utils.omnibus.update = function() {
-		_camera.projectionMatrix.makePerspective(
+		camera.projectionMatrix.makePerspective(
 			fov, window.innerWidth / window.innerHeight,
 			frustum_near, frustum_far);
 	};
-
-	Ü._utils.omnibus.start = function() {
-		Ü._getScene().add(van);
-	};
 	
-	Ü._utils.omnibus.remove = function() {
-		Ü._getScene().remove(van);
-	};
-
-	Ü._utils.omnibus.toAnimate = function() {
-
-		van.rotation.y += -rot_y;
-		_camera.rotation.x += -rot_x;
-		van.translateOnAxis(van_x_axis, trans_x);
-		van.translateOnAxis(van_z_axis, trans_z);
-		
-	};
-
+	function omnibusAnimate() {
+		Ü._utils.omnibus.van.rotation.y += -rot_y;
+		Ü._utils.omnibus.camera.rotation.x += -rot_x;
+		Ü._utils.omnibus.van.translateOnAxis(van_x_axis, trans_x);
+		Ü._utils.omnibus.van.translateOnAxis(van_z_axis, trans_z);
+	}
+	
+	Ü.masterAnimate.start(omnibusAnimate);
+	
 	return Ü;
 	
 }(Ü || {}));
