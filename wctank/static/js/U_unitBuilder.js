@@ -24,14 +24,16 @@ var Ü = (function(Ü) {
 	
 	Ü._.unitBuilder = function(lat, lng, knockout) {	
 		
-		this.cube = new THREE.Object3D();
+		this.unit = new THREE.Object3D();
 		this.location = new google.maps.LatLng(lat, lng);
 		this.knockouts = knockout;
 		
 		var that = this;
 		
 		var loader = new GSVPANO.PanoLoader();
-			loader.setZoom(2);
+		
+		//TODO: adjust according to max texture size of host	
+		loader.setZoom(2);
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
 		
@@ -164,33 +166,33 @@ var Ü = (function(Ü) {
 			if (that.knockouts.indexOf('x_neg') === -1) {
 				meshes[0].rotation.y = Math.PI/2;
   				meshes[0].position.x = -cube_half;
-  				that.cube.add(meshes[0]);
+  				that.unit.add(meshes[0]);
 			}
 			if (that.knockouts.indexOf('x_pos') === -1) {
 				meshes[1].rotation.y = -Math.PI/2;
   				meshes[1].position.x = cube_half;
-  				that.cube.add(meshes[1]);
+  				that.unit.add(meshes[1]);
 			}
 			if (that.knockouts.indexOf('y_neg') === -1) {
 				meshes[2].rotation.x = -Math.PI/2;
   				meshes[2].position.y = -cube_half;
   				meshes[2].rotation.z = 0.5*Math.PI;
-  				that.cube.add(meshes[2]);
+  				that.unit.add(meshes[2]);
 			}
 			if (that.knockouts.indexOf('y_pos') === -1) {
 				meshes[3].rotation.x = Math.PI/2;
 				meshes[3].rotation.z = -Math.PI/2;
   				meshes[3].position.y = cube_half;
-  				that.cube.add(meshes[3]);
+  				that.unit.add(meshes[3]);
 			}
 			if (that.knockouts.indexOf('z_neg') === -1) {
 				meshes[4].position.z = -cube_half;
-  				that.cube.add(meshes[4]);
+  				that.unit.add(meshes[4]);
 			}
 			if (that.knockouts.indexOf('z_pos') === -1) {
 				meshes[5].rotation.y = Math.PI;
   				meshes[5].position.z = cube_half;
-  				that.cube.add(meshes[5]);
+  				that.unit.add(meshes[5]);
 			}	
 		};
 		

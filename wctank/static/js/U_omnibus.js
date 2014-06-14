@@ -111,7 +111,7 @@ var Ü = (function(Ü) {
 	 */
 
 	Ü._.omnibus.update = function() {
-		camera.projectionMatrix.makePerspective(
+		Ü._.omnibus.camera.projectionMatrix.makePerspective(
 			fov, window.innerWidth / window.innerHeight,
 			frustum_near, frustum_far);
 	};
