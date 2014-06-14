@@ -2,12 +2,12 @@
 
 var Ü = (function(Ü) {
 	
-	Ü._utils = Ü._utils || {};
-	Ü._utils.omnibus = {};
+	Ü._ = Ü._ || {};
+	Ü._.omnibus = {};
 	
 	//make omnibus 
 	//Object3D to hold camera and rotational axis
-	Ü._utils.omnibus.van = new THREE.Object3D();
+	Ü._.omnibus.van = new THREE.Object3D();
 	
 	var	van_x_axis = new THREE.Vector3(1,0,0),
 		van_z_axis = new THREE.Vector3(0,0,-1);
@@ -16,13 +16,13 @@ var Ü = (function(Ü) {
 		frustum_near = 1,
 		frustum_far = 40000;
 	
-	Ü._utils.omnibus.camera = new THREE.PerspectiveCamera(
+	Ü._.omnibus.camera = new THREE.PerspectiveCamera(
 					fov, window.innerWidth / window.innerHeight,
 					frustum_near, frustum_far);
 
-	Ü._utils.omnibus.van.add(van_x_axis);
-	Ü._utils.omnibus.van.add(van_z_axis);
-	Ü._utils.omnibus.van.add(Ü._utils.omnibus.camera);
+	Ü._.omnibus.van.add(van_x_axis);
+	Ü._.omnibus.van.add(van_z_axis);
+	Ü._.omnibus.van.add(Ü._.omnibus.camera);
 		
 	//controls
 	//TODO: install cool tweening obvi					
@@ -105,22 +105,22 @@ var Ü = (function(Ü) {
 	window.addEventListener('keyup', onKeyup, false);
 
 	/*
-	 * Ü._utils.omnibus.getPosition...
+	 * Ü._.omnibus.getPosition...
 	 * create position property and continually update...
 	 * make available to whatever needs it
 	 */
 
-	Ü._utils.omnibus.update = function() {
+	Ü._.omnibus.update = function() {
 		camera.projectionMatrix.makePerspective(
 			fov, window.innerWidth / window.innerHeight,
 			frustum_near, frustum_far);
 	};
 	
 	function omnibusAnimate() {
-		Ü._utils.omnibus.van.rotation.y += -rot_y;
-		Ü._utils.omnibus.camera.rotation.x += -rot_x;
-		Ü._utils.omnibus.van.translateOnAxis(van_x_axis, trans_x);
-		Ü._utils.omnibus.van.translateOnAxis(van_z_axis, trans_z);
+		Ü._.omnibus.van.rotation.y += -rot_y;
+		Ü._.omnibus.camera.rotation.x += -rot_x;
+		Ü._.omnibus.van.translateOnAxis(van_x_axis, trans_x);
+		Ü._.omnibus.van.translateOnAxis(van_z_axis, trans_z);
 	}
 	
 	Ü.masterAnimate.start(omnibusAnimate);

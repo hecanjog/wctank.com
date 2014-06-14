@@ -1,8 +1,8 @@
 var Ü = (function(Ü) {
 	
-	Ü._utils = Ü._utils || {};
+	Ü._ = Ü._ || {};
 	
-	Ü._utils.worldBuilder = (function() {
+	Ü._.worldBuilder = (function() {
 		
 		/* 
 		 * Here, call unitBuilders as needed to 

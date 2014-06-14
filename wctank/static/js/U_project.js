@@ -1,11 +1,11 @@
 var Ü = (function(Ü) {
 	
-	Ü._utils = Ü._utils || {};
-	Ü._utils.project = {};
+	Ü._ = Ü._ || {};
+	Ü._.project = {};
 		
 	var rend = new THREE.WebGLRenderer();
 	
-	Ü._utils.project.cubic = function(canvas) {
+	Ü._.project.cubic = function(canvas) {
 		/*
 		 * given a canvas containing an equirectangular image
 		 * for projection onto a sphere, return 6 canvases

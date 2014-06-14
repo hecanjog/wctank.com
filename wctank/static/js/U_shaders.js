@@ -1,9 +1,9 @@
 //TODO: remove cruft!!!!
 var Ü = (function(Ü) {
 
-	Ü._utils = Ü._utils || {};
+	Ü._ = Ü._ || {};
 	
-	Ü._utils.shaders = {
+	Ü._.shaders = {
 
 		basicDisplacement: {
 

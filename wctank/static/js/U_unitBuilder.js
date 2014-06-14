@@ -1,5 +1,5 @@
 /*
- * Ü._utils.unitBuilder builds world unit cubes!
+ * Ü._.unitBuilder builds world unit cubes!
  * 
  * makes this.cube on construction
  * gets numbers lat, lng, array 'knockout'
@@ -12,7 +12,7 @@
  * holds knockout data
  * 
  * e.g.
- * var unit = new Ü._utils.unitBuilder(43.038706, -87.907486, ['z_neg']);
+ * var unit = new Ü._.unitBuilder(43.038706, -87.907486, ['z_neg']);
  * scene.add(unit.cube)
  * var where_am_I = [unit.location.lat(), unit.location.lng()];
  * 
@@ -20,9 +20,9 @@
 
 var Ü = (function(Ü) {
 	
-	Ü._utils = Ü._utils || {};
+	Ü._ = Ü._ || {};
 	
-	Ü._utils.unitBuilder = function(lat, lng, knockout) {	
+	Ü._.unitBuilder = function(lat, lng, knockout) {	
 		
 		this.cube = new THREE.Object3D();
 		this.location = new google.maps.LatLng(lat, lng);
@@ -62,7 +62,7 @@ var Ü = (function(Ü) {
 					return [map_pano, disp_pano];
 				};
 				
-				var little_endian = Ü._utils.littleEndian;
+				var little_endian = Ü._.littleEndian;
 				function makeDisplacementMap() {
 					
 					var canvas = document.createElement('canvas');
@@ -111,8 +111,8 @@ var Ü = (function(Ü) {
 				disp_pano = panos[1];
 			
 			//get faces of cube
-			var map_faces = Ü._utils.project.cubic(map_pano),
-				disp_faces = Ü._utils.project.cubic(disp_pano);
+			var map_faces = Ü._.project.cubic(map_pano),
+				disp_faces = Ü._.project.cubic(disp_pano);
 				
 			//make textures
 			var map_textures = [],
@@ -128,7 +128,7 @@ var Ü = (function(Ü) {
 			var face_materials = [];			
 			for (i = 0; i < 6; i++) {
 				
-				var shader = Ü._utils.shaders.basicDisplacement;
+				var shader = Ü._.shaders.basicDisplacement;
 				var uniforms = THREE.UniformsUtils.clone(shader.uniforms);
 					
 				//TODO: bind object references to uniforms	
