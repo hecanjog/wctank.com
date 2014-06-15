@@ -1,76 +1,154 @@
 /*
- * THIS IS BROKEN AND DOESN'T WORK
+ * imageOps contains handy image transforms
+ * TODO: abstract out some of the repetitive cruft
  */
-
 var Ü = (function(Ü) {
 	
 	Ü._ = Ü._ || {};
 
 	Ü._.imageOps = (function(imageOps) {
 		
-		/*
-		 * alphaIntersect:
-		 * given two canvases, a SOURCE and an (alpha) MAP with the same
-		 * aspect ratio, returns new canvas with data from source corresponding
-		 * to where MAP RGB is either !== 0 || 255, with 
-		 * MAP dimensions normalized to SOURCE
-		 * 
-		 * Params:
-		 * 		source: (canvas)
-		 * 		map: (canvas)
-		 * 		invert: (number - optional) - if TRUTHY, will intersect source with color 
-		 * 			values in map 0 < intersecting_data <= 255, i.e., black values
-		 * 			do not intersect; FALSE by default so that 0 <= intersecting_data < 255, 
-		 * 			i.e., white areas do not intersect 	  
-		 */
+		var FLOOR = Math.floor,
+			ROUND = Math.round;
 		
-		var FLOOR = Math.floor;
-		
-		imageOps.alphaIntersect = function(source, map, invert) {
+		imageOps.flipHorizontal = function(canvas) {
 			
-			var simg = source,
-			    mimg = map;
+			var srw = canvas.width,
+				srh = canvas.height;
 			
-			var swidth = simg.width,
-			    sheight = simg.height,
-			    mwidth = mimg.width,
-			    mheight = mimg.height;
-			
-			var inv = invert || false;
-			
-			var filter = 0;
-			if (!inv) { filter = 0xffffffff; }
-			
-			var sctx = simg.getContext('2d'),
-			    sdat = sctx.getImageData(0, 0, swidth, sheight),
+			var sctx = canvas.getContext('2d'),
+			    sdat = sctx.getImageData(0, 0, srw, srh),
 			    spx = new Int32Array(sdat.data.buffer);
-			
-			var mctx = mimg.getContext('2d'),
-                mdat = mctx.getImageData(0, 0, mwidth, mheight),
-                mpx = new Int32Array(mdat.data.buffer);
-      		
-      		var rimg = document.createElement('canvas');
-      		rimg.width = swidth;
-      		rimg.height = sheight;
+			    
+			var rimg = document.createElement('canvas');
+      		rimg.width = srw;
+      		rimg.height = srh;
       		
       		var rctx = rimg.getContext('2d'),
-      		    rdat = rctx.createImageData(swidth, sheight),
+      		    rdat = rctx.createImageData(srw, srh),
       		    rpx = new Int32Array(rdat.data.buffer);
       		
-            var mul = mpx.length / spx.length;
-            
-			for (texel = 0; texel < spx.length; i++) {
-				var mtexel = FLOOR(texel * mul);
-					if(mpx[mtexel] === filter) {
-						rpx[texel] = 0x00000000;	
-					} else {
-						rpx[texel] = spx[texel];
-					}
-			}
-			rctx.putImageData(rdat, 0, 0);
+      		for (y = 0; y < srh; y++) {
+      			for (x = 0; x < srw; x++) {
+      				var invx = srw - x;
+      				rpx[invx + (y * srw)] = spx[x + (y * srw)];
+      			}
+      		}
+
+      		rctx.putImageData(rdat, 0, 0);
+      		return rimg;
+  		};
+		
+		imageOps.flipVertical = function(canvas) {
 			
+			var srw = canvas.width,
+				srh = canvas.height;
+			
+			var sctx = canvas.getContext('2d'),
+			    sdat = sctx.getImageData(0, 0, srw, srh),
+			    spx = new Int32Array(sdat.data.buffer);
+			    
+			var rimg = document.createElement('canvas');
+      		rimg.width = srw;
+      		rimg.height = srh;
+      		
+      		var rctx = rimg.getContext('2d'),
+      		    rdat = rctx.createImageData(srw, srh),
+      		    rpx = new Int32Array(rdat.data.buffer);
+      		
+      		for (y = 0; y < srh; y++) {
+      			var invy = srh - y;
+      			for (x = 0; x < srw; x++) {
+      				rpx[x + (invy * srw)] = spx[x + (y * srw)];
+      			}
+      		}
+
+      		rctx.putImageData(rdat, 0, 0);
+      		return rimg;	
+		};
+		
+		/*
+		 * imageOps.backwards reads input canvas backwards,
+		 * so result is flipped vertically and horizontally
+		 */
+		imageOps.backwards = function(canvas) {
+			
+			var srw = canvas.width,
+				srh = canvas.height;
+			
+			var sctx = canvas.getContext('2d'),
+			    sdat = sctx.getImageData(0, 0, srw, srh),
+			    spx = new Int32Array(sdat.data.buffer);
+			    
+			var rimg = document.createElement('canvas');
+      		rimg.width = srw;
+      		rimg.height = srh;
+      		
+      		var rctx = rimg.getContext('2d'),
+      		    rdat = rctx.createImageData(srw, srh),
+      		    rpx = new Int32Array(rdat.data.buffer);
+      		
+      		var length = spx.length;
+      		
+      		for (texel = 0; texel < length; texel++) {
+      			rpx[texel] = spx[length - 1 - texel];
+      		}
+      		
+      		rctx.putImageData(rdat, 0, 0);
 			return rimg;
+		};
+		
+		/*
+		 * alphaIntersect:
+		 * this isn't working yet
+		 */
+		imageOps.alphaIntersect = function(source, map, invert) {
+
+			var inv = invert || false;
 			
+			var filter = -1;
+			if (inv) {
+				filter = -16579837;
+			}
+
+			var black = -16579837,
+				white = -1;
+			
+			var srw = source.width,
+				srh = source.height;
+			
+			var sctx = source.getContext('2d'),
+			    sdat = sctx.getImageData(0, 0, srw, srh),
+			    spx = new Int32Array(sdat.data.buffer);
+			
+			var mctx = map.getContext('2d'),
+                mdat = mctx.getImageData(0, 0, map.width, map.height),
+                mpx = new Int32Array(mdat.data.buffer);
+      		
+      		console.log(mpx[mpx.length - 1]);
+      		
+      		var rimg = document.createElement('canvas');
+      		rimg.width = srw;
+      		rimg.height = srh;
+      		
+      		var rctx = rimg.getContext('2d'),
+      		    rdat = rctx.createImageData(srw, srh),
+      		    rpx = new Int32Array(rdat.data.buffer);
+      		
+      		var mul = mpx.length / spx.length;
+      		
+			for (texel = 0; texel < spx.length; texel++) {
+				var mtexel = ROUND(texel * mul);
+				if (mpx[mtexel] === filter) {
+					rpx[texel] = 0x00000000;	
+				} else {
+					rpx[texel] = spx[texel];
+				}
+			}
+			
+			rctx.putImageData(rdat, 0, 0);
+			document.body.appendChild(rimg);
+			return rimg;	
 		};
 		
 		//imageOps.alphaComplement = function(){};

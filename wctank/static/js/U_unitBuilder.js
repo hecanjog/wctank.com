@@ -95,7 +95,10 @@ var Ü = (function(Ü) {
 
 					}
 						ctx.putImageData(dat, 0, 0);
-						disp_pano = canvas;
+						
+						//yeah, it needs to be inverted
+						disp_pano = Ü._.imageOps.flipHorizontal(canvas);
+						document.body.appendChild(disp_pano);
 				}
 			
 			return sphere;
@@ -109,13 +112,18 @@ var Ü = (function(Ü) {
 				
 			//get map and displacement panos
 			var panos = sphere.getPanos(),
-				map_pano = panos[0],
+				map_pano = Ü._.imageOps.alphaIntersect(panos[0], panos[1]),
 				disp_pano = panos[1];
 			
 			//get faces of cube
 			var map_faces = Ü._.project.cubic(map_pano),
 				disp_faces = Ü._.project.cubic(disp_pano);
-				
+			
+			/*
+			var test = Ü._.imageOps.alphaIntersect(map_pano, disp_pano);	
+			var test2 = Ü._.imageOps.flipHorizontal(disp_pano);
+			*/
+			
 			//make textures
 			var map_textures = [],
 				disp_textures = [];
