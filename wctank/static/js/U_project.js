@@ -77,7 +77,6 @@ var Ü = (function(Ü) {
 		
 		//return canvases -x, +x, -y, +y, -z, +z
 		return [fxn, fxp, fyn, fyp, fzn, fzp];
-		
 			
 	};	
 			

@@ -97,7 +97,7 @@ var Ü = (function(Ü) {
 						ctx.putImageData(dat, 0, 0);
 						
 						//yeah, it needs to be inverted
-						disp_pano = Ü._.imageOps.flipHorizontal(canvas);
+						disp_pano = Ü._.imageOps.flipX(canvas);
 						document.body.appendChild(disp_pano);
 				}
 			
