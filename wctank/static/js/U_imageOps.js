@@ -1,10 +1,5 @@
 /*
  * imageOps contains handy image transforms and utilities
- * TODO: abstract out some of the repetitive cruft
- * object containing new canvas (opt) with constructor
- * context
- * data
- * int32array
  */
 var Ü = (function(Ü) {
 	
@@ -116,8 +111,8 @@ var Ü = (function(Ü) {
 
 			var black = -16579837,
 			    white = -1;
-      		
-      		var m = new Ü._.imageOps.canvasDataPrep(map);
+
+			var m = new Ü._.imageOps.canvasDataPrep(map);
       		
 			var z = new Ü._.imageOps.canvasCopyPrep(source, function(w, h, spx, rpx){
 				var slen = w * h;

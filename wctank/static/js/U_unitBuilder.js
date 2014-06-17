@@ -119,11 +119,6 @@ var Ü = (function(Ü) {
 			var map_faces = Ü._.project.cubic(map_pano),
 				disp_faces = Ü._.project.cubic(disp_pano);
 			
-			/*
-			var test = Ü._.imageOps.alphaIntersect(map_pano, disp_pano);	
-			var test2 = Ü._.imageOps.flipHorizontal(disp_pano);
-			*/
-			
 			//make textures
 			var map_textures = [],
 				disp_textures = [];
