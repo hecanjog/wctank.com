@@ -12,7 +12,7 @@ var Ü = (function(Ü) {
 		
 		/*
 		 * canvasCopyPrep bootstraps image transforms where there is
-		 * 1 antecedant and 1 resultant
+		 * 1 antecedant and 1 resultant that are the same size
 		 */
 		imageOps.canvasCopyPrep = function(canvas, process) {
 			
@@ -44,13 +44,13 @@ var Ü = (function(Ü) {
 			this.w = canvas.width;
 			this.h = canvas.height;
 			
-			var sctx = canvas.getContext('2d'),
-			    sdat = sctx.getImageData(0, 0, this.w, this.h);
+			this.ctx = canvas.getContext('2d'),
+			this.dat = this.ctx.getImageData(0, 0, this.w, this.h);
 			
-			this.px = new Int32Array(sdat.data.buffer);
+			this.px = new Int32Array(this.dat.data.buffer);
 			
 			this.putData = function() {
-				sctx.putImageData(sdat, 0, 0);
+				this.ctx.putImageData(this.dat, 0, 0);
 			};	
 		};
 		
@@ -58,7 +58,7 @@ var Ü = (function(Ü) {
 			
 			var z = new Ü._.imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
 				for (y = 0; y < h; y++) {
-      				for (x = 0; x < w; x++) {
+					for (x = 0; x < w; x++) {
       					var invx = w - x;
       					rpx[invx + (y * w)] = spx[x + (y * w)];
       				}
@@ -77,9 +77,9 @@ var Ü = (function(Ü) {
       					rpx[x + (invy * srw)] = spx[x + (y * srw)];
       				}
       			}
-			});
-			
-      		return z.img;	
+      		});
+		
+			return z.img;	
 		};
 		
 		/*
@@ -99,39 +99,62 @@ var Ü = (function(Ü) {
 		};
 		
 		/*
+		 * given canvas, return new canvas scaled by x, y multipliers
+		 */
+		imageOps.scale = function(canvas, x, y) {
+			
+			var cw = canvas.width,
+				ch = canvas.height;
+			
+			var rcan = document.createElement('canvas');
+			rcan.width = cw * x;
+			rcan.height = ch * y;
+			var rctx = rcan.getContext('2d');
+			
+			rctx.drawImage(canvas, 0, 0, rcan.width, rcan.height);
+
+			return rcan;	
+							
+		};
+		
+		
+		/*
 		 * alphaIntersect:
-		 * this isn't working yet
+		 * given a source canvas and an alpha mask, returns new canvas
+		 * with source pixels that do not correspond to white (or black)
+		 * pixels in mask, normalized to source dimensions
+		 * 
+		 * invert: if truthy, will remove pixels in source corresponding with
+		 * white pixels in map, instead of black.
+		 * 
+		 * TODO: add interpolation
+		 * 
 		 */
 		imageOps.alphaIntersect = function(source, map, invert) {
 
-			var inv = invert || false;
-			
-			var filter = -1;
-			if (inv) { filter = -16579837; }
+			var filter = 255; // black - r 0 g 0 b 0 a 255 
+			if (invert) { filter = -1; } //white - r 255 g 255 b 255 a 255
 
-			var black = -16579837,
-			    white = -1;
-
-			var m = new Ü._.imageOps.canvasDataPrep(map);
+			var mw = map.width;
       		
 			var z = new Ü._.imageOps.canvasCopyPrep(source, function(w, h, spx, rpx){
-				var slen = w * h;
-				var mul = m.px.length / slen;
-				for (texel = 0; texel < slen; texel++) {
-					var mtexel = ROUND(texel * mul);
-					if (m.px[mtexel] === filter) {
-						rpx[texel] = 0x00000000;
+	
+				var mul = w / mw;
+				var scmap = Ü._.imageOps.scale(map, mul, mul);
+				var scmapdat = new Ü._.imageOps.canvasDataPrep(scmap);
+				
+				for (texel = 0; texel < spx.length; texel++) {
+					if (scmapdat.px[texel] === filter) {
+						rpx[texel] = (0x00000000);
 					} else {
 						rpx[texel] = spx[texel];
 					}
 				}
 			});
 			
-			document.body.appendChild(z.img);
 			return z.img;	
 		};
-		
-		//imageOps.alphaComplement = function(){};
+				
 		//imageOps.chromakey = function(){};
 		
 		return imageOps;

@@ -67,6 +67,9 @@ var Ü = (function(Ü) {
 				var little_endian = Ü._.littleEndian;
 				function makeDisplacementMap() {
 					
+					//TODO: Write map correctly on the first pass,
+					//instead of using a second pass to flip the image
+					
 					var canvas = document.createElement('canvas');
 						canvas.width = disp_width;
 						canvas.height = disp_height;
@@ -81,10 +84,10 @@ var Ü = (function(Ü) {
 						var in2d = disp_depths[i],
 							q = 0;
 						
-						if(in2d > 255) {
+						if(in2d > 10000) {
 							q = 255;
 						} else {
-							q = in2d / 200 * 255;
+							q = in2d / 199 * 255;
 						}
 						
 						if (little_endian) {
@@ -94,11 +97,11 @@ var Ü = (function(Ü) {
 						}
 
 					}
-						ctx.putImageData(dat, 0, 0);
+					
+					ctx.putImageData(dat, 0, 0);
 						
-						//yeah, it needs to be inverted
-						disp_pano = Ü._.imageOps.flipX(canvas);
-						document.body.appendChild(disp_pano);
+					//yeah, it needs to be inverted
+					disp_pano = Ü._.imageOps.flipX(canvas);
 				}
 			
 			return sphere;
@@ -112,7 +115,7 @@ var Ü = (function(Ü) {
 				
 			//get map and displacement panos
 			var panos = sphere.getPanos(),
-				map_pano = Ü._.imageOps.alphaIntersect(panos[0], panos[1]),
+				map_pano = Ü._.imageOps.alphaIntersect(panos[0], panos[1], true),
 				disp_pano = panos[1];
 			
 			//get faces of cube
