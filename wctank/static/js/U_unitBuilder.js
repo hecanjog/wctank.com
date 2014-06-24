@@ -1,8 +1,10 @@
 /*
  * Ü._.unitBuilder builds world unit cubes!
  * 
- * makes this.cube on construction
- * gets numbers lat, lng, array 'knockout'
+ * makes this.unit on construction
+ * gets string type, numbers lat, lng, array 'knockout'
+ * 
+ * TYPE: cube, knockout
  * 
  * KNOCKOUT: an array of strings indicating which faces NOT to construct
  * possible values: y_pos, z_neg, x_neg, z_pos, x_pos, y_neg (order not important)
@@ -15,7 +17,6 @@
  * var unit = new Ü._.unitBuilder(43.038706, -87.907486, ['z_neg']);
  * scene.add(unit.cube)
  * var where_am_I = [unit.location.lat(), unit.location.lng()];
- * 
  */
 
 var Ü = (function(Ü) {
@@ -23,6 +24,8 @@ var Ü = (function(Ü) {
 	Ü._ = Ü._ || {};
 	
 	Ü._.unitBuilder = function(lat, lng, knockout) {	
+		
+		var unit_diameter = 1000;
 		
 		this.unit = new THREE.Object3D();
 		this.location = new google.maps.LatLng(lat, lng);
@@ -33,12 +36,13 @@ var Ü = (function(Ü) {
 		var loader = new GSVPANO.PanoLoader();
 		
 		//TODO: adjust according to max texture size of host	
-		loader.setZoom(2);
+		loader.setZoom(3);
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
 		
 		//object to stage pre qscp.transform -ed data
 		var sphere = (function(sphere) {
+			
 			var map_height = 0,
 				map_width = 0,
 				map_pano = {};
@@ -110,8 +114,7 @@ var Ü = (function(Ü) {
 			
 		var makeCube = function() { 
 				
-			var cube_width = 10000,
-				cube_half = cube_width/2;
+			var cube_half = unit_diameter / 2;
 				
 			//get map and displacement panos
 			var panos = sphere.getPanos(),
@@ -119,8 +122,8 @@ var Ü = (function(Ü) {
 				disp_pano = panos[1];
 			
 			//get faces of cube
-			var map_faces = Ü._.project.cubic(map_pano),
-				disp_faces = Ü._.project.cubic(disp_pano);
+			var map_faces = Ü._.project.sphereToCube(map_pano),
+				disp_faces = Ü._.project.sphereToCube(disp_pano);
 			
 			//make textures
 			var map_textures = [],
@@ -157,7 +160,7 @@ var Ü = (function(Ü) {
 			//make planes
 			var planes = [];
 			for (i = 0; i < 6; i++) {
-				planes[i] = new THREE.PlaneGeometry(cube_width, cube_width, 1, 1);
+				planes[i] = new THREE.PlaneGeometry(unit_diameter, unit_diameter, 1, 1);
 			}
 				
 			//make meshes
@@ -215,6 +218,7 @@ var Ü = (function(Ü) {
 					
 			makeCube();
 		};
+				
 	};
 		
 	return Ü;

@@ -31,16 +31,8 @@ var Ü = (function(Ü) {
 	
 	//use this function to set first location and load
 	Ü.setStartingLocation = function(lat, lng) {
-		console.log('before');
 		var unit = new Ü._.unitBuilder(lat, lng, []);//'z_neg', 'x_neg']);
-		unit.unit.position.z = -15000;
 		Ü.scene.add(unit.unit);
-		/*var unit2 = new Ü._.unitBuilder(40.74872,-73.985222, ['z_pos']);
-		unit2.cube.position.z = -10000;
-		Ü.scene.add(unit2.cube);
-		var unit3 =  new Ü._.unitBuilder(lat,lng, ['x_pos']);
-		unit3.cube.position.x = -10000;
-		Ü.scene.add(unit3.cube);*/
 		Ü.scene.add(Ü._.omnibus.van);
 	};
 				

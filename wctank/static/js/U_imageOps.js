@@ -34,6 +34,7 @@ var Ü = (function(Ü) {
 			process(w, h, spx, rpx);
 			
 			rctx.putImageData(rdat, 0, 0);
+			
 		};
 		
 		/*
@@ -51,7 +52,20 @@ var Ü = (function(Ü) {
 			
 			this.putData = function() {
 				this.ctx.putImageData(this.dat, 0, 0);
-			};	
+			};
+				
+		};
+		
+		imageOps.copy = function(canvas) {
+			
+			var ret_canv = document.createElement('canvas');
+			ret_canv.width = canvas.width;
+			ret_canv.height = canvas.height;
+			ret_ctx = ret_canv.getContext('2d');
+			ret_ctx.drawImage(canvas, 0, 0);
+			
+			return ret_canv;
+			
 		};
 		
 		imageOps.flipX = function(canvas) {
@@ -66,6 +80,7 @@ var Ü = (function(Ü) {
 			});
       		
       		return z.img;
+      		
   		};
 		
 		imageOps.flipY = function(canvas) {
@@ -79,7 +94,8 @@ var Ü = (function(Ü) {
       			}
       		});
 		
-			return z.img;	
+			return z.img;
+				
 		};
 		
 		/*
@@ -96,6 +112,7 @@ var Ü = (function(Ü) {
 			});
 			
 			return z.img;
+			
 		};
 		
 		/*
@@ -116,7 +133,6 @@ var Ü = (function(Ü) {
 			return rcan;	
 							
 		};
-		
 		
 		/*
 		 * alphaIntersect:
@@ -145,7 +161,7 @@ var Ü = (function(Ü) {
 				
 				for (texel = 0; texel < spx.length; texel++) {
 					if (scmapdat.px[texel] === filter) {
-						rpx[texel] = (0x00000000);
+						rpx[texel] = 0x00000000;
 					} else {
 						rpx[texel] = spx[texel];
 					}
@@ -153,9 +169,34 @@ var Ü = (function(Ü) {
 			});
 			
 			return z.img;	
+			
 		};
 				
-		//imageOps.chromakey = function(){};
+		/*
+		 * provided an image and cropping bounds relative to each edge in percent (0 to 1),
+		 * returns image of same size as source with cropped out areas transparent
+		 */
+		imageOps.cropInPlace = function(canvas, l, r, t, b) {
+			
+			var rcan = document.createElement('canvas');
+			rcan.width = canvas.width;
+			rcan.height = canvas.height;
+			var rctx = rcan.getContext('2d');
+			
+			var cropL = rcan.width * l,
+				cropR = (rcan.width * (1 - r)) - cropL,
+				cropT = rcan.height * t,
+				cropB = (rcan.height * (1 - b)) - cropT;
+			
+			rctx.drawImage(canvas, 
+				cropL, cropT, //clip x, y
+				cropR, cropB, //width, height of clipped image
+				cropL, cropT, //place x, y
+				cropR, cropB); //width, height of image
+
+			return rcan;
+			
+		};
 		
 		return imageOps;
 		

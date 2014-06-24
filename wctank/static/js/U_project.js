@@ -5,27 +5,15 @@ var Ü = (function(Ü) {
 		
 	var rend = new THREE.WebGLRenderer();
 	
-	Ü._.project.cubic = function(canvas) {
-		/*
-		 * given a canvas containing an equirectangular image
-		 * for projection onto a sphere, return 6 canvases
-		 * corresponding to faces of cube
-		 */
-		var can = canvas, 
-			width = can.width,
-			height = can.height;
-			
-		//length of side of face of cube
-		var slen = Math.floor(Math.sqrt((width * height) / 6));
+	var prepareSphereProjection = function(canvas) {
 		
-		rend.setSize( slen, slen );
+		this.w = canvas.width;
+		this.h = canvas.height;
 		
-		//prepare 
-		var scene = new THREE.Scene(),
-			camera = new THREE.PerspectiveCamera(90, 1, 0.0001, 10000);	
+		this.scene = new THREE.Scene();
+		this.camera = new THREE.PerspectiveCamera(90, 1, 0.0001, 10000);
 		
-		//prepare sphere, map texture to, add to scene
-		var parent = new THREE.Texture(can),
+		var parent = new THREE.Texture(canvas),
 			geometry = new THREE.SphereGeometry(100, 100, 100),
 			material = new THREE.MeshBasicMaterial({map: parent});
 				
@@ -33,53 +21,46 @@ var Ü = (function(Ü) {
 		sphere.scale.x = -1;
 		sphere.material.map.needsUpdate = true;
 		
-		scene.add(sphere);	
-		scene.add(camera);
+		this.scene.add(sphere);	
+		this.scene.add(this.camera);
 		
-		var copyCanvas = function(canvas_to_copy) {
-			var ret_canv = document.createElement('canvas');
-			ret_canv.width = canvas_to_copy.width;
-			ret_canv.height = canvas_to_copy.height;
-			ret_ctx = ret_canv.getContext('2d');
-			ret_ctx.drawImage(canvas_to_copy, 0, 0);
+		this.snapshot = function(x, y, z, renderer) {
 			
-			return ret_canv;
+			this.camera.lookAt(new THREE.Vector3(x, y, z));
+			renderer.render(this.scene, this.camera);
+			
+			return Ü._.imageOps.copy(renderer.domElement);
+			
 		};
 		
-		//z_neg
-		rend.render(scene, camera);
-		var fzn = copyCanvas(rend.domElement);
+	};
+	
+	/* 
+	 * given a canvas containing an equirectangular image
+	 * for projection onto a sphere, return 6 canvases
+	 * corresponding to faces of cube
+	 */
+	Ü._.project.sphereToCube = function(canvas) {
 		
-		//x_pos
-		camera.lookAt(new THREE.Vector3(1, 0, 0));
-		rend.render(scene, camera);
-		var fxp = copyCanvas(rend.domElement);
+		var sp = new prepareSphereProjection(canvas);
 		
-		//z_pos
-		camera.lookAt(new THREE.Vector3(0, 0, 1));
-		rend.render(scene, camera);
-		var fzp = copyCanvas(rend.domElement);
+		//length of side of face of cube
+		var slen = Math.floor(Math.sqrt((sp.w * sp.h) / 6));
 		
-		//x_neg
-		camera.lookAt(new THREE.Vector3(-1, 0, 0));
-		rend.render(scene, camera);
-		var fxn = copyCanvas(rend.domElement);
+		rend.setSize( slen, slen );
 		
-		//y_neg
-		camera.lookAt(new THREE.Vector3(0, -1, 0));
-		rend.render(scene, camera);
-		var fyn = copyCanvas(rend.domElement);
-		
-		//y_pos
-		camera.lookAt(new THREE.Vector3(0, 1, 0));
-		rend.render(scene, camera);
-		var fyp = copyCanvas(rend.domElement);
+		var fxn = sp.snapshot(-1, 0, 0, rend), //x_neg
+			fxp = sp.snapshot(1, 0, 0, rend), //x_pos
+			fyn = sp.snapshot(0, -1, 0, rend), //y_neg
+			fyp = sp.snapshot(0, 1, 0, rend), //y_pos
+			fzn = sp.snapshot(0, 0, -1, rend), //z_neg
+			fzp = sp.snapshot(0, 0, 1, rend); //z_pos
 		
 		//return canvases -x, +x, -y, +y, -z, +z
 		return [fxn, fxp, fyn, fyp, fzn, fzp];
 			
 	};	
-			
+				
 	return Ü;
 	
 }(Ü || {}));
