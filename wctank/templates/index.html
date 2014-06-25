@@ -100,6 +100,9 @@
                 'content': content
             }
 
+            console.log(post);
+            console.log(post_data);
+
             var template = $template.html();
             $.each(post_data, function(i, v) {
                 var rg = "~!" + i;
@@ -170,7 +173,6 @@
 <div id="overlay"></div>
 
 <script type="text/html" id="post-template">
-    <p>~!type</p>
     <button class="close-post" type="button">Close</button>
     <div class="~!type">~!content</div>
     <a class="permalink" href="~!link"><p>view on tumblr</p></a>
