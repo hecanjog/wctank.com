@@ -55,6 +55,3 @@ def getPosts(swk, swa, nek, nea):
 
     return json.dumps(posts)
 
-if __name__ == '__main__':
-    app.debug = True
-    app.run()
