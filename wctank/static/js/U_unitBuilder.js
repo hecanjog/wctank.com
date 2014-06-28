@@ -2,12 +2,16 @@
  * Ü._.unitBuilder builds world unit cubes!
  * 
  * makes this.unit on construction
- * gets string type, numbers lat, lng, array 'knockout'
+ * gets numbers lat, lng, array 'knockout'
  * 
- * TYPE: cube, knockout
- * 
- * KNOCKOUT: an array of strings indicating which faces NOT to construct
- * possible values: y_pos, z_neg, x_neg, z_pos, x_pos, y_neg (order not important)
+ * KNOCKOUT: an array of numbers indicating which faces NOT to construct
+ * possible values: 
+ * 		0 = x negative
+ * 		1 = x positive
+ * 		2 = y negative
+ * 		3 = y positive
+ * 		4 = z negative
+ * 		5 = z positive
  * 
  * holds unit cube
  * holds location data (as google.maps.LatLng object)
@@ -18,7 +22,6 @@
  * scene.add(unit.cube)
  * var where_am_I = [unit.location.lat(), unit.location.lng()];
  */
-//vibrate function
 
 var Ü = (function(Ü) {
 	
@@ -78,28 +81,41 @@ var Ü = (function(Ü) {
 		
 		var makeCube = function() { 
 				
-			var cube_half = unit_diameter / 2;
-				
+			var cube_half = unit_diameter / 2,
+			fnum = 6 - that.knockouts.length;	
+			
 			//get map and displacement panos
 			var panos = sphere.getPanos();
 			
-			var map_proj = Ü._.project.sphereToCube(panos[0]);
-			var disp_faces = Ü._.project.sphereToCube(panos[1]);
+			var map_proj = Ü._.project.sphereToCube(panos[0]),
+			disp_proj = Ü._.project.sphereToCube(panos[1]);
+		
+			var map_set = [],
+			disp_faces = [];
 			
-			var map_can = [];
+			var ctr = 0;
 			for (i = 0; i < 6; i++) {
-				map_can[i] = Ü._.imageOps.cannyEdge(map_proj[i]);
+				if (that.knockouts.indexOf(i) === -1) {
+					map_set[ctr] = map_proj[i];
+					disp_faces[ctr] = disp_proj[i];
+					ctr++;
+				}
+			}
+			
+			var map_canny = [];
+			for (i = 0; i < fnum; i++) {
+				map_canny[i] = Ü._.imageOps.cannyEdge(map_set[i]);
 			}
 			
 			var map_faces = [];
-			for (i = 0; i < 6; i++) {
-				map_faces[i] = Ü._.imageOps.alphaIntersect(map_proj[i], map_can[i]);
+			for (i = 0; i < fnum; i++) {
+				map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);
 			}
 			
 			//make textures
 			var map_textures = [],
-				disp_textures = [];
-			for (i = 0; i < 6; i++) {
+			disp_textures = [];
+			for (i = 0; i < fnum; i++) {
 				map_textures[i] = new THREE.Texture(map_faces[i]);
 				disp_textures[i] = new THREE.Texture(disp_faces[i]);
 			}
@@ -108,7 +124,7 @@ var Ü = (function(Ü) {
 			THREE.ShaderMaterial.prototype.tDisplacement = null;
 			
 			var face_materials = [];			
-			for (i = 0; i < 6; i++) {
+			for (i = 0; i < fnum; i++) {
 				
 				var shader = Ü._.shaders.basicDisplacement;
 				var uniforms = THREE.UniformsUtils.clone(shader.uniforms);
@@ -130,50 +146,58 @@ var Ü = (function(Ü) {
 			
 			//make planes
 			var planes = [];
-			for (i = 0; i < 6; i++) {
+			for (i = 0; i < fnum; i++) {
 				planes[i] = new THREE.PlaneGeometry(unit_diameter, unit_diameter, 1, 1);
 			}
 				
 			//make meshes
 			var meshes = [];
-			for (i = 0; i < 6; i++) {
+			for (i = 0; i < fnum; i++) {
 				meshes[i] = new THREE.Mesh(planes[i], face_materials[i]);
 				meshes[i].material.map.needsUpdate = true;
 				meshes[i].material.tDisplacement.needsUpdate = true;
 			}
-				
+			
 			//assemble cube
-			if (that.knockouts.indexOf('x_neg') === -1) {
-				meshes[0].rotation.y = Math.PI/2;
-  				meshes[0].position.x = -cube_half;
-  				that.unit.add(meshes[0]);
+			var octr = 0;
+			for (i = 0; i < 6; i++) {
+				
+				if (that.knockouts.indexOf(i) === -1) {
+					
+					switch (i) {
+						case 0: //-x
+							meshes[octr].rotation.y = Math.PI / 2;
+							meshes[octr].position.x = -cube_half;
+							break;
+						case 1: //+x
+							meshes[octr].rotation.y = -Math.PI / 2;
+							meshes[octr].position.x = cube_half;
+							break;
+						case 2: //-y
+							meshes[octr].rotation.x = -Math.PI / 2;
+							meshes[octr].rotation.z = 0.5 * Math.PI;
+							meshes[octr].position.y = -cube_half;
+							break;
+						case 3: //+y
+							meshes[octr].rotation.x = Math.PI / 2;
+							meshes[octr].rotation.z = -Math.PI / 2;
+							meshes[octr].position.y = cube_half;
+							break;
+						case 4: //-z
+							meshes[octr].position.z = -cube_half;
+							break;
+						case 5: //+z
+							meshes[octr].rotation.y = Math.PI;
+							meshes[octr].position.z = cube_half;
+							break;
+					}
+					
+					that.unit.add(meshes[octr]);
+					octr++;
+				}
+				
 			}
-			if (that.knockouts.indexOf('x_pos') === -1) {
-				meshes[1].rotation.y = -Math.PI/2;
-  				meshes[1].position.x = cube_half;
-  				that.unit.add(meshes[1]);
-			}
-			if (that.knockouts.indexOf('y_neg') === -1) {
-				meshes[2].rotation.x = -Math.PI/2;
-  				meshes[2].position.y = -cube_half;
-  				meshes[2].rotation.z = 0.5*Math.PI;
-  				that.unit.add(meshes[2]);
-			}
-			if (that.knockouts.indexOf('y_pos') === -1) {
-				meshes[3].rotation.x = Math.PI/2;
-				meshes[3].rotation.z = -Math.PI/2;
-  				meshes[3].position.y = cube_half;
-  				that.unit.add(meshes[3]);
-			}
-			if (that.knockouts.indexOf('z_neg') === -1) {
-				meshes[4].position.z = -cube_half;
-  				that.unit.add(meshes[4]);
-			}
-			if (that.knockouts.indexOf('z_pos') === -1) {
-				meshes[5].rotation.y = Math.PI;
-  				meshes[5].position.z = cube_half;
-  				that.unit.add(meshes[5]);
-			}	
+			
 		};
 		
 		loader.load(this.location);						

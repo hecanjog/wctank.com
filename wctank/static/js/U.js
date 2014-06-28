@@ -37,8 +37,17 @@ var Ü = (function(Ü) {
 	//use this function to set first location and load
 	Ü.setStartingLocation = function(lat, lng) {
 		
-		var unit = new Ü._.unitBuilder(lat, lng, []);
+		var unit = new Ü._.unitBuilder(19.486971,-99.117902, [1]);
 		Ü.scene.add(unit.unit);
+		
+		var unit2 = new Ü._.unitBuilder(19.487229,-99.117819, [0, 1]);
+		unit2.unit.position.x = 1000;
+		Ü.scene.add(unit2.unit);
+		
+		var unit3 = new Ü._.unitBuilder(19.487556,-99.117715, [0]);
+		unit3.unit.position.x = 2000;
+		Ü.scene.add(unit3.unit);
+		
 		Ü.scene.add(Ü._.omnibus.van);
 		
 	};
