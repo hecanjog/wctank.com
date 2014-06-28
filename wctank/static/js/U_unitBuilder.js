@@ -36,7 +36,8 @@ var Ü = (function(Ü) {
 		
 		var loader = new GSVPANO.PanoLoader();
 		
-		//TODO: adjust according to max texture size of host	
+		//TODO: adjust according to max texture size of host
+		//need to adjust canny thresholds with texture size	
 		loader.setZoom(3);
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
