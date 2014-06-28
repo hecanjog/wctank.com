@@ -2,58 +2,10 @@
 <html>
 <head>
     <title>WC Tank</title>
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/static/styles.less" type="text/css" rel="stylesheet/less">
 
-    <style type="text/css">
-        body, html {
-            padding: 0;
-            margin: 0;
-        }
-
-        #map-canvas {
-            width: 100%;
-            height: 100%;
-        }
-
-        #overlay {
-            display: none;
-            overflow: auto;
-
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            width: 40%;
-            z-index: 1000;
-            background-color: rgba(0, 0, 0, 0.4);
-            color: #fff;
-            font-family: 'Arial';
-            padding: 15px;
-        }
-
-        #overlay.photo {
-            width: 60%;
-        }
-
-        #overlay a {
-            color: #fff;
-        }
-
-        #overlay img {
-            width: 100%;
-        }
-
-        .close-post {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-        }
-        
-        #overlay .video iframe {
-            width: 100%;
-            min-height: 400px;
-        }
-    </style>
-
+    <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false"></script>
     <script type="text/javascript">
@@ -99,6 +51,9 @@
                 'link': post.short_url,
                 'content': content
             }
+
+            console.log(post);
+            console.log(post_data);
 
             var template = $template.html();
             $.each(post_data, function(i, v) {
@@ -168,9 +123,15 @@
 <body>
 <div id="map-canvas"></div>
 <div id="overlay"></div>
+<ul id="social-links">
+    <li><a href="http://wctank.tumblr.com" target="_blank"><i class="fa fa-tumblr-square"></i></a><li>
+    <li><a href="http://twitter.com/wctank" target="_blank"><i class="fa fa-twitter"></i></a><li>
+    <li><a href="https://www.facebook.com/pages/WC-TANK/326570787479712" target="_blank"><i class="fa fa-facebook-square"></i></a><li>
+    <li><a href="http://soundcloud.com/wctank-1" target="_blank"><i class="fa fa-soundcloud"></i></a><li>
+    <li><a href="http://wctank.bandcamp.com" target="_blank"><i class="fa fa-music"></i></a><li>
+</ul>
 
 <script type="text/html" id="post-template">
-    <p>~!type</p>
     <button class="close-post" type="button">Close</button>
     <div class="~!type">~!content</div>
     <a class="permalink" href="~!link"><p>view on tumblr</p></a>
