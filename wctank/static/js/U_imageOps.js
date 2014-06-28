@@ -7,12 +7,10 @@ var Ü = (function(Ü) {
 
 	Ü._.imageOps = (function(imageOps) {
 		
-		var FLOOR = Math.floor,
-		    ROUND = Math.round;
-		
 		/*
-		 * canvasCopyPrep bootstraps image transforms where there is
-		 * 1 antecedant and 1 resultant that are the same size
+		 * canvasCopyPrep bootstraps unary image transforms
+		 * consider using in conjunction with canvasDataPrep for functions with higher arity
+		 * note on variable names: sctx = source context, rctx = returned context, etc.
 		 */
 		imageOps.canvasCopyPrep = function(canvas, process) {
 			
@@ -31,7 +29,7 @@ var Ü = (function(Ü) {
 			    rdat = rctx.createImageData(w, h),
 			    rpx = new Int32Array(rdat.data.buffer);
 			
-			process(w, h, spx, rpx);
+			process(w, h, spx, rpx, sdat, rdat, sctx, rctx);
 			
 			rctx.putImageData(rdat, 0, 0);
 			
@@ -61,7 +59,8 @@ var Ü = (function(Ü) {
 			var ret_canv = document.createElement('canvas');
 			ret_canv.width = canvas.width;
 			ret_canv.height = canvas.height;
-			ret_ctx = ret_canv.getContext('2d');
+			
+			var ret_ctx = ret_canv.getContext('2d');
 			ret_ctx.drawImage(canvas, 0, 0);
 			
 			return ret_canv;
@@ -70,7 +69,7 @@ var Ü = (function(Ü) {
 		
 		imageOps.flipX = function(canvas) {
 			
-			var z = new Ü._.imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
+			var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
 				for (y = 0; y < h; y++) {
 					for (x = 0; x < w; x++) {
       					var invx = w - x;
@@ -79,13 +78,13 @@ var Ü = (function(Ü) {
       			}
 			});
       		
-      		return z.img;
+      		return r.img;
       		
   		};
 		
 		imageOps.flipY = function(canvas) {
 			
-			var z = new Ü._.imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
+			var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
 				for (y = 0; y < srh; y++) {
       				var invy = srh - y;
       				for (x = 0; x < srw; x++) {
@@ -94,7 +93,7 @@ var Ü = (function(Ü) {
       			}
       		});
 		
-			return z.img;
+			return r.img;
 				
 		};
 		
@@ -104,30 +103,37 @@ var Ü = (function(Ü) {
 		 */
 		imageOps.backwards = function(canvas) {
 			
-			var z = new Ü._.imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
+			var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
 				var length = w * h;
 				for (texel = 0; texel < length; texel++) {
       				rpx[texel] = spx[length - 1 - texel];
       			}
 			});
 			
-			return z.img;
+			return r.img;
 			
 		};
 		
 		/*
-		 * given canvas, return new canvas scaled by x, y multipliers
+		 * given canvas, return new canvas scaled by x, y multipliers, 
+		 * OR, if explicit is truthy, x and y are dimensions in pixels
 		 */
-		imageOps.scale = function(canvas, x, y) {
+		imageOps.resize = function(canvas, x, y, explicit) {
 			
 			var cw = canvas.width,
 				ch = canvas.height;
 			
 			var rcan = document.createElement('canvas');
-			rcan.width = cw * x;
-			rcan.height = ch * y;
-			var rctx = rcan.getContext('2d');
 			
+			if (explicit) {
+				rcan.width = x;
+				rcan.height = y;
+			} else {
+				rcan.width = cw * x;
+				rcan.height = ch * y;
+			}
+			
+			var rctx = rcan.getContext('2d');
 			rctx.drawImage(canvas, 0, 0, rcan.width, rcan.height);
 
 			return rcan;	
@@ -143,51 +149,54 @@ var Ü = (function(Ü) {
 		 * invert: if truthy, will remove pixels in source corresponding with
 		 * white pixels in map, instead of black.
 		 * 
-		 * TODO: add interpolation
-		 * 
 		 */
 		imageOps.alphaIntersect = function(source, map, invert) {
 
-			var filter = 255; // black - r 0 g 0 b 0 a 255 
+			var filter = -16777216; // black - r 0 g 0 b 0 a 255 
 			if (invert) { filter = -1; } //white - r 255 g 255 b 255 a 255
 
-			var mw = map.width;
-      		
-			var z = new Ü._.imageOps.canvasCopyPrep(source, function(w, h, spx, rpx){
+			var r = new imageOps.canvasCopyPrep(source, function(w, h, spx, rpx) {
 	
-				var mul = w / mw;
-				var scmap = Ü._.imageOps.scale(map, mul, mul);
-				var scmapdat = new Ü._.imageOps.canvasDataPrep(scmap);
+				var scmap = imageOps.resize(map, w, h, true),
+					scmapdat = new imageOps.canvasDataPrep(scmap);
 				
 				for (texel = 0; texel < spx.length; texel++) {
 					if (scmapdat.px[texel] === filter) {
-						rpx[texel] = 0x00000000;
+						rpx[texel] = 0xff;
 					} else {
 						rpx[texel] = spx[texel];
 					}
 				}
 			});
 			
-			return z.img;	
+			return r.img;	
 			
 		};
 				
 		/*
-		 * provided an image and cropping bounds relative to each edge in percent (0 to 1),
+		 * provided an image and cropping bound ratios relative to each edge (0 to 1),
 		 * returns image of same size as source with cropped out areas transparent
+		 * OR, if explicit is truthy, specify cropping bounds in pixels
 		 */
-		imageOps.cropInPlace = function(canvas, l, r, t, b) {
+		imageOps.cropInPlace = function(canvas, left_crop, right_crop, top_crop, bottom_crop, explicit) {
 			
 			var rcan = document.createElement('canvas');
 			rcan.width = canvas.width;
 			rcan.height = canvas.height;
 			var rctx = rcan.getContext('2d');
 			
-			var cropL = rcan.width * l,
-				cropR = (rcan.width * (1 - r)) - cropL,
-				cropT = rcan.height * t,
-				cropB = (rcan.height * (1 - b)) - cropT;
-			
+			if (explicit) {
+				var cropL = left_crop,
+					cropR = rcan.width - right_crop - cropL,
+					cropT = top_crop,
+					cropB = rcan.height - bottom_crop - cropT;
+			} else {
+				var cropL = rcan.width * left_crop,
+					cropR = (rcan.width * (1 - right_crop)) - cropL,
+					cropT = rcan.height * top_crop,
+					cropB = (rcan.height * (1 - bottom_crop)) - cropT;
+			}
+	
 			rctx.drawImage(canvas, 
 				cropL, cropT, //clip x, y
 				cropR, cropB, //width, height of clipped image
@@ -198,10 +207,86 @@ var Ü = (function(Ü) {
 			
 		};
 		
+		/*
+		 * for constructing an image from depth data got through 
+		 * GSVPanoDepths
+		 */
+		imageOps.makeDisplacementMap = function(depths, width, height) {
+			
+			var rimg = document.createElement('canvas');
+			rimg.width = width;
+			rimg.height = height;
+			
+			var r = new imageOps.canvasDataPrep(rimg);
+			
+			var little = Ü._.littleEndian;
+			
+			for (i = 0; i < depths.length; i++) {
+				
+				var x = width - (i % width), //flipped
+					y = (i / width) | 0, //floor
+					txl = y * width + x;
+				
+				var depth = depths[i],
+					q = 0;		
+				
+				if(depth > 10000) {
+					q = 0xff;	
+				} else {
+					q = depth / 199 * 255;
+				}
+				
+				if (little) {
+					r.px[txl] = (0xff << 24) | (q << 16) | (q << 8) | q;	
+				} else {
+					r.px[txl] = (q << 24) | (q << 16) | (q << 8) | 0xff;
+				}
+			
+			}
+			
+			r.putData();
+			return rimg;
+			
+		};
+		
+		/*
+		 * uses JSFeat for canny edge detection
+		 */
+		imageOps.cannyEdge = function(canvas) {
+	
+			var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx, sdat) {
+				
+				var mtx = new jsfeat.matrix_t(w, h, jsfeat.U8C1_t);
+				
+				jsfeat.imgproc.grayscale(sdat.data, mtx.data);
+				jsfeat.imgproc.canny(mtx, mtx, 105, 130);
+								
+				if (Ü._.littleEndian) {
+				
+					for (txl = 0; txl < rpx.length; txl++) {
+						var val = mtx.data[txl];
+						rpx[txl] = (0xff << 24) | (val << 16) | (val << 8) | val;
+					}
+				
+				} else {
+				
+					for (txl = 0; txl < rpx.length; txl++) {
+						var val = mtx.data[txl];
+						rpx[txl] = (val << 24) | (val << 16) | (val << 8) | 0xff;
+					}
+				
+				}
+				
+			});
+			
+			return r.img;
+			
+		};
+		
 		return imageOps;
 		
 	})({});
 	
-return Ü;
+	return Ü;
 	
 }(Ü || {}));

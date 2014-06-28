@@ -40,7 +40,7 @@ var Ü = (function(Ü) {
 		
 		var d_loader = new GSVPANO.PanoDepthLoader();
 		
-		//object to stage pre qscp.transform -ed data
+		//object to stage GSV data before transforms
 		var sphere = (function(sphere) {
 			
 			var map_height = 0,
@@ -57,57 +57,19 @@ var Ü = (function(Ü) {
 					map_width = mpano.width;
 					map_pano = mpano;
 				};
+				
 				sphere.setDispDataAndMakeMap = function(dheight, dwidth, ddepths) { 
 					disp_height = dheight;
 					disp_width = dwidth;
 					disp_depths = ddepths;
 					
-					makeDisplacementMap();
+					disp_pano = Ü._.imageOps.makeDisplacementMap(disp_depths, disp_width, disp_height);
 				};
+				
 				sphere.getPanos = function() {
 					return [map_pano, disp_pano];
 				};
-				
-				var little_endian = Ü._.littleEndian;
-				function makeDisplacementMap() {
-					
-					//TODO: Write map correctly on the first pass,
-					//instead of using a second pass to flip the image
-					
-					var canvas = document.createElement('canvas');
-						canvas.width = disp_width;
-						canvas.height = disp_height;
-						
-					var	width = canvas.width,
-						height = canvas.height,
-						ctx = canvas.getContext('2d'),
-						dat = ctx.createImageData(canvas.width, canvas.height),
-						px = new Int32Array(dat.data.buffer);
-					
-					for (i = 0; i < disp_depths.length; i++) {
-						var in2d = disp_depths[i],
-							q = 0;
-						
-						if(in2d > 10000) {
-							q = 255;
-						} else {
-							q = in2d / 199 * 255;
-						}
-						
-						if (little_endian) {
-							px[i] = (255 << 24) | (q << 16) | (q << 8) | q;
-						} else {
-							px[i] = (q << 24) | (q << 16) | (q << 8) | 255;
-						}
-
-					}
-					
-					ctx.putImageData(dat, 0, 0);
-						
-					//yeah, it needs to be inverted
-					disp_pano = Ü._.imageOps.flipX(canvas);
-				}
-			
+							
 			return sphere;
 			
 		})({});		
@@ -118,8 +80,11 @@ var Ü = (function(Ü) {
 				
 			//get map and displacement panos
 			var panos = sphere.getPanos(),
-				map_pano = Ü._.imageOps.alphaIntersect(panos[0], panos[1], true),
+				//map_pano = Ü._.imageOps.alphaIntersect(panos[0], panos[1], true),
+				map_pano = Ü._.imageOps.cannyEdge(panos[0]),
 				disp_pano = panos[1];
+			
+			map_pano = Ü._.imageOps.alphaIntersect(panos[0], map_pano);
 			
 			//get faces of cube
 			var map_faces = Ü._.project.sphereToCube(map_pano),

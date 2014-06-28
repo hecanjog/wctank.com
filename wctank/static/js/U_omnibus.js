@@ -12,7 +12,7 @@ var Ü = (function(Ü) {
 	var	van_x_axis = new THREE.Vector3(1,0,0),
 		van_z_axis = new THREE.Vector3(0,0,-1);
 	
-	var	fov = 120, //70
+	var	fov = 70, //70
 		frustum_near = 1,
 		frustum_far = 40000;
 	

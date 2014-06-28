@@ -4,8 +4,6 @@
  * 	'walking' instead of creepy hover
  * 	procedural sound!
  * ...get adjacent positions, check validity
- * errors buttface
- * DECORATIVE ANIMATION
  */
 	
 var Ü = (function(Ü) {
