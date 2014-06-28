@@ -162,7 +162,7 @@ var Ü = (function(Ü) {
 				
 				for (texel = 0; texel < spx.length; texel++) {
 					if (scmapdat.px[texel] === filter) {
-						rpx[texel] = 0xff;
+						rpx[texel] = 0x00000000;
 					} else {
 						rpx[texel] = spx[texel];
 					}
@@ -259,7 +259,7 @@ var Ü = (function(Ü) {
 				var mtx = new jsfeat.matrix_t(w, h, jsfeat.U8C1_t);
 				
 				jsfeat.imgproc.grayscale(sdat.data, mtx.data);
-				jsfeat.imgproc.canny(mtx, mtx, 105, 130);
+				jsfeat.imgproc.canny(mtx, mtx, 95, 105);
 								
 				if (Ü._.littleEndian) {
 				

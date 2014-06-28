@@ -13,9 +13,10 @@ var Ü = (function(Ü) {
 	
 	Ü.init = function() {
 		Ü.scene = new THREE.Scene();
-		Ü.wgl_renderer = new THREE.WebGLRenderer();
+		Ü.wgl_renderer = new THREE.WebGLRenderer({alpha: true});
 		Ü.wgl_renderer.sortObjects = false;
 		Ü.wgl_renderer.setSize( window.innerWidth, window.innerHeight );
+		Ü.wgl_renderer.setClearColor(0x000000, 0);
 		document.body.appendChild(Ü.wgl_renderer.domElement);	//body must exist!
 	};
 		
@@ -29,7 +30,7 @@ var Ü = (function(Ü) {
 	
 	//use this function to set first location and load
 	Ü.setStartingLocation = function(lat, lng) {
-		var unit = new Ü._.unitBuilder(lat, lng, []);//'z_neg', 'x_neg']);
+		var unit = new Ü._.unitBuilder(lat, lng, []);
 		Ü.scene.add(unit.unit);
 		Ü.scene.add(Ü._.omnibus.van);
 	};

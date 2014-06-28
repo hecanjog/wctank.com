@@ -18,6 +18,7 @@
  * scene.add(unit.cube)
  * var where_am_I = [unit.location.lat(), unit.location.lng()];
  */
+//vibrate function
 
 var Ü = (function(Ü) {
 	
@@ -73,22 +74,26 @@ var Ü = (function(Ü) {
 			return sphere;
 			
 		})({});		
-			
+		
 		var makeCube = function() { 
 				
 			var cube_half = unit_diameter / 2;
 				
 			//get map and displacement panos
-			var panos = sphere.getPanos(),
-				//map_pano = Ü._.imageOps.alphaIntersect(panos[0], panos[1], true),
-				map_pano = Ü._.imageOps.cannyEdge(panos[0]),
-				disp_pano = panos[1];
+			var panos = sphere.getPanos();
 			
-			map_pano = Ü._.imageOps.alphaIntersect(panos[0], map_pano);
+			var map_proj = Ü._.project.sphereToCube(panos[0]);
+			var disp_faces = Ü._.project.sphereToCube(panos[1]);
 			
-			//get faces of cube
-			var map_faces = Ü._.project.sphereToCube(map_pano),
-				disp_faces = Ü._.project.sphereToCube(disp_pano);
+			var map_can = [];
+			for (i = 0; i < 6; i++) {
+				map_can[i] = Ü._.imageOps.cannyEdge(map_proj[i]);
+			}
+			
+			var map_faces = [];
+			for (i = 0; i < 6; i++) {
+				map_faces[i] = Ü._.imageOps.alphaIntersect(map_proj[i], map_can[i]);
+			}
 			
 			//make textures
 			var map_textures = [],
