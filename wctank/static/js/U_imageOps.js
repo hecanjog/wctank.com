@@ -164,7 +164,7 @@ var Ü = (function(Ü) {
 					if (scmapdat.px[texel] === filter) {
 						rpx[texel] = 0x00000000;
 					} else {
-						rpx[texel] = spx[texel];
+						rpx[texel] = -16777216; //spx[texel];
 					}
 				}
 			});

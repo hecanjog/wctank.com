@@ -102,15 +102,15 @@ var Ü = (function(Ü) {
 				}
 			}
 			
-			//var map_canny = [];
-			//for (i = 0; i < fnum; i++) {
-			//	map_canny[i] = Ü._.imageOps.cannyEdge(map_set[i]);
-			//}
+			var map_canny = [];
+			for (i = 0; i < fnum; i++) {
+				map_canny[i] = Ü._.imageOps.cannyEdge(map_set[i]);
+			}
 			
 			var map_faces = [];
 			for (i = 0; i < fnum; i++) {
-				//map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);
-				map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], disp_faces[i], true);
+				map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);
+				//map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], disp_faces[i], true);
 			}
 			
 			//make textures
