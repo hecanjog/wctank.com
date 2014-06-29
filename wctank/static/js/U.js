@@ -15,7 +15,7 @@ var Ü = (function(Ü) {
 		
 		Ü.scene = new THREE.Scene();
 		Ü.wgl_renderer = new THREE.WebGLRenderer({alpha: true});
-		Ü.wgl_renderer.sortObjects = false;
+		//Ü.wgl_renderer.sortObjects = false;
 		Ü.wgl_renderer.setSize( window.innerWidth, window.innerHeight );
 		Ü.wgl_renderer.setClearColor(0x000000, 0);
 		
@@ -47,7 +47,7 @@ var Ü = (function(Ü) {
 		var unit3 = new Ü._.unitBuilder(19.487556,-99.117715, [0]);
 		unit3.unit.position.x = 2000;
 		Ü.scene.add(unit3.unit);
-		
+					
 		Ü.scene.add(Ü._.omnibus.van);
 		
 	};

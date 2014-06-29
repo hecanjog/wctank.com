@@ -102,14 +102,15 @@ var Ü = (function(Ü) {
 				}
 			}
 			
-			var map_canny = [];
-			for (i = 0; i < fnum; i++) {
-				map_canny[i] = Ü._.imageOps.cannyEdge(map_set[i]);
-			}
+			//var map_canny = [];
+			//for (i = 0; i < fnum; i++) {
+			//	map_canny[i] = Ü._.imageOps.cannyEdge(map_set[i]);
+			//}
 			
 			var map_faces = [];
 			for (i = 0; i < fnum; i++) {
-				map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);
+				//map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);
+				map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], disp_faces[i], true);
 			}
 			
 			//make textures
@@ -134,14 +135,15 @@ var Ü = (function(Ü) {
 				uniforms["map"].value = map_textures[i];
 				uniforms["tDisplacement"].value = disp_textures[i];
 				uniforms["uDisplacementBias"].value = 0;
-				uniforms["uDisplacementScale"].value = 0;
+				uniforms["uDisplacementScale"].value =0;
 
 				face_materials[i] = new THREE.ShaderMaterial({	
 							uniforms: uniforms, 
 							fragmentShader: shader.fragmentShader,
 							vertexShader: shader.vertexShader,
 							map: map_textures[i],
-							tDisplacement: disp_textures[i]	});
+							tDisplacement: disp_textures[i],
+							transparent: true	});
 			}
 			
 			//make planes
