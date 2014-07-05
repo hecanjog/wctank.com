@@ -1,5 +1,7 @@
 /*
  * Ü._.unitBuilder builds world unit cubes!
+ * !!!!!!!!!!!!!!!This is going to change ALOT very soon, so don't 
+ * count on anything here sticking around!!!!!!!!!!!!!!
  * 
  * makes this.unit on construction
  * gets numbers lat, lng, array 'knockout'
@@ -27,13 +29,14 @@ var Ü = (function(Ü) {
 	
 	Ü._ = Ü._ || {};
 	
-	Ü._.unitBuilder = function(lat, lng, knockout) {	
+	Ü._.unitBuilder = function(lat, lng, knockout, callback) {	
 		
 		var unit_diameter = 1000;
 		
 		this.unit = new THREE.Object3D();
 		this.location = new google.maps.LatLng(lat, lng);
 		this.knockouts = knockout;
+		this.callback = callback; //called after unit is complete
 		
 		var that = this;
 		
@@ -214,6 +217,13 @@ var Ü = (function(Ü) {
 				this.depthMap.depthMap	);	
 					
 			makeCube();
+			
+			if(that.callback && (typeof that.callback === "function")) {
+				that.callback();
+			} else if (that.callback && (typeof that.callback !== "function")) {
+				throw "invalid unitBuilder callback!!";
+			}
+			
 		};
 				
 	};

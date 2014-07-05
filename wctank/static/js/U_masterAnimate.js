@@ -5,11 +5,13 @@
 
 var Ü = (function(Ü) {
 	
-	Ü.masterAnimate = (function(masterAnimate) {
+	Ü._ = Ü._ || {};
+	
+	Ü._.masterAnimate = (function(masterAnimate) {
 		
 		var to_render = [];
 		
-		//add animate function to render loop
+		//add function to render queue
 		masterAnimate.start = function(fun) {
 			if (typeof fun === 'function') {
 				to_render.push(fun);
@@ -18,7 +20,7 @@ var Ü = (function(Ü) {
 			}
 		};
 		
-		//remove supra
+		//remove function from render queue
 		masterAnimate.stop = function(fun) {
 			var idx = to_render.indexOf(fun);
 			if (idx > -1) {
@@ -28,7 +30,7 @@ var Ü = (function(Ü) {
 			}	
 		};
 		
-		//execute step - call in main render loop
+		//execute queue - call in main render loop
 		masterAnimate.bang = function() {
 			for (i = 0; i < to_render.length; i++) {
 				to_render[i]();

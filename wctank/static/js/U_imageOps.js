@@ -167,6 +167,7 @@ var Ü = (function(Ü) {
 						rpx[texel] = -16777216; //spx[texel];
 					}
 				}
+				
 			});
 			
 			return r.img;	

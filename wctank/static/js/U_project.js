@@ -1,6 +1,7 @@
 var Ü = (function(Ü) {
 	
 	Ü._ = Ü._ || {};
+	
 	Ü._.project = {};
 		
 	var rend = new THREE.WebGLRenderer();
