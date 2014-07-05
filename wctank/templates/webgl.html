@@ -26,11 +26,20 @@
         	z-index: -1;
         }
         #preloader {
-        	display: none;
         	position: fixed;
         	width: 100%;
         	height: 100%;
         	z-index: 10000;
+        	background: rgba(0, 0, 0, 0.6);
+        }
+        #preloader img {
+        	width: 450px;
+   			height: 450px;
+   			position: absolute;
+   			left: 50%;
+  			top: 50%; 
+   			margin-left: -225px;
+   			margin-top: -225px;
         }
     </style>
 
@@ -44,6 +53,7 @@
     <script src="/static/lib/three.min.js"></script>
     <script src="/static/lib/jsfeat.js"></script>
     
+    <script src="/static/js/U_preloader.js"></script>
     <script src="/static/js/U_project.js"></script>
     <script src="/static/js/U_masterAnimate.js"></script>
     <script src="/static/js/U_imageOps.js"></script>
@@ -53,7 +63,6 @@
     <script src="/static/js/U_shaders.js"></script>
     <script src="/static/js/U_unitBuilder.js"></script>
     <script src="/static/js/U_worldBuilder.js"></script>
-    <script src="/static/js/Upreloader.js"></script>
     <script src="/static/js/main.js"></script>
 </head>
 

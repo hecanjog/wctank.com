@@ -18,7 +18,7 @@ var Ü = (function(Ü) {
 	//call after the DOM is in place
 	Ü.init = function() {
 		
-		Ü.preloader.on();
+		Ü._.preloader.on();
 		
 		container = document.getElementById("wgl");
 		Ü.scene = new THREE.Scene();
@@ -49,11 +49,9 @@ var Ü = (function(Ü) {
 		unit2.unit.position.x = 1000;
 		Ü.scene.add(unit2.unit);
 		
-		var unit3 = new Ü._.unitBuilder(19.487556,-99.117715, [0],
-			function() {
-				Ü.preloader.off();
-			}
-		);
+		var unit3 = new Ü._.unitBuilder(19.487556,-99.117715, [0], function() {
+				Ü._.preloader.off();
+		});
 		unit3.unit.position.x = 2000;
 		Ü.scene.add(unit3.unit);
 					
