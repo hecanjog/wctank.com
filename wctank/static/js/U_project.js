@@ -1,9 +1,7 @@
-var Ü = (function(Ü) {
-	
-	Ü._ = Ü._ || {};
-	
-	Ü._.project = {};
-		
+var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
+
+Ü._.project = (function(project) {
+
 	var rend = new THREE.WebGLRenderer();
 	
 	var prepareSphereProjection = function(canvas) {
@@ -41,7 +39,7 @@ var Ü = (function(Ü) {
 	 * for projection onto a sphere, return 6 canvases
 	 * corresponding to faces of cube
 	 */
-	Ü._.project.sphereToCube = function(canvas) {
+	project.sphereToCube = function(canvas) {
 		
 		var sp = new prepareSphereProjection(canvas);
 		
@@ -50,18 +48,18 @@ var Ü = (function(Ü) {
 		
 		rend.setSize( slen, slen );
 		
-		var fxn = sp.snapshot(-1, 0, 0, rend), //x_neg
-			fxp = sp.snapshot(1, 0, 0, rend), //x_pos
-			fyn = sp.snapshot(0, -1, 0, rend), //y_neg
-			fyp = sp.snapshot(0, 1, 0, rend), //y_pos
-			fzn = sp.snapshot(0, 0, -1, rend), //z_neg
-			fzp = sp.snapshot(0, 0, 1, rend); //z_pos
+		var fxn = sp.snapshot(-1, 0, 0, rend); //x_neg
+		var fxp = sp.snapshot(1, 0, 0, rend); //x_pos
+		var fyn = sp.snapshot(0, -1, 0, rend); //y_neg
+		var fyp = sp.snapshot(0, 1, 0, rend); //y_pos
+		var fzn = sp.snapshot(0, 0, -1, rend); //z_neg
+		var fzp = sp.snapshot(0, 0, 1, rend); //z_pos
 		
 		//return canvases -x, +x, -y, +y, -z, +z
 		return [fxn, fxp, fyn, fyp, fzn, fzp];
 			
 	};	
-				
-	return Ü;
 	
-}(Ü || {}));
+	return project;
+	
+})({});

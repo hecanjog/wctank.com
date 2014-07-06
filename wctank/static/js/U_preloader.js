@@ -1,40 +1,35 @@
 /*
- * load manages preloading sequence
+ * preloader manages preloading div 
+ * (and portions of preloading sequence)
  */
 
-var Ü = (function(Ü) {
+var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	
-	Ü._ = Ü._ || {};
-	
-	Ü._.preloader = (function(preloader) {
+Ü._.preloader = (function(preloader) {
 		
-		var waiter = new Image();
-		waiter.src = "../static/virgo_preload_draft.gif";
+	var waiter = new Image();
+	waiter.src = "../static/virgo_preload_draft.gif";
 		
-		preloader.on = function() {			
+	preloader.on = function() {			
 			
-			var preload_div = document.getElementById('preloader');
-			waiter.onload = function() {
-				preload_div.appendChild(waiter);
-			};
-			
+		var preload_div = document.getElementById('preloader');
+		waiter.onload = function() {
+			preload_div.appendChild(waiter);
 		};
+			
+	};
 		
-		preloader.off = function() {
+	preloader.off = function() {
 			
-			var preload_div = $("#preloader");
-			preload_div.fadeOut(100, "linear", function() {
-				preload_div.css("display", "none");
-			});
+		var preload_div = $("#preloader");
+		preload_div.fadeOut(100, "linear", function() {
+			preload_div.css("display", "none");
+		});
 			
-			Ü._.omnibus.setCursor("all-scroll");
+		Ü._.omnibus.setCursor("all-scroll");
 			
-		};
+	};
 		
-		return preloader;
+	return preloader;
 		
 	})({});
-	
-	return Ü;	
-
-}(Ü || {}));
