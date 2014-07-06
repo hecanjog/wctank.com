@@ -104,8 +104,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
 			var length = w * h;
 			for (texel = 0; texel < length; texel++) {
-      			rpx[texel] = spx[length - 1 - texel];
-      		}
+				rpx[texel] = spx[length - 1 - texel];
+			}
 		});
 			
 		return r.img;

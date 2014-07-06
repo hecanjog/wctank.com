@@ -12,9 +12,9 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		this.scene = new THREE.Scene();
 		this.camera = new THREE.PerspectiveCamera(90, 1, 0.0001, 10000);
 		
-		var parent = new THREE.Texture(canvas),
-			geometry = new THREE.SphereGeometry(100, 100, 100),
-			material = new THREE.MeshBasicMaterial({map: parent});
+		var parent = new THREE.Texture(canvas);
+		var geometry = new THREE.SphereGeometry(100, 100, 100);
+		var material = new THREE.MeshBasicMaterial({map: parent});
 				
 		var sphere = new THREE.Mesh(geometry, material);
 		sphere.scale.x = -1;

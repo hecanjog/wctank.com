@@ -30,12 +30,10 @@ var Ü = (function(Ü) {
 	};
 		
 	function resizeCanvas() {
-		
 		if(Ü.wgl_renderer && Ü._.omnibus) {
 			Ü.wgl_renderer.setSize(container.offsetWidth, container.offsetHeight);
 			Ü._.omnibus.update();
-		}
-		
+		}	
 	};
 	window.addEventListener('resize', resizeCanvas);
 	
@@ -60,11 +58,9 @@ var Ü = (function(Ü) {
 	};
 				
 	Ü.animate = function() {
-		
 		requestAnimationFrame(Ü.animate);
 		Ü._.masterAnimate.bang();		
 		Ü.wgl_renderer.render(Ü.scene, Ü._.omnibus.camera);
-		
 	};
 	
 	return Ü;	

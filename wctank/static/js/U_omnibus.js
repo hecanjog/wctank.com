@@ -13,7 +13,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	var van_x_axis = new THREE.Vector3(1,0,0);
 	var van_z_axis = new THREE.Vector3(0,0,-1);
 		
-	var	fov = 70;
+	var fov = 70;
 	var frustum_near = 1;
 	var frustum_far = 40000;
 		
@@ -103,13 +103,11 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 	//call when the wgl element exists
 	function addListeners(element) {
-		
 		element.addEventListener('mousedown', onMousedown, false);
 		element.addEventListener('mouseup', onMouseup, false);
 		element.addEventListener('mousemove', onMousemove, false);
 		document.addEventListener('keydown', onKeydown, false);
 		document.addEventListener('keyup', onKeyup, false);
-			
 	};
 
 	$(document).ready(function() {
@@ -130,13 +128,11 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 	});
 
-	function omnibusAnimate() {
-			
+	function omnibusAnimate() {	
 		omnibus.van.rotation.y += -rot_y;
 		omnibus.camera.rotation.x += -rot_x;
 		omnibus.van.translateOnAxis(van_x_axis, trans_x);
-		omnibus.van.translateOnAxis(van_z_axis, trans_z);
-			
+		omnibus.van.translateOnAxis(van_z_axis, trans_z);	
 	};
 		
 	Ü._.masterAnimate.start(omnibusAnimate);
