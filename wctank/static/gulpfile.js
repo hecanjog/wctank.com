@@ -6,8 +6,7 @@
  * with deeply nested node_module folders a PITA in git. So, until I switch 
  * enviornments, let's leave that stuff out...
  * 
- * Requires gulp, gulp-concat, gulp-uglify - compiler.jar should
- * be in this directory (for the time being).
+ * Requires gulp, gulp-concat, gulp-uglify
  * 
  * Then, just cd into this directory and run gulp
  * 
