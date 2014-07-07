@@ -21,8 +21,9 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		var preload_div = $("#preloader");
 		preload_div.fadeOut(100, "linear", function() {
 			preload_div.css("display", "none");
+			waiter.style.display = "none"; //Don't draw while hidden!
 		});
-			
+		
 		Ü._.omnibus.setCursor("all-scroll");
 	};
 		
