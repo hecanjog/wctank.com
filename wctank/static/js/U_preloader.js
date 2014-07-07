@@ -14,7 +14,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		var preload_div = document.getElementById('preloader');
 		waiter.onload = function() {
 			preload_div.appendChild(waiter);
-		};	
+		};
 	};
 		
 	preloader.off = function() {	

@@ -54,4 +54,3 @@ def getPosts(swk, swa, nek, nea):
                     posts += [ post ]
 
     return json.dumps(posts)
-

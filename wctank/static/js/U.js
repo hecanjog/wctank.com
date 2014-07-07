@@ -19,14 +19,14 @@ var Ü = (function(Ü) {
 	Ü.init = function() {
 		
 		Ü._.preloader.on();
-		
+			
 		container = document.getElementById("wgl");
 		Ü.scene = new THREE.Scene();
 		Ü.wgl_renderer = new THREE.WebGLRenderer({alpha: true});
 		Ü.wgl_renderer.setSize( container.offsetWidth, container.offsetHeight );
 		Ü.wgl_renderer.setClearColor(0x000000, 0);		
 		container.appendChild(Ü.wgl_renderer.domElement);
-		
+				
 	};
 		
 	function resizeCanvas() {
