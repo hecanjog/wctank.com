@@ -1,3 +1,4 @@
 # Not checking in builds (yet?) !
 # So, directory is just a target
+*
 !.gitignore

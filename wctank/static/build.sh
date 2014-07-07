@@ -7,12 +7,13 @@
 #
 # N.B.! closure compiler requires Java 1.6 or > 
 
-DEV_STATUS=DEVO1
+DEV_STATUS=DEVO2
 
 COMPILER_PATH=./devdeps/compiler.jar
 BUILD_DIR=./build/
 BUILD_PATH=./build/webgl.js
-SOURCE_MAP_PATH=./devdeps/map.js
+SOURCE_MAP_PATH=./webgl.map
+SOURCE_MAP_FROM_ROOT=../webgl.map
 EXTERNS_PATH=./devdeps/externs.js
 
 JS=`find ./lib/*.js`
@@ -21,7 +22,7 @@ LIB=`find ./js/*.js`
 append_debug_tag ()
 {
       echo $'\nAppending source map debug tag...'
-      echo //@ sourceMappingURL=${SOURCE_MAP_PATH} >> $BUILD_PATH
+      echo //@ sourceMappingURL=${SOURCE_MAP_FROM_ROOT} >> $BUILD_PATH
 }
 
 compiling_message ()
