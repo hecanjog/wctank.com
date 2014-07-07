@@ -1,6 +1,5 @@
 /*
- * preloader manages preloading div 
- * (and portions of preloading sequence)
+ * preloader manages initial loading behavior and #preloader div
  */
 
 var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
