@@ -6,9 +6,9 @@
 var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	
 Ü._.preloader = (function(preloader) {
-		
+	
 	var waiter = new Image();
-	waiter.src = "../static/virgo_preload_draft.gif";
+	waiter.src = Ü._.assetPath + "virgo_preload_draft.gif"; 
 		
 	preloader.on = function() {			
 		var preload_div = document.getElementById('preloader');
