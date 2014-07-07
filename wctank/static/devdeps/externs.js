@@ -1,3 +1,3 @@
 /*
- * externs for ADVANCED_COMPILATION go here
+ * externs for ADVANCED_OPTIMIZATION go here
  */
