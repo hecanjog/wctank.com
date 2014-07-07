@@ -16,8 +16,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	var fov = 70;
 	var frustum_near = 1;
 	var frustum_far = 40000;
-		
-	//camera that is passed to the renderer in masterAnimate
+	
+	//passed to Ü.wglRenderer in Ü.animate
 	omnibus.camera = new THREE.PerspectiveCamera(
 				fov, window.innerWidth / window.innerHeight,
 				frustum_near, frustum_far);
