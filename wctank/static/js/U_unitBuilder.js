@@ -95,7 +95,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		var disp_faces = [];
 			
 		var ctr = 0;
-		for (i = 0; i < 6; i++) {
+		for (var i = 0; i < 6; i++) {
 			if (that.knockouts.indexOf(i) === -1) {
 				map_set[ctr] = map_proj[i];
 				disp_faces[ctr] = disp_proj[i];
@@ -104,12 +104,12 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		}
 			
 		var map_canny = [];
-		for (i = 0; i < fnum; i++) {
+		for (var i = 0; i < fnum; i++) {
 			map_canny[i] = Ü._.imageOps.cannyEdge(map_set[i]);
 		}
 			
 		var map_faces = [];
-		for (i = 0; i < fnum; i++) {
+		for (var i = 0; i < fnum; i++) {
 			map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);
 			//map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], disp_faces[i], true);
 		}
@@ -117,7 +117,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		//make textures
 		var map_textures = [];
 		var disp_textures = [];
-		for (i = 0; i < fnum; i++) {
+		for (var i = 0; i < fnum; i++) {
 			map_textures[i] = new THREE.Texture(map_faces[i]);
 			disp_textures[i] = new THREE.Texture(disp_faces[i]);
 		}
@@ -126,7 +126,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		THREE.ShaderMaterial.prototype.tDisplacement = null;
 			
 		var face_materials = [];			
-		for (i = 0; i < fnum; i++) {
+		for (var i = 0; i < fnum; i++) {
 				
 			var shader = Ü._.shaders.basicDisplacement;
 			var uniforms = THREE.UniformsUtils.clone(shader.uniforms);
@@ -149,13 +149,13 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 		//make planes
 		var planes = [];
-		for (i = 0; i < fnum; i++) {
+		for (var i = 0; i < fnum; i++) {
 			planes[i] = new THREE.PlaneGeometry(unit_diameter, unit_diameter, 1, 1);
 		}
 				
 		//make meshes
 		var meshes = [];
-		for (i = 0; i < fnum; i++) {
+		for (var i = 0; i < fnum; i++) {
 			meshes[i] = new THREE.Mesh(planes[i], face_materials[i]);
 			meshes[i].material.map.needsUpdate = true;
 			meshes[i].material.tDisplacement.needsUpdate = true;
@@ -163,7 +163,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 		//assemble cube
 		var octr = 0;
-		for (i = 0; i < 6; i++) {
+		for (var i = 0; i < 6; i++) {
 				
 			if (that.knockouts.indexOf(i) === -1) {
 					

@@ -103,7 +103,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 		var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
 			var length = w * h;
-			for (texel = 0; texel < length; texel++) {
+			for (var texel = 0; texel < length; texel++) {
 				rpx[texel] = spx[length - 1 - texel];
 			}
 		});
@@ -157,8 +157,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	
 			var scmap = imageOps.resize(map, w, h, true);
 			var scmapdat = new imageOps.canvasDataPrep(scmap);
-				
-			for (texel = 0; texel < spx.length; texel++) {
+
+			for (var texel = 0; texel < spx.length; texel++) {
 				if (scmapdat.px[texel] === filter) {
 					rpx[texel] = 0x00000000;
 				} else {
@@ -220,7 +220,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 		var little = Ü._.littleEndian;
 			
-		for (i = 0; i < depths.length; i++) {
+		for (var i = 0; i < depths.length; i++) {
 				
 			var x = width - (i % width); //flipped
 			var y = (i / width) | 0; //floor
@@ -262,14 +262,14 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 								
 			if (Ü._.littleEndian) {
 				
-				for (txl = 0; txl < rpx.length; txl++) {
+				for (var txl = 0; txl < rpx.length; txl++) {
 					var val = mtx.data[txl];
 					rpx[txl] = (0xff << 24) | (val << 16) | (val << 8) | val;
 				}
 				
 			} else {
 				
-				for (txl = 0; txl < rpx.length; txl++) {
+				for (var txl = 0; txl < rpx.length; txl++) {
 					var val = mtx.data[txl];
 					rpx[txl] = (val << 24) | (val << 16) | (val << 8) | 0xff;
 				}

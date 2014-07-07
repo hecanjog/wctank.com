@@ -30,7 +30,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 	//execute queue - call in main render loop
 	masterAnimate.bang = function() {
-		for (i = 0; i < to_render.length; i++) {
+		for (var i = 0; i < to_render.length; i++) {
 			to_render[i]();
 		}
 	};

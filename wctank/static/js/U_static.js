@@ -59,3 +59,4 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	console.log(mess);
 
 })();
+console.log(window);
