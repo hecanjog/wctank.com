@@ -13,14 +13,13 @@ var Ü = (function(Ü) {
 	Ü.scene = {};
 	Ü.wgl_renderer = {};	
 	
-	var container = null;
+	var container = document.getElementById("wgl");;
 	
 	//call after the DOM is in place, initializes THREE
 	Ü.init = function() {
 		
 		Ü._.preloader.on();
-			
-		container = document.getElementById("wgl");
+
 		Ü.scene = new THREE.Scene();
 		Ü.wgl_renderer = new THREE.WebGLRenderer({alpha: true});
 		Ü.wgl_renderer.setSize( container.offsetWidth, container.offsetHeight );

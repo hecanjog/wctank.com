@@ -40,18 +40,23 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	var rot_y = 0;
 	var trans_z = 0;
 	var trans_x = 0;
+	
+	var wgl_div = document.getElementById('wgl');
 		
 	function onMousedown(e) {
 		last_x = e.clientX;
 		last_y = e.clientY;
 		down = true;
 	};
+	wgl_div.addEventListener('mousedown', onMousedown, false);
+
 		
 	function onMouseup() {
 		rot_x = 0;
 		rot_y = 0;		
 		down = false;
 	};
+	wgl_div.addEventListener('mouseup', onMouseup, false);
 		
 	//fix this to remove trailing mvt?
 	//anyway, will need to be tweaked when tweening is added
@@ -65,6 +70,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			last_x = current_x;
 		}
 	};
+	wgl_div.addEventListener('mousemove', onMousemove, false);
 		
 	//w = 87 a = 65 s = 83 d = 68 - = 189 + = 187
 	function onKeydown(e) {
@@ -83,6 +89,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				break;		
 		}
 	}
+	document.addEventListener('keydown', onKeydown, false);
 		
 	function onKeyup(e) {
 		switch (e.keyCode) {
@@ -100,33 +107,17 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				break;
 		}
 	}
+	document.addEventListener('keyup', onKeyup, false);
 		
-	//call when the wgl element exists
-	function addListeners(element) {
-		element.addEventListener('mousedown', onMousedown, false);
-		element.addEventListener('mouseup', onMouseup, false);
-		element.addEventListener('mousemove', onMousemove, false);
-		document.addEventListener('keydown', onKeydown, false);
-		document.addEventListener('keyup', onKeyup, false);
+	omnibus.update = function() {
+		omnibus.camera.projectionMatrix.makePerspective(
+			fov, wgl_div.offsetWidth / wgl_div.offsetHeight,
+			frustum_near, frustum_far);
 	};
 
-	$(document).ready(function() {
-		
-		var wgl_div = document.getElementById('wgl');
-		
-		omnibus.update = function() {
-			omnibus.camera.projectionMatrix.makePerspective(
-				fov, wgl_div.offsetWidth / wgl_div.offsetHeight,
-				frustum_near, frustum_far);
-		};
-
-		omnibus.setCursor = function(cursor_style) {
-			wgl_div.style.cursor = cursor_style;
-		};
-
-		addListeners(wgl_div);
-			
-	});
+	omnibus.setCursor = function(cursor_style) {
+		wgl_div.style.cursor = cursor_style;
+	};
 
 	function omnibusAnimate() {	
 		omnibus.van.rotation.y += -rot_y;

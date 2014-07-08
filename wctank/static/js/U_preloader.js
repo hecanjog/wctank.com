@@ -9,16 +9,16 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	//did we just start?
 	preloader.initialLoad = true;
 	
+	var preload_div = document.getElementById('preloader');
+	
 	//preloading image
 	var waiter = new Image();
 	waiter.src = Ü._.assetPath + "virgo_preload_draft.gif";
 		
 	preloader.on = function() {			
-		var preload_div = document.getElementById('preloader');
 		waiter.onload = function() {
 			preload_div.appendChild(waiter);
 		};
-		Ü._.skybox.putStaticSky();
 	};
 		
 	preloader.off = function() {	
