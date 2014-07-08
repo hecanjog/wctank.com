@@ -135,7 +135,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		omnibus.van.translateOnAxis(van_z_axis, trans_z);	
 	};
 		
-	Ü._.masterAnimate.start(omnibusAnimate);
+	Ü._.masterAnimate.add(omnibusAnimate);
 		
 	return omnibus;
 		

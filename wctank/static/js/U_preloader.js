@@ -6,6 +6,10 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	
 Ü._.preloader = (function(preloader) {
 	
+	//did we just start?
+	preloader.initialLoad = true;
+	
+	//preloading image
 	var waiter = new Image();
 	waiter.src = Ü._.assetPath + "virgo_preload_draft.gif";
 		
@@ -23,6 +27,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			preload_div.css("display", "none");
 			waiter.style.display = "none"; //Don't draw while hidden!
 		});
+		preloader.initialLoad = false;
 		Ü._.skybox.putSky();
 		Ü._.omnibus.setCursor("all-scroll");
 	};

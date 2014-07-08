@@ -15,7 +15,7 @@ var Ü = (function(Ü) {
 	
 	var container = null;
 	
-	//call after the DOM is in place
+	//call after the DOM is in place, initializes THREE
 	Ü.init = function() {
 		
 		Ü._.preloader.on();
@@ -37,8 +37,8 @@ var Ü = (function(Ü) {
 	};
 	window.addEventListener('resize', resizeCanvas);
 	
-	//use this function to set first location and load
-	Ü.setStartingLocation = function(lat, lng) {
+	//set initial location and begin
+	Ü.setLocationAndGo = function(lat, lng) {
 		
 		var unit = new Ü._.unitBuilder(19.486971,-99.117902, [1]);
 		Ü.scene.add(unit.unit);
@@ -49,20 +49,16 @@ var Ü = (function(Ü) {
 		
 		var unit3 = new Ü._.unitBuilder(19.487556,-99.117715, [0], function() {
 				Ü._.preloader.off();
+				Ü._.masterAnimate.animate();
 		});
+		
 		unit3.unit.position.x = 2000;
 		Ü.scene.add(unit3.unit);
 					
 		Ü.scene.add(Ü._.omnibus.van);
 		
 	};
-				
-	Ü.animate = function() {
-		requestAnimationFrame(Ü.animate);
-		Ü._.masterAnimate.bang();		
-		Ü.wgl_renderer.render(Ü.scene, Ü._.omnibus.camera);
-	};
-	
+					
 	return Ü;	
 
 }(Ü || {}));

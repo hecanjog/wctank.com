@@ -216,7 +216,13 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			this.depthMap.depthMap	);	
 					
 		makeCube();
-			
+		
+		//tick master animate so features appear during initial loading sequence
+		if (Ü._.preloader.initialLoad) {
+			Ü._.masterAnimate.tick();
+		}
+		
+		//execute callback, if any	
 		if(that.callback && (typeof that.callback === "function")) {
 			that.callback();
 		} else if (that.callback && (typeof that.callback !== "function")) {
