@@ -20,6 +20,8 @@ LIB=`find ./lib/*.js`
 STATIC=./js/U_static.js
 JS=`find ./js/*.js | grep -v ./js/U_static.js`
 
+BUILD_ORDER=$LIB' '$STATIC' '$JS
+
 append_debug_tag ()
 {
       echo $'\nAppending source map debug tag...'
@@ -28,23 +30,23 @@ append_debug_tag ()
 
 compiling_message ()
 {
-      echo $'\n' Compiling at $DEV_STATUS status...$'\n\n' $LIB $STATIC $JS $'\n'
+      echo $'\n' Compiling at $DEV_STATUS status...$'\n\n' $BUILD_ORDER $'\n'
 }
 
 if [ $DEV_STATUS == DEVO1 ]; then
       compiling_message
-      java -jar $COMPILER_PATH --js $LIB $STATIC $JS --js_output_file $BUILD_PATH \
+      java -jar $COMPILER_PATH --js $BUILD_ORDER --js_output_file $BUILD_PATH \
             --language_in ECMASCRIPT5 --create_source_map $SOURCE_MAP_PATH
       append_debug_tag
 elif [ $DEV_STATUS == DEVO2 ]; then
       compiling_message
-      java -jar $COMPILER_PATH --js $LIB $STATIC $JS --js_output_file $BUILD_PATH \
+      java -jar $COMPILER_PATH --js $BUILD_ORDER --js_output_file $BUILD_PATH \
             --language_in ECMASCRIPT5 --create_source_map $SOURCE_MAP_PATH \
             --compilation_level ADVANCED_OPTIMIZATIONS --externs $EXTERNS_PATH
       append_debug_tag
 elif [ $DEV_STATUS == PRODUCTION ]; then
       compiling_message
-      java -jar $COMPILER_PATH --js $LIB $STATIC $JS --js_output_file $BUILD_PATH \
+      java -jar $COMPILER_PATH --js $BUILD_ORDER --js_output_file $BUILD_PATH \
             --language_in ECMASCRIPT5 --compilation_level ADVANCED_OPTIMIZATIONS \
             --externs $EXTERNS_PATH
 fi
