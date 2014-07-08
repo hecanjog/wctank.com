@@ -1,5 +1,5 @@
 /*
- * preloader manages initial loading behavior outside of THREE and #preloader div
+ * preloader manages initial loading behavior (outside of THREE) and #preloader div
  */
 
 var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
