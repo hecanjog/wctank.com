@@ -3,6 +3,10 @@
  */
 var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 
+// first time here?
+Ü._.initialLoad = true;
+
+// path to images/video
 Ü._.assetPath = "static/webgl_assets/";
 
 /*

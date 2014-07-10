@@ -217,18 +217,13 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 					
 		makeCube();
 		
-		//tick master animate so features appear during initial loading sequence
-		if (Ü._.preloader.initialLoad) {
-			Ü._.masterAnimate.tick();
-		}
-		
 		//execute callback, if any	
 		if(that.callback && (typeof that.callback === "function")) {
 			that.callback();
 		} else if (that.callback && (typeof that.callback !== "function")) {
 			throw "invalid unitBuilder callback!!";
 		}
-			
+					
 	};
 				
 };

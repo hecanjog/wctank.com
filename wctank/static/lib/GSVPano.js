@@ -123,7 +123,7 @@ GSVPANO.PanoLoader = function (parameters) {
 				this.onPanoramaLoad();
 			}
 		}
-	}
+	};
 
 	this.loadFromId = function( id ) {
 

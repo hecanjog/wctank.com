@@ -31,6 +31,7 @@
         	height: auto;	
         }
         #preloader {
+        	display: none;
         	position: fixed;
         	width: 100%;
         	height: 100%;
@@ -56,7 +57,7 @@
 <body>
 	<div id="back">
 		<!-- 'bootstrap' skybox - filling this in is a priority -->
-		<img src="/static/webgl_assets/sky_gif_1st_frame.jpg">
+		<!-- img src="/static/webgl_assets/sky_gif_1st_frame.jpg" -->
 	</div>
 	<div id="wgl"></div>
 	<div id="preloader"></div>
@@ -71,8 +72,7 @@
     <script src="/static/lib/jsfeat.js"></script>
     
     <script src="/static/js/U_static.js"></script>
-    <script src="/static/js/U_preloader.js"></script>
-    <script src="/static/js/U_skybox.js"></script>
+    <script src="/static/js/U_divCtl.js"></script>
     <script src="/static/js/U_project.js"></script>
     <script src="/static/js/U_masterAnimate.js"></script>
     <script src="/static/js/U_imageOps.js"></script>
@@ -82,9 +82,9 @@
     <script src="/static/js/U_unitBuilder.js"></script>
     <script src="/static/js/U_worldBuilder.js"></script>
     <script src="/static/js/main.js"></script>
+   
     
     <!--BUILD-->
-	
 	<!--
 	<script src="/static/build/webgl.js"></script>
 	-->
