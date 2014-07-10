@@ -43,37 +43,22 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	//TODO: adjust according to max texture size of host
 	//need to adjust canny thresholds with texture size	
 	loader.setZoom(3);
-		
-	var d_loader = new GSVPANO.PanoDepthLoader();
-		
+				
 	//object to stage GSV data before transforms
 	var sphere = (function(sphere) {
 			
 		var map_height = 0;
 		var map_width = 0;
 		var map_pano = {};
-				
-		var disp_height = 0;
-		var disp_width = 0;
-		var disp_depths = [];
-		var disp_pano = {};
-							
+		
 		sphere.setMapData = function(mpano) {
 			map_height = mpano.height;
 			map_width = mpano.width;
 			map_pano = mpano;
 		};
-				
-		sphere.setDispDataAndMakeMap = function(dheight, dwidth, ddepths) { 
-			disp_height = dheight;
-			disp_width = dwidth;
-			disp_depths = ddepths;
-					
-			disp_pano = Ü._.imageOps.makeDisplacementMap(disp_depths, disp_width, disp_height);
-		};
-				
+		
 		sphere.getPanos = function() {
-			return [map_pano, disp_pano];
+			return map_pano;
 		};
 							
 		return sphere;
@@ -87,18 +72,13 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 		//get map and displacement panos
 		var panos = sphere.getPanos();
-			
-		var map_proj = Ü._.project.sphereToCube(panos[0]);
-		var disp_proj = Ü._.project.sphereToCube(panos[1]);
-		
+		var map_proj = Ü._.project.sphereToCube(panos);
 		var map_set = [];
-		var disp_faces = [];
 			
 		var ctr = 0;
 		for (var i = 0; i < 6; i++) {
 			if (that.knockouts.indexOf(i) === -1) {
 				map_set[ctr] = map_proj[i];
-				disp_faces[ctr] = disp_proj[i];
 				ctr++;
 			}
 		}
@@ -111,40 +91,19 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		var map_faces = [];
 		for (var i = 0; i < fnum; i++) {
 			map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);
-			//map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], disp_faces[i], true);
 		}
 			
 		//make textures
 		var map_textures = [];
-		var disp_textures = [];
 		for (var i = 0; i < fnum; i++) {
 			map_textures[i] = new THREE.Texture(map_faces[i]);
-			disp_textures[i] = new THREE.Texture(disp_faces[i]);
 		}
-			
-		THREE.ShaderMaterial.prototype.map = null;
-		THREE.ShaderMaterial.prototype.tDisplacement = null;
-			
+						
 		var face_materials = [];			
 		for (var i = 0; i < fnum; i++) {
-				
-			var shader = Ü._.shaders.basicDisplacement;
-			var uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-					
-			//TODO: bind object references to uniforms	
-			uniforms["enableDisplacement"].value = true;
-			uniforms["map"].value = map_textures[i];
-			uniforms["tDisplacement"].value = disp_textures[i];
-			uniforms["uDisplacementBias"].value = 0;
-			uniforms["uDisplacementScale"].value =0;
-
-			face_materials[i] = new THREE.ShaderMaterial({	
-				uniforms: uniforms, 
-				fragmentShader: shader.fragmentShader,
-				vertexShader: shader.vertexShader,
-				map: map_textures[i],
-				tDisplacement: disp_textures[i],
-				transparent: true	});
+			face_materials[i] = new THREE.MeshBasicMaterial(
+				{map: map_textures[i],
+				transparent: true});
 		}
 			
 		//make planes
@@ -158,7 +117,6 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		for (var i = 0; i < fnum; i++) {
 			meshes[i] = new THREE.Mesh(planes[i], face_materials[i]);
 			meshes[i].material.map.needsUpdate = true;
-			meshes[i].material.tDisplacement.needsUpdate = true;
 		}
 			
 		//assemble cube
@@ -207,23 +165,15 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	loader.load(this.location);						
 	loader.onPanoramaLoad = function() {
 		sphere.setMapData(this.canvas[0]);
-       	d_loader.load(this.panoId);  	
-	};
-	d_loader.onDepthLoad = function() {
-		sphere.setDispDataAndMakeMap(	
-			this.depthMap.height,
-			this.depthMap.width,
-			this.depthMap.depthMap	);	
-					
-		makeCube();
-		
-		//execute callback, if any	
+       	
+       	makeCube();
+       	
+       	//execute callback, if any	
 		if(that.callback && (typeof that.callback === "function")) {
 			that.callback();
 		} else if (that.callback && (typeof that.callback !== "function")) {
 			throw "invalid unitBuilder callback!!";
 		}
-					
 	};
-				
+					
 };

@@ -19,7 +19,7 @@ EXTERNS_PATH=./devdeps/externs.js
 LIB=`find ./lib/*.js`
 STATIC=./js/U_static.js
 OPS=./js/U_imageOps.js
-JS=`find ./js/*.js | grep -v ./js/U_static.js | grep -v ./js/main.js | grep -v ./js/U_imageOps.js`
+JS=`find ./js/*.js | grep -v 'U_static.js\|U_imageOps.js\|main.js'`
 MAIN=./js/main.js
 
 

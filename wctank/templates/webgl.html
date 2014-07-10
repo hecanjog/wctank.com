@@ -11,6 +11,11 @@
         }
         canvas {
         	display: block;
+        	-moz-user-select: -moz-none;
+        	-khtml-user-select: none;
+        	-webkit-user-select: none;
+        	-ms-user-select: none;
+        	user-select: none;
         }
         #wgl {
         	position: fixed;
@@ -81,7 +86,7 @@
         }
     </style>
     
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false"></script>
 		
 </head>
@@ -113,6 +118,7 @@
     <script src="/static/js/main.js"></script>
    
     <!--BUILD-->
+    
 	<!--
 	<script src="/static/build/webgl.js"></script>
 	-->
