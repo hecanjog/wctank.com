@@ -121,7 +121,10 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 
 	function omnibusAnimate() {	
 		omnibus.van.rotation.y += -rot_y;
-		omnibus.camera.rotation.x += -rot_x;
+		var new_rot_x = omnibus.camera.rotation.x + -rot_x;
+		if (new_rot_x > -Math.PI/2 && new_rot_x < Math.PI/2) {
+			omnibus.camera.rotation.x = new_rot_x;
+		}
 		omnibus.van.translateOnAxis(van_x_axis, trans_x);
 		omnibus.van.translateOnAxis(van_z_axis, trans_z);	
 	};
