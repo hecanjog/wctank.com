@@ -118,11 +118,13 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	omnibus.setCursor = function(cursor_style) {
 		wgl_div.style.cursor = cursor_style;
 	};
-
+	
+	var max_rot = 15 * Math.PI / 32;
+	
 	function omnibusAnimate() {	
 		omnibus.van.rotation.y += -rot_y;
 		var new_rot_x = omnibus.camera.rotation.x + -rot_x;
-		if (new_rot_x > -Math.PI/2 && new_rot_x < Math.PI/2) {
+		if (new_rot_x > -max_rot && new_rot_x < max_rot) {
 			omnibus.camera.rotation.x = new_rot_x;
 		}
 		omnibus.van.translateOnAxis(van_x_axis, trans_x);
