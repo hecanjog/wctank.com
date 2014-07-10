@@ -1,5 +1,5 @@
 /*
- * preloader manages initial loading behavior (outside of THREE) and #preloader div
+ * divCtl manages activity in the #preloader and #back divs
  */
 
 var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
@@ -54,28 +54,18 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				}
 				back_div.appendChild(element);
 			};
-			_.getImage = function(name) {
-				var img = new Image();
-				img.src = assets + name;
-				return img;
-			};
-			_.getVideo = function(name) {
-				var vid = document.createElement('video');
-				vid.src = assets + name;
-				return vid;
-			};
 		
 			return _;
 		
 		})({});
 		
-		var static_sky = skybox._.getImage("sky_gif_1st_frame.jpg");
+		var static_sky = Ü._.imageOps.getImage(assets + "sky_gif_1st_frame.jpg");
 		skybox.putStaticSky = function() {
 			skybox._.backDivPut(static_sky);
 		};
 		
 		//TODO: delay loading this for a bit
-		var sky_gif = skybox._.getImage("sky.gif");
+		var sky_gif = Ü._.imageOps.getImage(assets + "sky.gif");
 		skybox.putSky = function() {
 			skybox._.backDivPut(sky_gif);
 		};

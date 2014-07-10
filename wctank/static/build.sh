@@ -18,10 +18,12 @@ EXTERNS_PATH=./devdeps/externs.js
 
 LIB=`find ./lib/*.js`
 STATIC=./js/U_static.js
-JS=`find ./js/*.js | grep -v ./js/U_static.js | grep -v ./js/main.js`
+OPS=./js/U_imageOps.js
+JS=`find ./js/*.js | grep -v ./js/U_static.js | grep -v ./js/main.js | grep -v ./js/U_imageOps.js`
 MAIN=./js/main.js
 
-BUILD_ORDER=$LIB' '$STATIC' '$JS' '$MAIN
+
+BUILD_ORDER=$LIB' '$STATIC' '$OPS' '$JS' '$MAIN
 
 append_debug_tag ()
 {

@@ -38,14 +38,27 @@
         	z-index: 10000;
         	background: rgba(0, 0, 0, 0.4);
         }
-        #preloader img {
-        	width: 520px;
-   			height: 520px;
-   			position: absolute;
-   			left: 50%;
-  			top: 50%; 
-   			margin-left: -260px;
-   			margin-top: -260px;
+        @media (min-width: 1040px) {
+        	#preloader img {
+        		width: 520px;
+        		height: auto;
+        		position: absolute;
+   				left: 50%;
+  				top: 50%; 
+   				margin-left: -260px;
+   				margin-top: -260px;
+        	}
+        }
+        @media (max-width: 1039px) {
+        	#preloader img {
+        		width: 50vw;
+        		height: auto;
+        		position: absolute;
+        		left: 50%;
+        		top: 50%; 
+        		margin-left: -25vw;
+        		margin-top: -25vw;
+        	}
         }
     </style>
     
@@ -55,10 +68,7 @@
 </head>
 
 <body>
-	<div id="back">
-		<!-- 'bootstrap' skybox - filling this in is a priority -->
-		<!-- img src="/static/webgl_assets/sky_gif_1st_frame.jpg" -->
-	</div>
+	<div id="back"></div>
 	<div id="wgl"></div>
 	<div id="preloader"></div>
 	
@@ -72,10 +82,10 @@
     <script src="/static/lib/jsfeat.js"></script>
     
     <script src="/static/js/U_static.js"></script>
+    <script src="/static/js/U_imageOps.js"></script>
     <script src="/static/js/U_divCtl.js"></script>
     <script src="/static/js/U_project.js"></script>
     <script src="/static/js/U_masterAnimate.js"></script>
-    <script src="/static/js/U_imageOps.js"></script>
     <script src="/static/js/U_omnibus.js"></script>
     <script src="/static/js/U.js"></script>
     <script src="/static/js/U_shaders.js"></script>
@@ -83,7 +93,6 @@
     <script src="/static/js/U_worldBuilder.js"></script>
     <script src="/static/js/main.js"></script>
    
-    
     <!--BUILD-->
 	<!--
 	<script src="/static/build/webgl.js"></script>

@@ -1,9 +1,21 @@
 /*
  * imageOps contains handy image transforms and utilities
+ * load this second
  */
 var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 
 Ü._.imageOps = (function(imageOps) {
+	
+	imageOps.getImage = function(path) {
+		var img = new Image();
+		img.src = path;
+		return img;
+	};
+	imageOps.getVideo = function(path) {
+		var vid = document.createElement('video');
+		vid.src = path;
+		return vid;
+	};
 		
 	/*
 	 * canvasCopyPrep bootstraps unary image transforms
