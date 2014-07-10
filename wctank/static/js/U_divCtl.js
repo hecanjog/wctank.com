@@ -7,14 +7,13 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 Ü._.divCtl = (function(divCtl) {
 		
 	var assets = Ü._.assetPath;
-	//Ü._.skybox.putSky(); //separate concerns 
 	
 	divCtl.loadingSeq = function() {
 		divCtl.skybox.putStaticSky();
 		divCtl.preloader.show();
 	};
 	divCtl.doneLoading = function() {
-		divCtl.skybox.putStaticSky();
+		divCtl.skybox.putSky();
 		divCtl.preloader.hide();
 	};
 	
