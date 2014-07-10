@@ -25,8 +25,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		preload_div.append(waiter);
 		
 		preloader.show = function() {
-			preload_div.css({display: "block"});
-			preload_div.fadeIn(50, "linear");
+			preload_div.fadeIn(100, "linear");
 		};
 		
 		preloader.hide = function() {
