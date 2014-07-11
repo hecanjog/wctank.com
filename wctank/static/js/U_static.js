@@ -9,6 +9,14 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 // path to images/video
 Ü._.assetPath = "static/webgl_assets/";
 
+// library paths for Parallel requires (relative to static/lib)
+Ü._.workerPaths = {
+	// eval.js include
+	eval: {evalPath: "static/lib/eval.js"},
+	jsfeat: 'jsfeat.js'
+};
+
+
 /*
  * This checks the endianness of the host and creates a littleEndian property
  * in _ that should be incorporated into bitwise operations

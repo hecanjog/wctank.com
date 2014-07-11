@@ -72,9 +72,10 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 		//get map and displacement panos
 		var panos = sphere.getPanos();
+		
 		var map_proj = Ü._.project.sphereToCube(panos);
-		var map_set = [];
-			
+		
+		var map_set = [];							
 		var ctr = 0;
 		for (var i = 0; i < 6; i++) {
 			if (that.knockouts.indexOf(i) === -1) {
@@ -82,12 +83,21 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				ctr++;
 			}
 		}
-			
+		
+					
 		var map_canny = [];
 		for (var i = 0; i < fnum; i++) {
 			map_canny[i] = Ü._.imageOps.cannyEdge(map_set[i]);
 		}
+		
+		//Ü._.imageOps.cannyEdge(map_proj[4], function(img) {
+			//document.body.appendChild(img);
+		//});
+		
+		//Ü._.imageOps.alphaIntersect(map_proj[4], function(img) {
 			
+		//});
+		
 		var map_faces = [];
 		for (var i = 0; i < fnum; i++) {
 			map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);

@@ -6,6 +6,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 
 Ü._.imageOps = (function(imageOps) {
 	
+	
+	
 	imageOps.getImage = function(path) {
 		var img = new Image();
 		img.src = path;
@@ -16,33 +18,86 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		vid.src = path;
 		return vid;
 	};
-		
+
 	/*
-	 * canvasCopyPrep bootstraps unary image transforms
+	 * canvasCopyPrep bootstraps image transforms
 	 * consider using in conjunction with canvasDataPrep for functions with higher arity
 	 * note on variable names: sctx = source context, rctx = returned context, etc.
+	 * 
+	 * if provided a CALLBACK, spawns a webworker to execute the transform, then runs the 
+	 * callback when complete. require allows the inclusion as many libraries and functions as 
+	 * needed in the thread, and is either a path string relative to static/lib, or an 
+	 * object in the form {fn: function, name: 'name'}
 	 */
-	imageOps.canvasCopyPrep = function(canvas, process) {
+	imageOps.canvasCopyPrep = function(canvas, process, pop_hook, callback, requires) {
+		
+		var little_endian = Ü._.littleEndian;
 		
 		var w = canvas.width;
 		var h = canvas.height;
 		
 		var sctx = canvas.getContext('2d');
 		var sdat = sctx.getImageData(0, 0, w, h);
-		var spx = new Int32Array(sdat.data.buffer);
-			
+		
 		this.img = document.createElement('canvas');
 		this.img.width = w;
 		this.img.height = h;
-			
+		var that = this;
+		
 		var rctx = this.img.getContext('2d');
 		var rdat = rctx.createImageData(w, h);
-		var rpx = new Int32Array(rdat.data.buffer);
+		
+		//pop to data to add arguments
+		this.data = [w, h, sdat, rdat, little_endian];
+		if (typeof pop_hook === 'object') {
+			this.data.pop(pop_hook);
+		}
+		
+		if(typeof callback === 'function') {
 			
-		process(w, h, spx, rpx, sdat, rdat, sctx, rctx);
+			if (requires) {
+				
+				var process = new Parallel(this.data, Ü._.workerPaths.eval)
+					.require({fn: process, name: 'process'});
+	
+				for (var i = arguments.length - 1; i > 3; i--) {
+					process.require(arguments[i]);
+				}
+					
+			} else {
+				var process = new Parallel(this.data)
+					.require({fn: process, name: 'process'});
+			}
+				
+			process.spawn(function(data) {
+				var w = data[0];
+				var h = data[1];
+				var sdat = data[2];
+				var rdat = data[3];
+				var little_endian = data[4];
+				var addl_args = data[5];
 			
-		rctx.putImageData(rdat, 0, 0);
+				var spx = new Int32Array(sdat.data.buffer);
+				var rpx = new Int32Array(rdat.data.buffer);
 			
+				process(w, h, spx, rpx, sdat, rdat, little_endian, addl_args);
+			
+				return rdat;
+
+			}).then(function(rdat) {
+				rctx.putImageData(rdat, 0, 0);
+				callback(that.img);
+			});
+		
+		} else {
+			
+			var spx = new Int32Array(sdat.data.buffer);
+			var rpx = new Int32Array(rdat.data.buffer);
+			process(w, h, spx, rpx, sdat, rdat, little_endian);
+			rctx.putImageData(rdat, 0, 0);
+			
+		}
+		
 	};
 		
 	/*
@@ -76,7 +131,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		return ret_canv;
 			
 	};
-		
+	
 	imageOps.flipX = function(canvas) {
 			
 		var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
@@ -91,7 +146,24 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
       	return r.img;
       		
   	};
-		
+  	
+  	/*
+	 * a test for parallel image processing interface
+	 * parallel version of flipX function
+	 */
+	imageOps.pFlipX = function(canvas, callback) {
+		var p = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx) {
+			for (y = 0; y < h; y++) {
+				for (x = 0; x < w; x++) {
+      				var invx = w - x;
+      				rpx[invx + (y * w)] = spx[x + (y * w)];
+      			}
+      		}
+		},'',function(img) {
+			callback(img);
+		});	
+	};
+	
 	imageOps.flipY = function(canvas) {
 			
 		var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
@@ -160,12 +232,12 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	 * white pixels in map, instead of black.
 	 * 
 	 */
-	imageOps.alphaIntersect = function(source, map, invert) {
-
+	imageOps.alphaIntersect = function(source, map, invert, callback) {
+		
 		var filter = -16777216; // black - r 0 g 0 b 0 a 255 
 		if (invert) { filter = -1; } //white - r 255 g 255 b 255 a 255
-
-		var r = new imageOps.canvasCopyPrep(source, function(w, h, spx, rpx) {
+		
+		var alphaIntersectFunct = function(map, filter, w, h, spx, rpx) {
 	
 			var scmap = imageOps.resize(map, w, h, true);
 			var scmapdat = new imageOps.canvasDataPrep(scmap);
@@ -177,11 +249,50 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 					rpx[texel] = -16777216; //spx[texel];
 				}
 			}
+			
+		};
+		
+		if(typeof callback !== 'function') {
+			
+			var r = new imageOps.canvasCopyPrep(source, function(w, h, spx, rpx) {
 				
-		});
+				alphaIntersectFunct(map, filter, w, h, spx, rpx);	
+		
+			});
 			
-		return r.img;	
+			return r.img;
+		
+		} else { //if this is to be parallelized, then we need to pass mapdat and reconstruct
 			
+			var mapctx = map.getContext('2d');
+			var mapdat = mapctx.getImageData(0, 0, map.width, map.height);
+
+			var filter_args = {
+				filter: filter,
+				mapdat: mapdat,
+				mapwidth: map.width,
+				mapheight: map.height
+			};
+			
+			var p = new imageOps.canvasCopyPrep(source, function(w, h, spx, rpx, sdat, little_endian, addl_args) {
+				
+				var map = document.createElement('canvas');
+				map.width = addl_args.mapwidth;
+				map.height = addl_args.mapheight;
+				var ctx = map.getContext('2d');
+				ctx.putImageData(addl_args.mapdat, 0, 0);
+
+				alphaIntersectFunct(map, addl_args.filter, w, h, spx, rpx);
+	
+			}, filter_args, function(img) {
+				
+				callback(img);
+				
+			},
+			{fn: alphaIntersectFunct, name: 'alphaIntersectFunct'},
+			{fn: imageOps.canvasDataPrep, name: 'imageOps.canvasDataPrep'},
+			{fn: imageOps.resize, name: 'imageOps.resize'});
+		}	
 	};
 				
 	/*
@@ -259,20 +370,22 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		return rimg;
 			
 	};
-		
-	/*
-	 * uses JSFeat for canny edge detection
-	 */
-	imageOps.cannyEdge = function(canvas) {
 	
-		var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx, sdat) {
-				
+	/*
+	 * uses jsfeat for canny edge detection
+	 * if provided a callback, spawns a webworker to perform transform in background, calls back
+	 * otherwise, executes the transform in the UI thread and returns a new canvas
+	 */
+	imageOps.cannyEdge = function(canvas, callback) {
+		
+		var cannyEdgeFunct = function(w, h, spx, rpx, sdat, little_endian) {
+			
 			var mtx = new jsfeat.matrix_t(w, h, jsfeat.U8C1_t);
-				
+			
 			jsfeat.imgproc.grayscale(sdat.data, mtx.data);
 			jsfeat.imgproc.canny(mtx, mtx, 95, 105);
-								
-			if (Ü._.littleEndian) {
+			
+			if(little_endian) {
 				
 				for (var txl = 0; txl < rpx.length; txl++) {
 					var val = mtx.data[txl];
@@ -287,13 +400,34 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				}
 				
 			}
-				
-		});
-		
-		return r.img;
 			
-	};
+		};
 		
+		if(typeof callback === 'function') {
+		
+			var p = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, little_endian) {
+					
+					cannyEdgeFunct(w, h, spx, rpx, sdat, little_endian);
+				
+				},'', function(img) {
+					
+					callback(img);	
+				
+				}, Ü._.workerPaths.jsfeat, {fn: cannyEdgeFunct, name: 'cannyEdgeFunct'});
+		
+		} else {
+			
+			var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, little_endian) {
+				
+				cannyEdgeFunct(w, h, spx, rpx, sdat, little_endian);
+			
+			});
+			
+			return r.img;
+			
+		}
+	};
+	
 	return imageOps;
 		
 })({});

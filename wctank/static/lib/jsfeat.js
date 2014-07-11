@@ -5221,7 +5221,12 @@ The references are:
 
     if (typeof module === "undefined" || typeof module.exports === "undefined") {
         // in a browser, define its namespaces in global
-        window.jsfeat = lib;
+        // patch to detect whether or not we are in a webworker context
+        if(typeof window !== "undefined") {
+        	window.jsfeat = lib;
+        } else {
+        	self.jsfeat = lib;
+        }
     } else {
         // in commonjs, or when AMD wrapping has been applied, define its namespaces as exports
         module.exports = lib;
