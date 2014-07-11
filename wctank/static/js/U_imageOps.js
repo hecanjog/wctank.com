@@ -6,8 +6,6 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 
 Ü._.imageOps = (function(imageOps) {
 	
-	
-	
 	imageOps.getImage = function(path) {
 		var img = new Image();
 		img.src = path;
@@ -57,19 +55,19 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 			if (requires) {
 				
-				var process = new Parallel(this.data, Ü._.workerPaths.eval)
+				var worker = new Parallel(this.data, Ü._.workerPaths.eval)
 					.require({fn: process, name: 'process'});
 	
 				for (var i = arguments.length - 1; i > 3; i--) {
-					process.require(arguments[i]);
+					worker.require(arguments[i]);
 				}
 					
 			} else {
-				var process = new Parallel(this.data)
+				var worker = new Parallel(this.data)
 					.require({fn: process, name: 'process'});
 			}
 				
-			process.spawn(function(data) {
+			worker.spawn(function(data) {
 				var w = data[0];
 				var h = data[1];
 				var sdat = data[2];
