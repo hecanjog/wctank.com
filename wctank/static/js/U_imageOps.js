@@ -30,6 +30,10 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	 * the PUSH_HOOK provides a means by which to pass additional arguments to the worker
 	 * via an object, e.g., imageOps.alphaIntersect, where alpha mask (map) data is passed
 	 * to the worker inside an object literal
+	 * 
+	 * TODO: doc args passed to image transform
+	 * (w, h, spx, rpx, sdat, rdat, little_endian, orient_GL, addl_args)
+	 * 
 	 */
 	imageOps.CanvasCopyPrep = function(canvas, process, push_hook, callback, requires) {
 		
@@ -39,7 +43,20 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		var h = canvas.height;
 		
 		var sctx = canvas.getContext('2d');
-		var sdat = sctx.getImageData(0, 0, w, h);
+		var orient_GL = false;
+		
+		// if getContext returns null, then we are operating 
+		// on a canvas with a preexisting webgl context
+		if (sctx === null) { 
+			
+			var sdat = new Uint8Array(w * h * 4);
+			var wgl = canvas.getContext('experimental-webgl', {preserveDrawingBuffer: true});	
+			wgl.readPixels(0, 0, w, h, wgl.RGBA, wgl.UNSIGNED_BYTE, sdat); //reads 0, 0 as bottom-left!
+			orient_GL = true;
+			
+		} else {
+			var sdat = sctx.getImageData(0, 0, w, h);
+		}
 		
 		this.img = document.createElement('canvas');
 		this.img.width = w;
@@ -48,12 +65,12 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 		var rctx = this.img.getContext('2d');
 		var rdat = rctx.createImageData(w, h);
-		
-		//push to data to add arguments
-		var data = [w, h, sdat, rdat, little_endian];
+			
+		var data = [w, h, sdat, rdat, little_endian, orient_GL];
 		
 		if(typeof callback === 'function') {
 			
+			//push to data to add arguments
 			if (typeof push_hook === 'object') {
 				data.push(push_hook);
 			}
@@ -71,7 +88,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				var worker = new Parallel(data)
 					.require({fn: process, name: 'process'});
 			}
-				
+		
 			worker.spawn(function(data) {
 				
 				var w = data[0];
@@ -79,12 +96,19 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				var sdat = data[2];
 				var rdat = data[3];
 				var little_endian = data[4];
-				var addl_args = data[5];
-			
-				var spx = new Int32Array(sdat.data.buffer);
+				var orient_GL = data[5];
+				var addl_args = data[6];
+				
+				// handle sdat if Uint8Array instead of imageData object
+				if(orient_GL) {
+					var spx = new Int32Array(sdat.buffer);
+				} else {
+					var spx = new Int32Array(sdat.data.buffer);
+				}
+				
 				var rpx = new Int32Array(rdat.data.buffer);
 			
-				process(w, h, spx, rpx, sdat, rdat, little_endian, addl_args);
+				process(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL, addl_args);
 								
 				return rdat;
 
@@ -95,9 +119,16 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 		} else {
 			
-			var spx = new Int32Array(sdat.data.buffer);
+			if(orient_GL) {
+				var spx = new Int32Array(sdat.buffer);
+			} else {
+				var spx = new Int32Array(sdat.data.buffer);
+			}
+			
 			var rpx = new Int32Array(rdat.data.buffer);
-			process(w, h, spx, rpx, sdat, rdat, little_endian);
+			
+			process(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL);
+			
 			rctx.putImageData(rdat, 0, 0);
 			
 		}
@@ -125,16 +156,29 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 	imageOps.copy = function(canvas, callback) {
 			
-		var copyFunct = function(spx, rpx) {
-			for (var texel = 0; texel < spx.length; texel++) {
-				rpx[texel] = spx[texel];
+		var copyFunct = function(w, h, spx, rpx, orient_GL) {
+			
+			if(orient_GL) { // if the canvas we're copying uses <0, 0> as bottom-left
+				
+				var texel = 0;
+				for (var y = h; y >= 0; y--) {
+					for (var x = 0; x < w; x++) {
+						rpx[texel] = spx[y * w + x];
+						texel++;
+					}
+				}
+				
+			} else {
+				for (var texel = 0; texel < spx.length; texel++) {
+					rpx[texel] = spx[texel];
+				}
 			}
 		};
 			
 		if(typeof callback === 'function') {
 			
-			var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx) {
-					copyFunct(spx, rpx);
+			var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL) {
+					copyFunct(w, h, spx, rpx, orient_GL);
 				},
 				'',
 				function(img) {
@@ -144,26 +188,30 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			);
 			
 		} else {
-			
-			// for some reason, the try clause here doesn't work in all circumstances
+		
 			try {
-				var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx) {
-					copyFunt(spx, rpx);
+					
+				// this is generally faster then JS pixel pushing, 
+				// so use it when cross-origin stuff isn't an issue
+				var ret_canv = document.createElement('canvas');
+				ret_canv.width = canvas.width;
+				ret_canv.height = canvas.height;
+
+				var ret_ctx = ret_canv.getContext('2d');
+				ret_ctx.drawImage(canvas, 0, 0);
+
+				return ret_canv;
+			
+			} catch(err) {
+				
+				var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL) {
+					copyFunct(w, h, spx, rpx, orient_GL);
 				});
 			
 				return r.img;
 				
-			} catch(err) {
-				var ret_canv = document.createElement('canvas');
-				ret_canv.width = canvas.width;
-				ret_canv.height = canvas.height;
-			
-				var ret_ctx = ret_canv.getContext('2d');
-				ret_ctx.drawImage(canvas, 0, 0);
-				
-				return ret_canv;
 			}
-		
+			
 		}
 				
 	};
@@ -178,8 +226,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
       			}
       		}
 		});
-      		
-      	return r.img;
+		
+		return r.img;
       		
   	};
 	
@@ -278,7 +326,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				mdat: scmapdat.dat
 			};
 			
-			var p = new imageOps.CanvasCopyPrep(source, function(w, h, spx, rpx, sdat, rdat, little_endian, map_args) {
+			var p = new imageOps.CanvasCopyPrep(source, function(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL, map_args) {
 					var mpx = new Int32Array(map_args.mdat.data.buffer);
 					alphaIntersectFunct(mpx, map_args.filter, spx, rpx);
 				}, 

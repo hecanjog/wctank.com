@@ -1,11 +1,11 @@
 var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 
 Ü._.project = (function(project) {
-
-	var rend = new THREE.WebGLRenderer();
+	
+	var renderer = new THREE.WebGLRenderer();
 	
 	var prepareSphereProjection = function(canvas) {
-		
+	
 		this.w = canvas.width;
 		this.h = canvas.height;
 		
@@ -23,7 +23,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		this.scene.add(sphere);	
 		this.scene.add(this.camera);
 		
-		this.snapshot = function(x, y, z, renderer) {
+		this.snapshot = function(x, y, z) {
 			
 			this.camera.lookAt(new THREE.Vector3(x, y, z));
 			renderer.render(this.scene, this.camera);
@@ -32,32 +32,69 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 		};
 		
+		this.pSnap = function(x, y, z, callback) {
+			this.camera.lookAt(new THREE.Vector3(x, y, z));
+			renderer.render(this.scene, this.camera);
+			Ü._.imageOps.copy(renderer.domElement, function(img) {
+				callback(img);
+			});
+		};
+		
 	};
 	
 	/* 
 	 * given a canvas containing an equirectangular image
 	 * for projection onto a sphere, return 6 canvases
 	 * corresponding to faces of cube
+	 * 
+	 * TODO: doc callback
+	 * 
 	 */
-	project.sphereToCube = function(canvas) {
+	project.sphereToCube = function(canvas, callback) {
 		
-		var sp = new prepareSphereProjection(canvas);
+		var s = new prepareSphereProjection(canvas);
 		
 		//length of side of face of cube
-		var slen = Math.floor(Math.sqrt((sp.w * sp.h) / 6));
+		var slen = Math.floor(Math.sqrt((s.w * s.h) / 6));
+		renderer.setSize( slen, slen );
 		
-		rend.setSize( slen, slen );
+		var fxn, fxp, fyn, fyp, fzn, fzp;
 		
-		var fxn = sp.snapshot(-1, 0, 0, rend); //x_neg
-		var fxp = sp.snapshot(1, 0, 0, rend); //x_pos
-		var fyn = sp.snapshot(0, -1, 0, rend); //y_neg
-		var fyp = sp.snapshot(0, 1, 0, rend); //y_pos
-		var fzn = sp.snapshot(0, 0, -1, rend); //z_neg
-		var fzp = sp.snapshot(0, 0, 1, rend); //z_pos
-		
-		//return canvases -x, +x, -y, +y, -z, +z
-		return [fxn, fxp, fyn, fyp, fzn, fzp];
+		if(typeof callback === 'function') {
 			
+			s.pSnap(-1, 0, 0, function(img) {
+				fxn = img;
+				s.pSnap(1, 0, 0, function(img) {
+					fxp = img;
+					s.pSnap(0, -1, 0, function(img) {
+						fyn = img;
+						s.pSnap(0, 1, 0, function(img) {
+							fyp = img;
+							s.pSnap(0, 0, -1, function(img) {
+								fzn = img;
+								s.pSnap(0, 0, 1, function(img) {
+									fzp = img;
+									callback([fxn, fxp, fyn, fyp, fzn, fzp]);
+								});
+							});
+						});
+					});
+				});
+			});
+			
+		} else {
+			
+			fxn = s.snapshot(-1, 0, 0); //x_neg
+			fxp = s.snapshot(1, 0, 0); //x_pos
+			fyn = s.snapshot(0, -1, 0); //y_neg
+			fyp = s.snapshot(0, 1, 0); //y_pos
+			fzn = s.snapshot(0, 0, -1); //z_neg
+			fzp = s.snapshot(0, 0, 1); //z_pos
+		
+			//return canvases -x, +x, -y, +y, -z, +z
+			return [fxn, fxp, fyn, fyp, fzn, fzp];
+			
+		}
 	};	
 	
 	return project;

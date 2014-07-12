@@ -75,6 +75,15 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 		var map_proj = Ü._.project.sphereToCube(panos);
 		
+		/*
+		Ü._.project.sphereToCube(panos, function(arr) {
+			for (var i = 0; i < arr.length; i++) {
+				document.body.appendChild(arr[i]);
+			}
+		});*/
+		//document.body.appendChild(map_proj[1]);
+		//document.body.appendChild(Ü._.imageOps.copy(map_proj[1]));
+		
 		var map_set = [];							
 		var ctr = 0;
 		for (var i = 0; i < 6; i++) {
@@ -89,17 +98,6 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		for (var i = 0; i < fnum; i++) {
 			map_canny[i] = Ü._.imageOps.cannyEdge(map_set[i]);
 		}
-		
-		//Ü._.imageOps.cannyEdge(map_proj[4], function(img) {
-		//	document.body.appendChild(img);
-		//});
-		
-		//Ü._.imageOps.alphaIntersect(map_proj[0], map_canny[0], false, function(img) {
-			
-		//});
-		//Ü._.imageOps.copy(map_proj[1], function(img) {
-			//document.body.appendChild(img);
-		//});
 				
 		var map_faces = [];
 		for (var i = 0; i < fnum; i++) {
