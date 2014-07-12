@@ -27,7 +27,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	 * needed in the thread, and is either a path string relative to static/lib, or an 
 	 * object in the form {fn: function, name: 'name'}
 	 */
-	imageOps.canvasCopyPrep = function(canvas, process, pop_hook, callback, requires) {
+	imageOps.CanvasCopyPrep = function(canvas, process, push_hook, callback, requires) {
 		
 		var little_endian = Ü._.littleEndian;
 		
@@ -46,16 +46,16 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		var rdat = rctx.createImageData(w, h);
 		
 		//pop to data to add arguments
-		this.data = [w, h, sdat, rdat, little_endian];
-		if (typeof pop_hook === 'object') {
-			this.data.pop(pop_hook);
+		var data = [w, h, sdat, rdat, little_endian];
+		if (typeof push_hook === 'object') {
+			data.push(push_hook);
 		}
 		
 		if(typeof callback === 'function') {
 			
 			if (requires) {
 				
-				var worker = new Parallel(this.data, Ü._.workerPaths.eval)
+				var worker = new Parallel(data, Ü._.workerPaths.eval)
 					.require({fn: process, name: 'process'});
 	
 				for (var i = arguments.length - 1; i > 3; i--) {
@@ -63,11 +63,12 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				}
 					
 			} else {
-				var worker = new Parallel(this.data)
+				var worker = new Parallel(data)
 					.require({fn: process, name: 'process'});
 			}
 				
 			worker.spawn(function(data) {
+				
 				var w = data[0];
 				var h = data[1];
 				var sdat = data[2];
@@ -79,7 +80,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				var rpx = new Int32Array(rdat.data.buffer);
 			
 				process(w, h, spx, rpx, sdat, rdat, little_endian, addl_args);
-			
+								
 				return rdat;
 
 			}).then(function(rdat) {
@@ -101,7 +102,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	/*
 	 * canvasDataPrep prepares and exposes data for a given canvas
 	 */
-	imageOps.canvasDataPrep = function(canvas) {
+	imageOps.CanvasDataPrep = function(canvas) {
 			
 		this.w = canvas.width;
 		this.h = canvas.height;
@@ -132,7 +133,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	
 	imageOps.flipX = function(canvas) {
 			
-		var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
+		var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx){
 			for (y = 0; y < h; y++) {
 				for (x = 0; x < w; x++) {
       				var invx = w - x;
@@ -150,7 +151,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	 * parallel version of flipX function
 	 */
 	imageOps.pFlipX = function(canvas, callback) {
-		var p = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx) {
+		var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx) {
 			for (y = 0; y < h; y++) {
 				for (x = 0; x < w; x++) {
       				var invx = w - x;
@@ -164,7 +165,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	
 	imageOps.flipY = function(canvas) {
 			
-		var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
+		var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx){
 			for (y = 0; y < srh; y++) {
    				var invy = srh - y;
       			for (x = 0; x < srw; x++) {
@@ -183,7 +184,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	 */
 	imageOps.backwards = function(canvas) {
 			
-		var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx){
+		var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx){
 			var length = w * h;
 			for (var texel = 0; texel < length; texel++) {
 				rpx[texel] = spx[length - 1 - texel];
@@ -199,12 +200,12 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	 * OR, if explicit is truthy, x and y are dimensions in pixels
 	 */
 	imageOps.resize = function(canvas, x, y, explicit) {
-			
+
 		var cw = canvas.width;
 		var ch = canvas.height;
 		
 		var rcan = document.createElement('canvas');
-			
+		
 		if (explicit) {
 			rcan.width = x;
 			rcan.height = y;
@@ -212,10 +213,10 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			rcan.width = cw * x;
 			rcan.height = ch * y;
 		}
-			
-		var rctx = rcan.getContext('2d');
-		rctx.drawImage(canvas, 0, 0, rcan.width, rcan.height);
 
+		var rctx = rcan.getContext('2d');
+		rctx.drawImage(canvas, 0, 0, rcan.width, rcan.height);		
+	
 		return rcan;	
 							
 	};
@@ -235,13 +236,13 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		var filter = -16777216; // black - r 0 g 0 b 0 a 255 
 		if (invert) { filter = -1; } //white - r 255 g 255 b 255 a 255
 		
-		var alphaIntersectFunct = function(map, filter, w, h, spx, rpx) {
-	
-			var scmap = imageOps.resize(map, w, h, true);
-			var scmapdat = new imageOps.canvasDataPrep(scmap);
+		var scmap = imageOps.resize(map, source.width, source.height, true);
+		var scmapdat = new imageOps.CanvasDataPrep(scmap);
 
-			for (var texel = 0; texel < spx.length; texel++) {
-				if (scmapdat.px[texel] === filter) {
+		var alphaIntersectFunct = function(mpx, filter, spx, rpx) {
+			
+			for (var texel = 0; texel < mpx.length; texel++) {
+				if (mpx[texel] === filter) {
 					rpx[texel] = 0x00000000;
 				} else {
 					rpx[texel] = -16777216; //spx[texel];
@@ -252,44 +253,32 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 		if(typeof callback !== 'function') {
 			
-			var r = new imageOps.canvasCopyPrep(source, function(w, h, spx, rpx) {
-				
-				alphaIntersectFunct(map, filter, w, h, spx, rpx);	
-		
+			var r = new imageOps.CanvasCopyPrep(source, function(w, h, spx, rpx) {
+				alphaIntersectFunct(scmapdat.px, filter, spx, rpx);	
 			});
 			
 			return r.img;
 		
-		} else { //if this is to be parallelized, then we need to pass mapdat and reconstruct
+		} else { 
 			
-			var mapctx = map.getContext('2d');
-			var mapdat = mapctx.getImageData(0, 0, map.width, map.height);
-
-			var filter_args = {
+			var map_args = {
 				filter: filter,
-				mapdat: mapdat,
-				mapwidth: map.width,
-				mapheight: map.height
+				mdat: scmapdat.dat
 			};
 			
-			var p = new imageOps.canvasCopyPrep(source, function(w, h, spx, rpx, sdat, little_endian, addl_args) {
+			var p = new imageOps.CanvasCopyPrep(source, function(w, h, spx, rpx, sdat, rdat, little_endian, map_args) {
+					var mpx = new Int32Array(map_args.mdat.data.buffer);
+					alphaIntersectFunct(mpx, map_args.filter, spx, rpx);
+				}, 
 				
-				var map = document.createElement('canvas');
-				map.width = addl_args.mapwidth;
-				map.height = addl_args.mapheight;
-				var ctx = map.getContext('2d');
-				ctx.putImageData(addl_args.mapdat, 0, 0);
-
-				alphaIntersectFunct(map, addl_args.filter, w, h, spx, rpx);
-	
-			}, filter_args, function(img) {
+				map_args, 
 				
-				callback(img);
-				
-			},
-			{fn: alphaIntersectFunct, name: 'alphaIntersectFunct'},
-			{fn: imageOps.canvasDataPrep, name: 'imageOps.canvasDataPrep'},
-			{fn: imageOps.resize, name: 'imageOps.resize'});
+				function(img) {
+					callback(img);
+				},
+				{fn: alphaIntersectFunct, name: 'alphaIntersectFunct'}
+			);
+			
 		}	
 	};
 				
@@ -337,7 +326,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		rimg.width = width;
 		rimg.height = height;
 			
-		var r = new imageOps.canvasDataPrep(rimg);
+		var r = new imageOps.CanvasDataPrep(rimg);
 			
 		var little = Ü._.littleEndian;
 			
@@ -403,22 +392,25 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 		if(typeof callback === 'function') {
 		
-			var p = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, little_endian) {
-					
+			var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, little_endian) {
 					cannyEdgeFunct(w, h, spx, rpx, sdat, little_endian);
+				},
 				
-				},'', function(img) {
-					
+				'', 
+				
+				function(img) {	
 					callback(img);	
+				},
 				
-				}, Ü._.workerPaths.jsfeat, {fn: cannyEdgeFunct, name: 'cannyEdgeFunct'});
+				Ü._.workerPaths.jsfeat, 
+				{fn: cannyEdgeFunct, name: 'cannyEdgeFunct'}
+				
+			);
 		
 		} else {
 			
-			var r = new imageOps.canvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, little_endian) {
-				
+			var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, little_endian) {
 				cannyEdgeFunct(w, h, spx, rpx, sdat, little_endian);
-			
 			});
 			
 			return r.img;

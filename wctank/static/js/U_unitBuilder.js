@@ -27,7 +27,7 @@
 
 var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	
-Ü._.unitBuilder = function(lat, lng, knockout, callback) {	
+Ü._.UnitBuilder = function(lat, lng, knockout, callback) {	
 		
 	var unit_diameter = 1000;
 		
@@ -94,9 +94,9 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			//document.body.appendChild(img);
 		//});
 		
-		//Ü._.imageOps.alphaIntersect(map_proj[4], function(img) {
+		Ü._.imageOps.alphaIntersect(map_proj[0], map_canny[0], false, function(img) {
 			
-		//});
+		});
 		
 		var map_faces = [];
 		for (var i = 0; i < fnum; i++) {
