@@ -91,13 +91,16 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		}
 		
 		//Ü._.imageOps.cannyEdge(map_proj[4], function(img) {
-			//document.body.appendChild(img);
+		//	document.body.appendChild(img);
 		//});
 		
-		Ü._.imageOps.alphaIntersect(map_proj[0], map_canny[0], false, function(img) {
+		//Ü._.imageOps.alphaIntersect(map_proj[0], map_canny[0], false, function(img) {
 			
-		});
-		
+		//});
+		//Ü._.imageOps.copy(map_proj[1], function(img) {
+			//document.body.appendChild(img);
+		//});
+				
 		var map_faces = [];
 		for (var i = 0; i < fnum; i++) {
 			map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);

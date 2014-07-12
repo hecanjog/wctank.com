@@ -18,14 +18,18 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	};
 
 	/*
-	 * canvasCopyPrep bootstraps image transforms
-	 * consider using in conjunction with canvasDataPrep for functions with higher arity
+	 * CanvasCopyPrep bootstraps image transforms
+	 * consider using in conjunction with CanvasDataPrep for functions with higher arity
 	 * note on variable names: sctx = source context, rctx = returned context, etc.
 	 * 
 	 * if provided a CALLBACK, spawns a webworker to execute the transform, then runs the 
-	 * callback when complete. require allows the inclusion as many libraries and functions as 
+	 * callback when complete. REQUIRE allows the inclusion as many libraries and functions as 
 	 * needed in the thread, and is either a path string relative to static/lib, or an 
 	 * object in the form {fn: function, name: 'name'}
+	 * 
+	 * the PUSH_HOOK provides a means by which to pass additional arguments to the worker
+	 * via an object, e.g., imageOps.alphaIntersect, where alpha mask (map) data is passed
+	 * to the worker inside an object literal
 	 */
 	imageOps.CanvasCopyPrep = function(canvas, process, push_hook, callback, requires) {
 		
@@ -45,13 +49,14 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		var rctx = this.img.getContext('2d');
 		var rdat = rctx.createImageData(w, h);
 		
-		//pop to data to add arguments
+		//push to data to add arguments
 		var data = [w, h, sdat, rdat, little_endian];
-		if (typeof push_hook === 'object') {
-			data.push(push_hook);
-		}
 		
 		if(typeof callback === 'function') {
+			
+			if (typeof push_hook === 'object') {
+				data.push(push_hook);
+			}
 			
 			if (requires) {
 				
@@ -118,22 +123,54 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				
 	};
 		
-	imageOps.copy = function(canvas) {
+	imageOps.copy = function(canvas, callback) {
 			
-		var ret_canv = document.createElement('canvas');
-		ret_canv.width = canvas.width;
-		ret_canv.height = canvas.height;
+		var copyFunct = function(spx, rpx) {
+			for (var texel = 0; texel < spx.length; texel++) {
+				rpx[texel] = spx[texel];
+			}
+		};
 			
-		var ret_ctx = ret_canv.getContext('2d');
-		ret_ctx.drawImage(canvas, 0, 0);
+		if(typeof callback === 'function') {
 			
-		return ret_canv;
+			var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx) {
+					copyFunct(spx, rpx);
+				},
+				'',
+				function(img) {
+					callback(img);
+				},
+				{fn: copyFunct, name: 'copyFunct'}
+			);
 			
+		} else {
+			
+			// for some reason, the try clause here doesn't work in all circumstances
+			try {
+				var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx) {
+					copyFunt(spx, rpx);
+				});
+			
+				return r.img;
+				
+			} catch(err) {
+				var ret_canv = document.createElement('canvas');
+				ret_canv.width = canvas.width;
+				ret_canv.height = canvas.height;
+			
+				var ret_ctx = ret_canv.getContext('2d');
+				ret_ctx.drawImage(canvas, 0, 0);
+				
+				return ret_canv;
+			}
+		
+		}
+				
 	};
 	
 	imageOps.flipX = function(canvas) {
 			
-		var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx){
+		var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx) {
 			for (y = 0; y < h; y++) {
 				for (x = 0; x < w; x++) {
       				var invx = w - x;
@@ -145,23 +182,6 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
       	return r.img;
       		
   	};
-  	
-  	/*
-	 * a test for parallel image processing interface
-	 * parallel version of flipX function
-	 */
-	imageOps.pFlipX = function(canvas, callback) {
-		var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx) {
-			for (y = 0; y < h; y++) {
-				for (x = 0; x < w; x++) {
-      				var invx = w - x;
-      				rpx[invx + (y * w)] = spx[x + (y * w)];
-      			}
-      		}
-		},'',function(img) {
-			callback(img);
-		});	
-	};
 	
 	imageOps.flipY = function(canvas) {
 			
@@ -251,15 +271,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 		};
 		
-		if(typeof callback !== 'function') {
-			
-			var r = new imageOps.CanvasCopyPrep(source, function(w, h, spx, rpx) {
-				alphaIntersectFunct(scmapdat.px, filter, spx, rpx);	
-			});
-			
-			return r.img;
-		
-		} else { 
+		if(typeof callback === 'function') {
 			
 			var map_args = {
 				filter: filter,
@@ -278,6 +290,14 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				},
 				{fn: alphaIntersectFunct, name: 'alphaIntersectFunct'}
 			);
+		
+		} else { 
+			
+			var r = new imageOps.CanvasCopyPrep(source, function(w, h, spx, rpx) {
+				alphaIntersectFunct(scmapdat.px, filter, spx, rpx);	
+			});
+			
+			return r.img;
 			
 		}	
 	};
@@ -365,7 +385,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	 */
 	imageOps.cannyEdge = function(canvas, callback) {
 		
-		var cannyEdgeFunct = function(w, h, spx, rpx, sdat, little_endian) {
+		var cannyEdgeFunct = function(w, h, rpx, sdat, little_endian) {
 			
 			var mtx = new jsfeat.matrix_t(w, h, jsfeat.U8C1_t);
 			
@@ -392,8 +412,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 		if(typeof callback === 'function') {
 		
-			var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, little_endian) {
-					cannyEdgeFunct(w, h, spx, rpx, sdat, little_endian);
+			var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, rdat, little_endian) {
+					cannyEdgeFunct(w, h, rpx, sdat, little_endian);
 				},
 				
 				'', 
@@ -409,8 +429,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 		} else {
 			
-			var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, little_endian) {
-				cannyEdgeFunct(w, h, spx, rpx, sdat, little_endian);
+			var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, rdat, little_endian) {
+				cannyEdgeFunct(w, h, rpx, sdat, little_endian);
 			});
 			
 			return r.img;
