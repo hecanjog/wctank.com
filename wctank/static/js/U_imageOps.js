@@ -50,7 +50,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		if (sctx === null) { 
 			
 			var sdat = new Uint8Array(w * h * 4);
-			var wgl = canvas.getContext('experimental-webgl', {preserveDrawingBuffer: true});	
+			var wgl = canvas.getContext('webgl', {preserveDrawingBuffer: true});	
 			wgl.readPixels(0, 0, w, h, wgl.RGBA, wgl.UNSIGNED_BYTE, sdat); //reads 0, 0 as bottom-left!
 			orient_GL = true;
 			
