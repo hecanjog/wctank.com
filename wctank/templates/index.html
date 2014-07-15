@@ -95,7 +95,7 @@
                 var sw = visibleBounds.getSouthWest();
                 var ne = visibleBounds.getNorthEast();
 
-                var url = '/'+sw.k+'/'+sw.A+'/'+ne.k+'/'+ne.A;
+                var url = '/'+sw.k+'/'+sw.B+'/'+ne.k+'/'+ne.B;
                 $.getJSON(url, function(data) {
                     var m;
                     $.each(data, function(i, post) {
