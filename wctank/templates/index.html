@@ -7,7 +7,7 @@
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false&libraries=weather"></script>
     <script type="text/javascript">
         $(document).on('click', '.close-post', function(e) {
             e.preventDefault();
@@ -84,6 +84,9 @@
                 bounds
             );
 
+            var clouds = new google.maps.weather.CloudLayer();
+            clouds.setMap(map);
+
             overlay.setMap(map);
 
             google.maps.event.addListener(overlay, 'click', function() {
@@ -100,10 +103,18 @@
                     var m;
                     $.each(data, function(i, post) {
                         var loc = new google.maps.LatLng(post.lat, post.long);
-                        m = new google.maps.Marker({
+                        var markerOptions = {
                             position: loc,
                             map: map
-                        });
+                        };
+
+                        if($.inArray('videos', post.tags) !== -1) {
+                            markerOptions.icon = 'static/colorbars.png';
+                        } else if ($.inArray('stumblesome', post.tags) !== -1) {
+                            markerOptions.icon = 'static/ear.png';
+                        }
+
+                        m = new google.maps.Marker(markerOptions);
 
                         google.maps.event.addListener(m, 'click', function() {
                             var $post = renderPost(post, $('#post-template'));
