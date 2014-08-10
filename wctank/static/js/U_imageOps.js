@@ -33,7 +33,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	 * TODO: update docs!	// manage concurrency with call backs and/or event listeners 
 	 */
 	var Canvas2dTransform = function(canvas, preprocess, process, addl_args_obj, callback, requires, proc_chain, reassign_flags) {
-		
+
 		var parent = this;
 		
 		var little_endian = Ü._.littleEndian;
@@ -174,7 +174,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				
 				var worker = new Parallel(data, Ü._.workerPaths.eval)
 					.require({fn: process, name: 'process'}, {fn: drawSetup, name: 'drawSetup'}, 
-					{fn: Ü._.utils.cloneArray, name: 'cloneArray'}, {fn: Ü._.utils.cloneImgData, name: 'cloneImgData'});
+					{fn: Ü._.utils.cloneArray, name: 'cloneArray'});
 				for (var req = 0; req < req_chain.length; req++) {
 					worker.require(req_chain[req]);
 				}
@@ -306,7 +306,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			var src = catapult.toString();
 			return imgOpHeap.lookUp(UEID, name, loc, src);
 		}());
-		
+
 		// public props, methods
 		
 		this.ret_img = null; // if returning immediately, this will be filled with a ref to a canvas element
@@ -401,7 +401,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 					"var canvas = {};",
 					"canvas.flag = false;",
 				"}",
-			"} else if ( !( (canvas.hasOwnProperty('height') || canvas.hasOwnProperty('catapult')) ) ) {",
+			"} else if ( !( canvas.width || canvas.catapult ) ) {",
 					"var canvas = {};",
 					"canvas.flag = false;",
 			"}",	
