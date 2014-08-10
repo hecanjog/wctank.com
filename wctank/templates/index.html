@@ -112,6 +112,8 @@
                             markerOptions.icon = 'static/colorbars.png';
                         } else if ($.inArray('stumblesome', post.tags) !== -1) {
                             markerOptions.icon = 'static/ear.png';
+                        } else {
+                            markerOptions.icon = 'static/catalan_compass_rose.png';
                         }
 
                         m = new google.maps.Marker(markerOptions);
