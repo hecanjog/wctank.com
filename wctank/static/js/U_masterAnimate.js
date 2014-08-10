@@ -46,4 +46,4 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 	return masterAnimate;
 		
-})({});
+}({}));

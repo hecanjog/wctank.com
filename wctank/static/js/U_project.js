@@ -6,6 +6,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	
 	var prepareSphereProjection = function(canvas) {
 	
+		var scope = this;
+	
 		this.w = canvas.width;
 		this.h = canvas.height;
 		
@@ -32,13 +34,41 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			
 		};
 		
-		this.pSnap = function(x, y, z, callback) {
-			this.camera.lookAt(new THREE.Vector3(x, y, z));
-			renderer.render(this.scene, this.camera);
-			Ü._.imageOps.copy(renderer.domElement, function(img) {
-				callback(img);
-			});
-		};
+		this.conSnap = (function(conSnap) {
+			
+			var images = [];
+			var fnheap = [];
+			var idx = 0;
+			var stid, call, interval;
+			
+			conSnap.addShot = function(x, y, z) {
+				fnheap[fnheap.length] = function() {
+					scope.camera.lookAt(new THREE.Vector3(x, y, z));
+					renderer.render(scope.scene, scope.camera);
+					images[idx] = Ü._.imageOps.copy(renderer.domElement);
+					idx++;
+				};
+				return scope.conSnap;
+			};
+			
+			conSnap.execute = function(time_interval, callback) {
+				if (callback) call = callback;
+				if (time_interval) interval = time_interval;
+				stid = window.setTimeout(function() {
+					fnheap[idx]();
+					if (idx < fnheap.length) {
+						conSnap.execute();
+					} else {
+						window.clearTimeout(stid);
+						call(images);
+					}
+				}, interval);	
+				
+			};
+			
+			return conSnap;
+			
+		}({}));
 		
 	};
 	
@@ -62,25 +92,13 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 		if(typeof callback === 'function') {
 			
-			s.pSnap(-1, 0, 0, function(img) {
-				fxn = img;
-				s.pSnap(1, 0, 0, function(img) {
-					fxp = img;
-					s.pSnap(0, -1, 0, function(img) {
-						fyn = img;
-						s.pSnap(0, 1, 0, function(img) {
-							fyp = img;
-							s.pSnap(0, 0, -1, function(img) {
-								fzn = img;
-								s.pSnap(0, 0, 1, function(img) {
-									fzp = img;
-									callback([fxn, fxp, fyn, fyp, fzn, fzp]);
-								});
-							});
-						});
-					});
-				});
-			});
+			s.conSnap.addShot(-1, 0, 0)
+				.addShot(1, 0, 0)
+				.addShot(0, -1, 0)
+				.addShot(0, 1, 0)
+				.addShot(0, 0, -1)
+				.addShot(0, 0, 1)
+				.execute(10, callback);
 			
 		} else {
 			
@@ -99,4 +117,4 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	
 	return project;
 	
-})({});
+}({}));

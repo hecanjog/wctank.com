@@ -35,8 +35,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	this.location = new google.maps.LatLng(lat, lng);
 	this.knockouts = knockout;
 	this.callback = callback; //called after unit is complete
-		
-	var that = this;
+	
+	var scope = this;
 		
 	var loader = new GSVPANO.PanoLoader();
 		
@@ -63,128 +63,109 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 							
 		return sphere;
 			
-	})({});		
+	}({}));		
 		
-	var makeCube = function() { 
-				
+	var makeCube = function(callback) { 
+			
 		var cube_half = unit_diameter / 2;
-		var fnum = 6 - that.knockouts.length;	
+		var fnum = 6 - scope.knockouts.length;	
 			
 		//get map and displacement panos
 		var panos = sphere.getPanos();
-		
-		var map_proj = Ü._.project.sphereToCube(panos);
-		
-		/*
-		Ü._.project.sphereToCube(panos, function(arr) {
-			for (var i = 0; i < arr.length; i++) {
-				document.body.appendChild(arr[i]);
-			}
-		});*/
-		//document.body.appendChild(map_proj[1]);
-		//document.body.appendChild(Ü._.imageOps.copy(map_proj[1]));
-		
-		var map_set = [];							
-		var ctr = 0;
-		for (var i = 0; i < 6; i++) {
-			if (that.knockouts.indexOf(i) === -1) {
-				map_set[ctr] = map_proj[i];
-				ctr++;
-			}
-		}
-		
-					
-		var map_canny = [];
-		for (var i = 0; i < fnum; i++) {
-			map_canny[i] = Ü._.imageOps.cannyEdge(map_set[i]);
-		}
-				
-		var map_faces = [];
-		for (var i = 0; i < fnum; i++) {
-			map_faces[i] = Ü._.imageOps.alphaIntersect(map_set[i], map_canny[i]);
-		}
-			
-		//make textures
-		var map_textures = [];
-		for (var i = 0; i < fnum; i++) {
-			map_textures[i] = new THREE.Texture(map_faces[i]);
-		}
-						
-		var face_materials = [];			
-		for (var i = 0; i < fnum; i++) {
-			face_materials[i] = new THREE.MeshBasicMaterial(
-				{map: map_textures[i],
-				transparent: true});
-		}
-			
-		//make planes
-		var planes = [];
-		for (var i = 0; i < fnum; i++) {
-			planes[i] = new THREE.PlaneGeometry(unit_diameter, unit_diameter, 1, 1);
-		}
-				
-		//make meshes
+		var raw = [];
+		var sides = [];							
 		var meshes = [];
-		for (var i = 0; i < fnum; i++) {
-			meshes[i] = new THREE.Mesh(planes[i], face_materials[i]);
-			meshes[i].material.map.needsUpdate = true;
+		
+		Ü._.project.sphereToCube(panos, function(arr) {
+			raw = arr;
+			construct();
+		});	
+		
+		function makeSideMesh(img) {
+			var tex = new THREE.Texture(img);
+			var mat = new THREE.MeshBasicMaterial({map: tex, transparent: true});
+			var geo = new THREE.PlaneGeometry(unit_diameter, unit_diameter, 1, 1);
+			var mesh = new THREE.Mesh(geo, mat);
+			mesh.material.map.needsUpdate = true;
+			return mesh;
 		}
-			
-		//assemble cube
-		var octr = 0;
-		for (var i = 0; i < 6; i++) {
-				
-			if (that.knockouts.indexOf(i) === -1) {
-					
-				switch (i) {
-					case 0: //-x
-						meshes[octr].rotation.y = Math.PI / 2;
-						meshes[octr].position.x = -cube_half;
-						break;
-					case 1: //+x
-						meshes[octr].rotation.y = -Math.PI / 2;
-						meshes[octr].position.x = cube_half;
-						break;
-					case 2: //-y
-						meshes[octr].rotation.x = -Math.PI / 2;
-						meshes[octr].rotation.z = 0.5 * Math.PI;
-						meshes[octr].position.y = -cube_half;
-						break;
-					case 3: //+y
-						meshes[octr].rotation.x = Math.PI / 2;
-						meshes[octr].rotation.z = -Math.PI / 2;
-						meshes[octr].position.y = cube_half;
-						break;
-					case 4: //-z
-						meshes[octr].position.z = -cube_half;
-						break;
-					case 5: //+z
-						meshes[octr].rotation.y = Math.PI;
-						meshes[octr].position.z = cube_half;
-						break;
-				}
-					
-				that.unit.add(meshes[octr]);
-				octr++;
-			
+		
+		var check_in = 0;
+		function sideProcess(canv, idxid) {
+			if(canv) {
+				Ü._.imageOps.cannyEdge(canv)
+					.also(Ü._.imageOps.alphaIntersect('sdat', 'cdat', false))
+					.then(function(img) {
+						meshes[idxid] = makeSideMesh(img);
+						check_in++;
+						if (check_in === 6) addToScene();
+					});
+			} else {
+				check_in++;
+				if (check_in === 6) addToScene();
 			}
-				
 		}
-			
+		
+		function construct() {
+			for (var i = 0; i < 6; i++) {
+				if (scope.knockouts.indexOf(i) === -1) {
+					sides[i] = raw[i];
+				} else {
+					sides[i] = false;
+				}
+			}
+			for (var i = 0; i < 6; i++) {
+				sideProcess(sides[i], i);	
+			}
+		}
+		
+		function addToScene() {
+			for (var i = 0; i < meshes.length; i++) {
+				if (meshes[i]) {
+					switch (i) {
+						case 0: //-x
+							meshes[i].rotation.y = Math.PI / 2;
+							meshes[i].position.x = -cube_half;
+							scope.unit.add(meshes[i]);
+							break;
+						case 1: //+x
+							meshes[i].rotation.y = -Math.PI / 2;
+							meshes[i].position.x = cube_half;
+							scope.unit.add(meshes[i]);
+							break;
+						case 2: //-y
+							meshes[i].rotation.x = -Math.PI / 2;
+							meshes[i].rotation.z = 0.5 * Math.PI;
+							meshes[i].position.y = -cube_half;
+							scope.unit.add(meshes[i]);
+							break;
+						case 3: //+y
+							meshes[i].rotation.x = Math.PI / 2;
+							meshes[i].rotation.z = -Math.PI / 2;
+							meshes[i].position.y = cube_half;
+							scope.unit.add(meshes[i]);
+							break;
+						case 4: //-z
+							meshes[i].position.z = -cube_half;
+							scope.unit.add(meshes[i]);
+							break;
+						case 5: //+z
+							meshes[i].rotation.y = Math.PI;
+							meshes[i].position.z = cube_half;
+							scope.unit.add(meshes[i]);
+							break;
+					}
+				}
+			}
+			callback();	
+		}	
+		
 	};
 		
 	loader.load(this.location);						
 	loader.onPanoramaLoad = function() {
 		sphere.setMapData(this.canvas[0]);
-       	
-       	makeCube();
-       	
-       	//execute callback, if any	
-		if(that.callback && (typeof that.callback === "function")) {
-			that.callback();
-		} else if (that.callback && (typeof that.callback !== "function")) {
-			throw "invalid unitBuilder callback!!";
-		}
+       	makeCube(scope.callback);
 	};
 					
 };
