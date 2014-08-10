@@ -37,7 +37,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 		return preloader;
 		
-	})({});
+	}({}));
 	
 	divCtl.skybox = (function(skybox) {
 		
@@ -57,7 +57,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 			return _;
 		
-		})({});
+		}({}));
 		
 		var static_sky = Ü._.imageOps.getImage(assets + "sky_gif_1st_frame.jpg");
 		skybox.putStaticSky = function() {
@@ -70,10 +70,14 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 			skybox._.backDivPut(sky_gif);
 		};
 		
+		skybox.blackField = function() {
+			
+		};
+		
 		return skybox;
 		
-	})({});
+	}({}));
 		
 	return divCtl;
 		
-})({});
+}({}));

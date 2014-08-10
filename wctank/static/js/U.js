@@ -1,14 +1,21 @@
 /* next steps:
  * restructuring of world construction around stitching 
+ * imageOps: add WebGl layer, remove most of jsfeat library
  * 	preloading schemes
+ * low-key loading prompt when necessary to halt movement
  * further along:
  * 	'walking' instead of creepy hover
  * 	procedural sound!
  * ...get adjacent positions, check validity
  * collision detection with walls
+ * 
+ * start with moving sky, then switch to a different speed
+ * 
  */
 	
 var Ü = (function(Ü) {
+	
+	var start, end;
 	
 	//TODO: do these go here?
 	Ü.scene = {};
@@ -24,6 +31,7 @@ var Ü = (function(Ü) {
 		Ü.wgl_renderer.setSize( container.offsetWidth, container.offsetHeight );
 		Ü.wgl_renderer.setClearColor(0x000000, 0);		
 		container.appendChild(Ü.wgl_renderer.domElement);	
+		//console.log(window);
 	};
 		
 	function resizeCanvas() {
@@ -35,27 +43,37 @@ var Ü = (function(Ü) {
 	window.addEventListener('resize', resizeCanvas);
 	
 	//called after we're ready to go
+	var all_here = 0;
 	var etVoila = function() {
-		Ü._.divCtl.doneLoading();
-		Ü._.masterAnimate.animate();
-		Ü._.omnibus.setCursor("all-scroll");
-		Ü._.initialLoad = false;
+		
+		all_here++;
+		
+		if(all_here === 3) {
+			Ü._.divCtl.doneLoading();
+			Ü._.masterAnimate.animate();
+			Ü._.omnibus.setCursor("all-scroll");
+			Ü._.initialLoad = false;
+			end = performance.now();
+			console.log("load took "+(end - start)+" msec");
+		}
 	};
 	
 	//set initial location and begin
 	Ü.setLocationAndGo = function(lat, lng) {
 		
 		Ü.scene.add(Ü._.omnibus.van);
-		
+		start = performance.now();
 		var unit = new Ü._.UnitBuilder(19.486971,-99.117902, [1], function() {
 			Ü.scene.add(unit.unit);
 			Ü._.masterAnimate.tick();
+			etVoila();
 		});
 		
 		var unit2 = new Ü._.UnitBuilder(19.487229,-99.117819, [0, 1], function() {
 			unit2.unit.position.x = 1000;
 			Ü.scene.add(unit2.unit);
 			Ü._.masterAnimate.tick();
+			etVoila();
 		});
 		
 		var unit3 = new Ü._.UnitBuilder(19.487556,-99.117715, [0], function() {

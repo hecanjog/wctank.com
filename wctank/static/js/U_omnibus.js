@@ -49,8 +49,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		down = true;
 	};
 	wgl_div.addEventListener('mousedown', onMousedown, false);
-
-		
+	
 	function onMouseup() {
 		rot_x = 0;
 		rot_y = 0;		
@@ -135,4 +134,4 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		
 	return omnibus;
 		
-})({});
+}({}));

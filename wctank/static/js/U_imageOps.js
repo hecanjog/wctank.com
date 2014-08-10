@@ -1,59 +1,55 @@
 /*
  * imageOps contains handy image transforms and utilities
  * load this second
+ * 
+ * TODO: Single Thread reduce functionality --- perhaps in another keyword... then or something
  */
 var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 
 Ü._.imageOps = (function(imageOps) {
-	
-	imageOps.getImage = function(path) {
-		var img = new Image();
-		img.src = path;
-		return img;
-	};
-	imageOps.getVideo = function(path) {
-		var vid = document.createElement('video');
-		vid.src = path;
-		return vid;
-	};
 
-	/*
-	 * CanvasCopyPrep bootstraps image transforms
-	 * consider using in conjunction with CanvasDataPrep for functions with higher arity
-	 * note on variable names: sctx = source context, rctx = returned context, etc.
+	/* 
+	 * Whether or not to do image processing in the GPU. This app requires WebGl, and it 
+	 * is better to use WebGL image processing in almost every circumstance. However, it 
+	 * may be useful for future use of this code to detect if WebGL is available.
 	 * 
-	 * if provided a CALLBACK, spawns a webworker to execute the transform, then runs the 
-	 * callback when complete. REQUIRE allows the inclusion as many libraries and functions as 
-	 * needed in the thread, and is either a path string relative to static/lib, or an 
-	 * object in the form {fn: function, name: 'name'}
-	 * 
-	 * the PUSH_HOOK provides a means by which to pass additional arguments to the worker
-	 * via an object, e.g., imageOps.alphaIntersect, where alpha mask (map) data is passed
-	 * to the worker inside an object literal
-	 * 
-	 * TODO: doc args passed to image transform
-	 * (w, h, spx, rpx, sdat, rdat, little_endian, orient_GL, addl_args)
-	 * 
+	 * This should be set depending on the result of a feature detection test.
 	 */
-	imageOps.CanvasCopyPrep = function(canvas, process, push_hook, callback, requires) {
+	imageOps.useWebGlTransforms = true;
+	
+	/*
+	 * Data set override flags - Interpreted in "...Transform" modules
+	 */
+	var overrideFlags = {
+		SOURCE_FLAG: "sdat",
+		CURRENT_FLAG: "cdat",
+		isFlag: function(chkstr) {
+			var isof = ( (chkstr === this.SOURCE_FLAG) || (chkstr === this.CURRENT_FLAG) ) ? true : false;
+			return isof;
+		}
+	};
+	
+	/*
+	 * TODO: update docs!	// manage concurrency with call backs and/or event listeners 
+	 */
+	var Canvas2dTransform = function(canvas, preprocess, process, addl_args_obj, callback, requires, proc_chain, reassign_flags) {
+		
+		var parent = this;
 		
 		var little_endian = Ü._.littleEndian;
+		var orient_GL = false;
 		
 		var w = canvas.width;
 		var h = canvas.height;
-		
 		var sctx = canvas.getContext('2d');
-		var orient_GL = false;
 		
 		// if getContext returns null, then we are operating 
 		// on a canvas with a preexisting webgl context
 		if (sctx === null) { 
-			
 			var sdat = new Uint8Array(w * h * 4);
 			var wgl = canvas.getContext('webgl', {preserveDrawingBuffer: true});	
 			wgl.readPixels(0, 0, w, h, wgl.RGBA, wgl.UNSIGNED_BYTE, sdat); //reads 0, 0 as bottom-left!
-			orient_GL = true;
-			
+			orient_GL = true; // hide this by performing reversal w/o prompting
 		} else {
 			var sdat = sctx.getImageData(0, 0, w, h);
 		}
@@ -61,77 +57,206 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		this.img = document.createElement('canvas');
 		this.img.width = w;
 		this.img.height = h;
-		var that = this;
 		
 		var rctx = this.img.getContext('2d');
 		var rdat = rctx.createImageData(w, h);
-			
-		var data = [w, h, sdat, rdat, little_endian, orient_GL];
 		
-		if(typeof callback === 'function') {
+		var addl_args = addl_args_obj || {};
+		var proc_chain = proc_chain || [];
+		var req_chain = requires; //must be array
+
+		var data = 
+			{	w: w, 
+				h: h, 
+				sdat: sdat,
+				rdat: rdat,
+				little_endian: little_endian, 
+				orient_GL: orient_GL,
+				addl_args: addl_args,	
+				proc_chain: proc_chain,	
+				reassign_flags: reassign_flags	};
+				
+		var drawSetup = function(scope, data) {
 			
-			//push to data to add arguments
-			if (typeof push_hook === 'object') {
-				data.push(push_hook);
+			scope.W = data.w;
+			scope.H = data.h;
+			scope.SDAT = data.sdat; //keep a copy of the orig data around
+			scope.CDAT = data.sdat; 
+			scope.RDAT = data.rdat;
+			scope.LITTLE_ENDIAN = data.little_endian;
+			scope.ORIENT_GL = data.orient_GL;
+		
+			var teardown = [];
+			for (var prop in data.addl_args) {
+				if ( data.addl_args.hasOwnProperty(prop) ) {
+					var pnm = prop.toUpperCase(); //assign ref here. find "sdat"
+					scope[pnm] = data.addl_args[prop];
+					teardown.push(pnm);
+				}
 			}
 			
-			if (requires) {
+			if(scope.ORIENT_GL) {
+				scope.SPX = new Int32Array(SDAT.buffer);
+				scope.CPX = new Int32Array(CDAT.buffer);
+				} else {
+					scope.SPX = new Int32Array(SDAT.data.buffer);
+					scope.CPX = new Int32Array(CDAT.data.buffer);
+			}
+			scope.RPX = new Int32Array(RDAT.data.buffer);
+			
+			/*
+			 * Utility functions available within ImgOp transform function scope;
+			 * N.B. within critical loops, calling one of the MAKE_{COLOR CHANNEL} functions
+			 * will save a bit of time, but, if more than 1 color is required, MAKE_RGBA is recommended
+			 * as the overhead of multiple function calls makes processing a bit slower.
+			 */	
+			if(scope.LITTLE_ENDIAN) {
+				scope.MAKE_RGBA = function(int32) {
+					scope.CR = int32 & 0x000000ff;
+					scope.CG = (int32 & 0x0000ff00) >>> 8;
+					scope.CB = (int32 & 0x00ff0000) >>> 16;
+					scope.CA = (int32 & 0xff000000) >>> 24;
+				};
+				scope.PACK_PXL = function(r, g, b, a) {
+					return (a << 24) | (b << 16) | (g << 8) | r;
+				};
+				scope.MAKE_RED = function(int32) {
+					scope.CR = int32 & 0x000000ff;
+				};
+				scope.MAKE_GREEN = function(int32) {
+					scope.CG = (int32 & 0x0000ff00) >>> 8;
+				};
+				scope.MAKE_BLUE = function(int32) {
+					scope.CB = (int32 & 0x00ff0000) >>> 16;
+				};
+				scope.MAKE_ALPHA = function(int32) {
+					scope.CA = (int32 & 0xff000000) >>> 24;
+				};
+			} else {
+				scope.MAKE_RGBA = function(int32) {
+					scope.CR = (int32 & 0xff000000) >>> 24;
+					scope.CG = (int32 & 0x00ff0000) >>> 16;
+					scope.CB = (int32 & 0x0000ff00) >>> 8;
+					scope.CA = int32 & 0x000000ff;
+				};
+				scope.PACK_PXL = function(r, g, b, a) {
+					return (r << 24) | (g << 16) | (b << 8) | a;
+				};
+				scope.MAKE_RED = function(int32) {
+					scope.CR = (int32 & 0xff000000) >>> 24;
+				};
+				scope.MAKE_GREEN = function(int32) {
+					scope.CG = (int32 & 0x00ff0000) >>> 16;
+				};
+				scope.MAKE_BLUE = function(int32) {
+					scope.CB = (int32 & 0x0000ff00) >>> 8;
+				};
+				scope.MAKE_ALPHA = function(int32) {
+					scope.CA = int32 & 0x000000ff;
+				};
+			}
+			
+			scope.CHAN_VAL_BOUND = function(channel_value) {
+				return (channel_value < 0x00) ? 0x00 : ( (0xff < channel_value) ? 0xff : channel_value );
+			};
+				
+			teardown = teardown.concat([
+				"W", "H", "SDAT", "RDAT", "CDAT", "LITTLE_ENDIAN", "ORIENT_GL", "SPX", "RPX", "CPX", 
+				"MAKE_RGBA", "PACK_PXL", "CA", "CG", "CB", "CR", "CHAN_VAL_BOUND", "MAKE_GREEN", 
+				"MAKE_RED", "MAKE_BLUE", "MAKE_ALPHA"]);
+			return teardown;
+			
+		};
+								
+		this.execute = function() { 
+
+			if ( typeof callback === 'function' ) {
 				
 				var worker = new Parallel(data, Ü._.workerPaths.eval)
-					.require({fn: process, name: 'process'});
-	
-				for (var i = arguments.length - 1; i > 3; i--) {
-					worker.require(arguments[i]);
+					.require({fn: process, name: 'process'}, {fn: drawSetup, name: 'drawSetup'}, 
+					{fn: Ü._.utils.cloneArray, name: 'cloneArray'}, {fn: Ü._.utils.cloneImgData, name: 'cloneImgData'});
+				for (var req = 0; req < req_chain.length; req++) {
+					worker.require(req_chain[req]);
 				}
+				
+				// call preprocess, which as of now, has access to this.img and its dimensions
+				if (typeof preprocess === 'function') {
+					preprocess();
+				}
+				
+				//what about non webgl video processing? cant spawn thread for each frame
+				worker.spawn(function(data) {
 					
-			} else {
-				var worker = new Parallel(data)
-					.require({fn: process, name: 'process'});
-			}
-		
-			worker.spawn(function(data) {
-				
-				var w = data[0];
-				var h = data[1];
-				var sdat = data[2];
-				var rdat = data[3];
-				var little_endian = data[4];
-				var orient_GL = data[5];
-				var addl_args = data[6];
-				
-				// handle sdat if Uint8Array instead of imageData object
-				if(orient_GL) {
-					var spx = new Int32Array(sdat.buffer);
-				} else {
-					var spx = new Int32Array(sdat.data.buffer);
-				}
-				
-				var rpx = new Int32Array(rdat.data.buffer);
-			
-				process(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL, addl_args);
-								
-				return rdat;
+					var scope = self;
+					var proc_chain = data.proc_chain;
+					var reassign_flags = data.reassign_flags;
+					drawSetup(scope, data);
+					
+					process.call(scope);
+					
+					ORIENT_GL = false; // TODO: figure out a better way to handle this
+					
+					for (var i = 0; i < proc_chain.length; i++) { 
 
-			}).then(function(rdat) {
-				rctx.putImageData(rdat, 0, 0);
-				callback(that.img);
-			});
+						var cid = proc_chain[i];
+						
+						// Look for flags, make reassignments as necessary
+						var cflags = reassign_flags[cid];
+						if (cflags.canvas === "sdat") {
+							CPX = cloneArray(SPX);
+						} else {
+							CPX = cloneArray(RPX); // advance
+						}
+						for (var prop in cflags) {
+							if ( cflags.hasOwnProperty(prop) && (prop !== "canvas") ) {
+								if (cflags[prop] === "sdat") { 
+									scope[prop.toUpperCase()] = SDAT; 
+								} else if (cflags[prop] === "cdat") {
+									scope[prop.toUpperCase()] = RDAT;
+								}
+							}
+						} 
+								
+						var mystik_zone = eval([
+							"function mystik_zone() { ",
+								cid+"();",
+							"}; mystik_zone"
+						].join("\n"));
+						mystik_zone();
+						
+					}
+					
+					return scope.RDAT;
+
+				}).then(function(rdat) {	
+					rctx.putImageData(rdat, 0, 0);
+					callback(parent.img, canvas);
+				});
 		
-		} else {
-			
-			if(orient_GL) {
-				var spx = new Int32Array(sdat.buffer);
 			} else {
-				var spx = new Int32Array(sdat.data.buffer);
-			}
-			
-			var rpx = new Int32Array(rdat.data.buffer);
-			
-			process(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL);
-			
-			rctx.putImageData(rdat, 0, 0);
-			
-		}
+				
+				/*
+				 * No one is going to like this, and rightly so - this is DANGEROUS.
+				 * However, since we are not operating concurrently here (as far as JS is concerned),
+				 * as long as we cleanup behind us, we *should* be OK, and, this way makes a lot of 
+				 * potentially elegant things in the ImgOp constructor possible.
+				 * 
+				 * TODO: Write test cases to verify this!
+				 */
+				var scope = window;
+				var teardown = drawSetup(scope, data);
+				
+				process.call(parent);
+				rctx.putImageData(RDAT, 0, 0);
+				
+				for (var i = 0; i < teardown.length; i++) {
+					delete scope[ teardown[i] ];
+				}
+								
+				return this.img;
+				
+			}	
+		};
 		
 	};
 		
@@ -153,339 +278,354 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		};
 				
 	};
+
+	var Torso = function(canvas, callback, preprocess, transform, additional, required, try_funct) {
+		//this would be the place to package flags into a neat object, then transform modules could 
+		//take care of interpreting them
 		
-	imageOps.copy = function(canvas, callback) {
-			
-		var copyFunct = function(w, h, spx, rpx, orient_GL) {
-			
-			if(orient_GL) { // if the canvas we're copying uses <0, 0> as bottom-left
+		// execution state
+		var addl_args = additional || {};
+		var requires = required || [];
+		var proc_chain = [];
+		var reassign_flags = {};
+
+		var catapult = canvas.catapult;
+
+		// lets do some reflection to see if we are chaining on construction!
+		var chaining = (function() {
+			var name = arguments.callee.caller.caller.name;	
+			var err = new Error();
+			var stack = err.stack;
+			stack = stack.replace(/((\n|\r).*?){4}(\n|\r)\s*?/, ""); // remove first 4 lines of stack trace
+			var location = stack.match(/(\d*?:\d*?[)]*?\s*?\n)/)[0]; // grab first ##:##)\n
+			var loc = location.match(/\d+/g); // [line, column] 
+			if (!catapult.UEID) { // ref to context with ImgOp instance in it
+				Ü._.utils.appendUEID(catapult);
+			}
+			var UEID = catapult.UEID;
+			var src = catapult.toString();
+			return imgOpHeap.lookUp(UEID, name, loc, src);
+		}());
+		
+		// public props, methods
+		
+		this.ret_img = null; // if returning immediately, this will be filled with a ref to a canvas element
+		
+		this.getExecutionState = function() {
+			return	{ 	addl_args: addl_args,	
+						requires: requires,	
+						proc_chain: proc_chain,
+						reassign_flags: reassign_flags	};	
+						//preprocess: preprocess	};
+		};
 				
-				var texel = 0;
-				for (var y = h; y >= 0; y--) {
-					for (var x = 0; x < w; x++) {
-						rpx[texel] = spx[y * w + x];
-						texel++;
+		this.also = function(funct_obj) {
+			var substate = funct_obj.getExecutionState();
+			addl_args = Ü._.utils.catObj(addl_args, substate.addl_args);
+			requires = requires.concat(substate.requires);
+			proc_chain = proc_chain.concat(substate.proc_chain);
+			reassign_flags = Ü._.utils.catObj(reassign_flags, substate.reassign_flags);
+			//preprocess = substate.preprocess; //need to create another process chain that will do this
+			return this;
+		};
+		
+		this.then = function(ultimate) {
+			var p = new Canvas2dTransform( canvas, preprocess, transform, addl_args, ultimate, requires, proc_chain, reassign_flags )
+				.execute();
+			return this;
+		};
+
+		if (!chaining.is_chained) { //also check if WebGL transforms
+			
+			if(typeof callback === 'function') {
+				var q = new Canvas2dTransform( canvas, preprocess, transform, addl_args, callback, requires )
+					.execute();
+							
+			} else {
+			
+				try {
+					
+					if (typeof try_funct === 'function') {
+						this.ret_img = try_funct(canvas); //expanded argumaaants?
+					} else {
+						throw "nothing";
+					}
+					
+				} catch(err) {
+					this.ret_img = new Canvas2dTransform( canvas, preprocess, transform, addl_args, null, requires )
+						.execute();
+				}
+			}
+			
+		} else {
+			
+			if(!chaining.is_top) {
+				
+				var fnid = Ü._.utils.UEID();  
+				
+				proc_chain.push(fnid);
+				requires.push( {fn: transform, name: fnid} );
+				
+				reassign_flags[fnid] = {};
+				reassign_flags[fnid].canvas = canvas.flag || false;
+				for (var prop in addl_args) {
+					if ( addl_args.hasOwnProperty(prop) ) {
+						if ( overrideFlags.isFlag(addl_args[prop]) ) 
+							reassign_flags[fnid][prop] = addl_args[prop];
 					}
 				}
 				
-			} else {
-				for (var texel = 0; texel < spx.length; texel++) {
-					rpx[texel] = spx[texel];
+			}
+			
+		}
+			
+	};
+
+	imageOps.ImgOp = function ImgOp(name, args, preprocess, transform, additional, required, try_funct) {
+		// careful with the whitespace at the ends of strings here! 
+				
+		var expression = "function " + name + "(";
+		var argument_list = "";
+		for (var i = 0; i < args.length; i++) {
+			argument_list += args[i]+","; 
+		}
+		argument_list = argument_list.slice(0, -1);
+
+		expression += [argument_list+") {",
+			"if (typeof canvas !== 'object') {",
+				"if ( overrideFlags.isFlag(canvas) ) {",
+					"var flag = canvas;",
+					"var canvas = {};",
+					"canvas.flag = flag;",
+				"} else {",
+					"var canvas = {};",
+					"canvas.flag = false;",
+				"}",
+			"} else if ( !( (canvas.hasOwnProperty('height') || canvas.hasOwnProperty('catapult')) ) ) {",
+					"var canvas = {};",
+					"canvas.flag = false;",
+			"}",	
+			"if ( !(this instanceof "+name+") ) {", 
+				// append a reference of the calling context to the canvas object 
+				// and pass it in before we seal ourselves inside this ImgOp with the constructor
+				"canvas.catapult = arguments.callee.caller;",	
+				"return new "+name+"("+argument_list+");",
+			"} else {",
+				"if (!canvas.catapult) {",
+					"canvas.catapult = arguments.callee.caller;",
+				"}",
+			"}",
+		].join("\n");
+		
+		/*
+		 * Here, we are regexing the source of addl_args functions so we can resolve them
+		 * in context with the appropriate parameters passed from the function call
+		 */
+		if (additional && typeof additional === 'object') {
+			expression += "var resolved = Object.create(additional);";
+			var funct_args = {};
+			var props = Object.getOwnPropertyNames(additional);
+			for (var i = 0; i < props.length; i++) {
+				if (typeof additional[props[i]] === 'function') {
+					var src = additional[props[i]].toString(); 
+					var farg = [];
+					for (var j = 0; j < args.length; j++) {
+						var found = src.search("function.*?[(].*?"+args[j]+".*?[)]");
+						if (found > -1) {
+							farg.push(args[j]);
+						}
+					}
+//result is an object where each item is property: ["arguments", "that", "property', "function", "takes"];
+					funct_args[props[i]] = farg;
 				}
 			}
-		};
 			
-		if(typeof callback === 'function') {
-			
-			var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL) {
-					copyFunct(w, h, spx, rpx, orient_GL);
-				},
-				'',
-				function(img) {
-					callback(img);
-				},
-				{fn: copyFunct, name: 'copyFunct'}
-			);
-			
-		} else {
-		
-			try {
-					
-				// this is generally faster then JS pixel pushing, 
-				// so use it when cross-origin stuff isn't an issue
-				var ret_canv = document.createElement('canvas');
-				ret_canv.width = canvas.width;
-				ret_canv.height = canvas.height;
-
-				var ret_ctx = ret_canv.getContext('2d');
-				ret_ctx.drawImage(canvas, 0, 0);
-
-				return ret_canv;
-			
-			} catch(err) {
-				
-				var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL) {
-					copyFunct(w, h, spx, rpx, orient_GL);
-				});
-			
-				return r.img;
-				
+			/*
+			 * If the value of any function parameters is an override flag, then any 
+			 * addl_arg functions dependent on that parameter are overriden with that flag,
+			 * and references to the addl_arg in the main transform will point to the 
+			 * override flag's corresponding data set. 
+			 * 
+			 * TODO: Is this a really bad idea?
+			 */
+			for (var addl in funct_args) {
+				if ( funct_args.hasOwnProperty(addl) ) {
+					for (var i = 0; i < funct_args[addl].length; i++) {
+						var cur_prop = funct_args[addl][i];
+						expression += ["if ( overrideFlags.isFlag("+cur_prop+") ) {",
+								"resolved."+addl+" = "+cur_prop+";",
+							"}"
+						].join("\n");
+					}
+				}
 			}
 			
-		}
-				
-	};
-	
-	imageOps.flipX = function(canvas) {
-			
-		var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx) {
-			for (y = 0; y < h; y++) {
-				for (x = 0; x < w; x++) {
-      				var invx = w - x;
-      				rpx[invx + (y * w)] = spx[x + (y * w)];
-      			}
-      		}
-		});
+			/*
+			 * Resolve addl_args within function scope if the addl_arg is a function
+			 * dependent on the parent function parameters
+			 */
+			for (var prp in additional) {
+				if ( (typeof additional[prp] === 'function') && (additional.hasOwnProperty(prp)) ) {
+					expression += ["if (typeof resolved."+prp+" === 'function') {",
+						"resolved."+prp+" = resolved."+prp+"("
+					].join("\n"); 
+					for (var i = 0; i < funct_args[prp].length; i++) {
+						expression += funct_args[prp][i]+",";
+					}
+					expression = expression.slice(0, -1).concat([");",
+					"}"
+					].join("\n"));
+				}
+			}	
 		
-		return r.img;
-      		
-  	};
-	
-	imageOps.flipY = function(canvas) {
-			
-		var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx){
-			for (y = 0; y < srh; y++) {
-   				var invy = srh - y;
-      			for (x = 0; x < srw; x++) {
-      				rpx[x + (invy * srw)] = spx[x + (y * srw)];
-      			}
-      		}
-      	});
-		
-		return r.img;
-				
-	};
-		
-	/*
-	 * imageOps.backwards reads input canvas backwards,
-	 * so result is flipped vertically and horizontally
-	 */
-	imageOps.backwards = function(canvas) {
-			
-		var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx){
-			var length = w * h;
-			for (var texel = 0; texel < length; texel++) {
-				rpx[texel] = spx[length - 1 - texel];
-			}
-		});
-			
-		return r.img;
-			
-	};
-		
-	/*
-	 * given canvas, return new canvas scaled by x, y multipliers, 
-	 * OR, if explicit is truthy, x and y are dimensions in pixels
-	 */
-	imageOps.resize = function(canvas, x, y, explicit) {
-
-		var cw = canvas.width;
-		var ch = canvas.height;
-		
-		var rcan = document.createElement('canvas');
-		
-		if (explicit) {
-			rcan.width = x;
-			rcan.height = y;
 		} else {
-			rcan.width = cw * x;
-			rcan.height = ch * y;
+			expression += "var resolved = null;";
 		}
-
-		var rctx = rcan.getContext('2d');
-		rctx.drawImage(canvas, 0, 0, rcan.width, rcan.height);		
-	
-		return rcan;	
-							
-	};
 		
+		expression += [
+			"Torso.call(this, canvas, callback, preprocess, transform, resolved, required, try_funct);", 
+			"if (this.ret_img) {",
+				"return this.ret_img;",
+			"}",
+		"}"
+		].join("\n");
+		
+		return eval(expression+name);
+		
+	};
+	imageOps.ImgOp.prototype = Object.create(Torso.prototype); 
+	
 	/*
-	 * alphaIntersect:
-	 * given a source canvas and an alpha mask, returns new canvas
-	 * with source pixels that do not correspond to white (or black)
-	 * pixels in mask, normalized to source dimensions
+	 * For ImgOp reflection; heap of objects in the form:
 	 * 
-	 * invert: if truthy, will remove pixels in source corresponding with
-	 * white pixels in map, instead of black.
+	 * UEID: { // unique ID for context containing ImgOp functions (c.f. Ü._.utils.UEID)
+	 * 		src: source code of context,
+	 * 		mod_src: copy of src to destructively modify
+	 * 		ctr: number for labeling successive instances of ImgOps member functions in context
+	 * 		complete: BOOL signaling if every ImgOp instance has been identified in this context
+	 * 		inst##: { // contains info on a specifc invocation of an ImgOp function
+	 * 			name: all ImgOps are named functions
+	 * 			loc: array with instance location info in the form [line, column]
+	 * 			chained: this is the information we are after - whether or not 
+	 * 				this instance is part of an ImgOp chain, and whether it is at the top
+	 * 		`		of this chain (not passed in an .also())
+	 * 				{is_chained: BOOL,
+	 * 				is_top: BOOL}
+	 * 		}
+	 * 		inst##: {...
+	 * 		...
+	 * }
 	 * 
+	 *  TODO: include subset search in findSrc for nested scopes, 
+	 * 	shouldn't need to do any culling unless dynamically generating A LOT of code 
+	 *  that invokes imgOps, but it's something to keep in mind
 	 */
-	imageOps.alphaIntersect = function(source, map, invert, callback) {
+	var imgOpHeap = (function(heap) {
 		
-		var filter = -16777216; // black - r 0 g 0 b 0 a 255 
-		if (invert) { filter = -1; } //white - r 255 g 255 b 255 a 255
+		var instances = {};
 		
-		var scmap = imageOps.resize(map, source.width, source.height, true);
-		var scmapdat = new imageOps.CanvasDataPrep(scmap);
-
-		var alphaIntersectFunct = function(mpx, filter, spx, rpx) {
+		var method_list = Object.getOwnPropertyNames(imageOps);
+		heap.isImgOp = function(to_check) { //takes string
+			if (method_list.indexOf(to_check) === -1) {
+				return false;
+			} else {
+				return true;
+			}
+		};
+		
+		heap.lookUp = function(caller_UEID, fctn_name, fctn_loc, caller_src) {
 			
-			for (var texel = 0; texel < mpx.length; texel++) {
-				if (mpx[texel] === filter) {
-					rpx[texel] = 0x00000000;
-				} else {
-					rpx[texel] = -16777216; //spx[texel];
+			if(typeof instances[caller_UEID] === 'object') {
+				for(var obj in instances[caller_UEID]) {
+					var inst = instances[caller_UEID][obj];
+					if( inst.hasOwnProperty('loc') ) {
+						if( (inst.name === fctn_name) && Ü._.utils.arraysIdentical(inst.loc, fctn_loc) ) {
+							return inst.chaining;
+						}
+					}
 				}
+				return put(caller_UEID, fctn_name, fctn_loc);
+			} else {
+				return findSrc(caller_UEID, fctn_name, fctn_loc, caller_src);
 			}
 			
 		};
 		
-		if(typeof callback === 'function') {
-			
-			var map_args = {
-				filter: filter,
-				mdat: scmapdat.dat
-			};
-			
-			var p = new imageOps.CanvasCopyPrep(source, function(w, h, spx, rpx, sdat, rdat, little_endian, orient_GL, map_args) {
-					var mpx = new Int32Array(map_args.mdat.data.buffer);
-					alphaIntersectFunct(mpx, map_args.filter, spx, rpx);
-				}, 
-				
-				map_args, 
-				
-				function(img) {
-					callback(img);
-				},
-				{fn: alphaIntersectFunct, name: 'alphaIntersectFunct'}
-			);
-		
-		} else { 
-			
-			var r = new imageOps.CanvasCopyPrep(source, function(w, h, spx, rpx) {
-				alphaIntersectFunct(scmapdat.px, filter, spx, rpx);	
-			});
-			
-			return r.img;
-			
-		}	
-	};
-				
-	/*
-	 * provided an image and cropping bound ratios relative to each edge (0 to 1),
-	 * returns image of same size as source with cropped out areas transparent
-	 * OR, if explicit is truthy, specify cropping bounds in pixels
-	 */
-	imageOps.cropInPlace = function(canvas, left_crop, right_crop, top_crop, bottom_crop, explicit) {
-			
-		var rcan = document.createElement('canvas');
-		rcan.width = canvas.width;
-		rcan.height = canvas.height;
-		var rctx = rcan.getContext('2d');
-			
-		if (explicit) {
-			var cropL = left_crop;
-			var cropR = rcan.width - right_crop - cropL;
-			var cropT = top_crop;
-			var cropB = rcan.height - bottom_crop - cropT;
-		} else {
-			var cropL = rcan.width * left_crop;
-			var cropR = (rcan.width * (1 - right_crop)) - cropL;
-			var cropT = rcan.height * top_crop;
-			var cropB = (rcan.height * (1 - bottom_crop)) - cropT;
-		}
-	
-		rctx.drawImage(canvas, 
-			cropL, cropT, //clip x, y
-			cropR, cropB, //width, height of clipped image
-			cropL, cropT, //place x, y
-			cropR, cropB); //width, height of image
-
-		return rcan;
-			
-	};
-		
-	/*
-	 * for constructing an image from depth data got through 
-	 * GSVPanoDepths
-	 */
-	imageOps.makeDisplacementMap = function(depths, width, height) {
-			
-		var rimg = document.createElement('canvas');
-		rimg.width = width;
-		rimg.height = height;
-			
-		var r = new imageOps.CanvasDataPrep(rimg);
-			
-		var little = Ü._.littleEndian;
-			
-		for (var i = 0; i < depths.length; i++) {
-				
-			var x = width - (i % width); //flipped
-			var y = (i / width) | 0; //floor
-			var txl = y * width + x;
-				
-			var depth = depths[i];
-			var q = 0;		
-			
-			if(depth > 10000) {
-				q = 0xff;	
-			} else {
-				q = depth / 199 * 255;
-			}
-				
-			if (little) {
-				r.px[txl] = (0xff << 24) | (q << 16) | (q << 8) | q;	
-			} else {
-				r.px[txl] = (q << 24) | (q << 16) | (q << 8) | 0xff;
-			}
-			
-		}
-			
-		r.putData();
-		return rimg;
-			
-	};
-	
-	/*
-	 * uses jsfeat for canny edge detection
-	 * if provided a callback, spawns a webworker to perform transform in background, calls back
-	 * otherwise, executes the transform in the UI thread and returns a new canvas
-	 */
-	imageOps.cannyEdge = function(canvas, callback) {
-		
-		var cannyEdgeFunct = function(w, h, rpx, sdat, little_endian) {
-			
-			var mtx = new jsfeat.matrix_t(w, h, jsfeat.U8C1_t);
-			
-			jsfeat.imgproc.grayscale(sdat.data, mtx.data);
-			jsfeat.imgproc.canny(mtx, mtx, 95, 105);
-			
-			if(little_endian) {
-				
-				for (var txl = 0; txl < rpx.length; txl++) {
-					var val = mtx.data[txl];
-					rpx[txl] = (0xff << 24) | (val << 16) | (val << 8) | val;
+		var findSrc = function(cUEID, fname, floc, csrc) {
+			var mUEID = false;
+			for (var ID in instances) {
+				if ( instances.hasOwnProperty(ID) ) {
+					if ( (instances[ID].src === csrc) && (instances[ID].complete === true) ) {
+						mUEID = ID;
+						break;
+					}	
 				}
-				
-			} else {
-				
-				for (var txl = 0; txl < rpx.length; txl++) {
-					var val = mtx.data[txl];
-					rpx[txl] = (val << 24) | (val << 16) | (val << 8) | 0xff;
-				}
-				
 			}
-			
+			if (mUEID) {
+				return heap.lookUp(mUEID, fname, floc);
+			} else {
+				return put(cUEID, fname, floc, csrc);
+			}
 		};
 		
-		if(typeof callback === 'function') {
-		
-			var p = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, rdat, little_endian) {
-					cannyEdgeFunct(w, h, rpx, sdat, little_endian);
-				},
-				
-				'', 
-				
-				function(img) {	
-					callback(img);	
-				},
-				
-				Ü._.workerPaths.jsfeat, 
-				{fn: cannyEdgeFunct, name: 'cannyEdgeFunct'}
-				
-			);
-		
-		} else {
+		heap.dbug = function() {
+			return instances;
+		};
+
+		var put = function(cUEID, fname, floc, csrc) {
 			
-			var r = new imageOps.CanvasCopyPrep(canvas, function(w, h, spx, rpx, sdat, rdat, little_endian) {
-				cannyEdgeFunct(w, h, rpx, sdat, little_endian);
-			});
+			if(typeof csrc === 'string') {
+				instances[cUEID] = 
+					{	src: csrc,
+						mod_src: "", 
+						ctr: 0,
+						complete: false	};		
+														
+				var nix = /(\/\/(\S| |\t)*(\n|\r)?)|(\/\*(\S|\s)*?\*\/)/g; //strip comments
+				instances[cUEID].mod_src = csrc.replace(nix, "");
+			}
 			
-			return r.img;
+			instances[cUEID].ctr++;
+			var ctr = instances[cUEID].ctr;
 			
-		}
-	};
+			instances[cUEID][ "inst"+ctr ] = 
+				{	name: fname,
+					loc: floc, 
+					chaining: { is_chained: false, is_top: true }	};
+			
+			var not_chained = instances[cUEID].mod_src.search("(?!(\n|\r))"+fname+".*?(;|{)"); //this is fragile 
+			var chained_l = instances[cUEID].mod_src.search("also(.|\n|\r)*?"+fname);
+			var chained_r = instances[cUEID].mod_src.search(fname+"(.|\n|\r)*?(also|then)");
+			instances[cUEID].mod_src = instances[cUEID].mod_src.replace(fname, ""); // !!
+			
+			if (not_chained === -1) {
+				if ( (chained_l > -1) || (chained_r > -1) ) {
+					instances[cUEID][ "inst"+ctr ].chaining.is_chained = true;
+				} 
+				if ( (chained_l > -1) && (chained_r > -1) ) {
+					instances[cUEID][ "inst"+ctr ].chaining.is_top = false;
+				}
+			}
+						
+			var alive = -1;
+			for (var i = 0; i < method_list.length; i++) { //this is a problem -- account for reassignment
+				var alive = instances[cUEID].mod_src.search(method_list[i]);
+				if (alive > -1) { 
+					break; 
+				}
+			}
+			if (alive === -1) { 
+				instances[cUEID].complete = true; 
+			}
+
+			return instances[cUEID][ "inst"+ctr ].chaining;	 
 	
+		};
+	
+		return heap;
+	
+	}({}));
+
 	return imageOps;
 		
-})({});
+}({}));
