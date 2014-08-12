@@ -150,9 +150,11 @@
                         m = new google.maps.Marker(markerOptions);
 
                         google.maps.event.addListener(m, 'click', function() {
-                            var $post = renderPost(post, $('#post-template'));
-                            div.$overlay.html($post).removeClass().addClass(post.type);
-                            div.$overlay.fadeIn('fast');
+                            if ( div.$overlay.is(':hidden') ) {
+                            	var $post = renderPost(post, $('#post-template'));
+                           		div.$overlay.html($post).removeClass().addClass(post.type);
+                            	div.$overlay.fadeIn('fast');
+                            }
                         });
                     });
                 });
