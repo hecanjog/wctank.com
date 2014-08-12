@@ -19,19 +19,13 @@ def index():
 
 @app.route('/<swk>/<swa>/<nek>/<nea>')
 def getPosts(swk, swa, nek, nea):
-    if app.paul:
-        #sorry, I'll clean this up with my own env variables later
-        client = pytumblr.TumblrRestClient(
-            '0DBIL40tr0Ewz2DLGRGZFNpgl8EKgt6lk1FrHVk8yOkfKXpkjH',
-            '60EJeLaylOyBwVKsgOpm2REfEtfJzdJPDE0LU6gEFXyYoljkWq' #come at me bro
-        )
-    else:
-        client = pytumblr.TumblrRestClient(
-           os.environ['WES_TUMBLR_CONSUMER_KEY'],
-           os.environ['WES_TUMBLR_CONSUMER_SECRET'],
-           os.environ['WES_TUMBLR_OAUTH_TOKEN'],
-           os.environ['WES_TUMBLR_OAUTH_SECRET']
-        )
+
+    client = pytumblr.TumblrRestClient(
+       os.environ['WES_TUMBLR_CONSUMER_KEY'],
+       os.environ['WES_TUMBLR_CONSUMER_SECRET'],
+       os.environ['WES_TUMBLR_OAUTH_TOKEN'],
+       os.environ['WES_TUMBLR_OAUTH_SECRET']
+    )
 
     all_posts = []
     offset = 0
