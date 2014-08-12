@@ -38,13 +38,7 @@
         	$overlay: $('#overlay'),
         	$map: $('#map-canvas')
         };
-        
-        div.$map.click(function(e) {
-        	if ( div.$overlay.is(':visible') && (div.$overlay.css('opacity') === '1') ) {
-        		div.$overlay.fadeOut('fast');
-        	}
-        });
-		
+
         var renderPost = function(post, $template) {
             var content = '';
            
@@ -95,7 +89,9 @@
             
             return template;
         };
-
+		
+		var marker_clicked = false;
+		
         var init = function() {
             var map = new google.maps.Map(document.getElementById("map-canvas"), {
                 center: new google.maps.LatLng(43.1, -87.107180),
@@ -123,7 +119,7 @@
             google.maps.event.addListener(overlay, 'click', function() {
                 map.setZoom(9);
             });
-
+			
             google.maps.event.addListener(map, 'idle', function() {
                 var visibleBounds = map.getBounds();
                 var sw = visibleBounds.getSouthWest();
@@ -150,18 +146,32 @@
                         m = new google.maps.Marker(markerOptions);
 
                         google.maps.event.addListener(m, 'click', function() {
+                            marker_clicked = true;
                             if ( div.$overlay.is(':hidden') ) {
                             	var $post = renderPost(post, $('#post-template'));
                            		div.$overlay.html($post).removeClass().addClass(post.type);
                             	div.$overlay.fadeIn('fast');
+                            } else {
+                            	var $post = renderPost(post, $('#post-template'));
+                           		div.$overlay.html($post).removeClass().addClass(post.type);
                             }
+                            window.setTimeout(function() {
+                            	marker_clicked = false;
+                            }, 200);
                         });
                     });
                 });
 
             });
         };
-
+		
+		div.$map.click(function(e) {
+        	if ( div.$overlay.is(':visible') && (div.$overlay.css('opacity') === '1') 
+        		&& (marker_clicked === false) ) {
+        		div.$overlay.fadeOut('fast');
+        	}
+        });
+		
         google.maps.event.addDomListener(window, 'load', init);
         
    	</script>
