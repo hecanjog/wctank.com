@@ -89,9 +89,9 @@
             
             return template;
         };
-		
+        
 		var marker_clicked = false;
-		
+				
         var init = function() {
             var map = new google.maps.Map(document.getElementById("map-canvas"), {
                 center: new google.maps.LatLng(43.1, -87.107180),
@@ -165,11 +165,13 @@
             });
         };
 		
-		div.$map.click(function(e) {
-        	if ( div.$overlay.is(':visible') && (div.$overlay.css('opacity') === '1') 
-        		&& (marker_clicked === false) ) {
-        		div.$overlay.fadeOut('fast');
-        	}
+		div.$map.mousedown(function() {
+        	window.setTimeout(function() {
+        		if ( div.$overlay.is(':visible') && (div.$overlay.css('opacity') === '1') 
+        			&& (marker_clicked === false) ) {
+        			div.$overlay.fadeOut('fast');
+        		}
+        	}, 150);
         });
 		
         google.maps.event.addDomListener(window, 'load', init);
