@@ -60,7 +60,7 @@ var Ü = (function(Ü) {
 	
 	//set initial location and begin
 	Ü.setLocationAndGo = function(lat, lng) {
-		
+
 		Ü.scene.add(Ü._.omnibus.van);
 		start = performance.now();
 		var unit = new Ü._.UnitBuilder(19.486971,-99.117902, [1], function() {

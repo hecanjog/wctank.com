@@ -30,7 +30,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	};
 	
 	/*
-	 * TODO: update docs!	// manage concurrency with call backs and/or event listeners 
+	 * TODO: update docs!, incorporate promises, map across arrays of canvases
 	 */
 	var Canvas2dTransform = function(canvas, preprocess, process, addl_args_obj, callback, requires, proc_chain, reassign_flags) {
 
@@ -186,7 +186,7 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 				
 				//what about non webgl video processing? cant spawn thread for each frame
 				worker.spawn(function(data) {
-					
+
 					var scope = self;
 					var proc_chain = data.proc_chain;
 					var reassign_flags = data.reassign_flags;
@@ -280,8 +280,6 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 	};
 
 	var Torso = function(canvas, callback, preprocess, transform, additional, required, try_funct) {
-		//this would be the place to package flags into a neat object, then transform modules could 
-		//take care of interpreting them
 		
 		// execution state
 		var addl_args = additional || {};
@@ -312,8 +310,8 @@ var Ü = Ü || {}; /*_utils_*/ Ü._ = Ü._ || {};
 		this.ret_img = null; // if returning immediately, this will be filled with a ref to a canvas element
 		
 		this.getExecutionState = function() {
-			return	{ 	addl_args: addl_args,	
-						requires: requires,	
+			return	{ 	addl_args: addl_args,
+						requires: requires,
 						proc_chain: proc_chain,
 						reassign_flags: reassign_flags	};	
 						//preprocess: preprocess	};

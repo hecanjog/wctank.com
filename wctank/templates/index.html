@@ -39,7 +39,7 @@
         	$map: $('#map-canvas')
         };
         
-        div.$map.click(function() {
+        div.$map.click(function(e) {
         	if ( div.$overlay.is(':visible') && (div.$overlay.css('opacity') === '1') ) {
         		div.$overlay.fadeOut('fast');
         	}
