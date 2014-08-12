@@ -147,14 +147,9 @@
 
                         google.maps.event.addListener(m, 'click', function() {
                             marker_clicked = true;
-                            if ( div.$overlay.is(':hidden') ) {
-                            	var $post = renderPost(post, $('#post-template'));
-                           		div.$overlay.html($post).removeClass().addClass(post.type);
-                            	div.$overlay.fadeIn('fast');
-                            } else {
-                            	var $post = renderPost(post, $('#post-template'));
-                           		div.$overlay.html($post).removeClass().addClass(post.type);
-                            }
+                            var $post = renderPost(post, $('#post-template'));
+                           	div.$overlay.html($post).removeClass().addClass(post.type);
+                            if ( div.$overlay.is(':hidden') ) div.$overlay.fadeIn('fast');
                             window.setTimeout(function() {
                             	marker_clicked = false;
                             }, 200);
