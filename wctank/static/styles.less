@@ -165,11 +165,13 @@ button {
  * TODO: actually format in overlay
  */
 #loading {
+    display: block;
+    margin: 0 auto 0 auto;
     fill: none;
     stroke: @off_white;
     stroke-width: 3;
     stroke-dasharray: 3200;
-    .prefixed-transform(scale(0.6) translate(-125px));
+    .prefixed-transform(scale(0.5));
     .prefixed-animation(dash 3500ms infinite linear);
 }
 .svg_loader_frames() {
