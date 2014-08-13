@@ -158,9 +158,9 @@
 
                         google.maps.event.addListener(m, 'click', function() {
                         	
-                        	//mini fade for content swap
-                        	var trivial = 130;
-                        	div.$overlay.find("*").fadeOut(trivial).remove(); 
+                            //mini fade for content swap
+                            var trivial = 130;
+                            div.$overlay.find("*").fadeOut(trivial).remove(); 
                            
                             var $post = renderPost(post, $('#post-template'));
                             div.$overlay.html($post).removeClass().addClass(post.type);
@@ -174,9 +174,10 @@
                             var contents = div.$overlay.find("*");
                             if ( !((post.type === 'text') || (post.type === 'audio')) ) {
                             	contents.hide(); 
-                            	var $loader = div.$overlay.append(loader).find("#loading");
+                            	var $con = div.$overlay
+                            		.append("<div class='loader-container'>"+loader+"</div>").find(".loader-container");
                             	contents.load(function() {
-                            		$loader.fadeOut(trivial).remove(); 
+                            		$con.fadeOut(trivial).remove(); 
                             		contents.fadeIn(trivial);
                             	});
                             } else {
