@@ -1,3 +1,5 @@
+@font_path: "../fonts/";
+
 @medium: ~"screen and (max-width: 1000px) and (min-width: 400px)";
 @small: ~"screen and (max-width: 400px)";
 
@@ -35,7 +37,6 @@ button {
     border: none;
 }
 
-
 /*
  * major divs
  */
@@ -52,7 +53,7 @@ button {
     top: 0;
     bottom: 0;
     right: 0;
-    width: 42%;
+    width: 40%;
     z-index: 1000;
     
     background-color: rgba(0, 0, 0, 0.4);
@@ -115,7 +116,6 @@ button {
 .permalink {
     text-align: right;
 }
-
 
 /*
  * UI buttons
@@ -186,9 +186,6 @@ button {
 /*
  * fonts
  */
-
-@font_path: "../fonts/";
-
 .fontSquirrel(@family, @name) {
     font-family: @family;
     src: url('@{font_path}@{name}.eot');
