@@ -9,18 +9,17 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false&libraries=weather"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
 </head>
 
 <body>
 	<div id="map-canvas"></div>
 	<div id="overlay"></div>
 	<ul id="social-links">
-    	<li><a href="http://wctank.tumblr.com" target="_blank"><i class="fa fa-tumblr-square"></i></a><li>
-   		<li><a href="http://twitter.com/wctank" target="_blank"><i class="fa fa-twitter"></i></a><li>
-    	<li><a href="https://www.facebook.com/pages/WC-TANK/326570787479712" target="_blank"><i class="fa fa-facebook-square"></i></a><li>
-    	<li><a href="http://soundcloud.com/wctank-1" target="_blank"><i class="fa fa-soundcloud"></i></a><li>
-    	<li><a href="http://wctank.bandcamp.com" target="_blank"><i class="fa fa-music"></i></a><li>
+		<li><a href="http://wctank.tumblr.com" target="_blank"><i class="fa fa-tumblr-square"></i></a><li>
+		<li><a href="http://twitter.com/wctank" target="_blank"><i class="fa fa-twitter"></i></a><li>
+		<li><a href="http://soundcloud.com/wctank-1" target="_blank"><i class="fa fa-soundcloud"></i></a><li>
+		<li><a href="http://wctank.bandcamp.com" target="_blank"><i class="fa fa-music"></i></a><li>
 	</ul>
 
 	<script type="text/html" id="post-template">
@@ -45,6 +44,11 @@
         	$overlay: $('#overlay'),
         	$map: $('#map-canvas')
         };
+        
+        var loader;
+        $.get("static/loading_cur.svg", function(data) {
+        	loader = new XMLSerializer().serializeToString(data);
+        });
         
         var renderPost = function(post, $template) {
             var content = '';
@@ -97,7 +101,7 @@
             return template;
         };
         
-		var marker_clicked = false;
+        var marker_clicked = false;
 				
         var init = function() {
             var map = new google.maps.Map(document.getElementById("map-canvas"), {
@@ -153,28 +157,52 @@
                         m = new google.maps.Marker(markerOptions);
 
                         google.maps.event.addListener(m, 'click', function() {
+ 							
+ 							//mini fade for content swap
+ 							var trivial = 130;
+ 							
+ 							div.$overlay.find("*").fadeOut(trivial).remove(); 
+                           
                             var $post = renderPost(post, $('#post-template'));
                            	div.$overlay.html($post).removeClass().addClass(post.type);
+          					
+                            if ( div.$overlay.is(':hidden') ) {
+                            	div.$overlay.fadeIn('fast'); 
+                            }
                             
-                            if ( div.$overlay.is(':hidden') ) div.$overlay.fadeIn('fast');
+                            // TODO: pure text posts break this... need to replace .find with a
+                            // function that will *also* traverse the DOM and get text nodes
+                            var contents = div.$overlay.find("*");
+                            if ( !((post.type === 'text') || (post.type === 'audio')) ) {
+                            	contents.hide(); 
+                            	var $loader = div.$overlay.append(loader).find("#loading");
+                            	contents.load(function() {
+                            		$loader.fadeOut(trivial).remove(); 
+                            		contents.fadeIn(trivial);
+                            	});
+                            } else {
+                            	// for now, just fade in if text
+                            	contents.fadeIn("fast");
+                            }
                             
                             marker_clicked = true;
                             window.setTimeout(function() {
                             	marker_clicked = false;
                             }, 200);
+                            
                         });
                     });
                 });
 
             });
         };
-		
-		$(document).on('click', '.close-post', function(e) {
+        
+        $(document).on('click', '.close-post', function(e) {
             e.preventDefault();
             $(this).parent().fadeOut('fast');
         });
-		
-		div.$map.mousedown(function() {
+        
+        div.$map.mousedown(function() {
         	window.setTimeout(function() {
         		if ( div.$overlay.is(':visible') && (div.$overlay.css('opacity') === '1') 
         			&& (marker_clicked === false) ) {
@@ -186,5 +214,6 @@
         google.maps.event.addDomListener(window, 'load', init);
         
    	</script>
+   	
 </body>
 </html>

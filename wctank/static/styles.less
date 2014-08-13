@@ -4,6 +4,21 @@
 @off_white: #FCFCFC; //for text in overlay
 @salmon_blood: #eb054c; //ui icon hover
 
+.prefixed-transform(@arg) {
+    -moz-transform: @arg;
+    -ms-transform: @arg;
+    -o-transform: @arg;
+    -webkit-transform: @arg;
+    transform: @arg;
+}
+.prefixed-animation(@arg) {
+    -moz-animation: @arg;
+    -ms-animation: @arg;
+    -o-animation: @arg;
+    -webkit-animation: @arg;
+    animation: @arg;
+}
+
 /*
  * tags
  */
@@ -80,9 +95,6 @@ button {
 /*
  * post elements
  */
-@poetry_brk: -0.4em;
-@poetry_titsep: 1.8em;
-
 .post-title {
     font-family: 'timelessbold';
     font-size: 1.1em;
@@ -148,7 +160,30 @@ button {
 }
 
 /*
- * fontse.cx
+ * SVG loading placeholder
+ * 
+ * TODO: actually format in overlay
+ */
+#loading {
+    fill: none;
+    stroke: @off_white;
+    stroke-width: 3;
+    stroke-dasharray: 3200;
+    .prefixed-transform(scale(0.6) translate(-125px));
+    .prefixed-animation(dash 3500ms infinite linear);
+}
+.svg_loader_frames() {
+    from { stroke-dashoffset: 3200; }
+    to { stroke-dashoffset: -3200; }
+}
+@-moz-keyframes dash { .svg_loader_frames; }
+@-o-keyframes dash { .svg_loader_frames; }
+@-ms-keyframes dash { .svg_loader_frames; }
+@-webkit-keyframes dash { .svg_loader_frames; }
+@keyframes dash { .svg_loader_frames; }
+
+/*
+ * fonts
  */
 @font-face {
     font-family: 'timeless';
