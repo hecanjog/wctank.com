@@ -168,11 +168,12 @@ button {
 #loading {
     display: block;
     width: 100%;
-    height: 100%;
+    //height: 100%;
     fill: none;
     stroke: @off_white;
     stroke-width: 3;
     stroke-dasharray: 3200;
+    .prefixed-transform(scale(0.6));
     .prefixed-animation(dash 3500ms infinite linear);
 }
 .svg_loader_frames() {
