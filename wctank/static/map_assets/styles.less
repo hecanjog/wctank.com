@@ -161,10 +161,7 @@ button {
 
 /*
  * SVG loading placeholder
- * 
- * TODO: actually format in overlay
  */
-
 #loading {
     display: block;
     width: 100%;
@@ -189,37 +186,28 @@ button {
 /*
  * fonts
  */
-@font-face {
-    font-family: 'timeless';
-    src: url('fonts/timelesstlig.eot');
-    src: url('fonts/timelesstlig.eot?#iefix') format('embedded-opentype'),
-         url('fonts/timelesstlig.woff') format('woff'),
-         url('fonts/timelesstlig.ttf') format('truetype'),
-         url('fonts/timelesstlig.svg#timelesstligregular') format('svg');
+
+@font_path: "../fonts/";
+
+.fontSquirrel(@family, @name) {
+    font-family: @family;
+    src: url('@{font_path}@{name}.eot');
+    src: url('@{font_path}@{name}.eot?#iefix') format('embedded-opentype'),
+         url('@{font_path}@{name}.woff') format('woff'),
+         url('@{font_path}@{name}.ttf') format('truetype'),
+         url('@{font_path}@{name}.svg#timelesstligregular') format('svg');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
-    font-family: 'timelessbold';
-    src: url('fonts/timelessef-bold-webfont.eot');
-    src: url('fonts/timelessef-bold-webfont.eot?#iefix') format('embedded-opentype'),
-         url('fonts/timelessef-bold-webfont.woff') format('woff'),
-         url('fonts/timelessef-bold-webfont.ttf') format('truetype'),
-         url('fonts/timelessef-bold-webfont.svg#timelessef-boldregular') format('svg');
-    font-weight: normal;
-    font-style: normal;
+    .fontSquirrel('timeless', 'timelesstlig');
 }
-
 @font-face {
-    font-family: 'frutigerlight';
-    src: url('fonts/frutiger-light-webfont.eot');
-    src: url('fonts/frutiger-light-webfont.eot?#iefix') format('embedded-opentype'),
-         url('fonts/frutiger-light-webfont.woff') format('woff'),
-         url('fonts/frutiger-light-webfont.ttf') format('truetype'),
-         url('fonts/frutiger-light-webfont.svg#frutiger_45_lightregular') format('svg');
-    font-weight: normal;
-    font-style: normal;
-
+    .fontSquirrel('timelessbold', 'timelessef-bold-webfont');
 }
+@font-face {
+    .fontSquirrel('frutigerlight', 'frutiger-light-webfont');
+}
+
 
