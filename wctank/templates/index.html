@@ -2,12 +2,15 @@
 <html>
 <head>
     <title>WC Tank</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
     <link href="/static/styles.less" type="text/css" rel="stylesheet/less">
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false&libraries=weather"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
 </head>
 
 <body>
@@ -24,34 +27,35 @@
 	<script type="text/html" id="post-template">
     	<button class="close-post" type="button"><i class="fa fa-times-circle"></i></button>
     	<div class="~!type">~!content</div>
-    	<a class="permalink" href="~!link" target="_blank"><p>view on tumblr</p></a>
+    	<div class="permalink"><a href="~!link" target="_blank"><p>view on tumblr</p></a></div>
 	</script>
 
 	<script type="text/javascript">
         
-        $(document).on('click', '.close-post', function(e) {
-            e.preventDefault();
-            $(this).parent().fadeOut('fast');
+        WebFont.load({
+        	custom: {
+        		families: [
+        			'timeless',
+        			'timelessbold',
+        			'frutigerlight'
+        		]
+        	}
         });
         
         var div = {
         	$overlay: $('#overlay'),
         	$map: $('#map-canvas')
         };
-
+        
         var renderPost = function(post, $template) {
             var content = '';
            
             if(typeof post.title !== 'undefined') {
-                content += '<h3>'+post.title+'</h3>';
+                content += "<div class='post-title'>"+post.title+"</div>";
             }
 
             if(typeof post.body !== 'undefined') {
-                content += post.body;
-            }
-
-            if(typeof post.caption !== 'undefined') {
-                content += post.caption;
+                content += "<div class='post-body'>"+post.body+"</div>";
             }
 
             if(typeof post.photos !== 'undefined') {
@@ -59,13 +63,17 @@
             }
 
             if(typeof post.text !== 'undefined') {
-                content += post.text;
+                content += "<div class='post-text'>"+post.text+"</div>";
             }
 
             if(typeof post.player !== 'undefined') {
                 content += post.player[0].embed_code;
             }
-
+            
+			if(typeof post.caption !== 'undefined') {
+                content += "<div class='post-caption'>"+post.caption+"</div>";
+            }
+            
             if(typeof post.source !== 'undefined') {
                 content += post.source;
             }
@@ -146,10 +154,12 @@
                         m = new google.maps.Marker(markerOptions);
 
                         google.maps.event.addListener(m, 'click', function() {
-                            marker_clicked = true;
                             var $post = renderPost(post, $('#post-template'));
                            	div.$overlay.html($post).removeClass().addClass(post.type);
+                            
                             if ( div.$overlay.is(':hidden') ) div.$overlay.fadeIn('fast');
+                            
+                            marker_clicked = true;
                             window.setTimeout(function() {
                             	marker_clicked = false;
                             }, 200);
@@ -159,6 +169,11 @@
 
             });
         };
+		
+		$(document).on('click', '.close-post', function(e) {
+            e.preventDefault();
+            $(this).parent().fadeOut('fast');
+        });
 		
 		div.$map.mousedown(function() {
         	window.setTimeout(function() {
