@@ -157,14 +157,13 @@
                         m = new google.maps.Marker(markerOptions);
 
                         google.maps.event.addListener(m, 'click', function() {
- 							
- 							//mini fade for content swap
- 							var trivial = 130;
- 							
- 							div.$overlay.find("*").fadeOut(trivial).remove(); 
+                        	
+                        	//mini fade for content swap
+                        	var trivial = 130;
+                        	div.$overlay.find("*").fadeOut(trivial).remove(); 
                            
                             var $post = renderPost(post, $('#post-template'));
-                           	div.$overlay.html($post).removeClass().addClass(post.type);
+                            div.$overlay.html($post).removeClass().addClass(post.type);
           					
                             if ( div.$overlay.is(':hidden') ) {
                             	div.$overlay.fadeIn('fast'); 
