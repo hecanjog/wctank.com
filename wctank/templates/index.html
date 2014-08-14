@@ -162,26 +162,45 @@
                         	
                             //mini fade for content swap
                             var trivial = 130;
+           					var def_width = "300px";
+           					
+           					var width = div.$overlay.css("width");
                             div.$overlay.find("*").fadeOut(trivial).remove(); 
-                           
+
                             var $post = renderPost(post, $('#post-template'));
                             div.$overlay.html($post).removeClass().addClass(post.type);
           					
                             if ( div.$overlay.is(':hidden') ) {
-                            	div.$overlay.fadeIn('fast'); 
+                            	div.$overlay.fadeIn('fast');
+                            	width = def_width;
                             }
                             
                             // TODO: pure text posts break this... need to replace .find with a
                             // function that will *also* traverse the DOM and get text nodes
+                            
                             var contents = div.$overlay.find("*");
+                            var waiting = true;
+                            var $loading;
                             if ( !((post.type === 'text') || (post.type === 'audio')) ) {
+                            	if (width.charAt(0) !== '0') {
+                            		div.$overlay.css("width", width);
+                            	}
                             	contents.hide(); 
-                            	var $con = div.$overlay
-                            		.append(loader).find("#loading");
+								window.setTimeout(function() {
+									if (waiting) {
+										$loading = div.$overlay.append(loader).find("#loading");
+									}
+								}, 300);
+                            	
                             	contents.load(function() {
-                            		$con.fadeOut(trivial).remove(); 
+                            		if ($loading) {
+                            			$loading.fadeOut(trivial).remove(); 
+                            		}
+                            		div.$overlay.css("width", "auto");
                             		contents.fadeIn(trivial);
+                            		waiting = false;
                             	});
+                            	
                             } else {
                             	// for now, just fade in if text
                             	contents.fadeIn("fast");
