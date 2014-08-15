@@ -1,5 +1,6 @@
 @font_path: "../fonts/";
 
+@large: ~"screen and (min-width: 1428px)";
 @medium: ~"screen and (max-width: 1000px) and (min-width: 540px)";
 @small: ~"screen and (max-width: 539px)";
 
@@ -89,9 +90,14 @@ button {
         height: calc(40vw * 0.75);
         min-width: 410px;
         min-height: 308px;
+        max-width: 570px;
+        max-height: 428px;
     }
-    
+    @media @large {
+        max-width: 600px; //text become difficult to read when lines are longer
+    }
     @media @medium {
+        max-width: 42%;
         min-width: 410px;
         .video iframe {
             min-width: 410px;
@@ -112,6 +118,7 @@ button {
        }
     }
     
+    
 }
 
 /*
@@ -131,10 +138,15 @@ button {
 .post-caption {
     font-family: 'frutigerlight';
     font-size: 0.95em;
-    line-height: 1.1em;
+    line-height: 1.245em;
+    margin-top: -0.20328em;
     margin-bottom: 1.8em;
+    p {
+        margin-bottom: -0.548em;
+    }
 }
 .permalink {
+    margin-top: 2em;
     text-align: right;
 }
 
