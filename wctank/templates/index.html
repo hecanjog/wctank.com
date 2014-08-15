@@ -37,7 +37,9 @@
         		families: [
         			'timeless',
         			'timelessbold',
-        			'frutigerlight'
+        			'frutigerlight',
+        			'timelessitalic',
+        			'frutigerlightitalic'
         		]
         	}
         });
@@ -192,13 +194,23 @@
                             if (cwid < min_width) {
                             	width = min_w_str;
                             }
-                           
-                            // TODO: pure text posts break this... need to replace .find with a
-                            // function that will *also* traverse the DOM and get text nodes
+                        
                             var $contents = div.$overlay.find("*");
                             var waiting = true;
                             var $loading;
-                            if ( !((post.type === 'text') || (post.type === 'audio') || (post.type === 'link')) ) {
+                            
+                            function isTextPost(post) {
+                            	var text_posts = ['text','audio','link', 'quote'];
+								if (text_posts.indexOf(post.type) !== -1) {
+									return true;
+								} else {
+									return false;
+								}
+                            }
+                            
+                            // TODO: pure text posts break this... need to replace .find with a
+                            // function that will *also* traverse the DOM and get text nodes
+                            if ( !isTextPost(post) ) {
                    
                             	div.$overlay.css("width", width);
                             	$contents.hide();

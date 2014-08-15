@@ -79,28 +79,31 @@ button {
     a {
         color: @off_white;
     }
+    em {
+        font-family: 'timelessitalic';
+    }
     img {
         width: 100%;
         height: auto;
         min-width: 300px;
         min-height: 233px;
     }
-    .video iframe { 
+    iframe { 
         width: 40vw;
-        height: calc(40vw * 0.75);
+        height: 30vw;
         min-width: 410px;
         min-height: 308px;
         max-width: 570px;
         max-height: 428px;
     }
-    
+
     @media @large {
         max-width: 35.4em; //text become difficult to read when lines are longer
     }
     @media @medium {
         max-width: 42%;
         min-width: 410px;
-        .video iframe {
+        iframe {
             min-width: 410px;
             min-height: 308px;
         }
@@ -111,7 +114,7 @@ button {
     @media @small {
         min-width: 90vw;
         padding-top: 60px;
-        .video iframe {
+        iframe {
             width: 100%;
             height: auto;
             min-width: 300px;
@@ -121,7 +124,7 @@ button {
 }
 
 /*
- * specific post elements
+ * specific inner post divs
  */
 .post-title {
     font-family: 'timelessbold';
@@ -132,7 +135,7 @@ button {
     font-family: 'timeless';
     line-height: 1.25em;
     p {
-        margin-top: -0.58em;
+        margin-top: -0.65em;
     }
     br {
         line-height: 1.3em;
@@ -147,6 +150,9 @@ button {
     margin-bottom: 1.8em;
     p {
         margin-bottom: -0.554em;
+    }
+    em {
+        font-family: 'frutigerlightitalic';
     }
 }
 .post-description { //
@@ -246,7 +252,11 @@ button {
     .fontSquirrel('timelessbold', 'timelessef-bold-webfont');
 }
 @font-face {
+    .fontSquirrel('timelessitalic', 'timelesstlig_italic-webfont');
+}
+@font-face {
     .fontSquirrel('frutigerlight', 'frutiger-light-webfont');
 }
-
-
+@font-face {
+    .fontSquirrel('frutigerlightitalic', 'frutiger-lightitalic-webfont');
+}
