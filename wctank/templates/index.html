@@ -162,6 +162,8 @@
                         google.maps.event.addListener(m, 'click', function() {
                         	
                             var trivial = 130; //mini fade for content swap
+           					var min_width = 300;
+           					var min_w_str = min_width + "px";
            					
            					// overlay is set to auto width, cache before removing content
            					var width = div.$overlay.css("width");
@@ -172,9 +174,14 @@
           					
                             if ( div.$overlay.is(':hidden') ) {
                             	div.$overlay.fadeIn('fast');
-                            	width = "300px"; //min width of overlay
+                            	width = min_w_str;
                             }
                             
+                            var cwid = Number(width.match(/\d*/)[0]);
+                            if (cwid < min_width) {
+                            	width = min_w_str;
+                            }
+                           
                             // TODO: pure text posts break this... need to replace .find with a
                             // function that will *also* traverse the DOM and get text nodes
                             var $contents = div.$overlay.find("*");
