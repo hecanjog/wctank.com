@@ -56,7 +56,12 @@
             var content = '';
            
             if(typeof post.title !== 'undefined') {
-                content += "<div class='post-title'>"+post.title+"</div>";
+                if(post.type === "link") {
+                	content += "<div class='post-title'>"+
+                		"<a target='_blank' href='"+post.url+"'>"+post.title+"</a></div>";
+                } else {
+                	content += "<div class='post-title'>"+post.title+"</div>";
+            	}
             }
 
             if(typeof post.body !== 'undefined') {
@@ -75,6 +80,10 @@
                 content += post.player[0].embed_code;
             }
             
+            if(typeof post.description !== 'undefined') {
+            	content += "<div class='post-description'>"+post.description+"</div>";
+            }
+            
 			if(typeof post.caption !== 'undefined') {
                 content += "<div class='post-caption'>"+post.caption+"</div>";
             }
@@ -82,7 +91,7 @@
             if(typeof post.source !== 'undefined') {
                 content += post.source;
             }
-
+  		
             var post_data = {
                 'type': post.type,
                 'date': post.date,
@@ -161,6 +170,8 @@
 
                         google.maps.event.addListener(m, 'click', function() {
                         	
+                        	console.log(post.lat, post.long);
+                        	
                             var trivial = 130; //mini fade for content swap
            					var min_width = 300;
            					var min_w_str = min_width + "px";
@@ -168,7 +179,7 @@
            					// overlay is set to auto width, cache before removing content
            					var width = div.$overlay.css("width");
                             div.$overlay.find("*").fadeOut(trivial).remove(); 
-
+							
                             var $post = renderPost(post, $('#post-template'));
                             div.$overlay.html($post).removeClass().addClass(post.type);
           					
@@ -187,7 +198,7 @@
                             var $contents = div.$overlay.find("*");
                             var waiting = true;
                             var $loading;
-                            if ( !((post.type === 'text') || (post.type === 'audio')) ) {
+                            if ( !((post.type === 'text') || (post.type === 'audio') || (post.type === 'link')) ) {
                    
                             	div.$overlay.css("width", width);
                             	$contents.hide();

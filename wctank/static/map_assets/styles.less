@@ -121,18 +121,23 @@ button {
 }
 
 /*
- * post elements
+ * specific post elements
  */
 .post-title {
     font-family: 'timelessbold';
     font-size: 1.1em;
 }
-.post-body {
+.post-body { // body of a text post, usually poetry
     margin: 1.8em 0 2.1em 0.5em;
     font-family: 'timeless';
+    line-height: 1.25em;
     p {
-        margin-top: -0.4em;
+        margin-top: -0.58em;
     }
+    br {
+        line-height: 1.3em;
+    }
+    
 }
 .post-caption {
     font-family: 'frutigerlight';
@@ -143,6 +148,10 @@ button {
     p {
         margin-bottom: -0.554em;
     }
+}
+.post-description { //
+    .post-body;  
+    line-height: 1.3em;
 }
 .permalink {
     margin-top: 2em;
