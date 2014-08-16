@@ -38,7 +38,6 @@ body, html {
     padding: 0;
     margin: 0;
     font-size: 12pt;
-    //background-color: rgb(200, 80, 30);
 }
 
 button {
@@ -49,12 +48,9 @@ button {
 /*
  * major divs
  */
-
 #map-canvas {
     width: 100%;
     height: 100%;
-    //-webkit-mix-blend-mode: screen;
-    //mix-blend-mode: screen;
 }
 
 #overlay {
@@ -99,6 +95,12 @@ button {
         min-height: 308px;
         max-width: 570px;
         max-height: 428px;
+        
+        &:-webkit-full-screen {
+            max-width: none;
+            max-height: none;
+        }
+       
     }
     @media @large {
         max-width: 35.4em; //text become difficult to read when lines are longer
