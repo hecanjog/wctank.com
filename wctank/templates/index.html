@@ -14,7 +14,6 @@
 
 <body>
 	<div id="map-canvas"></div>
-	<div id="min-overlay-width"></div>
 	<div id="overlay"></div>
 
 	<ul id="social-links">
@@ -50,13 +49,15 @@
         var div = {
         	$overlay: $('#overlay'),
         	$map: $('#map-canvas'),
-        	$min_width: $('#min-overlay-width')
         };
         
         // for some reason, firefox is not playing nice with svg filters in external
         // files, so I guess I'm just going to dynamically inline it then
         $.get("static/map_assets/map_filters.xml", function(data) {
-        	var cont = document.createElement("div");
+        	var cont = document.createElement("svg_filters");
+       		cont.style.position = "fixed";
+       		cont.style.bottom = 0;
+       		cont.style.zIndex = -99999999;
        		document.body.appendChild(cont);
         	cont.innerHTML = new XMLSerializer().serializeToString(data);
         });
@@ -171,7 +172,15 @@
                             position: loc,
                             map: map
                         };
-
+						
+						post.isTextPost = (function() {
+							var text_posts = ['text','audio','link', 'quote'];
+							if (text_posts.indexOf(post.type) !== -1) {
+                            		return true;
+                            }
+                            return false; 
+						}());
+						
                         if($.inArray('videos', post.tags) !== -1) {
                             markerOptions.icon = 'static/map_assets/colorbars.png';
                         } else if ($.inArray('stumblesome', post.tags) !== -1) {
@@ -182,87 +191,73 @@
 
                         m = new google.maps.Marker(markerOptions);
 
-                        google.maps.event.addListener(m, 'click', function() {
-                        	
-                        	console.log(post.lat, post.long);
-                        	
-                            var trivial = 130; //mini fade for content swap
-           					var min_width = div.$min_width.css('width');
-           					
-           					var width = div.$overlay.css("width");
-                            div.$overlay.find("*").fadeOut(trivial).remove(); 
-                            
-                            var $post = renderPost(post, $('#post-template'));
-                            div.$overlay.html($post).removeClass().addClass(post.type);
-          					
-                            if ( div.$overlay.is(':hidden') ) {
-                            	div.$overlay.fadeIn('fast');
-                            	if ( div.$min_width.is(':hidden') ) {
-                            		width = 'auto'; //will fill screen when @small
-                            	} else {
-                            		width = min_width;
-                            	}
-                            } else {
-                            	var cw = Number(width.match(/\d*/)[0]);
-                            	var mw = Number(min_width.match(/\d*/)[0]);
-                            	if (cw < mw) {
-                            		width = min_width;
-                            	}
-                            }
-                         
-                            var $contents = div.$overlay.find("*");
-                            var waiting = true;
-                            var $loading;
-                            
-                            function isTextPost(post) {
-                            	var text_posts = ['text','audio','link', 'quote'];
-								if (text_posts.indexOf(post.type) !== -1) {
-									return true;
-								} else {
-									return false;
-								}
-                            }
-                            
-                            // TODO: pure text posts break this... need to replace .find with a
-                            // function that will *also* traverse the DOM and get text nodes
-                            if ( !isTextPost(post) ) {
-                   
-                            	div.$overlay.css("width", width);
-                            	$contents.hide();
-                            	
-                            	window.setTimeout(function() {
-                            		if (waiting) {
-                            			$loading = div.$overlay.append(loader).find("#loading");
-                            		}
-                            	}, 300);
-                            	
-                            	$contents.load(function() {
-                            		if ($loading) {
-                            			$loading.fadeOut(trivial).remove(); 
-                            		}
-                            		div.$overlay.css("width", "auto");
-                            		$contents.fadeIn(trivial);
-                            		waiting = false;
-                            	});
-                            	
-                            } else {
-                            	$contents.fadeIn(trivial); // for now, just fade in if text
-                            }
-                            
-                            marker_clicked = true;
-                            window.setTimeout(function() {
-                            	marker_clicked = false;
-                            }, 200);
-                            
-                        });
+                        google.maps.event.addListener(m, 'click', function() {onMarkerClick(post);});
+                        
                     });
                 });
-
             });
         };
-        
+     	
+     	function onMarkerClick(post) {
+     		
+     		console.log(post.lat, post.long);
+     		
+     		 var trivial = 130; //mini fade for content swap
+     		 
+     		 var width = div.$overlay.css("width");
+     		 div.$overlay.find("*").fadeOut(trivial).remove();
+     		 
+     		 var $post = renderPost(post, $('#post-template'));
+     		 div.$overlay.html($post).removeClass().addClass(post.type);
+     		 
+     		 var mm = window.matchMedia("screen and (max-width: 31em)");
+     		 
+     		 if ( div.$overlay.is(':hidden') ) {
+     		 	div.$overlay.fadeIn('fast');
+     		 	if (mm.matches) {
+     		 		width = 'auto'; //will fill screen when @small
+     		 	} else {
+     		 		width = div.$overlay.css('min-width');
+     		 	}
+     		 }
+     		 
+     		 var $contents = div.$overlay.find("*");
+     		 var waiting = true;
+     		 var $loading;
+     		 
+     		 // TODO: pure text posts break this... need to replace .find with a
+     		 // function that will *also* traverse the DOM and get text nodes
+     		 if ( !post.isTextPost ) {
+     		 	
+     		 	div.$overlay.css("width", width);
+     		 	$contents.hide();
+     		 	
+     		 	window.setTimeout(function() {
+     		 		if (waiting) {
+     		 			$loading = div.$overlay.append(loader).find("#loading");
+     		 		}
+     		 	}, 300);
+     		 	
+     		 	$contents.load(function() {
+     		 		if ($loading) {
+     		 			$loading.fadeOut(trivial).remove(); 
+     		 		}
+     		 		div.$overlay.css("width", "auto");
+     		 		$contents.fadeIn(trivial);
+     		 		waiting = false;
+     		 	});
+     		 	
+     		 } else {
+     		 	$contents.fadeIn(trivial); // for now, just fade in if text
+     		 }
+     		 
+     		 marker_clicked = true;
+     		 window.setTimeout(function() {
+     		 	marker_clicked = false;
+     		 }, 200);
+     	}
+     	
         //These do not stop audio/video playback
-        
         $(document).on('click', '.close-post', function(e) {
             e.preventDefault();
             $(this).parent().fadeOut('fast');
@@ -278,9 +273,7 @@
         });
 		
         google.maps.event.addDomListener(window, 'load', init);
-     
-     
-     
+   
      }());
      
    	</script>
