@@ -16,6 +16,7 @@
 	<div id="map-canvas"></div>
 	<div id="min-overlay-width"></div>
 	<div id="overlay"></div>
+
 	<ul id="social-links">
 		<li><a href="http://wctank.tumblr.com" target="_blank"><i class="fa fa-tumblr-square"></i></a><li>
 		<li><a href="http://twitter.com/wctank" target="_blank"><i class="fa fa-twitter"></i></a><li>
@@ -51,6 +52,14 @@
         	$map: $('#map-canvas'),
         	$min_width: $('#min-overlay-width')
         };
+        
+        // for some reason, firefox is not playing nice with svg filters in external
+        // files, so I guess I'm just going to dynamically inline it then
+        $.get("static/map_assets/map_filters.xml", function(data) {
+        	var cont = document.createElement("div");
+       		document.body.appendChild(cont);
+        	cont.innerHTML = new XMLSerializer().serializeToString(data);
+        });
         
         var loader;
         $.get("static/map_assets/loading_cur.svg", function(data) {

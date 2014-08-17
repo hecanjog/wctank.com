@@ -71,15 +71,21 @@ button {
 /*
  * major divs
  */
+
+.saturate {
+    -webkit-filter: url('/#jeweltone');
+    filter: url('/#jeweltone');
+}
 #map-canvas {
     width: 100%;
     height: 100%;
+    .saturate;
 }
-
+/*
 #map-canvas div[style^="width: 256px"] {
-    -webkit-filter: url(map_filters.svg#jeweltone) !important;
+    .saturate;
 }
-
+*/
 #min-overlay-width {
     width: 17em;
     @media @small {

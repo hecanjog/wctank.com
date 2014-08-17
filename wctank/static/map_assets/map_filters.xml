@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+<defs>
+<filter id="jeweltone">
+	<feColorMatrix type="saturate" values="2"></feColorMatrix>
+</filter>
+</defs>
+</svg>
