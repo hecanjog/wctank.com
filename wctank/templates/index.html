@@ -51,14 +51,6 @@
         	$map: $('#map-canvas'),
         };
         
-        // for some reason, firefox is not playing nice with svg filters in external
-        // files, so I guess I'm just going to dynamically inline it then
-        $.get("static/map_assets/map_filters.xml", function(data) {
-        	var cont = document.createElement("div");
-       		document.body.appendChild(cont);
-        	cont.innerHTML = new XMLSerializer().serializeToString(data);
-        });
-        
         var loader;
         $.get("static/map_assets/loading_cur.svg", function(data) {
         	loader = new XMLSerializer().serializeToString(data);
