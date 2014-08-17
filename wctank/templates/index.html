@@ -14,6 +14,7 @@
 
 <body>
 	<div id="map-canvas"></div>
+	<div id="min-overlay-width"></div>
 	<div id="overlay"></div>
 	<ul id="social-links">
 		<li><a href="http://wctank.tumblr.com" target="_blank"><i class="fa fa-tumblr-square"></i></a><li>
@@ -47,7 +48,8 @@
         
         var div = {
         	$overlay: $('#overlay'),
-        	$map: $('#map-canvas')
+        	$map: $('#map-canvas'),
+        	$min_width: $('#min-overlay-width')
         };
         
         var loader;
@@ -176,32 +178,35 @@
                         	console.log(post.lat, post.long);
                         	
                             var trivial = 130; //mini fade for content swap
-           					var min_width = 300;
-           					var min_w_str = min_width + "px";
+           					var min_width = div.$min_width.css('width');
            					
-           					// overlay is set to auto width, cache before removing content
            					var width = div.$overlay.css("width");
                             div.$overlay.find("*").fadeOut(trivial).remove(); 
-							
+                            
                             var $post = renderPost(post, $('#post-template'));
                             div.$overlay.html($post).removeClass().addClass(post.type);
           					
                             if ( div.$overlay.is(':hidden') ) {
                             	div.$overlay.fadeIn('fast');
-                            	width = min_w_str;
+                            	if ( div.$min_width.is(':hidden') ) {
+                            		width = 'auto'; //will fill screen when @small
+                            	} else {
+                            		width = min_width;
+                            	}
+                            } else {
+                            	var cw = Number(width.match(/\d*/)[0]);
+                            	var mw = Number(min_width.match(/\d*/)[0]);
+                            	if (cw < mw) {
+                            		width = min_width;
+                            	}
                             }
-                            
-                            var cwid = Number(width.match(/\d*/)[0]);
-                            if (cwid < min_width) {
-                            	width = min_w_str;
-                            }
-                        
+                         
                             var $contents = div.$overlay.find("*");
                             var waiting = true;
                             var $loading;
                             
                             function isTextPost(post) {
-                            	var text_posts = ['text','audio','link', 'quote'];
+                            	var text_posts = ['shgh','audio','link', 'quote'];
 								if (text_posts.indexOf(post.type) !== -1) {
 									return true;
 								} else {

@@ -1,8 +1,6 @@
 @font_path: "../fonts/";
 
-@large: ~"screen and (min-width: 1428px)";
-@medium: ~"screen and (max-width: 1000px) and (min-width: 540px)";
-@small: ~"screen and (max-width: 539px)";
+@small: ~"screen and (max-width: 31em)";
 
 @med-res: ~"only screen and (min-resolution: 115dpi)";
 @med-mul: 0.8;
@@ -45,7 +43,7 @@ body, html {
     font-size: @font-base;
     
     @media @med-res {
-        font-size:   9pt;
+        font-size:   @font-base * @med-mul;
     }
 }
 
@@ -62,6 +60,13 @@ button {
     height: 100%;
 }
 
+#min-overlay-width {
+    width: 17em;
+    @media @small {
+        display: none; //flag to see if width should be set to auto, which will fill screen
+    }
+}
+
 #overlay {
     display: none;
     overflow: auto;
@@ -76,26 +81,27 @@ button {
     background-color: rgba(0, 0, 0, 0.4);
     color: @off_white;
     font-family: 'timeless';
-    font-size: 1.0532em;
-    padding: 2em 1.5em 1.5em 1.5em;
+    font-size: 1.05em;
+    padding: 1.8em 1.9em 1.5em 1.5em;
         
     a {
         color: @off_white;
     }
     em {
+        font-style: normal;
         font-family: 'timelessitalic';
         font-size: 1em;
     }
     strong {
+        font-style: normal;
         font-family: 'timelessbold';
     }
     img {
         width: 100%;
-        max-width: 44.417em;
         height: auto;
     }
     iframe { 
-        width: 38vw;
+        width: 70vw;
         height: 30.4vw;
         max-width: 100%;
         max-height: 26em;
@@ -109,63 +115,72 @@ button {
        
     }
     @media @small {
-        padding-top: 5em;
+        width: auto;
+        left: 0;
+        right: 0;
+        padding-top: 2.3em;
+        padding-right: 1.5em;
         iframe {
             width: 100%;
-            height: auto;
             min-width: 19.2em;
+            height: 60vw;
             min-height: 15.36em;
         }
+    }
+    
+    .post-title {
+        font-family: 'timelessbold';
+        font-size: 1.1em;
     } 
+    .post-body { // body of a text post, usually poetry
+        margin: 1.8em 0 2.1em 0.5em;
+        font-family: 'timeless';
+        line-height: 1.25em;
+        p {
+            margin-top: -0.65em;
+        }
+        br {
+            line-height: 1.3em;
+        }
+        img {
+            margin-top: 0.3em;
+            margin-bottom: 0.5em;
+        }
+    }
+    .post-caption {
+        font-family: 'frutigerlight';
+        font-size: 0.95em;
+        line-height: 1.24em;
+        margin-top: -0.20328em;
+        margin-bottom: 1.8em;
+        p {
+            margin-bottom: -0.575em;
+        }
+        em {
+            font-family: 'frutigerlightitalic';
+        }
+        strong {
+            font-family: 'frutigerbold';
+        }
+    }
+    .post-description { //used within link posts
+        .post-body;  
+        line-height: 1.3em;
+    }
+    .permalink {
+        margin-top: 2em;
+        text-align: right;
+    }
+    //.quote {
+    
+    //}
 }
 
 /*
- * specific inner post divs
+ * One of the most important spaces is between the visual element of a post
+ * and the following text. 
  */
 @pull: -0.15em;
-.post-title {
-    font-family: 'timelessbold';
-    font-size: 1.1em;
-}
-.post-body { // body of a text post, usually poetry
-    margin: 1.8em 0 2.1em 0.5em;
-    font-family: 'timeless';
-    line-height: 1.25em;
-    p {
-        margin-top: -0.65em;
-    }
-    br {
-        line-height: 1.3em;
-    }
-    img {
-        margin-top: 0.3em;
-        margin-bottom: 0.5em;
-    }
-}
-.post-caption {
-    font-family: 'frutigerlight';
-    font-size: 0.95em;
-    line-height: 1.24em;
-    margin-top: -0.20328em;
-    margin-bottom: 1.8em;
-    p {
-        margin-bottom: -0.575em;
-    }
-    em {
-        font-family: 'frutigerlightitalic';
-    }
-    strong {
-        font-family: 'frutigerbold';
-    }
-}
-.post-description { //used within link posts
-    .post-body;  
-    line-height: 1.3em;
-}
-.permalink {
-    margin-top: 2em;
-    text-align: right;
-}
 .text iframe {
     margin-bottom: 0.3em;
 }
@@ -175,9 +190,7 @@ button {
 .photo img {
     margin-bottom: @pull;
 }
-//.quote {
-    
-//}
+
 
 /*
  * UI buttons
@@ -194,16 +207,17 @@ button {
       color: @salmon_blood;
     }
 }
-
 .close-post {
     position: absolute;
-    top: 0.417em;
-    right: 0.417em;
+    top: 0.3em;
+    right: 0.1em;
+    -webkit-transform: translate(-0.25em);
     .ui-controls;
     font-size: 1.2em;
-    padding: 0px;
+    padding: 0;
+    
+    
 }
-
 #social-links {
     position: fixed;
     top: 1px;
@@ -213,7 +227,6 @@ button {
     padding: 0;
     li {
         display: inline-block;
-
         a {
             .ui-controls;
         }
@@ -223,9 +236,10 @@ button {
 /*
  * SVG loading placeholder
  */
+
 #loading {
     display: block;
-    width: 18.2em;
+    width: 18.1em;
     margin: auto;
     height: 100%;
     fill: none;
