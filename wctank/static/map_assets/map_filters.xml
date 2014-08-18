@@ -32,10 +32,7 @@
 	
 	<!-- /EDGE DETECTION -->
 	
-	<feBlend id="blend" in="offset" in2="thick" mode="multiply" result="ok"></feBlend>
-	
-	<feMerge>
-		<feMergeNode in="ok"></feMergeNode></feMerge>
+	<feBlend id="blend" in="offset" in2="thick" mode="multiply" result="out"></feBlend>
 
 </filter>
 </defs>
