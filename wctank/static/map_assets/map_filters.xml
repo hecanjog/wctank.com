@@ -1,7 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
 <defs>
 <filter id="jeweltone">
-	<feColorMatrix type="saturate" values="2"></feColorMatrix>
+	<feColorMatrix in="SourceGraphic" type="saturate" values="2" result="saturated"></feColorMatrix>
+	<feOffset in="saturated" dx="2" dy="1" result="offset"></feOffset>
+	
+	<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
+	
+	<feConvolveMatrix 	in="gray" 
+						order="5 5"
+						kernelMatrix="2 4 5 4 2 
+									  4 9 12 9 4
+									  5 12 15 12 5
+									  4 9 12 9 4
+									  2 4 5 4 2" 
+						preserveAlpha="true"
+						result="edgemed1"> 	</feConvolveMatrix>
+	
+	<feConvolveMatrix	in="edgemed1" 
+						kernelMatrix="-1 -1 -1 
+							 		 -1 8 -1 
+							 		 -1 -1 -1" 
+						preserveAlpha="true" 
+						result="edgemed2"> 	</feConvolveMatrix>
+	
+	<feComponentTransfer in="edgemed2" result="flip">
+		<feFuncR type="linear" slope="-20" intercept="1" tableValues="0 1"></feFuncR>
+		<feFuncG type="linear" slope="-20" intercept="1" tableValues="0 1"></feFuncG>
+		<feFuncB type="linear" slope="-20" intercept="1" tableValues="0 1"></feFuncB>
+	</feComponentTransfer>	
+	
+	<feMorphology in="flip" operator="erode" radius="0.2" result="thick"></feMorphology>
+	
+	<feBlend in="offset" in2="thick" mode="multiply" result="ok"></feBlend>
+		
+	<feMerge>
+		<feMergeNode in="ok"></feMergeNode>
+	</feMerge>
 </filter>
 </defs>
 </svg>

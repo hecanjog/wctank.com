@@ -172,14 +172,14 @@
                             position: loc,
                             map: map
                         };
-						
-						post.isTextPost = (function() {
-							var text_posts = ['text','audio','link', 'quote'];
-							if (text_posts.indexOf(post.type) !== -1) {
-                            		return true;
-                            }
-                            return false; 
-						}());
+                        
+                        post.isTextPost = (function() {
+                        	var text_posts = ['text', 'audio', 'link', 'quote'];
+                        	if (text_posts.indexOf(post.type) !== -1) {
+                        		return true;
+                        	}
+                        	return false; 
+                        }());
 						
                         if($.inArray('videos', post.tags) !== -1) {
                             markerOptions.icon = 'static/map_assets/colorbars.png';
