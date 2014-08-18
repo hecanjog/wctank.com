@@ -5,7 +5,7 @@
 @med-res: ~"only screen and (min-resolution: 1.2dppx)";
 @med-mul: 0.8;
 
-@off_white: #FCFCFC; //for text in overlay
+@off_white: #FBFBFB; //for text in overlay
 @salmon_blood: #eb054c; //ui icon hover
 
 .prefixed-transform(@arg) {
@@ -94,7 +94,7 @@ button {
     max-width: 33em;
     z-index: 1000;
     
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.5);
     color: @off_white;
     font-family: 'timeless';
     font-size: 1.05em;
@@ -146,7 +146,8 @@ button {
     
     .post-title {
         font-family: 'timelessbold';
-        font-size: 1.1em;
+        font-size: 1.5em;
+        text-transform: uppercase;
     } 
     .post-body { // body of a text post, usually poetry
         margin: 1.8em 0 2.1em 0.5em;
