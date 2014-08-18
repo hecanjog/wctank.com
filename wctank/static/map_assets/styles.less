@@ -79,18 +79,10 @@ button {
 #map-canvas {
     width: 100%;
     height: 100%;
-    .print_analog;
-}
-/*
-#map-canvas div[style^="width: 256px"] {
-    .saturate;
-}
-*/
-#min-overlay-width {
-    width: 17em;
-    @media @small {
-        display: none; //flag to see if width should be set to auto, which will fill screen
-    }
+    
+    div[style="position: absolute; left: 0px; top: 0px; z-index: 0;"] {
+      .print_analog;
+    }   
 }
 
 #overlay {
