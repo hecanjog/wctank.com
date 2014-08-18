@@ -13,7 +13,7 @@
 	
 		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
 	
-		<feGaussianBlur in="gray" stdDeviation="1.45" result="denoise"></feGaussianBlur>
+		<feGaussianBlur id="feGaussianBlur" in="gray" stdDeviation="1.455" result="denoise"></feGaussianBlur>
 	
 		<feConvolveMatrix	
 			in="denoise" 

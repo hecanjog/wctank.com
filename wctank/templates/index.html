@@ -63,8 +63,9 @@
         	
         	var mres = window.matchMedia("only screen and (min-resolution: 1.2dppx)");
        		if (mres.matches) {
-       			var feBlend = document.getElementById("blend");
-       			feBlend.setAttribute("in2", "flip");
+       			var feGaussianBlur = document.getElementById("feGaussianBlur");
+       			console.log(feGaussianBlur);
+       			feGaussianBlur.setAttribute("stdDeviation", "1");
        		}
         });
         
