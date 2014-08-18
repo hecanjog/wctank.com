@@ -13,7 +13,7 @@
 	
 		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
 	
-		<feGaussianBlur id="feGaussianBlur" in="gray" stdDeviation="1.455" result="denoise"></feGaussianBlur>
+		<feGaussianBlur id="feGaussianBlur" in="gray" stdDeviation="1.45" result="denoise"></feGaussianBlur>
 	
 		<feConvolveMatrix	
 			in="denoise" 
@@ -28,11 +28,11 @@
 			<feFuncG type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncG>
 			<feFuncB type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncB></feComponentTransfer>	
 	
-		<feMorphology in="flip" operator="erode" radius="0.95" result="thick"></feMorphology>
+		<feMorphology in="flip" operator="erode" radius="0.001" result="thick"></feMorphology>
 	
 	<!-- /EDGE DETECTION -->
 	
-	<feBlend id="blend" in="offset" in2="thick" mode="multiply" result="out"></feBlend>
+	<feBlend id="feBlend" in="offset" in2="thick" mode="multiply" result="out"></feBlend>
 
 </filter>
 </defs>
