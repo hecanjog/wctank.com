@@ -1,41 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
 <defs>
-<filter id="jeweltone">
-	<feColorMatrix in="SourceGraphic" type="saturate" values="2" result="saturated"></feColorMatrix>
-	<feOffset in="saturated" dx="2" dy="1" result="offset"></feOffset>
+<filter id="print-analog">
 	
-	<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
+	<feColorMatrix in="SourceGraphic" type="saturate" values="4.6" result="saturated"></feColorMatrix>
 	
-	<feConvolveMatrix 	in="gray" 
-						order="5 5"
-						kernelMatrix="2 4 5 4 2 
-									  4 9 12 9 4
-									  5 12 15 12 5
-									  4 9 12 9 4
-									  2 4 5 4 2" 
-						preserveAlpha="true"
-						result="edgemed1"> 	</feConvolveMatrix>
+	<feComponentTransfer in="saturated" result="alpha">
+		<feFuncA type="discrete" tableValues="0.93"></feFuncA>	</feComponentTransfer>
 	
-	<feConvolveMatrix	in="edgemed1" 
-						kernelMatrix="-1 -1 -1 
-							 		 -1 8 -1 
-							 		 -1 -1 -1" 
-						preserveAlpha="true" 
-						result="edgemed2"> 	</feConvolveMatrix>
+	<feOffset in="alpha" dx="2" dy="1" result="offset"></feOffset>
 	
-	<feComponentTransfer in="edgemed2" result="flip">
-		<feFuncR type="linear" slope="-20" intercept="1" tableValues="0 1"></feFuncR>
-		<feFuncG type="linear" slope="-20" intercept="1" tableValues="0 1"></feFuncG>
-		<feFuncB type="linear" slope="-20" intercept="1" tableValues="0 1"></feFuncB>
-	</feComponentTransfer>	
+	<!-- EDGE DETECTION -->
 	
-	<feMorphology in="flip" operator="erode" radius="0.2" result="thick"></feMorphology>
+		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
+	
+		<feGaussianBlur in="gray" stdDeviation="1.45" result="denoise"></feGaussianBlur>
+	
+		<feConvolveMatrix	
+			in="denoise" 
+			kernelMatrix="-1 -1 -1 
+			              -1 8 -1 
+			              -1 -1 -1"
+			preserveAlpha="true"
+			result="edged"></feConvolveMatrix>
+	
+		<feComponentTransfer in="edged" result="flip">
+			<feFuncR type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncR>
+			<feFuncG type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncG>
+			<feFuncB type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncB></feComponentTransfer>	
+	
+		<feMorphology in="flip" operator="erode" radius="0.95" result="thick"></feMorphology>
+	
+	<!-- /EDGE DETECTION -->
 	
 	<feBlend id="blend" in="offset" in2="thick" mode="multiply" result="ok"></feBlend>
-		
+	
 	<feMerge>
-		<feMergeNode in="ok"></feMergeNode>
-	</feMerge>
+		<feMergeNode in="ok"></feMergeNode></feMerge>
+
 </filter>
 </defs>
 </svg>
