@@ -31,7 +31,7 @@
 	
 	<feMorphology in="flip" operator="erode" radius="0.2" result="thick"></feMorphology>
 	
-	<feBlend in="offset" in2="thick" mode="multiply" result="ok"></feBlend>
+	<feBlend id="blend" in="offset" in2="thick" mode="multiply" result="ok"></feBlend>
 		
 	<feMerge>
 		<feMergeNode in="ok"></feMergeNode>
