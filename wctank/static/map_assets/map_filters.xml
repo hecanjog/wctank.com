@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
 <defs>
+
 <filter id="print-analog">
 	
 	<feColorMatrix in="SourceGraphic" type="saturate" values="4.6" result="saturated"></feColorMatrix>
@@ -14,7 +15,7 @@
 		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
 	
 		<feGaussianBlur id="feGaussianBlur" in="gray" stdDeviation="1.45" result="denoise"></feGaussianBlur>
-	
+		
 		<feConvolveMatrix	
 			in="denoise" 
 			kernelMatrix="-1 -1 -1 
@@ -35,5 +36,32 @@
 	<feBlend id="feBlend" in="offset" in2="thick" mode="multiply" result="out"></feBlend>
 
 </filter>
+
+<filter id="caustic-glow">
+	
+	<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
+	
+	<feComponentTransfer in="SourceGraphic" result="sep">
+		<feFuncR type="discrete" tableValues="0"></feFuncR>
+		<feFuncG type="gamma" amplitude="2" exponent="5"></feFuncG>
+		<feFuncB type="discrete" tableValues="0"></feFuncB></feComponentTransfer>	
+
+	<feComponentTransfer in="sep" result="caustics">
+		<feFuncG type="linear" slope="100" intercept="0"></feFuncG></feComponentTransfer>
+		
+	<feColorMatrix in="caustics" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
+	
+	<feComposite in="caustics" in2="alphamap" operator="in" result="spots"></feComposite>
+	
+	<feGaussianBlur in="spots" stdDeviation="12" result="glow"></feGaussianBlur>	
+	
+	<feComposite 
+		in="gray" 
+		in2="glow" 
+		operator="xor"
+		result="out"></feComposite>
+	
+</filter>
+
 </defs>
 </svg>
