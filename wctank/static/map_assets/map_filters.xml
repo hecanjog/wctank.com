@@ -55,11 +55,14 @@
 	
 	<feGaussianBlur in="spots" stdDeviation="12" result="glow"></feGaussianBlur>	
 	
-	<feComposite 
-		in="gray" 
-		in2="glow" 
-		operator="xor"
-		result="out"></feComposite>
+	<feComposite in="gray" in2="glow" operator="xor" result="out"></feComposite>
+	
+</filter>
+
+<filter id="fauvist">
+	<!-- Subtract red dependent on zoom level -->
+	<!-- multiply in new perlin noise on drag or zoom events -->
+	<feColorMatrix in="SourceGraphic" type="saturate" values="50" result="wtf"></feColorMatrix>
 	
 </filter>
 

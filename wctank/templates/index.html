@@ -193,11 +193,11 @@
                         }());
 						
                         if($.inArray('videos', post.tags) !== -1) {
-                            markerOptions.icon = 'static/map_assets/colorbars.png';
+                            markerOptions.icon = 'static/map_assets/perf.png';
                         } else if ($.inArray('stumblesome', post.tags) !== -1) {
-                            markerOptions.icon = 'static/map_assets/ear.png';
+                            markerOptions.icon = 'static/map_assets/rap.png';
                         } else {
-                            markerOptions.icon = 'static/map_assets/catalan_compass_rose.png';
+                            markerOptions.icon = 'static/map_assets/rand.png';
                         }
 
                         m = new google.maps.Marker(markerOptions);
