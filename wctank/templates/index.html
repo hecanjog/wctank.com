@@ -143,7 +143,10 @@
                 zoom: 11,
                 mapTypeId: google.maps.MapTypeId.SATELLITE,
                 disableDefaultUI: true,
-                zoomControl: false
+                zoomControl: true,
+                zoomControlOptions: {
+                	position: google.maps.ControlPosition.LEFT_BOTTOM
+                }
             });
 
             var bounds = new google.maps.LatLngBounds(
