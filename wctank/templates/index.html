@@ -51,6 +51,8 @@
         	$map: $('#map-canvas'),
         };
         
+        var filter_admin = {}; //this shouldn't be necessary; we should be able to do this in css
+        
         // for some reason, firefox is not playing nice with svg filters in external
         // files, so I guess I'm just going to dynamically inline it then
         $.get("static/map_assets/map_filters.xml", function(data) {
@@ -61,15 +63,45 @@
        		document.body.appendChild(cont);
         	cont.innerHTML = new XMLSerializer().serializeToString(data);
         	
-        	var mres = window.matchMedia("only screen and (min-resolution: 1.2dppx)");
-       		if (mres.matches) {
-       			var feGaussianBlur = document.getElementById("feGaussianBlur");
-       			var feBlend = document.getElementById("feBlend");
-       			feGaussianBlur.setAttribute("stdDeviation", "1.16");
-       			feBlend.setAttribute("in2", "flip");
-       		}
+        	filter_admin = {
+        		print_analog: {
+        			blur: document.getElementById("pablur"),
+        			blend: document.getElementById("pablend")
+        		},
+        		caustic_glow: {
+        			blur: document.getElementById("cgblur")
+        		},
+        		CMGYK: (function(CMGYK) {
+        			
+        			CMGYK.flood = document.getElementById("cflood");
+        			CMGYK.blur = document.getElementById("cblur");
+        			CMGYK.merge = document.getElementById("cmerge");
+        			
+        			var idx = 1;
+        			var colors = ["#FFFF00", "#00FFFF", "#FF00FF", "#00FF00"];
+        			CMGYK.sequence = function() {
+        				CMGYK.merge.setAttribute("in", "out");
+        				if (idx < 4) {
+        					CMGYK.flood.setAttribute("flood-color", colors[idx]);
+        				} else {
+        					CMGYK.merge.setAttribute("in", "edged");
+        				}
+        				idx = (idx + 1) % 5;
+        			};
+        			
+        			return CMGYK;
+        		
+        		}({}))
+        	};
+        	
+        	var mm = window.matchMedia("only screen and (min-resolution: 1.0dppx)");
+        	if (mm.matches) {
+        		filter_admin.print_analog.blur.setAttribute("stdDeviation", "1.16");
+        		filter_admin.print_analog.blend.setAttribute("in2", "flip");
+        		filter_admin.caustic_glow.blur.setAttribute("stdDeviation", "10.6");
+        	}
         });
-        
+       
         var loader;
         $.get("static/map_assets/loading_cur.svg", function(data) {
         	loader = new XMLSerializer().serializeToString(data);
@@ -136,7 +168,8 @@
         };
         
         var marker_clicked = false;
-				
+		
+	
         var init = function() {
             var map = new google.maps.Map(document.getElementById("map-canvas"), {
                 center: new google.maps.LatLng(43.1, -87.107180),
@@ -148,7 +181,7 @@
                 	position: google.maps.ControlPosition.LEFT_BOTTOM
                 }
             });
-
+			
             var bounds = new google.maps.LatLngBounds(
                 new google.maps.LatLng(42.96, -87.3159),
                 new google.maps.LatLng(43.25, -86.9059)
@@ -158,7 +191,7 @@
                 'static/map_assets/virgo-logo.png',
                 bounds
             );
-
+			
             var clouds = new google.maps.weather.CloudLayer();
             clouds.setMap(map);
 
@@ -167,7 +200,8 @@
             google.maps.event.addListener(overlay, 'click', function() {
                 map.setZoom(9);
             });
-			
+			google.maps.event.addListener(map, 'zoom_changed', function() { filter_admin.CMGYK.sequence(); });
+
             google.maps.event.addListener(map, 'idle', function() {
                 var visibleBounds = map.getBounds();
                 var sw = visibleBounds.getSouthWest();
@@ -203,7 +237,6 @@
                         m = new google.maps.Marker(markerOptions);
 
                         google.maps.event.addListener(m, 'click', function() {onMarkerClick(post);});
-                        
                     });
                 });
             });
@@ -282,9 +315,9 @@
         		}
         	}, 150);
         });
-		
+
         google.maps.event.addDomListener(window, 'load', init);
-   
+   		
      }());
      
    	</script>

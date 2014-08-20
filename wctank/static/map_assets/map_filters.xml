@@ -14,7 +14,7 @@
 	
 		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
 	
-		<feGaussianBlur id="feGaussianBlur" in="gray" stdDeviation="1.45" result="denoise"></feGaussianBlur>
+		<feGaussianBlur id="pablur" in="gray" stdDeviation="1.45" result="denoise"></feGaussianBlur>
 		
 		<feConvolveMatrix	
 			in="denoise" 
@@ -33,7 +33,7 @@
 	
 	<!-- /EDGE DETECTION -->
 	
-	<feBlend id="feBlend" in="offset" in2="thick" mode="multiply" result="out"></feBlend>
+	<feBlend id="pablend" in="offset" in2="thick" mode="multiply" result="out"></feBlend>
 
 </filter>
 
@@ -53,7 +53,7 @@
 	
 	<feComposite in="caustics" in2="alphamap" operator="in" result="spots"></feComposite>
 	
-	<feGaussianBlur in="spots" stdDeviation="12" result="glow"></feGaussianBlur>	
+	<feGaussianBlur id="cgblur" in="spots" stdDeviation="12" result="glow"></feGaussianBlur>	
 	
 	<feComposite in="gray" in2="glow" operator="xor" result="out"></feComposite>
 	
@@ -66,5 +66,57 @@
 	
 </filter>
 
+<filter id="VHS">
+	<!-- desaturate, blend with seed-animated noise (video frame rate), very fast (>fr) vertical offset jitter on idle -->
+
+</filter>
+
+<filter id="spectroscopy">
+	<!-- rm green, offset red and blue channels... on init, force apart, slowly bring closer -->
+</filter>
+<filter id="projection-blur">
+	<!-- pixelwise offset of r, g, b channels -->
+</filter>
+
+<filter id="CMGYK">
+	
+	<!-- EDGE DETECTION -->
+	
+		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
+		<feGaussianBlur id="cblur" in="gray" stdDeviation="0.5" result="denoise"></feGaussianBlur>
+		<feConvolveMatrix in="denoise" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" preserveAlpha="true" result="edged"></feConvolveMatrix>
+		<feComponentTransfer in="edged" result="flip">
+			<feFuncR type="linear" slope="-25" intercept="1" tableValues="0 1"></feFuncR>
+			<feFuncG type="linear" slope="-25" intercept="1" tableValues="0 1"></feFuncG>
+			<feFuncB type="linear" slope="-25" intercept="1" tableValues="0 1"></feFuncB></feComponentTransfer>	
+		
+		<feColorMatrix in="flip" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
+		<feComposite in="flip" in2="alphamap" operator="in" result="edgealph"></feComposite> 
+		<feComponentTransfer in="edgealph" result="edgealphinv">
+			<feFuncA type="linear" slope="-30" intercept="1"></feFuncA></feComponentTransfer>
+		
+	<!-- /EDGE DETECTION -->
+	
+	<feFlood id="cflood" flood-color="#FFFF00" result="flood"></feFlood>
+	
+	<feComposite in="edgealphinv" in2="flood" operator="atop" result="out"></feComposite>
+	
+	<feMerge>
+		<feMergeNode id="cmerge" in="out"></feMergeNode></feMerge>
+	
+	<!-- edge detect buildings, step through serialized sequence on large enough amount of change in zoom level -->
+</filter>
+
+<filter id="eriks-purple-scat-fantasy">
+	<!-- whenever something is brown->purple, if purple->erik -->
+</filter>
+
+<filter id="birds">
+	<!-- separate colors, replace each with a tiled picture of a bird -->
+</filter>
+
+<filter id="jason">
+	<!-- like birds but with jason -->
+</filter>
 </defs>
 </svg>
