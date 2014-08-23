@@ -99,7 +99,9 @@
 	
 	<feFlood id="cflood" flood-color="#FFFF00" result="flood"></feFlood>
 	
-	<feComposite in="edgealphinv" in2="flood" operator="atop" result="out"></feComposite>
+	<feColorMatrix id="cmatrix" in="flood"  type="hueRotate" values="0" result="rotflood"></feColorMatrix> 
+
+	<feComposite in="edgealphinv" in2="rotflood" operator="atop" result="out"></feComposite>
 
 </filter>
 

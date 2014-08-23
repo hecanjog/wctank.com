@@ -72,12 +72,22 @@
         			CMGYK.flood = document.getElementById("cflood");
         			CMGYK.blur = document.getElementById("cblur");
         			CMGYK.merge = document.getElementById("cmerge");
-        			
+        			CMGYK.matrix = document.getElementById("cmatrix");
+
         			var idx = 1;
-        			var colors = ["yellow", "#00FFFF", "green", "red"];
+					var rot;
+        			var colors = ["#FFFF00", "#00FF00", "#00FFFF", "#6F00FF", "#FF00FF", "#FF0000", "#FF7F00"];
         			CMGYK.sequence = function() {
-        				CMGYK.flood.setAttribute("flood-color", colors[idx]);
-        				idx = (idx + 1) % 4;
+						rot = Number(CMGYK.matrix.getAttribute("values"));
+						CMGYK.matrix.setAttribute("values", rot+(10 * Math.PI / 11));		
+						for (var i = 0; i < 11; i++) {
+							window.setTimeout(function() {
+								CMGYK.flood.setAttribute("flood-color", colors[idx]);
+        						idx = (idx + 1) % colors.length;
+								console.log(idx);
+								console.log(colors[idx]);
+							}, i*91)
+						}
         			};
         			
         			return CMGYK;
@@ -236,7 +246,7 @@
      	function onMarkerClick(post) {
      		
      		console.log(post.lat, post.long);
-     		
+     		   
      		 var trivial = 130; //mini fade for content swap
      		 
      		 var width = div.$overlay.css("width");

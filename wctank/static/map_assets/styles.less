@@ -70,40 +70,43 @@ button {
 /*
  * filter mixins
  */
+
 .callFilter(@name) {
     -webkit-filter: url('/#@{name}');
     filter: url('/#@{name}');
 }
+
 .print-analog() {
     .callFilter(print-analog);
 }
+
 .caustic-glow() {
     .callFilter(caustic-glow);
 }
+
 .fauvist() {
     .callFilter(fauvist);
 }
+
 .CMGYK() {
     .callFilter(CMGYK);
 }
-
-/*
- * 	filter animations/transitions
- */
 #cflood {
-		.prefixed-transition(flood-color 1s linear);	
+	.prefixed-transition(flood-color 80ms linear);	
 }
-
+#cmatrix {
+	.prefixed-transition(values 1s linear);
+}
 /*
  * major divs
  */
 #map-canvas {
     width: 100%;
     height: 100%;
-    .print-analog;
+    //.print-analog;
     //.caustic-glow;
     //.fauvist;
-    //.CMGYK;
+    .CMGYK;
 }
 
 #overlay {
