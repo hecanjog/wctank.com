@@ -2,61 +2,43 @@
 <defs>
 
 <filter id="print-analog">
-	
-	<feColorMatrix in="SourceGraphic" type="saturate" values="4.6" result="saturated"></feColorMatrix>
-	
-	<feComponentTransfer in="saturated" result="alpha">
-		<feFuncA type="discrete" tableValues="0.93"></feFuncA>	</feComponentTransfer>
-	
-	<feOffset in="alpha" dx="2" dy="1" result="offset"></feOffset>
+	<feColorMatrix in="SourceGraphic" type="saturate" values="4.6"></feColorMatrix>
+	<feComponentTransfer>
+		<feFuncA type="discrete" tableValues="0.93"></feFuncA></feComponentTransfer>
+	<feOffset dx="2" dy="1" result="offset"></feOffset>
 	
 	<!-- EDGE DETECTION -->
-	
-		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
-	
-		<feGaussianBlur id="pablur" in="gray" stdDeviation="1.45" result="denoise"></feGaussianBlur>
-		
+		<feColorMatrix in="SourceGraphic" type="saturate" values="0"></feColorMatrix>
+		<feGaussianBlur id="pablur" stdDeviation="1.45"></feGaussianBlur>
 		<feConvolveMatrix	
-			in="denoise" 
 			kernelMatrix="-1 -1 -1 
 			              -1 8 -1 
 			              -1 -1 -1"
-			preserveAlpha="true"
-			result="edged"></feConvolveMatrix>
-	
-		<feComponentTransfer in="edged" result="flip">
+			preserveAlpha="true"></feConvolveMatrix>
+		<feComponentTransfer result="flip">
 			<feFuncR type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncR>
 			<feFuncG type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncG>
 			<feFuncB type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncB></feComponentTransfer>	
-	
-		<feMorphology in="flip" operator="erode" radius="0.001" result="thick"></feMorphology>
-	
+		<feMorphology operator="erode" radius="0.001" result="thick"></feMorphology>
 	<!-- /EDGE DETECTION -->
 	
 	<feBlend id="pablend" in="offset" in2="thick" mode="multiply" result="out"></feBlend>
-
 </filter>
 
 <filter id="caustic-glow">
-	
 	<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
 	
-	<feComponentTransfer in="SourceGraphic" result="sep">
+	<feComponentTransfer in="SourceGraphic">
 		<feFuncR type="discrete" tableValues="0"></feFuncR>
 		<feFuncG type="gamma" amplitude="2" exponent="5"></feFuncG>
 		<feFuncB type="discrete" tableValues="0"></feFuncB></feComponentTransfer>	
-
-	<feComponentTransfer in="sep" result="caustics">
+	<feComponentTransfer result="caustics">
 		<feFuncG type="linear" slope="100" intercept="0"></feFuncG></feComponentTransfer>
-		
 	<feColorMatrix in="caustics" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
+	<feComposite in="caustics" in2="alphamap" operator="in"></feComposite>
+	<feGaussianBlur id="cgblur" stdDeviation="12" result="glow"></feGaussianBlur>	
 	
-	<feComposite in="caustics" in2="alphamap" operator="in" result="spots"></feComposite>
-	
-	<feGaussianBlur id="cgblur" in="spots" stdDeviation="12" result="glow"></feGaussianBlur>	
-	
-	<feComposite in="gray" in2="glow" operator="xor" result="out"></feComposite>
-	
+	<feComposite in="gray" in2="glow" operator="xor"></feComposite>
 </filter>
 
 <filter id="fauvist">
@@ -79,30 +61,18 @@
 </filter>
 
 <filter id="CMGYK">
-	
 	<!-- EDGE DETECTION -->
-	
-		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
-		<feGaussianBlur id="cblur" in="gray" stdDeviation="0.5" result="denoise"></feGaussianBlur>
-		<feConvolveMatrix
-			in="gray" 
-			kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" 
-			preserveAlpha="true" 
-			result="edged"></feConvolveMatrix>
-		
+		<feColorMatrix in="SourceGraphic" type="saturate" values="0"></feColorMatrix>
+		<feConvolveMatrix kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" preserveAlpha="true" result="edged"></feConvolveMatrix>
 		<feColorMatrix in="edged" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
-		<feComposite in="edged" in2="alphamap" operator="in" result="edgealph"></feComposite> 
-		<feComponentTransfer in="edgealph" result="edgealphinv">
+		<feComposite in="edged" in2="alphamap" operator="in"></feComposite> 
+		<feComponentTransfer result="edgealphinv">
 			<feFuncA type="linear" slope="-30" intercept="1"></feFuncA></feComponentTransfer>
-		
 	<!-- /EDGE DETECTION -->
 	
-	<feFlood id="cflood" flood-color="#FFFF00" result="flood"></feFlood>
-	
-	<feColorMatrix id="cmatrix" in="flood"  type="hueRotate" values="0" result="rotflood"></feColorMatrix> 
-
+	<feFlood id="cflood" flood-color="#FFFF00"></feFlood>
+	<feColorMatrix id="cmatrix" type="hueRotate" values="0" result="rotflood"></feColorMatrix> 
 	<feComposite in="edgealphinv" in2="rotflood" operator="atop" result="out"></feComposite>
-
 </filter>
 
 <filter id="eriks-purple-scat-fantasy">
