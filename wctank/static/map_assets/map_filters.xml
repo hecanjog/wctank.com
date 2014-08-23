@@ -84,14 +84,14 @@
 	
 		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
 		<feGaussianBlur id="cblur" in="gray" stdDeviation="0.5" result="denoise"></feGaussianBlur>
-		<feConvolveMatrix in="denoise" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" preserveAlpha="true" result="edged"></feConvolveMatrix>
-		<feComponentTransfer in="edged" result="flip">
-			<feFuncR type="linear" slope="-25" intercept="1" tableValues="0 1"></feFuncR>
-			<feFuncG type="linear" slope="-25" intercept="1" tableValues="0 1"></feFuncG>
-			<feFuncB type="linear" slope="-25" intercept="1" tableValues="0 1"></feFuncB></feComponentTransfer>	
+		<feConvolveMatrix
+			in="gray" 
+			kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" 
+			preserveAlpha="true" 
+			result="edged"></feConvolveMatrix>
 		
-		<feColorMatrix in="flip" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
-		<feComposite in="flip" in2="alphamap" operator="in" result="edgealph"></feComposite> 
+		<feColorMatrix in="edged" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
+		<feComposite in="edged" in2="alphamap" operator="in" result="edgealph"></feComposite> 
 		<feComponentTransfer in="edgealph" result="edgealphinv">
 			<feFuncA type="linear" slope="-30" intercept="1"></feFuncA></feComponentTransfer>
 		
@@ -100,11 +100,7 @@
 	<feFlood id="cflood" flood-color="#FFFF00" result="flood"></feFlood>
 	
 	<feComposite in="edgealphinv" in2="flood" operator="atop" result="out"></feComposite>
-	
-	<feMerge>
-		<feMergeNode id="cmerge" in="out"></feMergeNode></feMerge>
-	
-	<!-- edge detect buildings, step through serialized sequence on large enough amount of change in zoom level -->
+
 </filter>
 
 <filter id="eriks-purple-scat-fantasy">
@@ -118,5 +114,6 @@
 <filter id="jason">
 	<!-- like birds but with jason -->
 </filter>
+
 </defs>
 </svg>
