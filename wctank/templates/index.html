@@ -46,7 +46,10 @@
         	$overlay: $('#overlay'),
         	$map: $('#map-canvas'),
         };
-        
+       	
+		// after initial map is loaded, be sure to check framerate; if it drops too low for some amount of time,
+		// kill that filter for the remainder of the session
+			
         var filter_admin = {}; // unfortunately, changing svg filter props is not possible in css
        
         // for some reason, firefox is not playing nice with svg filters in external
@@ -94,7 +97,7 @@
         		filter_admin.print_analog.denoise.setAttribute("stdDeviation", "1.16");
         		filter_admin.print_analog.bypass.setAttribute("in2", "flip");
         		filter_admin.caustic_glow.glow_radius.setAttribute("stdDeviation", "10.6");
-				filter_admin.cmgyk.denoise.setAttribute("stdDeviation", "0.3");
+				filter_admin.cmgyk.denoise.setAttribute("stdDeviation", "0.5");
         	}
         });
        

@@ -77,17 +77,22 @@
 
 <filter id="cmgyk">	
 	<!-- EDGE DETECTION -->
-		<feColorMatrix in="SourceGraphic" type="saturate" values="0"></feColorMatrix>
-		<feGaussianBlur id="cmgyk-denoise" stdDeviation="0.36"></feGaussianBlur>	
-		<feConvolveMatrix kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" preserveAlpha="true" result="edged"></feConvolveMatrix>
+		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
+		
+		<feGaussianBlur id="cmgyk-denoise" in="gray" stdDeviation="1.25"></feGaussianBlur>	
+		<feConvolveMatrix kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" preserveAlpha="true"></feConvolveMatrix>
+		<feComponentTransfer>
+			<feFuncA type="linear" slope="0.7" intercept="-0.6"></feFuncA></feComponentTransfer>
+  		<feComponentTransfer result="edged">
+			<feFuncA type="gamma" amplitude="15" exponent="2.4"></feFuncA></feComponentTransfer>
 		<feColorMatrix in="edged" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
 		<feComposite in="edged" in2="alphamap" operator="in"></feComposite> 
-		<feComponentTransfer result="edgealphinv">
+		<feComponentTransfer result="edged-alpha-inv">
 			<feFuncA type="linear" slope="-30" intercept="1"></feFuncA></feComponentTransfer>
 	<!-- /EDGE DETECTION -->
-	
+
 	<feColorMatrix id="cmgyk-hueRotate" in="FillPaint" type="hueRotate" values="0" result="rotgrad"></feColorMatrix>
-	<feComposite in="edgealphinv" in2="rotgrad" operator="atop" result="rainbow-edges"></feComposite>	
+	<feComposite in="edged-alpha-inv" in2="rotgrad" operator="atop" result="rainbow-edges"></feComposite>	
 </filter>
 
 <filter id="eriks-purple-scat-fantasy">
@@ -101,6 +106,8 @@
 <filter id="jason">
 	<!-- like birds but with jason -->
 </filter>
-
+<filter id="Im-a-poopy-yuppy-and-this-is-my-favorite-coffeeshop-that-sells-crappy-art">
+	<!-- stark 2-tone lines  and fills -->
+</filter>
 </defs>
 </svg>
