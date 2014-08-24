@@ -84,11 +84,54 @@
 						cmgyk.hueRotate.setAttribute("values", rot+(10 * Math.PI / 11));
 						cmgyk.rainbow.setAttribute("gradientTransform", rainbow_rot[idx]);
 						idx = (idx + 1) % rainbow_rot.length;
-        			};
-        			
-        			return cmgyk;
+					};
+					// rm saturate @ zoom 13 -> 18	
+					return cmgyk;
         		
-        		}({}))
+        		}({})),
+				//perhaps only allow at certain locations and at low-mid & max zoom lvls
+				fauvist: (function(fauvist) {
+					fauvist.saturate = document.getElementById("fauvist-saturate");
+					var defv = fauvist.saturate.getAttribute("values");
+					console.log("defv "+defv);
+					fauvist.sequence = function(map) {
+						var zoom = map.zoom;
+						console.log("zoom "+zoom);
+						if( (zoom >= 110) && (zoom <= 180) ) {
+							switch(zoom) {
+								case 11:
+									fauvist.saturate.setAttribute("values", "18.5");
+									break;
+								case 12:
+									fauvist.saturate.setAttribute("values", "17.2");
+									break;
+								case 13:
+									fauvist.saturate.setAttribute("values", "16.3");
+									break;
+								case 14:
+									fauvist.saturate.setAttribute("values", "12.5");
+									break;
+								case 15:
+									fauvist.saturate.setAttribute("values", "11.7");
+									break;
+								case 16:
+									fauvist.saturate.setAttribute("values", "12");
+									break;
+								case 17:
+									fauvist.saturate.setAttribute("values", "13.7");
+									break;
+								case 18:
+									fauvist.saturate.setAttribute("values", "14");
+									break;
+							} 
+						} else {
+							fauvist.saturate.setAttribute("values", defv);
+						}
+						console.log("cur sat "+fauvist.saturate.getAttribute("values"));
+					};	
+					return fauvist;
+				}({}))
+
         	};
         	
         	var mm = window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
@@ -199,7 +242,8 @@
             google.maps.event.addListener(overlay, 'click', function() {
                 map.setZoom(9);
             });
-			google.maps.event.addListener(map, 'zoom_changed', function() { filter_admin.cmgyk.sequence(); });
+			google.maps.event.addListener(map, 'zoom_changed', function() { filter_admin.cmgyk.sequence(map); });
+			google.maps.event.addListener(map, 'zoom_changed', function() { filter_admin.fauvist.sequence(map); });
 
             google.maps.event.addListener(map, 'idle', function() {
                 var visibleBounds = map.getBounds();

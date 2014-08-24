@@ -85,16 +85,14 @@ button {
 .fauvist {
     .callFilter(fauvist);
 }
+#fauvist #fauvist-saturation {
+	.prefixed-transition(values 100ms linear);		
+}
 
 .cmgyk {
 	fill: url('/#cmgyk-rainbow');
     .callFilter(cmgyk);
 }
-
-/*
- * filter animations/transitions
- */
-
 #cmgyk #cmgyk-hueRotate {
 	.prefixed-transition(values 2s linear);
 }
@@ -111,7 +109,7 @@ button {
     height: 100%;
     //.print-analog;
    // .caustic-glow;
-    //.fauvist;
+   // .fauvist;
     .cmgyk;
 }
 
