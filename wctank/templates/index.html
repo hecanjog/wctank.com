@@ -93,10 +93,10 @@
 				fauvist: (function(fauvist) {
 					fauvist.saturate = document.getElementById("fauvist-saturate");
 					var defv = fauvist.saturate.getAttribute("values");
-					console.log("defv "+defv);
+					//console.log("defv "+defv);
 					fauvist.sequence = function(map) {
 						var zoom = map.zoom;
-						console.log("zoom "+zoom);
+						//console.log("zoom "+zoom);
 						if( (zoom >= 110) && (zoom <= 180) ) {
 							switch(zoom) {
 								case 11:
@@ -127,7 +127,7 @@
 						} else {
 							fauvist.saturate.setAttribute("values", defv);
 						}
-						console.log("cur sat "+fauvist.saturate.getAttribute("values"));
+						//console.log("cur sat "+fauvist.saturate.getAttribute("values"));
 					};	
 					return fauvist;
 				}({}))
