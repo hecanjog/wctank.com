@@ -93,11 +93,9 @@
 				fauvist: (function(fauvist) {
 					fauvist.saturate = document.getElementById("fauvist-saturate");
 					var defv = fauvist.saturate.getAttribute("values");
-					//console.log("defv "+defv);
 					fauvist.sequence = function(map) {
 						var zoom = map.zoom;
-						//console.log("zoom "+zoom);
-						if( (zoom >= 110) && (zoom <= 180) ) {
+						if( (zoom >= 11) && (zoom <= 18) ) {
 							switch(zoom) {
 								case 11:
 									fauvist.saturate.setAttribute("values", "18.5");
@@ -127,11 +125,36 @@
 						} else {
 							fauvist.saturate.setAttribute("values", defv);
 						}
-						//console.log("cur sat "+fauvist.saturate.getAttribute("values"));
 					};	
 					return fauvist;
-				}({}))
-
+				}({})),
+			
+				vhs: (function(vhs) {
+			   		vhs.noise = document.getElementById("vhs-noise");
+					vhs.offset = document.getElementById("vhs-offset");
+			   		vhs.fuzz = function() {
+						function run() {
+							vhs.noise.setAttribute( "seed", Math.random() * 100 );
+		 					requestAnimationFrame(run);
+						}
+						requestAnimationFrame(run);
+					};
+					var on;
+					vhs.jitter = function(idle) {
+						var off = 2;
+						on = idle; 
+						function run() {
+							vhs.offset.setAttribute("dy", off);
+							off = (off === 2) ? 0 : 2;
+							if (on) {
+								requestAnimationFrame(run);
+							}
+						}
+						requestAnimationFrame(run);	
+					};
+					return vhs;
+			   	}({})) 
+				
         	};
         	
         	var mm = window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
@@ -242,11 +265,25 @@
             google.maps.event.addListener(overlay, 'click', function() {
                 map.setZoom(9);
             });
-			google.maps.event.addListener(map, 'zoom_changed', function() { filter_admin.cmgyk.sequence(map); });
-			google.maps.event.addListener(map, 'zoom_changed', function() { filter_admin.fauvist.sequence(map); });
+			
+			var to;
+
+			google.maps.event.addListener(map, 'zoom_changed', function() { 
+				filter_admin.cmgyk.sequence(map); 
+				filter_admin.fauvist.sequence(map);
+				window.clearTimeout(to);
+				filter_admin.vhs.jitter(false);
+			});
+			
+			google.maps.event.addListener(map, 'drag', function() { 
+				window.clearTimeout(to);
+				filter_admin.vhs.jitter(false);		
+			}); 
 
             google.maps.event.addListener(map, 'idle', function() {
-                var visibleBounds = map.getBounds();
+                filter_admin.vhs.fuzz();
+				to = window.setTimeout(function() {filter_admin.vhs.jitter(true);}, 7000);
+				var visibleBounds = map.getBounds();
                 var sw = visibleBounds.getSouthWest();
                 var ne = visibleBounds.getNorthEast();
 
