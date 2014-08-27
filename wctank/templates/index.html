@@ -282,7 +282,7 @@
 
             google.maps.event.addListener(map, 'idle', function() {
                 filter_admin.vhs.fuzz();
-				to = window.setTimeout(function() {filter_admin.vhs.jitter(true);}, 7000);
+				to = window.setTimeout(function() {filter_admin.vhs.jitter(true);}, 4000);
 				var visibleBounds = map.getBounds();
                 var sw = visibleBounds.getSouthWest();
                 var ne = visibleBounds.getNorthEast();

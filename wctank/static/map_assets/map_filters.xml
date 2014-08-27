@@ -49,8 +49,8 @@
 </filter>
 
 <filter id="vhs" filterRes="1">
-	<feColorMatrix in="SourceGraphic" type="saturate" values="0.2" result="desaturated"></feColorMatrix>
-	<feTurbulence id="vhs-noise" type="fractalNoise" baseFrequency="0.31" numOctaves="10" seed="1" result="noise"></feTurbulence>
+	<feColorMatrix in="SourceGraphic" type="saturate" values="0.3" result="desaturated"></feColorMatrix>
+	<feTurbulence id="vhs-noise" type="fractalNoise" baseFrequency="0.25" numOctaves="10" seed="1" result="noise"></feTurbulence>
 	<feBlend in="noise" in2="desaturated" mode="multiply"></feBlend>
 	<feOffset id="vhs-offset" dx="0" dy="0"></feOffset>
 </filter>
