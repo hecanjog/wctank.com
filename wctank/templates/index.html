@@ -99,6 +99,7 @@
 					var defv = fauvist.saturate.getAttribute("values");
 					fauvist.sequence = function(map) {
 						var zoom = map.zoom;
+						console.log(zoom);
 						if( (zoom >= 11) && (zoom <= 18) ) {
 							switch(zoom) {
 								case 11:
@@ -117,10 +118,10 @@
 									fauvist.saturate.setAttribute("values", "11.7");
 									break;
 								case 16:
-									fauvist.saturate.setAttribute("values", "12");
+									fauvist.saturate.setAttribute("values", "10");
 									break;
 								case 17:
-									fauvist.saturate.setAttribute("values", "13.7");
+									fauvist.saturate.setAttribute("values", "9");
 									break;
 								case 18:
 									fauvist.saturate.setAttribute("values", "14");
