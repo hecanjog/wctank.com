@@ -1,11 +1,10 @@
-@font_path: "../fonts/";
-
 @small: ~"screen and (max-width: 31em)";
 
-@med-res: ~"only screen and (min-resolution: 1.2dppx)";
+@med-res: ~"only screen and (min-resolution: 1.2dppx), only screen and (-webkit-min-device-pixel-ratio: 1.2)";
+//@med-res: ~"only screen and (min-resolution: 1.0dppx)";
 @med-mul: 0.8;
 
-@off_white: #FCFCFC; //for text in overlay
+@off_white: #FBFBFB; //for text in overlay
 @salmon_blood: #eb054c; //ui icon hover
 
 .prefixed-transform(@arg) {
@@ -29,6 +28,21 @@
     -webkit-transition: @arg;
     transition: @arg;
 }
+.vert-pos(@positioning, @from_top) {
+    position: @positioning;
+    top: @from_top;
+    .prefixed-transform(translateY(-50%););
+}
+
+/*
+ * ...
+ */
+a[href^="http://maps.google.com/maps"] {
+    display: none !important;
+}
+.gm-style-cc {
+    display: none;
+}
 
 /*
  * tags
@@ -46,25 +60,62 @@ body, html {
         font-size:   @font-base * @med-mul;
     }
 }
-
 button {
     background: none;
     border: none;
 }
 
 /*
+ * filter classes
+ */
+
+.callFilter(@name) {
+    -webkit-filter: url('/#@{name}');
+    filter: url('/#@{name}');
+}
+
+.print-analog {
+    .callFilter(print-analog);
+}
+
+.caustic-glow {
+    .callFilter(caustic-glow);
+}
+
+.fauvist {
+    .callFilter(fauvist);
+}
+#fauvist #fauvist-saturation {
+	.prefixed-transition(values 100ms linear);		
+}
+
+.cmgyk {
+	fill: url('/#cmgyk-rainbow');
+	.callFilter(cmgyk);
+}
+#cmgyk #cmgyk-hueRotate {
+	.prefixed-transition(values 2s linear);
+}
+#cmgyk-rainbow {
+	.prefixed-transition(gradientTransform 2s linear);
+}
+
+.vhs {
+	.callFilter(vhs);
+}
+
+/*
  * major divs
  */
+
 #map-canvas {
     width: 100%;
     height: 100%;
-}
-
-#min-overlay-width {
-    width: 17em;
-    @media @small {
-        display: none; //flag to see if width should be set to auto, which will fill screen
-    }
+    //.print-analog;
+    //.caustic-glow;
+    //.fauvist;
+    //.cmgyk;
+	//.vhs;
 }
 
 #overlay {
@@ -79,7 +130,7 @@ button {
     max-width: 33em;
     z-index: 1000;
     
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.5);
     color: @off_white;
     font-family: 'timeless';
     font-size: 1.05em;
@@ -131,7 +182,7 @@ button {
     
     .post-title {
         font-family: 'timelessbold';
-        font-size: 1.1em;
+        font-size: 1.2em;
     } 
     .post-body { // body of a text post, usually poetry
         margin: 1.8em 0 2.1em 0.5em;
@@ -192,7 +243,6 @@ button {
     margin-bottom: @pull;
 }
 
-
 /*
  * UI buttons
  */
@@ -210,24 +260,21 @@ button {
 }
 .close-post {
     position: absolute;
-    top: 0.3em;
+    top: 0.5em;
     right: 0.1em;
     -webkit-transform: translate(-0.25em);
     .ui-controls;
     font-size: 1.2em;
     padding: 0;
-    
-    
 }
 #social-links {
     position: fixed;
-    top: 1px;
-    left: 3em;
+    top: 0;
     list-style-type: none;
     margin: 0;
     padding: 0;
     li {
-        display: inline-block;
+        display: block;
         a {
             .ui-controls;
         }
@@ -237,7 +284,6 @@ button {
 /*
  * SVG loading placeholder
  */
-
 #loading {
     display: block;
     width: 18.1em;
@@ -262,6 +308,9 @@ button {
 /*
  * fonts
  */
+
+@font_path: "../fonts/";
+
 .fontSquirrel(@family, @name) {
     font-family: @family;
     src: url('@{font_path}@{name}.eot');
