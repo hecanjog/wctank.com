@@ -207,7 +207,7 @@
 						}		
 					};
 					//start with random filter
-					automateFilters.applyFilter(close_up[(Math.random() * 5) | 0]);
+					automateFilters.applyFilter(general[(Math.random() * 5) | 0]);
 
 					//just switch every so often 
 					window.setInterval(function() { automateFilters.applyFilter(general[(Math.random() * 4) | 0]); }, idle_interval);
