@@ -31,7 +31,7 @@
 
     (function() {
        
-		var FILTERS = false;
+		var FILTERS = true;
 
         WebFont.load({custom: {families: [
         			'timeless',
@@ -177,14 +177,58 @@
 						window.setTimeout(function() { filter_admin.vhs.jitter(true); }, 1000);
 					});
 				},
-				
-				applyFilter: function(filter) {
-					for (prop in filter_admin) {
-						if ( filter_admin.hasOwnProperty(prop) ) {
-							div.$map.removeClass(prop);	
+
+				automateFilters: (function(automateFilters) {
+					var general = ["print-analog", "caustic-glow", "vhs"];
+					var close_up = general.concat(["fauvist"]); 
+					var close_thresh = 17;
+					var idle_interval = 60000;
+					var was_in_close = false;
+					var new_filter;
+					var old_filter;
+					automateFilters.applyFilter = function(filter) {
+						for (prop in filter_admin) {
+							if ( filter_admin.hasOwnProperty(prop) ) {
+								div.$map.removeClass(prop);	
+							}
 						}
-					}
-					div.$map.addClass(filter);	
+						div.$map.addClass(filter);
+						new_filter = filter;	
+					};
+					automateFilters.zoomListener = function(map_obj) {
+						if ( was_in_close && (map_obj.zoom < close_thresh) ) {
+							automateFilters.applyFilter(old_filter);
+							old_filter = false;
+							was_in_close = false;
+						} else if ( !was_in_close && (map_obj.zoom > close_thresh) ) {
+							automateFilters.applyFilter(close_up[(Math.random() * 5) | 0]);
+							was_in_close = true;
+							old_filter = new_filter;	
+						}		
+					};
+					//start with random filter
+					automateFilters.applyFilter(close_up[(Math.random() * 5) | 0]);
+
+					//just switch every so often 
+					window.setInterval(function() { automateFilters.applyFilter(general[(Math.random() * 4) | 0]); }, idle_interval);
+					return automateFilters;
+				}({})),
+
+				
+				eventHandler: function(map_obj) {
+					google.maps.event.addListener(map_obj, 'zoom_changed', function() { 
+						filter_admin.cmgyk.sequence(map_obj); 
+						filter_admin.fauvist.sequence(map_obj);
+						filter_admin.vhs.jitter(false);
+						filter_admin.automateFilters.zoomListener(map_obj);
+					});
+					google.maps.event.addListener(map_obj, 'drag', function() { 
+						filter_admin.vhs.jitter(false);		
+					});
+					google.maps.event.addListener(map_obj, 'idle', function() {
+						filter_admin.vhs.fuzz();
+						window.setTimeout(function() { filter_admin.vhs.jitter(true); }, 1000);
+					});
 				}
 
 			};
@@ -267,7 +311,6 @@
         };
         
         var marker_clicked = false;
-		
 	
         var init = function() {
             var map = new google.maps.Map(document.getElementById("map-canvas"), {
@@ -315,7 +358,7 @@
 			}())
 	
 	}
-
+			
 			google.maps.event.addListener(map, 'idle', function() {
 				var visibleBounds = map.getBounds();
                 var sw = visibleBounds.getSouthWest();
