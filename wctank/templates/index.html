@@ -299,7 +299,9 @@
             google.maps.event.addListener(overlay, 'click', function() {
                 map.setZoom(9);
             });
-			
+	
+	if (FILTERS) {
+
 			(function faev() {
 				window.setTimeout(
 					function () {
@@ -311,7 +313,9 @@
 					}, 250
 				);
 			}())
-			
+	
+	}
+
 			google.maps.event.addListener(map, 'idle', function() {
 				var visibleBounds = map.getBounds();
                 var sw = visibleBounds.getSouthWest();
