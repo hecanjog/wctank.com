@@ -51,7 +51,7 @@
 		// kill that filter for the remainder of the session
 			
         var filter_admin = {}; // unfortunately, changing svg filter props is not possible in css
-       
+ 
         // for some reason, firefox is not playing nice with svg filters in external
         // files, so I guess I'm just going to dynamically inline it then
         $.get("static/map_assets/map_filters.xml", function(data) {
@@ -99,7 +99,7 @@
 					var defv = fauvist.saturate.getAttribute("values");
 					fauvist.sequence = function(map) {
 						var zoom = map.zoom;
-						console.log(zoom);
+						//console.log(zoom);
 						if( (zoom >= 11) && (zoom <= 18) ) {
 							switch(zoom) {
 								case 11:
@@ -171,10 +171,19 @@
 					});
 					google.maps.event.addListener(map_obj, 'idle', function() {
 						filter_admin.vhs.fuzz();
-						window.setTimeout(function() { filter_admin.vhs.jitter(true); }, 120);
+						window.setTimeout(function() { filter_admin.vhs.jitter(true); }, 1000);
 					});
 				},
 				
+				applyFilter: function(filter) {
+					for (prop in filter_admin) {
+						if (filter_admin.hasOwnProperty(prop) {
+							div.$map.removeClass(prop);	
+						}
+					}
+					div.$map.addClass(filter);	
+				}
+
 			};
 		
 			// media queries for filters
@@ -324,7 +333,7 @@
                         }());
 						
                         if($.inArray('videos', post.tags) !== -1) {
-                            markerOptions.icon = 'static/map_assets/perf.png';
+                            markerOptions.icon = 'static/map_assets/colorbars.png';
                         } else if ($.inArray('stumblesome', post.tags) !== -1) {
                             markerOptions.icon = 'static/map_assets/rap.png';
                         } else {
