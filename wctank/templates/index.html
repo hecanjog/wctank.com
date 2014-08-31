@@ -137,19 +137,22 @@
 					vhs.offset = document.getElementById("vhs-offset");
 			   		var jit;
 					var os = 2;
+					var frdiv = 3;
+					var frct = 0;
 					vhs.fuzz = function() {
+						run();
 						function run() {
 							vhs.noise.setAttribute( "seed", Math.random() * 100 );
-							if (jit) {
+							if ( jit && ( (frct % frdiv) === 0 ) ) {
 								vhs.offset.setAttribute("dy", os);
-								os = (os === 2) ? 0 : 2;	
+								os = (os === 2) ? 0 : 2;
 							}
+							frct++;
 		 					requestAnimationFrame(run);
 						}
-						requestAnimationFrame(run);
 					};
 					vhs.jitter = function(idle) {
-						jit = idle; 
+						jit = idle;
 					};
 					return vhs;
 			   	}({})),
@@ -173,7 +176,7 @@
 					var general = ["print-analog", "caustic-glow", "vhs"];
 					var close_up = general.concat(["fauvist"]); 
 					var close_thresh = 17;
-					var idle_interval = 60000;
+					var idle_interval = 120000;
 					var was_in_close = false;
 					var new_filter;
 					var old_filter;
@@ -217,8 +220,8 @@
 						filter_admin.vhs.jitter(false);		
 					});
 					google.maps.event.addListener(map_obj, 'idle', function() {
+						filter_admin.vhs.jitter(true);
 						filter_admin.vhs.fuzz();
-						window.setTimeout(function() { filter_admin.vhs.jitter(true); }, 1000);
 					});
 				}
 
