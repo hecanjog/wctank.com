@@ -70,21 +70,21 @@ $.get("static/map_assets/map_filters.xml", function(data) {
    		},
 
    		cmgyk: (function(cmgyk) {
-      		cmgyk.denoise = document.getElementById("cmgyk-denoise");
-       		cmgyk.hueRotate = document.getElementById("cmgyk-hueRotate");
+			cmgyk.denoise = document.getElementById("cmgyk-denoise");
+			cmgyk.hueRotate = document.getElementById("cmgyk-hueRotate");
 			cmgyk.rainbow = document.getElementById("cmgyk-rainbow");
 			var cmgyk_canv = document.createElement('canvas');
 			var idx = 0;
 			var rot;
-       		var rainbow_rot = ["rotate(45)", "rotate(90)", "rotate(135)", "rotate(0)"];
-       		cmgyk.sequence = function() {
+			var rainbow_rot = ["rotate(45)", "rotate(90)", "rotate(135)", "rotate(0)"];
+			cmgyk.sequence = function() {
 				rot = Number(cmgyk.hueRotate.getAttribute("values"));
 				cmgyk.hueRotate.setAttribute("values", rot+(10 * Math.PI / 11));
 				cmgyk.rainbow.setAttribute("gradientTransform", rainbow_rot[idx]);
 				idx = (idx + 1) % rainbow_rot.length;
 			};
 			return cmgyk;
-       	}({})),
+		}({})),
 				
 		//perhaps only allow at certain locations and at low-mid & max zoom lvls
 		fauvist: (function(fauvist) {
