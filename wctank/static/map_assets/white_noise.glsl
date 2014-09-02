@@ -1,6 +1,17 @@
-precision highp float;
+@@ vertex shader
+uniform mat4 ProjectionMatrix;
+uniform mat4 ModelViewMatrix;
+attribute vec4 Vertex;
 
-uniform float iGlobalTime;
+void main()
+{
+	gl_Position = ProjectionMatrix * ModelViewMatrix * Vertex; 
+}
+END
+
+@@ fragment shader
+precision highp float;
+uniform float perf_time;
 
 float rand(vec2 co)
 {
@@ -14,7 +25,7 @@ float rand(vec2 co)
 
 void main(void)
 {
-	vec2 seed = vec2(gl_FragCoord.x + iGlobalTime, gl_FragCoord.y + iGlobalTime);
+	vec2 seed = vec2(gl_FragCoord.x + perf_time, gl_FragCoord.y + perf_time);
 	float num = rand(seed);
 	if (num > 0.5) {
 		gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -22,3 +33,4 @@ void main(void)
 		gl_FragColor = vec4(0.75, 0.75, 0.75, 0.40);
 	}    
 }
+END

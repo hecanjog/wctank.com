@@ -24,6 +24,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				var glcan = document.createElement('canvas');
 				glcan.width = window.innerWidth;
 				glcan.height = window.innerHeight;
+				glcan.setAttribute("id", "glcan");
+				//document.body.appendChild(glcan);
 				gl = (function() {
 					try {
 						return glcan.getContext("webgl") || glcan.getContext("experimental-webgl");
@@ -37,11 +39,20 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					gl.clearColor(0.0, 0.0, 0.0, 0.0);
 					gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
 					$.get("/static/map_assets/white_noise.glsl", function(data) {
-						var shader = gl.createShader(gl.FRAGMENT_SHADER);
-						gl.shaderSource(shader, data);
-						gl.compileShader(shader);
-						console.log(gl.getShaderParameter(shader, gl.COMPILE_STATUS));
-						console.log(gl.getShaderInfoLog(shader));		
+						var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
+						var vert_src = matches[0];
+						var frag_src = matches[1];
+						var vert_shader = gl.createShader(gl.VERTEX_SHADER);
+						var frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
+						gl.shaderSource(vert_shader, vert_src);
+						gl.shaderSource(frag_shader, frag_src); 
+						gl.compileShader(vert_shader);
+						gl.compileShader(frag_shader);
+						var noise_prgm = gl.createProgram();
+						gl.attachShader(noise_prgm, vert_shader);
+						gl.attachShader(noise_prgm, frag_shader);
+						gl.linkProgram(noise_prgm);
+						gl.useProgram(noise_prgm);
 					});
 				}
 			}
