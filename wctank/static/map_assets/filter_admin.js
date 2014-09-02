@@ -10,8 +10,8 @@ var filter_admin = {};
 $.get("static/map_assets/map_filters.xml", function(data) {
 	var cont = document.createElement("svg_filters");
 	cont.style.position = "fixed";
-    cont.style.bottom = 0;
-    cont.style.zIndex = -99999999;
+	cont.style.bottom = 0;
+	cont.style.zIndex = -99999999;
    	document.body.appendChild(cont);
    	cont.innerHTML = new XMLSerializer().serializeToString(data);
          	
@@ -183,7 +183,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			automateFilters.applyFilter(general[(Math.random() * 5) | 0]);
 			//just switch every so often 
 			window.setInterval(function() { 
-					automateFilters.applyFilter(general[(Math.random() * 4) | 0]); 
+				automateFilters.applyFilter(general[(Math.random() * 4) | 0]); 
 			}, idle_interval);
 			return automateFilters;
 		}({})),
