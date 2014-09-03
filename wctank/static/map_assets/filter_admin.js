@@ -19,6 +19,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
         		
 		webgl: (function(webgl) {
 			var gl;
+			var noise_prgm;
+			var fragmentClock;
 			webgl.success = false;
 			webgl.init = function() {
 				var glcan = document.createElement('canvas');
@@ -48,14 +50,19 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 						gl.shaderSource(frag_shader, frag_src); 
 						gl.compileShader(vert_shader);
 						gl.compileShader(frag_shader);
-						var noise_prgm = gl.createProgram();
+						noise_prgm = gl.createProgram();
 						gl.attachShader(noise_prgm, vert_shader);
 						gl.attachShader(noise_prgm, frag_shader);
 						gl.linkProgram(noise_prgm);
 						gl.useProgram(noise_prgm);
+						//init some attrs and uniforms
+						fragmentClock = gl.getUniformLocation(noise_prgm, "clock");
 					});
 				}
 			}
+			webgl.updateTime = function() {
+				gl.uniform1f(fragmentClock, new Date().getMilliseconds());	
+			};	
 			//webgl resize listener
 			return webgl;
 		}({})),

@@ -1,13 +1,13 @@
 <head>
-    <title>WC Tank</title>
+	<title>WC Tank</title>
    	
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/static/map_assets/styles.less" type="text/css" rel="stylesheet/less">
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+	<link href="/static/map_assets/styles.less" type="text/css" rel="stylesheet/less">
 
-    <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
 	<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false&libraries=weather"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false&libraries=weather"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
 </head>
 
 <body>
@@ -23,16 +23,16 @@
 	</ul>
 
 	<script type="text/html" id="post-template">
-    	<button class="close-post" type="button"><i class="fa fa-times-circle"></i></button>
-    	<div class="~!type">~!content</div>
-    	<div class="permalink"><a href="~!link" target="_blank"><p>view on tumblr</p></a></div>
+		<button class="close-post" type="button"><i class="fa fa-times-circle"></i></button>
+		<div class="~!type">~!content</div>
+		<div class="permalink"><a href="~!link" target="_blank"><p>view on tumblr</p></a></div>
 	</script>
 
 	<script type="text/javascript">
 
-    (function() {
+	(function() {
 
-        WebFont.load({custom: {families: [
+		WebFont.load({custom: {families: [
         			'timeless',
         			'timelessbold',
         			'frutigerlight',
@@ -57,7 +57,7 @@
             var content = '';
            
             if(typeof post.title !== 'undefined') {
-                if(post.type === "link") {
+            	if(post.type === "link") {
                 	content += "<div class='post-title'>"+
                 		"<a target='_blank' href='"+post.url+"'>"+post.title+"</a></div>";
                 } else {
@@ -88,8 +88,8 @@
 			if(typeof post.caption !== 'undefined') {
                 content += "<div class='post-caption'>"+post.caption+"</div>";
             }
-            
-            if(typeof post.source !== 'undefined') {
+			
+			if(typeof post.source !== 'undefined') {
                 content += post.source;
             }
   		
@@ -145,7 +145,7 @@
             google.maps.event.addListener(overlay, 'click', function() {
                 map.setZoom(9);
             });
-	
+			
 			(function faev() {
 				window.setTimeout(
 					function () {
@@ -157,11 +157,11 @@
 					}, 250
 				);
 			}())
-	
+			
 			google.maps.event.addListener(map, 'idle', function() {
 				var visibleBounds = map.getBounds();
-                var sw = visibleBounds.getSouthWest();
-                var ne = visibleBounds.getNorthEast();
+				var sw = visibleBounds.getSouthWest();
+				var ne = visibleBounds.getNorthEast();
 
                 var url = '/' + sw.lat() + '/' + sw.lng() + '/' + ne.lat() + '/' + ne.lng();
                 $.getJSON(url, function(data) {
@@ -177,7 +177,7 @@
                         post.isTextPost = (function() {
                         	var text_posts = ['text', 'audio', 'link', 'quote'];
                         	if (text_posts.indexOf(post.type) !== -1) {
-                        		return true;
+								return true;
                         	}
                         	return false; 
                         }());
@@ -232,7 +232,7 @@
      		 	
      		 	window.setTimeout(function() {
      		 		if (waiting) {
-     		 			$loading = div.$overlay.append(loader).find("#loading");
+						$loading = div.$overlay.append(loader).find("#loading");
      		 		}
      		 	}, 300);
      		 	

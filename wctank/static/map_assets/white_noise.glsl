@@ -11,7 +11,7 @@ END
 
 @@ fragment shader
 precision highp float;
-uniform float perf_time;
+uniform float clock;
 
 float rand(vec2 co)
 {
@@ -25,7 +25,7 @@ float rand(vec2 co)
 
 void main(void)
 {
-	vec2 seed = vec2(gl_FragCoord.x + perf_time, gl_FragCoord.y + perf_time);
+	vec2 seed = vec2(gl_FragCoord.x + clock, gl_FragCoord.y + clock);
 	float num = rand(seed);
 	if (num > 0.5) {
 		gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
