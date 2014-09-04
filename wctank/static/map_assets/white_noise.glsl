@@ -1,11 +1,9 @@
 @@ vertex shader
-uniform mat4 ProjectionMatrix;
-uniform mat4 ModelViewMatrix;
-attribute vec4 Vertex;
+attribute vec2 position;
 
 void main()
 {
-	gl_Position = ProjectionMatrix * ModelViewMatrix * Vertex; 
+	gl_Position = vec4(position, 0, 1); 
 }
 END
 
@@ -30,7 +28,7 @@ void main(void)
 	if (num > 0.5) {
 		gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
 	} else {
-		gl_FragColor = vec4(0.75, 0.75, 0.75, 0.40);
+		gl_FragColor = vec4(0.1, 0.1, 0.1, 0.35);
 	}    
 }
 END
