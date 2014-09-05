@@ -8,7 +8,7 @@ void main()
 END
 
 @@ fragment shader
-precision highp float;
+precision lowp float;
 uniform float clock;
 
 float rand(vec2 co)
