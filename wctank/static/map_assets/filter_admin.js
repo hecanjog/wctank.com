@@ -49,6 +49,67 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			return render;
 		}({}))
 
+		filter_admin.webglSetup = function(canvas, shader_path) {
+			//handle context loss	
+			canvas.addEventListener("webglcontextlost", function(e) {
+				e.preventDefault();
+			}, false);		
+			canvas.addEventListener("webglcontextrestored", function() { 
+				filter_admin.webglSetup(canvas, shader_path); 
+			}, false);
+			
+			var r = {};
+			
+			gl = (function() {
+				try {
+					return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+				} catch (err) {
+					throw "WebGL is good to have? I like to fart";
+					return false;
+				}
+			}())
+
+			if (gl) {
+				gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				gl.clearColor(0.0, 0.0, 0.0, 0.0);
+				
+				//draw two big triangles
+				var buffer = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+					-1.0, -1.0,
+					 1.0, -1.0,
+					-1.0,  1.0,
+					-1.0,  1.0,
+					 1.0, -1.0,
+					 1.0,  1.0]), gl.STATIC_DRAW);
+				gl.enableVertexAttribArray(buffer);	
+				gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				
+				// get shader src, do typical initialization
+				$.get(shader_path, function(data) {
+					var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
+					var vert_src = matches[0];
+					var frag_src = matches[1];
+					var vert_shader = gl.createShader(gl.VERTEX_SHADER);
+					var frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
+					gl.shaderSource(vert_shader, vert_src);
+					gl.shaderSource(frag_shader, frag_src); 
+					gl.compileShader(vert_shader);
+					gl.compileShader(frag_shader);
+					var prgm = gl.createProgram();
+					gl.attachShader(prgm, vert_shader);
+					gl.attachShader(prgm, frag_shader);
+					gl.linkProgram(prgm);
+					gl.useProgram(prgm);
+					r.program = prgm;
+				});
+				r.gl = gl;
+				return r;
+			}
+		};
+
 		// ...the boundingbox units in the svg spec seems a bit buggy,
 		// and it is not possible to change svg filter attributes in CSS.
 		// So, if not involved in some sort of animation, attributes are exposed
@@ -137,127 +198,61 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		filter_admin.attrs.vhs = (function(vhs) {
 			vhs.categories = cat.GENERAL | cat.ZOOMED;
 			vhs.offset = document.getElementById("vhs-offset");
-			var jit;
-			var jit_offset = 3;
-			var os = 2;
-			var frdiv = 2;
-			var frct = 0;
+			
 			vhs.init = function() {
 				vhs.webgl.init();
 			}
 			vhs.teardown = function() {
 				vhs.webgl.teardown();
 			}
+			
+			var jit;
+			var jit_offset = 3;
+			var jit_delay = 150;
+			var jit_frame_div = 2;
+
+			var frct = 0;
+			var os = 0;	
 			vhs.animate = function() {
-				if ( jit && ( (frct % frdiv) === 0 ) ) {
+				if ( jit && ( (frct % jit_frame_div) === 0 ) ) {
 					vhs.offset.setAttribute("dy", os);
 					os = (os === jit_offset) ? 0 : jit_offset;
 				}
 				frct++;
 				vhs.webgl.update();
 			};
+			var jit_tmp;
 			vhs.jitter = function(idle) {
-				jit = idle;
+				jit_tmp = idle;
+				window.setTimeout(function() {
+					jit = jit_tmp;
+				}, jit_delay);
 			};
+
 			vhs.webgl = (function(webgl) {
-			// abstract this out into a function that gets a canvas ref, and 
-			// path to annotated glsl file then returns the webgl object	
-				var glcan;
-				var gl;
-				var fragmentClock;
-				var noise_prgm;
-				var buffer;		
-
-				webgl.setup = function() {	
-					//create canvas (w/id for css)
-					glcan = document.createElement('canvas');
-					glcan.width = window.innerWidth;
-					glcan.height = window.innerHeight;
-					glcan.setAttribute("id", "glcan");
-					
-					gl = (function() {
-						try {
-							return glcan.getContext("webgl") || glcan.getContext("experimental-webgl");
-						} catch (err) {
-							throw "WebGL is good to have? I like to fart";
-							return false;
-						}
-					}())
-	
-					if (gl) {
-						gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-						gl.clearColor(0.0, 0.0, 0.0, 0.0);
-						
-						//draw two big triangles
-						buffer = gl.createBuffer();
-						gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-						gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-							-1.0, -1.0,
-							 1.0, -1.0,
-							-1.0,  1.0,
-							-1.0,  1.0,
-							 1.0, -1.0,
-							 1.0,  1.0]), gl.STATIC_DRAW);
-						gl.enableVertexAttribArray(buffer);	
-						gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
-						gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-						
-						var position = gl.getAttribLocation(noise_prgm, "position");
-						gl.enableVertexAttribArray(position);
-						gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-	
-						// get shader src, do typical initialization
-						$.get("/static/map_assets/white_noise.glsl", function(data) {
-							var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
-							var vert_src = matches[0];
-							var frag_src = matches[1];
-							var vert_shader = gl.createShader(gl.VERTEX_SHADER);
-							var frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
-	
-							gl.shaderSource(vert_shader, vert_src);
-							gl.shaderSource(frag_shader, frag_src); 
-							gl.compileShader(vert_shader);
-							gl.compileShader(frag_shader);
-	
-							noise_prgm = gl.createProgram();
-							gl.attachShader(noise_prgm, vert_shader);
-							gl.attachShader(noise_prgm, frag_shader);
-							gl.linkProgram(noise_prgm);
-							gl.useProgram(noise_prgm);
-						});
-					
-					}
-				};
-				webgl.setup();
+				var js_random;
+				var glcan = document.createElement('canvas');
+				glcan.width = window.innerWidth;
+				glcan.height = window.innerHeight;
+				glcan.setAttribute("id", "glcan");
 				
-				glcan.addEventListener("webglcontextlost", function(e) {
-					e.preventDefault();
-				}, false);		
-				glcan.addEventListener("webglcontextrestored", webgl.setup, false);
-
-					
+				var z = new filter_admin.webglSetup(glcan, "/static/map_assets/white_noise.glsl");
 				webgl.update = function() {
-					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-					fragmentClock = gl.getUniformLocation(noise_prgm, "js_random");
-					gl.uniform1f(fragmentClock, Math.random());
-					gl.drawArrays(gl.TRIANGLES, 0, 6);
+					z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+					js_random = z.gl.getUniformLocation(z.program, "js_random");
+					z.gl.uniform1f(js_random, Math.random());
+					z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
 				};
 
 				webgl.init = function() {
 					document.body.appendChild(glcan);
 				}
-				
 				webgl.teardown = function() {
 					document.body.removeChild(glcan);
 				}
-
-				//webgl resize listener
 				return webgl;
-
 			}({}))
-
 			return vhs;
-
 	   	}({}))
 	
 		// coordinate switching between filters		
@@ -276,7 +271,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			}
 
 			var close_thresh = 17;
-			var idle_interval = 120000;
+			var idle_interval = 30000;
 			var was_in_close = false;
 			var new_filter;
 			var old_filter;
@@ -319,13 +314,12 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				} else if ( !was_in_close && (map_obj.zoom > close_thresh) ) {
 					var zfil = zoomed[ rndIdxInArr(zoomed) ];
 					
-					check_dup();
-					function check_dup() {
+					(function check_dup() {
 						if (zfil === new_filter) {
 							zfil = zoomed[ rndIdxInArr(zoomed) ];
 							check_dup();
 						}
-					}
+					}())
 
 					coord.applyFilter(zoomed[ rndIdxInArr(zoomed) ]);
 					was_in_close = true;
@@ -339,12 +333,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			window.setInterval(function() { 
 				coord.applyFilter(general[ rndIdxInArr(general) ]); 
 			}, idle_interval);
-			
-			//occasionally 
-			window.setInterval(function() {
-				coord.applyFilter("none");
-			}, idle_interval * 1.27);
-			
+		
 			return coord;
 		
 		}({}))
@@ -364,7 +353,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				filter_admin.attrs.vhs.jitter(true);
 			});
 		};
-
+		
 		return filter_admin;
 	
 	}({}))	
