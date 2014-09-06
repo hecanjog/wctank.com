@@ -55,6 +55,10 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		// here to make adjustments for the local device
 		
 		filter_admin.attrs = {};
+		
+		filter_admin.attrs.none = {
+			categories: cat.GENERAL | cat.ZOOMED
+		};
 
 		filter_admin.attrs.print_analog = {
     		categories: cat.GENERAL | cat.ZOOMED | cat.TAKEOVER,
@@ -134,9 +138,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			vhs.categories = cat.GENERAL | cat.ZOOMED;
 			vhs.offset = document.getElementById("vhs-offset");
 			var jit;
-			var jit_offset = 4;
+			var jit_offset = 3;
 			var os = 2;
-			var frdiv = 1;
+			var frdiv = 2;
 			var frct = 0;
 			vhs.init = function() {
 				vhs.webgl.init();
@@ -156,69 +160,88 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				jit = idle;
 			};
 			vhs.webgl = (function(webgl) {
+			// abstract this out into a function that gets a canvas ref, and 
+			// path to annotated glsl file then returns the webgl object	
 				var glcan;
 				var gl;
 				var fragmentClock;
 				var noise_prgm;
 				var buffer;		
-				
-				//create canvas (w/id for css)
-				glcan = document.createElement('canvas');
-				glcan.width = window.innerWidth;
-				glcan.height = window.innerHeight;
-				glcan.setAttribute("id", "glcan");
-				
-				gl = (function() {
-					try {
-						return glcan.getContext("webgl") || glcan.getContext("experimental-webgl");
-					} catch (err) {
-						throw "WebGL is good to have? I like to fart";
-						return false;
+
+				webgl.setup = function() {	
+					//create canvas (w/id for css)
+					glcan = document.createElement('canvas');
+					glcan.width = window.innerWidth;
+					glcan.height = window.innerHeight;
+					glcan.setAttribute("id", "glcan");
+					
+					gl = (function() {
+						try {
+							return glcan.getContext("webgl") || glcan.getContext("experimental-webgl");
+						} catch (err) {
+							throw "WebGL is good to have? I like to fart";
+							return false;
+						}
+					}())
+	
+					if (gl) {
+						gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+						gl.clearColor(0.0, 0.0, 0.0, 0.0);
+						
+						//draw two big triangles
+						buffer = gl.createBuffer();
+						gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+						gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+							-1.0, -1.0,
+							 1.0, -1.0,
+							-1.0,  1.0,
+							-1.0,  1.0,
+							 1.0, -1.0,
+							 1.0,  1.0]), gl.STATIC_DRAW);
+						gl.enableVertexAttribArray(buffer);	
+						gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
+						gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+						
+						var position = gl.getAttribLocation(noise_prgm, "position");
+						gl.enableVertexAttribArray(position);
+						gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+	
+						// get shader src, do typical initialization
+						$.get("/static/map_assets/white_noise.glsl", function(data) {
+							var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
+							var vert_src = matches[0];
+							var frag_src = matches[1];
+							var vert_shader = gl.createShader(gl.VERTEX_SHADER);
+							var frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
+	
+							gl.shaderSource(vert_shader, vert_src);
+							gl.shaderSource(frag_shader, frag_src); 
+							gl.compileShader(vert_shader);
+							gl.compileShader(frag_shader);
+	
+							noise_prgm = gl.createProgram();
+							gl.attachShader(noise_prgm, vert_shader);
+							gl.attachShader(noise_prgm, frag_shader);
+							gl.linkProgram(noise_prgm);
+							gl.useProgram(noise_prgm);
+						});
+					
 					}
-				}())
+				};
+				webgl.setup();
+				
+				glcan.addEventListener("webglcontextlost", function(e) {
+					e.preventDefault();
+				}, false);		
+				glcan.addEventListener("webglcontextrestored", webgl.setup, false);
 
-				if (gl) {
-					gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-					gl.clearColor(0.0, 0.0, 0.0, 0.0);
 					
-					//draw two big triangles
-					buffer = gl.createBuffer();
-					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-						-1.0, -1.0,
-						 1.0, -1.0,
-						-1.0,  1.0,
-						-1.0,  1.0,
-						 1.0, -1.0,
-						 1.0,  1.0]), gl.STATIC_DRAW);
-					gl.enableVertexAttribArray(buffer);	
-					gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
+				webgl.update = function() {
 					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-					
-					var position = gl.getAttribLocation(noise_prgm, "position");
-					gl.enableVertexAttribArray(position);
-					gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-
-					// get shader src, do typical initialization
-					$.get("/static/map_assets/white_noise.glsl", function(data) {
-						var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
-						var vert_src = matches[0];
-						var frag_src = matches[1];
-						var vert_shader = gl.createShader(gl.VERTEX_SHADER);
-						var frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
-
-						gl.shaderSource(vert_shader, vert_src);
-						gl.shaderSource(frag_shader, frag_src); 
-						gl.compileShader(vert_shader);
-						gl.compileShader(frag_shader);
-
-						noise_prgm = gl.createProgram();
-						gl.attachShader(noise_prgm, vert_shader);
-						gl.attachShader(noise_prgm, frag_shader);
-						gl.linkProgram(noise_prgm);
-						gl.useProgram(noise_prgm);
-					});
-				}
+					fragmentClock = gl.getUniformLocation(noise_prgm, "js_random");
+					gl.uniform1f(fragmentClock, Math.random());
+					gl.drawArrays(gl.TRIANGLES, 0, 6);
+				};
 
 				webgl.init = function() {
 					document.body.appendChild(glcan);
@@ -227,14 +250,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				webgl.teardown = function() {
 					document.body.removeChild(glcan);
 				}
-
-				//called in every animation frame
-				webgl.update = function() {
-					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-					fragmentClock = gl.getUniformLocation(noise_prgm, "clock");
-					gl.uniform1f(fragmentClock, new Date().getMilliseconds());
-					gl.drawArrays(gl.TRIANGLES, 0, 6);
-				};
 
 				//webgl resize listener
 				return webgl;
@@ -250,7 +265,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var general = [];
 			var zoomed = [];
 			var takeover = [];
-			
+
 			for (filter in filter_admin.attrs) {
 				if ( filter_admin.attrs.hasOwnProperty(filter) ) {
 					var cats = filter_admin.attrs[filter].categories;
@@ -290,25 +305,45 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				new_filter = filter;
 				if ( takeover.indexOf(filter) !== -1 ) old_filter = filter;	
 			};
+			
+			var rndIdxInArr = function(arr) {
+				return (Math.random() * arr.length + 0.5) | 0;
+			}
 
+			// If we are at zoom level 17 (where the view in some places changes to 45deg),
+			// then switch to a filter different from the one currently being used
 			coord.zoomListener = function(map_obj) {
-				if ( was_in_close && (map_obj.zoom < close_thresh) ) {
+				if ( was_in_close && (map_obj.zoom <= close_thresh) ) {
 					coord.applyFilter(old_filter);
 					was_in_close = false;
 				} else if ( !was_in_close && (map_obj.zoom > close_thresh) ) {
-					coord.applyFilter(zoomed[(Math.random() * zoomed.length) | 0]);
+					var zfil = zoomed[ rndIdxInArr(zoomed) ];
+					
+					check_dup();
+					function check_dup() {
+						if (zfil === new_filter) {
+							zfil = zoomed[ rndIdxInArr(zoomed) ];
+							check_dup();
+						}
+					}
+
+					coord.applyFilter(zoomed[ rndIdxInArr(zoomed) ]);
 					was_in_close = true;
 				}		
 			};
 
 			//start with random filter
-			coord.applyFilter(general[(Math.random() * general.length + 0.5) | 0]);
-			//coord.applyFilter('vhs');
+			coord.applyFilter(general[ rndIdxInArr(general) ]);
 			
 			//just switch every so often 
 			window.setInterval(function() { 
-				coord.applyFilter(general[(Math.random() * general.length + 0.5) | 0]); 
+				coord.applyFilter(general[ rndIdxInArr(general) ]); 
 			}, idle_interval);
+			
+			//occasionally 
+			window.setInterval(function() {
+				coord.applyFilter("none");
+			}, idle_interval * 1.27);
 			
 			return coord;
 		
