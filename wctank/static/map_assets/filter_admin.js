@@ -16,7 +16,13 @@ $.get("static/map_assets/map_filters.xml", function(data) {
     
 	//container for all filters and related functionality 	
 	filter_admin = (function(filter_admin) {
-	
+		
+		var cat = {
+			GENERAL: 	0x0F000000,
+			ZOOMED: 	0x00F00000,
+			TAKEOVER: 	0x000F0000
+		};
+
 		//stack + render loop	
 		filter_admin.render = (function(render) {
 			var doees = [];
@@ -51,17 +57,20 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		filter_admin.attrs = {};
 
 		filter_admin.attrs.print_analog = {
-    		denoise: document.getElementById("pa-denoise"),
+    		categories: cat.GENERAL | cat.ZOOMED | cat.TAKEOVER,
+			denoise: document.getElementById("pa-denoise"),
    			bypass: document.getElementById("pa-bypass")
    		};
 		
    		filter_admin.attrs.caustic_glow = {
+			categories: cat.GENERAL | cat.ZOOMED,
    			glow_radius: document.getElementById("cg-glow-radius")
    		};
 
 		//caustic with noise olay
 
    		filter_admin.attrs.cmgyk = (function(cmgyk) {
+			cmgyk.categories = cat.GENERAL | cat.ZOOMED;
 			cmgyk.denoise = document.getElementById("cmgyk-denoise");
 			cmgyk.hueRotate = document.getElementById("cmgyk-hueRotate");
 			cmgyk.rainbow = document.getElementById("cmgyk-rainbow");
@@ -80,6 +89,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				
 		//perhaps only allow at certain locations and at low-mid & max zoom lvls
 		filter_admin.attrs.fauvist = (function(fauvist) {
+			fauvist.categories = cat.ZOOMED;
 			fauvist.saturate = document.getElementById("fauvist-saturate");
 			var defv = fauvist.saturate.getAttribute("values");
 			fauvist.sequence = function(map) {
@@ -121,18 +131,23 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		// this one is sorta convoluted - the white noise is realized within a separate
 		// WebGl layer
 		filter_admin.attrs.vhs = (function(vhs) {
+			vhs.categories = cat.GENERAL | cat.ZOOMED;
 			vhs.offset = document.getElementById("vhs-offset");
 			var jit;
+			var jit_offset = 4;
 			var os = 2;
-			var frdiv = 5;
+			var frdiv = 1;
 			var frct = 0;
 			vhs.init = function() {
 				vhs.webgl.init();
 			}
+			vhs.teardown = function() {
+				vhs.webgl.teardown();
+			}
 			vhs.animate = function() {
 				if ( jit && ( (frct % frdiv) === 0 ) ) {
 					vhs.offset.setAttribute("dy", os);
-					os = (os === 2) ? 0 : 2;
+					os = (os === jit_offset) ? 0 : jit_offset;
 				}
 				frct++;
 				vhs.webgl.update();
@@ -146,137 +161,157 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				var fragmentClock;
 				var noise_prgm;
 				var buffer;		
-				(function() {
-					//create canvas (w/id for css)
-					glcan = document.createElement('canvas');
-					glcan.width = window.innerWidth;
-					glcan.height = window.innerHeight;
-					glcan.setAttribute("id", "glcan");
-					//document.body.appendChild(glcan); // for switch function
 				
-					gl = (function() {
-						try {
-							return glcan.getContext("webgl") || glcan.getContext("experimental-webgl");
-						} catch (err) {
-							throw "WebGL is good to have? I like to fart";
-							return false;
-						}
-					}())
-
-					if (gl) {
-						gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-						gl.clearColor(0.0, 0.0, 0.0, 0.0);
-						
-						//draw two big triangles
-						buffer = gl.createBuffer();
-						gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-						gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-							-1.0, -1.0,
-							 1.0, -1.0,
-							-1.0,  1.0,
-							-1.0,  1.0,
-							 1.0, -1.0,
-							 1.0,  1.0]), gl.STATIC_DRAW);
-						gl.enableVertexAttribArray(buffer);	
-						gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
-						gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-					
-						var position = gl.getAttribLocation(noise_prgm, "position");
-						gl.enableVertexAttribArray(position);
-						gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-	
-						// get shader src, do typical initialization
-						$.get("/static/map_assets/white_noise.glsl", function(data) {
-							var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
-							var vert_src = matches[0];
-							var frag_src = matches[1];
-							var vert_shader = gl.createShader(gl.VERTEX_SHADER);
-							var frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
-
-							gl.shaderSource(vert_shader, vert_src);
-							gl.shaderSource(frag_shader, frag_src); 
-							gl.compileShader(vert_shader);
-							gl.compileShader(frag_shader);
-
-							noise_prgm = gl.createProgram();
-							gl.attachShader(noise_prgm, vert_shader);
-							gl.attachShader(noise_prgm, frag_shader);
-							gl.linkProgram(noise_prgm);
-							gl.useProgram(noise_prgm);
-						});
+				//create canvas (w/id for css)
+				glcan = document.createElement('canvas');
+				glcan.width = window.innerWidth;
+				glcan.height = window.innerHeight;
+				glcan.setAttribute("id", "glcan");
+				
+				gl = (function() {
+					try {
+						return glcan.getContext("webgl") || glcan.getContext("experimental-webgl");
+					} catch (err) {
+						throw "WebGL is good to have? I like to fart";
+						return false;
 					}
 				}())
+
+				if (gl) {
+					gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+					gl.clearColor(0.0, 0.0, 0.0, 0.0);
+					
+					//draw two big triangles
+					buffer = gl.createBuffer();
+					gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+						-1.0, -1.0,
+						 1.0, -1.0,
+						-1.0,  1.0,
+						-1.0,  1.0,
+						 1.0, -1.0,
+						 1.0,  1.0]), gl.STATIC_DRAW);
+					gl.enableVertexAttribArray(buffer);	
+					gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
+					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+					
+					var position = gl.getAttribLocation(noise_prgm, "position");
+					gl.enableVertexAttribArray(position);
+					gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+					// get shader src, do typical initialization
+					$.get("/static/map_assets/white_noise.glsl", function(data) {
+						var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
+						var vert_src = matches[0];
+						var frag_src = matches[1];
+						var vert_shader = gl.createShader(gl.VERTEX_SHADER);
+						var frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
+
+						gl.shaderSource(vert_shader, vert_src);
+						gl.shaderSource(frag_shader, frag_src); 
+						gl.compileShader(vert_shader);
+						gl.compileShader(frag_shader);
+
+						noise_prgm = gl.createProgram();
+						gl.attachShader(noise_prgm, vert_shader);
+						gl.attachShader(noise_prgm, frag_shader);
+						gl.linkProgram(noise_prgm);
+						gl.useProgram(noise_prgm);
+					});
+				}
 
 				webgl.init = function() {
 					document.body.appendChild(glcan);
 				}
+				
+				webgl.teardown = function() {
+					document.body.removeChild(glcan);
+				}
 
 				//called in every animation frame
 				webgl.update = function() {
-					window.requestAnimationFrame(filter_admin.attrs.vhs.webgl.update, glcan);
-					
 					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-					
-					//gl.enableVertexAttribArray(buffer);	
-					//gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
-
 					fragmentClock = gl.getUniformLocation(noise_prgm, "clock");
 					gl.uniform1f(fragmentClock, new Date().getMilliseconds());
-					
 					gl.drawArrays(gl.TRIANGLES, 0, 6);
-				};	
+				};
+
 				//webgl resize listener
 				return webgl;
+
 			}({}))
+
 			return vhs;
+
 	   	}({}))
 	
 		// coordinate switching between filters		
 		var coord = (function(coord) {
-			var general = ["print_analog", "caustic_glow", "vhs"];
-			var close_up = general.concat(["fauvist"]); 
+			var general = [];
+			var zoomed = [];
+			var takeover = [];
+			
+			for (filter in filter_admin.attrs) {
+				if ( filter_admin.attrs.hasOwnProperty(filter) ) {
+					var cats = filter_admin.attrs[filter].categories;
+					if ( (cats & cat.GENERAL) === cat.GENERAL ) general.push(filter);
+					if ( (cats & cat.ZOOMED) === cat.ZOOMED ) zoomed.push(filter);
+					if ( (cats & cat.TAKEOVER) === cat.TAKEOVER ) takeover.push(filter);
+				}
+			}
+
 			var close_thresh = 17;
 			var idle_interval = 120000;
 			var was_in_close = false;
 			var new_filter;
 			var old_filter;
+
 			coord.applyFilter = function(filter) {
-				var fa = filter_admin;
-				for (var i = 0; i < close_up.length; i++) {
-					div.$map.removeClass(close_up[i]);
-					if ( fa.attrs[ close_up[i] ].hasOwnProperty('animate') ) 
-						fa.render.rm(fa.attrs[ close_up[i] ].animate);
-					if ( !fa.render.has() ) fa.render.stop();
+				var render = filter_admin.render;
+				if (new_filter) {
+					div.$map.removeClass(new_filter);
+					var this_filter = filter_admin.attrs[new_filter];
+					if ( this_filter.hasOwnProperty('animate') ) 
+						filter_admin.render.rm(this_filter.animate);
+					if ( this_filter.hasOwnProperty('teardown') )
+						this_filter.teardown();
+					if ( !render.has() ) render.stop();
 				}
 				div.$map.addClass(filter);
-				if ( typeof fa.attrs[filter] !== 'undefined') {
-					if ( fa.attrs[filter].hasOwnProperty('init') ) 
-						fa.attrs[filter].init();
-					if ( fa.attrs[filter].hasOwnProperty('animate') ) 
-						fa.render.push(fa.attrs[filter].animate);
-						fa.render.doIt();
+				var this_filter = filter_admin.attrs[filter]; 
+				if ( typeof this_filter !== 'undefined') {
+					if ( this_filter.hasOwnProperty('init') ) 
+						this_filter.init();
+					if ( this_filter.hasOwnProperty('animate') ) 
+						render.push(this_filter.animate);
+						render.doIt();
 				}
-				new_filter = filter;	
+				old_filter = new_filter;
+				new_filter = filter;
+				if ( takeover.indexOf(filter) !== -1 ) old_filter = filter;	
 			};
+
 			coord.zoomListener = function(map_obj) {
 				if ( was_in_close && (map_obj.zoom < close_thresh) ) {
 					coord.applyFilter(old_filter);
-					old_filter = false;
 					was_in_close = false;
 				} else if ( !was_in_close && (map_obj.zoom > close_thresh) ) {
-					coord.applyFilter(close_up[(Math.random() * 4) | 0]);
+					coord.applyFilter(zoomed[(Math.random() * zoomed.length) | 0]);
 					was_in_close = true;
-					old_filter = new_filter;	
 				}		
 			};
+
 			//start with random filter
-			//coord.applyFilter(general[(Math.random() * 5) | 0]);
-			coord.applyFilter('vhs');
+			coord.applyFilter(general[(Math.random() * general.length + 0.5) | 0]);
+			//coord.applyFilter('vhs');
+			
 			//just switch every so often 
 			window.setInterval(function() { 
-				coord.applyFilter(general[(Math.random() * 4) | 0]); 
+				coord.applyFilter(general[(Math.random() * general.length + 0.5) | 0]); 
 			}, idle_interval);
+			
 			return coord;
+		
 		}({}))
 
 		// provided a google.map object, adds listeners for whatever in filter_admin needs it
