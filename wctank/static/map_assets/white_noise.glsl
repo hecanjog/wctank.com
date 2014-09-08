@@ -28,7 +28,7 @@ void main(void)
 	if (num > 0.5) {
 		gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
 	} else {
-		gl_FragColor = vec4(0.1, 0.1, 0.1, 0.35);
+		gl_FragColor = vec4(0.0, 0.0, 0.0, 0.15);
 	}    
 }
 END

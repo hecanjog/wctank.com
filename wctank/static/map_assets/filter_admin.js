@@ -1,6 +1,8 @@
+//TODO: low-res vhs, make cgmyk cross-browser, refine map_canvas selector, handle non-webgl and non-svg (disable filters that use webgl, svg and substitutions), create pop-up suprises, do something with wes's text, BUG: vhs offset animation doesn't always run on first instiati
+
 var div = {
 	$overlay: $('#overlay'),
-	$map: $('#map-canvas')
+	$map: $("#map-canvas")
 };
 
 var filter_admin = {}; 
@@ -20,7 +22,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		var cat = {
 			GENERAL: 	0x0F000000,
 			ZOOMED: 	0x00F00000,
-			TAKEOVER: 	0x000F0000
+			TAKEOVER: 	0x000F0000,
+			START: 		0x0000F000,
+			NONE:  		0x00000000
 		};
 
 		//stack + render loop	
@@ -35,7 +39,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				if (idx !== -1) doees.splice(idx, 1);
 			};
 			render.doIt = function() {
-				requestAnimationFrame(render.doIt);
+				window.requestAnimationFrame(render.doIt);
 				for (var i = 0; i < doees.length; i++) {
 					doees[i]();
 				}
@@ -132,10 +136,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
    			glow_radius: document.getElementById("cg-glow-radius")
    		};
 
-		//caustic with noise olay
-
    		filter_admin.attrs.cmgyk = (function(cmgyk) {
-			cmgyk.categories = cat.GENERAL | cat.ZOOMED;
+			//cmgyk.categories = cat.GENERAL | cat.ZOOMED;
+			cmgyk.categories = cat.NONE;
 			cmgyk.denoise = document.getElementById("cmgyk-denoise");
 			cmgyk.hueRotate = document.getElementById("cmgyk-hueRotate");
 			cmgyk.rainbow = document.getElementById("cmgyk-rainbow");
@@ -152,7 +155,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			return cmgyk;
 		}({}))
 				
-		//perhaps only allow at certain locations and at low-mid & max zoom lvls
 		filter_admin.attrs.fauvist = (function(fauvist) {
 			fauvist.categories = cat.ZOOMED;
 			fauvist.saturate = document.getElementById("fauvist-saturate");
@@ -231,12 +233,17 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 
 			vhs.webgl = (function(webgl) {
 				var js_random;
-				var glcan = document.createElement('canvas');
-				glcan.width = window.innerWidth;
-				glcan.height = window.innerHeight;
-				glcan.setAttribute("id", "glcan");
+				var vhs_canv = document.createElement('canvas');
+				vhs_canv.width = window.innerWidth * 0.75;
+				vhs_canv.height = window.innerHeight * 0.75;
+				vhs_canv.setAttribute("id", "vhs_canv");
 				
-				var z = new filter_admin.webglSetup(glcan, "/static/map_assets/white_noise.glsl");
+				window.addEventListener('resize', function(e) {
+					vhs_canv.width = window.innerWidth * 0.75;
+					vhs_canv.height = window.innerHeight * 0.75;
+				});
+				
+				var z = new filter_admin.webglSetup(vhs_canv, "/static/map_assets/white_noise.glsl");
 				webgl.update = function() {
 					z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
 					js_random = z.gl.getUniformLocation(z.program, "js_random");
@@ -245,10 +252,10 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				};
 
 				webgl.init = function() {
-					document.body.appendChild(glcan);
+					document.body.appendChild(vhs_canv);
 				}
 				webgl.teardown = function() {
-					document.body.removeChild(glcan);
+					document.body.removeChild(vhs_canv);
 				}
 				return webgl;
 			}({}))
@@ -260,6 +267,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var general = [];
 			var zoomed = [];
 			var takeover = [];
+			var start = [];
 
 			for (filter in filter_admin.attrs) {
 				if ( filter_admin.attrs.hasOwnProperty(filter) ) {
@@ -278,6 +286,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 
 			coord.applyFilter = function(filter) {
 				var render = filter_admin.render;
+				//var $images = $("#map-canvas :nth-child(1) :nth-child(1) :nth-child(1) :nth-child(5)"); 
 				if (new_filter) {
 					div.$map.removeClass(new_filter);
 					var this_filter = filter_admin.attrs[new_filter];
@@ -325,9 +334,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					was_in_close = true;
 				}		
 			};
-
-			//start with random filter
-			coord.applyFilter(general[ rndIdxInArr(general) ]);
+			
+			//start with print_analog
+			coord.applyFilter("print_analog");
 			
 			//just switch every so often 
 			window.setInterval(function() { 

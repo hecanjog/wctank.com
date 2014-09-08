@@ -44,7 +44,7 @@
 <filter id="fauvist">
 	<!-- Subtract red dependent on zoom level -->
 	<!-- multiply in new perlin noise on drag or zoom events -->
-	<feColorMatrix id="fauvist-saturate" in="SourceGraphic" type="saturate" values="20"></feColorMatrix>
+	<feColorMatrix id="fauvist-saturate" in="SourceGraphic" type="saturate" values="30"></feColorMatrix>
 	<!-- try offsetting color channels  -->	
 </filter>
 
