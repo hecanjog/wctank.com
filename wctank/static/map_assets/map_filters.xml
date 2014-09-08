@@ -68,39 +68,19 @@
 	<!-- pixelwise offset of r, g, b channels -->
 </filter>
 
-<!-- the fill property of the target div should be set to this gradient  -->
-<linearGradient id="cmgyk-rainbow" x1="0" y1="0" x2="100%" y2="100%" gradientTransform="rotate(0)">
-		<stop offset="0%" stop-color="#FFFF00"></stop>
-		<stop offset="9%" stop-color="#00FF00"></stop>
-		<stop offset="18%" stop-color="#00FFFF"></stop>
-		<stop offset="27%" stop-color="#6F00FF"></stop>
-		<stop offset="36%" stop-color="#FF00FF"></stop>
-		<stop offset="45%" stop-color="#FF0000"></stop>
-		<stop offset="54%" stop-color="#FF7F00"></stop>
-		<stop offset="63%" stop-color="#FFFF00"></stop>
-		<stop offset="72%" stop-color="#00FF00"></stop>
-		<stop offset="81%" stop-color="#00FFFF"></stop>
-		<stop offset="90%" stop-color="#6F00FF"></stop>
-		<stop offset="99%" stop-color="#FF00FF"></stop></linearGradient>
-
 <filter id="cmgyk">	
-	<!-- EDGE DETECTION -->
 		<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
 		
-		<feGaussianBlur id="cmgyk-denoise" in="gray" stdDeviation="1.25"></feGaussianBlur>	
+		<feGaussianBlur id="cmgyk-denoise" in="gray" stdDeviation="1.2"></feGaussianBlur>	
 		<feConvolveMatrix kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" preserveAlpha="true"></feConvolveMatrix>
 		<feComponentTransfer>
-			<feFuncA type="linear" slope="0.7" intercept="-0.64"></feFuncA></feComponentTransfer>
+			<feFuncA type="linear" slope="0.7" intercept="-0.667"></feFuncA></feComponentTransfer>
   		<feComponentTransfer result="edged">
-			<feFuncA type="gamma" amplitude="23" exponent="2.313"></feFuncA></feComponentTransfer>
+			<feFuncA type="gamma" amplitude="3" exponent="0.1"></feFuncA></feComponentTransfer>
 		<feColorMatrix in="edged" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
 		<feComposite in="edged" in2="alphamap" operator="in"></feComposite> 
 		<feComponentTransfer result="edged-alpha-inv">
 			<feFuncA type="linear" slope="-30" intercept="1"></feFuncA></feComponentTransfer>
-	<!-- /EDGE DETECTION -->
-
-	<feColorMatrix id="cmgyk-hueRotate" in="FillPaint" type="hueRotate" values="0" result="rotgrad"></feColorMatrix>
-	<feComposite in="edged-alpha-inv" in2="rotgrad" operator="atop" result="rainbow-edges"></feComposite>	
 </filter>
 
 <filter id="eriks-purple-scat-fantasy">

@@ -27,6 +27,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			NONE:  		0x00000000
 		};
 
+		filter_admin.current = null;
+
 		//stack + render loop	
 		filter_admin.render = (function(render) {
 			var doees = [];
@@ -126,7 +128,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		};
 
 		filter_admin.attrs.print_analog = {
-    		categories: cat.GENERAL | cat.ZOOMED | cat.TAKEOVER,
+    		categories: cat.GENERAL | cat.ZOOMED | cat.TAKEOVER | cat.START,
 			denoise: document.getElementById("pa-denoise"),
    			bypass: document.getElementById("pa-bypass")
    		};
@@ -137,20 +139,26 @@ $.get("static/map_assets/map_filters.xml", function(data) {
    		};
 
    		filter_admin.attrs.cmgyk = (function(cmgyk) {
-			//cmgyk.categories = cat.GENERAL | cat.ZOOMED;
-			cmgyk.categories = cat.NONE;
+			cmgyk.categories = cat.GENERAL | cat.ZOOMED | cat.TAKEOVER;
 			cmgyk.denoise = document.getElementById("cmgyk-denoise");
 			cmgyk.hueRotate = document.getElementById("cmgyk-hueRotate");
 			cmgyk.rainbow = document.getElementById("cmgyk-rainbow");
-			var cmgyk_canv = document.createElement('canvas');
+			var cmgyk_back = document.createElement("div");
+			cmgyk_back.setAttribute("id", "cmgyk_back");
+			cmgyk.init = function() {
+				document.body.appendChild(cmgyk_back);
+			};
+			cmgyk.teardown = function() {
+				document.body.removeChild(cmgyk_back);
+			};
 			var idx = 0;
 			var rot;
 			var rainbow_rot = ["rotate(45)", "rotate(90)", "rotate(135)", "rotate(0)"];
 			cmgyk.sequence = function() {
-				rot = Number(cmgyk.hueRotate.getAttribute("values"));
-				cmgyk.hueRotate.setAttribute("values", rot+(10 * Math.PI / 11));
-				cmgyk.rainbow.setAttribute("gradientTransform", rainbow_rot[idx]);
-				idx = (idx + 1) % rainbow_rot.length;
+				//rot = Number(cmgyk.hueRotate.getAttribute("values"));
+				//cmgyk.hueRotate.setAttribute("values", rot+(10 * Math.PI / 11));
+				//cmgyk.rainbow.setAttribute("gradientTransform", rainbow_rot[idx]);
+				//idx = (idx + 1) % rainbow_rot.length;
 			};
 			return cmgyk;
 		}({}))
@@ -198,13 +206,18 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		// this one is sorta convoluted - the white noise is realized within a separate
 		// WebGl layer
 		filter_admin.attrs.vhs = (function(vhs) {
-			vhs.categories = cat.GENERAL | cat.ZOOMED;
+			vhs.categories = cat.GENERAL | cat.ZOOMED | cat.START;
 			vhs.offset = document.getElementById("vhs-offset");
 			
+			//var vhs_back = document.createElement('div');	
+			//vhs_back.setAttribute("id", "vhs_back");
+
 			vhs.init = function() {
+				//document.body.appendChild(vhs_back);
 				vhs.webgl.init();
 			}
 			vhs.teardown = function() {
+				//document.body.removeChild(vhs_back);
 				vhs.webgl.teardown();
 			}
 			
@@ -217,7 +230,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var os = 0;	
 			vhs.animate = function() {
 				if ( jit && ( (frct % jit_frame_div) === 0 ) ) {
-					vhs.offset.setAttribute("dy", os);
+					vhs.offset.setAttribute("dy", os); // try offsetting div w/top 0, 2
 					os = (os === jit_offset) ? 0 : jit_offset;
 				}
 				frct++;
@@ -243,7 +256,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					vhs_canv.height = window.innerHeight * 0.75;
 				});
 				
-				var z = new filter_admin.webglSetup(vhs_canv, "/static/map_assets/white_noise.glsl");
+				var z = filter_admin.webglSetup(vhs_canv, "/static/map_assets/white_noise.glsl");
 				webgl.update = function() {
 					z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
 					js_random = z.gl.getUniformLocation(z.program, "js_random");
@@ -275,18 +288,19 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					if ( (cats & cat.GENERAL) === cat.GENERAL ) general.push(filter);
 					if ( (cats & cat.ZOOMED) === cat.ZOOMED ) zoomed.push(filter);
 					if ( (cats & cat.TAKEOVER) === cat.TAKEOVER ) takeover.push(filter);
+					if ( (cats & cat.START) === cat.START ) start.push(filter);
 				}
 			}
 
 			var close_thresh = 17;
-			var idle_interval = 30000;
+			var idle_interval = 45000;
 			var was_in_close = false;
 			var new_filter;
 			var old_filter;
 
 			coord.applyFilter = function(filter) {
+				filter_admin.current = filter;
 				var render = filter_admin.render;
-				//var $images = $("#map-canvas :nth-child(1) :nth-child(1) :nth-child(1) :nth-child(5)"); 
 				if (new_filter) {
 					div.$map.removeClass(new_filter);
 					var this_filter = filter_admin.attrs[new_filter];
@@ -335,8 +349,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				}		
 			};
 			
-			//start with print_analog
-			coord.applyFilter("print_analog");
+			// start with start filter
+			coord.applyFilter(start[ rndIdxInArr(start) ]);
 			
 			//just switch every so often 
 			window.setInterval(function() { 
@@ -368,13 +382,13 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 	}({}))	
 		
 	// media queries for filters
-	var dppx1dot2 =  window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
-					   "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
+	var dppx1dot2 =  window.matchMedia("only screen and (min-resolution: 1.2dppx),"+
+					   "only screen and (-webkit-min-device-pixel-ratio: 1.2)");
 	if (dppx1dot2.matches) {
 		filter_admin.attrs.print_analog.denoise.setAttribute("stdDeviation", "1.16");
    		filter_admin.attrs.print_analog.bypass.setAttribute("in2", "flip");
    		filter_admin.attrs.caustic_glow.glow_radius.setAttribute("stdDeviation", "10.6");
-		filter_admin.attrs.cmgyk.denoise.setAttribute("stdDeviation", "0.5");
+		filter_admin.attrs.cmgyk.denoise.setAttribute("stdDeviation", "1");
 	}
 			
 });
