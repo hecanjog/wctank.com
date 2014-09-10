@@ -149,21 +149,30 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var cmgyk_grad = document.createElement("div");
 			cmgyk_grad.setAttribute("id", "cmgyk_grad");
 			cmgyk_back.appendChild(cmgyk_grad);	
-			
+			var cmgyk_steady_back = document.createElement("div");
+			cmgyk_steady_back.setAttribute("id", "cmgyk_steady_back");
+		
 			cmgyk.init = function() {
+				document.body.appendChild(cmgyk_steady_back);
 				document.body.appendChild(cmgyk_back);
 			};
 			cmgyk.teardown = function() {
+				document.body.removeChild(cmgyk_steady_back);
 				document.body.removeChild(cmgyk_back);
 			};
-			var idx = 0;
-			var rot;
-			var rainbow_rot = ["rotate(45)", "rotate(90)", "rotate(135)", "rotate(0)"];
-			cmgyk.sequence = function() {
-				//rot = Number(cmgyk.hueRotate.getAttribute("values"));
-				//cmgyk.hueRotate.setAttribute("values", rot+(10 * Math.PI / 11));
-				//cmgyk.rainbow.setAttribute("gradientTransform", rainbow_rot[idx]);
-				//idx = (idx + 1) % rainbow_rot.length;
+			var rot_interval = 22.5;
+			var rot = 0;
+			var lzoom = 0;
+			cmgyk.onLoad = function(map_obj) {
+				lzoom = map_obj.zoom;
+			}
+			cmgyk.onZoom = function(map_obj) {
+				var zoom = map_obj.zoom;
+				rot = rot + ( (zoom - lzoom) * rot_interval );
+				var str = "rotate("+rot.toString()+"deg)";
+				cmgyk_back.style.transform = "rotate("+rot.toString()+"deg)";
+				cmgyk_back.style.webkitTransform = "rotate("+rot.toString()+"deg)";
+				lzoom = zoom;			
 			};
 			return cmgyk;
 		}({}))
@@ -372,7 +381,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		// provided a google.map object, adds listeners for whatever in filter_admin needs it
 		filter_admin.eventHandler = function(map_obj) {
 			google.maps.event.addListener(map_obj, 'zoom_changed', function() { 
-				filter_admin.attrs.cmgyk.sequence(map_obj); 
+				filter_admin.attrs.cmgyk.onZoom(map_obj); 
 				filter_admin.attrs.fauvist.sequence(map_obj);
 				filter_admin.attrs.vhs.jitter(false);
 				coord.zoomListener(map_obj);
@@ -382,6 +391,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			});
 			google.maps.event.addListener(map_obj, 'idle', function() {
 				filter_admin.attrs.vhs.jitter(true);
+			});
+			google.maps.event.addListenerOnce(map_obj, 'tilesloaded', function() {
+				filter_admin.attrs.cmgyk.onLoad(map_obj);		
 			});
 		};
 		

@@ -73,7 +73,8 @@ a[href^="http://maps.google.com/maps"] {
 @font-base: 12pt;
 
 body, html {
-    width: 100%;
+    overflow: hidden;
+	width: 100%;
     height: 100%;
     padding: 0;
     margin: 0;
@@ -119,8 +120,11 @@ button {
 }
 #cmgyk_back {
 	.fullsize;
+	width: 100%;
+	height: 100%;
 	z-index: -1;
 	overflow: hidden;
+	.prefixed-transition(all 200ms ease-in-out);	
 }
 #cmgyk_grad {
 	width: 200%;
@@ -135,7 +139,7 @@ button {
 		#FF7F00 36%,
 	    #FFFF00 42%;	
 	.prefixed-repeating-linear-gradient(@lgval);
-	.prefixed-animation(slide 6s infinite linear);	
+	.prefixed-animation(slide 6s infinite linear);
 }
 .cmgyk-rainbow-slide {
 	0% { .prefixed-transform(translateX(-42%);) }
@@ -146,6 +150,12 @@ button {
 @-ms-keyframes slide { .cmgyk-rainbow-slide; }
 @-webkit-keyframes slide { .cmgyk-rainbow-slide; }
 @keyframes slide { .cmgyk-rainbow-slide; }
+#cmgyk_steady_back {
+	.fullsize;
+	#cmgyk_grad;
+	z-index: -2;
+}
+
 
 .vhs {
 	.callFilter(vhs);
