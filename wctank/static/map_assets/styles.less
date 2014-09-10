@@ -135,11 +135,11 @@ button {
 		#FF7F00 36%,
 	    #FFFF00 42%;	
 	.prefixed-repeating-linear-gradient(@lgval);
-	.prefixed-animation(slide 6000ms infinite linear);	
+	.prefixed-animation(slide 6s infinite linear);	
 }
 .cmgyk-rainbow-slide {
-	from { .prefixed-transform(translateX(-42%);) }
-	to { .prefixed-transform(translateX(0%);) }
+	0% { .prefixed-transform(translateX(-42%);) }
+	100% { .prefixed-transform(translateX(0%);) }
 }
 @-moz-keyframes slide { .cmgyk-rainbow-slide; }
 @-o-keyframes slide { .cmgyk-rainbow-slide; }
