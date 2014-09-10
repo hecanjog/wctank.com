@@ -143,8 +143,13 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			cmgyk.denoise = document.getElementById("cmgyk-denoise");
 			cmgyk.hueRotate = document.getElementById("cmgyk-hueRotate");
 			cmgyk.rainbow = document.getElementById("cmgyk-rainbow");
+			
 			var cmgyk_back = document.createElement("div");
 			cmgyk_back.setAttribute("id", "cmgyk_back");
+			var cmgyk_grad = document.createElement("div");
+			cmgyk_grad.setAttribute("id", "cmgyk_grad");
+			cmgyk_back.appendChild(cmgyk_grad);	
+			
 			cmgyk.init = function() {
 				document.body.appendChild(cmgyk_back);
 			};
@@ -209,15 +214,15 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			vhs.categories = cat.GENERAL | cat.ZOOMED | cat.START;
 			vhs.offset = document.getElementById("vhs-offset");
 			
-			//var vhs_back = document.createElement('div');	
-			//vhs_back.setAttribute("id", "vhs_back");
+			var vhs_back = document.createElement('div');	
+			vhs_back.setAttribute("id", "vhs_back");
 
 			vhs.init = function() {
-				//document.body.appendChild(vhs_back);
+				document.body.appendChild(vhs_back);
 				vhs.webgl.init();
 			}
 			vhs.teardown = function() {
-				//document.body.removeChild(vhs_back);
+				document.body.removeChild(vhs_back);
 				vhs.webgl.teardown();
 			}
 			
@@ -239,6 +244,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var jit_tmp;
 			vhs.jitter = function(idle) {
 				jit_tmp = idle;
+				if (!jit_tmp) vhs.offset.setAttribute("dy", 0);
 				window.setTimeout(function() {
 					jit = jit_tmp;
 				}, jit_delay);
@@ -293,7 +299,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			}
 
 			var close_thresh = 17;
-			var idle_interval = 45000;
+			var idle_interval = 300000;
 			var was_in_close = false;
 			var new_filter;
 			var old_filter;
@@ -350,8 +356,10 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			
 			// start with start filter
-			coord.applyFilter(start[ rndIdxInArr(start) ]);
+			//coord.applyFilter(start[ rndIdxInArr(start) ]);
 			
+			coord.applyFilter("cmgyk");
+
 			//just switch every so often 
 			window.setInterval(function() { 
 				coord.applyFilter(general[ rndIdxInArr(general) ]); 
