@@ -139,8 +139,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
    		};
 
    		filter_admin.attrs.cmgyk = (function(cmgyk) {
-			cmgyk.engaged = false;
-			cmgyk.categories = cat.GENERAL | cat.ZOOMED | cat.TAKEOVER;
+			cmgyk.categories = cat.GENERAL | cat.ZOOMED;
 			cmgyk.denoise = document.getElementById("cmgyk-denoise");
 			cmgyk.hueRotate = document.getElementById("cmgyk-hueRotate");
 			cmgyk.rainbow = document.getElementById("cmgyk-rainbow");
@@ -152,17 +151,34 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			cmgyk_back.appendChild(cmgyk_grad);	
 			var cmgyk_steady_back = document.createElement("div");
 			cmgyk_steady_back.setAttribute("id", "cmgyk_steady_back");
+				
+			var engaged = false;
+			var times_engaged = 0;
+			var should_ko = function() {
+				if (times_engaged > 2) return true;
+				return false;
+			};
+			var should_blink = function() {
+				if (times_engaged > 5) {
+					coord.pushCategory(cat.TAKEOVER, "cmgyk");	
+					return true;
+				}
+				return false;
+			};
 
 			cmgyk.init = function() {
+				engaged = true;
+				times_engaged++;
 				document.body.appendChild(cmgyk_steady_back);
 				document.body.appendChild(cmgyk_back);
 			};
 			cmgyk.teardown = function() {
+				engaged = false;
 				document.body.removeChild(cmgyk_steady_back);
 				document.body.removeChild(cmgyk_back);
+				$kos.css("display", "block");
 			};
 			
-			var $blink = $([]);
 			var gaussDist = function() {
 				// snippet from http://memory.psych.mun.ca/tech/snippets/random_normal/
 				var x1, x2, rad;
@@ -175,14 +191,17 @@ $.get("static/map_assets/map_filters.xml", function(data) {
     			var c = Math.sqrt(-2 * Math.log(rad) / rad);
  
     			return x1 * c;
-			};	
+			};
+			var $kos = $();
+			var blink$ = []; //array with items of form [$, blink_speed in ms]	
+			
 			cmgyk.onMovement = function() {
-				if (cmgyk.engaged) {
-					$blink = $();
+				if ( engaged && should_ko() ) {
 					var $map_imgs = $("#map-canvas :nth-child(1) :nth-child(1) :nth-child(1) "+
 								  ":nth-child(5) :nth-child(1)").children();
-					var $kos = $("");		
+					$kos = $();		
 					var s_idx, e_idx;
+					blink$ = [];
 					(function() {
 						var mdn = ($map_imgs.length * 0.5 + 0.5) | 0;
 						var idxGen = function() {
@@ -203,7 +222,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					var b_mod = (function() {
 						var range = [5, 6, 7, 8, 9, 10, 11];
 						var rtn = [];
-						for (var i = 0; i < 2; i++) {
+						var num = (Math.random() * 4 + 0.5) | 0
+						for (var i = 0; i < num; i++) {
 							rtn.push(range[ (Math.random() * range.length - 1 + 0.5) | 0 ]);
 						}
 						return rtn;
@@ -211,16 +231,31 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					for (var i = s_idx; i <= e_idx; i++) {
 						var $img = $map_imgs.eq(i);
 						$kos = $kos.add($img);
-						for (var j = 0; j < b_mod.length; j++) {
-							if ( (i % b_mod[j]) === 0 ) $blink = $blink.add($img);
-						}	
+						if ( should_blink() ) {
+							for (var j = 0; j < b_mod.length; j++) {
+								if ( (i % b_mod[j]) === 0 ) blink$[j] = [$img, (Math.random() * 3000) | 0];
+							}	
+						}
 					}
-					$kos.css("display", "none");	
+					$kos.css("display", "none");
 				}
 			};
+			
 			cmgyk.animate = function() {
-				// make some blocks blink	
+				if ( should_blink() ) {
+					var time = new Date().getTime();
+					for (var i = 0; i < blink$.length; i++) {
+						if ( blink$[i] && ( ((time % blink$[i][1]) <= 16) || ((Math.random() * 10 ) < 0.5 )) )	{
+							if (blink$[i][0].css("display") === "none") {
+								blink$[i][0].css("display", "block");
+							} else {
+								blink$[i][0].css("display", "none");
+							}
+						}
+					}
+				}
 			};
+			
 			var rot_interval = 22.5;
 			var rot = 0;
 			var lzoom = 0;
@@ -235,6 +270,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				cmgyk_back.style.webkitTransform = "rotate("+rot.toString()+"deg)";
 				lzoom = zoom;			
 			};
+
 			return cmgyk;
 		}({}))
 				
@@ -264,7 +300,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var jit_frame_div = 2;
 
 			var frct = 0;
-			var os = 0;	
+			var os = 0;
+			//delay start of offset jitter	
 			vhs.animate = function() {
 				if ( jit && ( (frct % jit_frame_div) === 0 ) ) {
 					vhs.offset.setAttribute("dy", os); 
@@ -320,7 +357,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var takeover = [];
 			var start = [];
 
-			for (filter in filter_admin.attrs) {
+			for (var filter in filter_admin.attrs) {
 				if ( filter_admin.attrs.hasOwnProperty(filter) ) {
 					var cats = filter_admin.attrs[filter].categories;
 					if ( (cats & cat.GENERAL) === cat.GENERAL ) general.push(filter);
@@ -329,9 +366,25 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					if ( (cats & cat.START) === cat.START ) start.push(filter);
 				}
 			}
+			coord.pushCategory = function(catObj, filter) {
+				switch(catObj) {
+					case cat.GENERAL:
+						general.push(filter);
+						break;
+					case cat.ZOOMED:
+						zoomed.push(filter);
+						break;
+					case cat.TAKEOVER:
+						takeover.push(filter);
+						break;
+					case cat.START:
+						start.push(filter);
+						break;
+				}
+			}
 
 			var close_thresh = 17;
-			var idle_interval = 300000;
+			var idle_interval = 30000;
 			var was_in_close = false;
 			var new_filter;
 			var old_filter;
@@ -342,15 +395,13 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				if (new_filter) {
 					div.$map.removeClass(new_filter);
 					var this_filter = filter_admin.attrs[new_filter];
-					if ( this_filter.hasOwnProperty('engaged') ) this_filter.engaged = false;
 					if ( this_filter.hasOwnProperty('animate') ) filter_admin.render.rm(this_filter.animate);
 					if ( this_filter.hasOwnProperty('teardown') ) this_filter.teardown();
 					if ( !render.has() ) render.stop();
 				}
 				div.$map.addClass(filter);
 				var this_filter = filter_admin.attrs[filter]; 
-				if ( typeof this_filter !== 'undefined') {
-					if ( this_filter.hasOwnProperty('engaged') ) this_filter.engaged = true;
+				if (typeof this_filter !== "undefined") {	
 					if ( this_filter.hasOwnProperty('init') ) this_filter.init();
 					if ( this_filter.hasOwnProperty('animate') ) render.push(this_filter.animate);
 					if ( render.has() ) render.doIt();
@@ -359,7 +410,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				new_filter = filter;
 				if ( takeover.indexOf(filter) !== -1 ) old_filter = filter;	
 			};
-			
+				
 			var rndIdxInArr = function(arr) {
 				return (Math.random() * arr.length + 0.5) | 0;
 			}
@@ -386,9 +437,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			
 			// start with start filter
-			//coord.applyFilter(start[ rndIdxInArr(start) ]);
-			
-			coord.applyFilter("cmgyk");
+			coord.applyFilter(start[ rndIdxInArr(start) ]);
 
 			//just switch every so often 
 			window.setInterval(function() { 
