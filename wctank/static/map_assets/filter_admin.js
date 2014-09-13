@@ -1,4 +1,4 @@
-//TODO: low-res vhs, make cgmyk cross-browser, refine map_canvas selector, handle non-webgl and non-svg (disable filters that use webgl, svg and substitutions), create pop-up suprises, do something with wes's text, BUG: vhs offset animation doesn't always run on first instiati
+//TODO: add knockouts to cmgyk, refine map_canvas selector, handle non-webgl and non-svg (disable filters that use webgl, svg and substitutions), create pop-up suprises, do something with wes's text, BUG: vhs offset animation doesn't always run on first instiati
 
 var div = {
 	$overlay: $('#overlay'),
@@ -151,7 +151,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			cmgyk_back.appendChild(cmgyk_grad);	
 			var cmgyk_steady_back = document.createElement("div");
 			cmgyk_steady_back.setAttribute("id", "cmgyk_steady_back");
-		
+
 			cmgyk.init = function() {
 				document.body.appendChild(cmgyk_steady_back);
 				document.body.appendChild(cmgyk_back);
@@ -365,9 +365,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			
 			// start with start filter
-			//coord.applyFilter(start[ rndIdxInArr(start) ]);
+			coord.applyFilter(start[ rndIdxInArr(start) ]);
 			
-			coord.applyFilter("cmgyk");
+			//coord.applyFilter("cmgyk");
 
 			//just switch every so often 
 			window.setInterval(function() { 

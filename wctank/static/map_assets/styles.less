@@ -124,11 +124,12 @@ button {
 	height: 100%;
 	z-index: -1;
 	overflow: hidden;
-	.prefixed-transition(all 200ms ease-in-out);	
+	.prefixed-transition(all 300ms ease-in-out);	
 }
 #cmgyk_grad {
 	width: 200%;
-	height: 100%;
+	height: 75%;
+	top: 200;
 	@lgval: to right, 
 		#FFFF00, 
 		#00FF00 6%, 
@@ -152,9 +153,30 @@ button {
 @keyframes slide { .cmgyk-rainbow-slide; }
 #cmgyk_steady_back {
 	.fullsize;
-	#cmgyk_grad;
+	width: 200%;
+	height: 100%;
+	@lgval: to right, 
+		#95004B, 
+		#80FF00 6%, 
+		#8E2600 12%, 
+		#03158D 18%, 
+		#9C4E00 24%, 
+		#E63E2E 30%, 
+		#FF7F00 36%,
+	    #FFFF00 42%;	
+	.prefixed-repeating-linear-gradient(@lgval);
+	.prefixed-animation(slide-left 10s infinite linear);
 	z-index: -2;
 }
+.cmgyk-rainbow-slide-rev {
+	0% { .prefixed-transform(translateX(0%);) }
+	100% { .prefixed-transform(translateX(-42%);) }
+}
+@-moz-keyframes slide-left { .cmgyk-rainbow-slide-rev; }
+@-o-keyframes slide-left { .cmgyk-rainbow-slide-rev; }
+@-ms-keyframes slide-left { .cmgyk-rainbow-slide-rev; }
+@-webkit-keyframes slide-left { .cmgyk-rainbow-slide-rev; }
+@keyframes slide-left { .cmgyk-rainbow-slide-rev; }
 
 
 .vhs {
@@ -173,12 +195,12 @@ button {
 	.fullsize;
 	z-index: -1;
 	@lgval: to right,
-		#FFFF00,
-		#00FF00 18%,
-		#00FFFF 36%,
-		#6F00FF 54%,
-		#FF00FF 72%,
-		#FF0000 90%;
+		#FFFF00, 
+		#00FF00 18%, 
+		#00FFFF 36%, 
+		#6F00FF 54%, 
+		#FF00FF 72%, 
+		#FF0000 90%; 
 	.prefixed-linear-gradient(@lgval);
 }
 
