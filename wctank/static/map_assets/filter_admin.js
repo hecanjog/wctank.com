@@ -1,4 +1,5 @@
-//TODO: add knockouts to cmgyk, refine map_canvas selector, handle non-webgl and non-svg (disable filters that use webgl, svg and substitutions), create pop-up suprises, do something with wes's text, BUG: vhs offset animation doesn't always run on first instiati
+//TODO: refine map_canvas selector, handle non-webgl and non-svg (disable filters that use webgl, 
+//svg and substitutions), create pop-up suprises, do something with wes's text
 
 var div = {
 	$overlay: $('#overlay'),
@@ -201,7 +202,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 								  ":nth-child(5) :nth-child(1)").children();
 					$kos = $();		
 					var s_idx, e_idx;
-					blink$ = [];
+					//blink$ = [];
 					(function() {
 						var mdn = ($map_imgs.length * 0.5 + 0.5) | 0;
 						var idxGen = function() {
