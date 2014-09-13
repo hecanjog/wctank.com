@@ -139,6 +139,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
    		};
 
    		filter_admin.attrs.cmgyk = (function(cmgyk) {
+			cmgyk.engaged = false;
 			cmgyk.categories = cat.GENERAL | cat.ZOOMED | cat.TAKEOVER;
 			cmgyk.denoise = document.getElementById("cmgyk-denoise");
 			cmgyk.hueRotate = document.getElementById("cmgyk-hueRotate");
@@ -160,6 +161,66 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				document.body.removeChild(cmgyk_steady_back);
 				document.body.removeChild(cmgyk_back);
 			};
+			
+			var $blink = $([]);
+			var gaussDist = function() {
+				// snippet from http://memory.psych.mun.ca/tech/snippets/random_normal/
+				var x1, x2, rad;
+	    		do {
+           			x1 = 2 * Math.random() - 1;
+        			x2 = 2 * Math.random() - 1;
+        			rad = x1 * x1 + x2 * x2;
+    			} while(rad >= 1 || rad == 0);
+ 
+    			var c = Math.sqrt(-2 * Math.log(rad) / rad);
+ 
+    			return x1 * c;
+			};	
+			cmgyk.onMovement = function() {
+				if (cmgyk.engaged) {
+					$blink = $();
+					var $map_imgs = $("#map-canvas :nth-child(1) :nth-child(1) :nth-child(1) "+
+								  ":nth-child(5) :nth-child(1)").children();
+					var $kos = $("");		
+					var s_idx, e_idx;
+					(function() {
+						var mdn = ($map_imgs.length * 0.5 + 0.5) | 0;
+						var idxGen = function() {
+							return (gaussDist() * 2 + mdn + 0.5) | 0;
+						};
+						var x = idxGen();
+						var y = idxGen();
+						if (x > y) {
+							s_idx = x;
+							e_idx = y;
+						} else {
+							s_idx = y;
+							e_idx = x;
+						}
+						s_idx--;
+						e_idx++;
+					}())
+					var b_mod = (function() {
+						var range = [5, 6, 7, 8, 9, 10, 11];
+						var rtn = [];
+						for (var i = 0; i < 2; i++) {
+							rtn.push(range[ (Math.random() * range.length - 1 + 0.5) | 0 ]);
+						}
+						return rtn;
+					}())
+					for (var i = s_idx; i <= e_idx; i++) {
+						var $img = $map_imgs.eq(i);
+						$kos = $kos.add($img);
+						for (var j = 0; j < b_mod.length; j++) {
+							if ( (i % b_mod[j]) === 0 ) $blink = $blink.add($img);
+						}	
+					}
+					$kos.css("display", "none");	
+				}
+			};
+			cmgyk.animate = function() {
+				// make some blocks blink	
+			};
 			var rot_interval = 22.5;
 			var rot = 0;
 			var lzoom = 0;
@@ -177,48 +238,10 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			return cmgyk;
 		}({}))
 				
-		filter_admin.attrs.fauvist = (function(fauvist) {
-			fauvist.categories = cat.ZOOMED;
-			fauvist.saturate = document.getElementById("fauvist-saturate");
-			var defv = fauvist.saturate.getAttribute("values");
-			fauvist.sequence = function(map) {
-				var zoom = map.zoom;
-				if( (zoom >= 11) && (zoom <= 18) ) {
-					switch(zoom) {
-						case 11:
-							fauvist.saturate.setAttribute("values", "18.5");
-							break;
-						case 12:
-							fauvist.saturate.setAttribute("values", "17.2");
-							break;
-						case 13:
-							fauvist.saturate.setAttribute("values", "16.3");
-							break;
-						case 14:
-							fauvist.saturate.setAttribute("values", "12.5");
-							break;
-						case 15:
-							fauvist.saturate.setAttribute("values", "11.7");
-							break;
-						case 16:
-							fauvist.saturate.setAttribute("values", "10");
-							break;
-						case 17:
-							fauvist.saturate.setAttribute("values", "9");
-							break;
-						case 18:
-							fauvist.saturate.setAttribute("values", "14");
-							break;
-					} 
-				} else {
-					fauvist.saturate.setAttribute("values", defv);
-				}
-			};	
-			return fauvist;
-		}({}))
+		filter_admin.attrs.fauvist = {
+			categories: cat.ZOOMED
+		};
 		
-		// this one is sorta convoluted - the white noise is realized within a separate
-		// WebGl layer
 		filter_admin.attrs.vhs = (function(vhs) {
 			vhs.categories = cat.GENERAL | cat.ZOOMED | cat.START;
 			vhs.offset = document.getElementById("vhs-offset");
@@ -244,7 +267,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var os = 0;	
 			vhs.animate = function() {
 				if ( jit && ( (frct % jit_frame_div) === 0 ) ) {
-					vhs.offset.setAttribute("dy", os); // try offsetting div w/top 0, 2
+					vhs.offset.setAttribute("dy", os); 
 					os = (os === jit_offset) ? 0 : jit_offset;
 				}
 				frct++;
@@ -301,7 +324,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				if ( filter_admin.attrs.hasOwnProperty(filter) ) {
 					var cats = filter_admin.attrs[filter].categories;
 					if ( (cats & cat.GENERAL) === cat.GENERAL ) general.push(filter);
-					if ( (cats & cat.ZOOMED) === cat.ZOOMED ) zoomed.push(filter);
+					if ( (cats & cat.ZOOMED) === cat.ZOOMED ) zoomed.push(filter);					
 					if ( (cats & cat.TAKEOVER) === cat.TAKEOVER ) takeover.push(filter);
 					if ( (cats & cat.START) === cat.START ) start.push(filter);
 				}
@@ -319,20 +342,18 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				if (new_filter) {
 					div.$map.removeClass(new_filter);
 					var this_filter = filter_admin.attrs[new_filter];
-					if ( this_filter.hasOwnProperty('animate') ) 
-						filter_admin.render.rm(this_filter.animate);
-					if ( this_filter.hasOwnProperty('teardown') )
-						this_filter.teardown();
+					if ( this_filter.hasOwnProperty('engaged') ) this_filter.engaged = false;
+					if ( this_filter.hasOwnProperty('animate') ) filter_admin.render.rm(this_filter.animate);
+					if ( this_filter.hasOwnProperty('teardown') ) this_filter.teardown();
 					if ( !render.has() ) render.stop();
 				}
 				div.$map.addClass(filter);
 				var this_filter = filter_admin.attrs[filter]; 
 				if ( typeof this_filter !== 'undefined') {
-					if ( this_filter.hasOwnProperty('init') ) 
-						this_filter.init();
-					if ( this_filter.hasOwnProperty('animate') ) 
-						render.push(this_filter.animate);
-						render.doIt();
+					if ( this_filter.hasOwnProperty('engaged') ) this_filter.engaged = true;
+					if ( this_filter.hasOwnProperty('init') ) this_filter.init();
+					if ( this_filter.hasOwnProperty('animate') ) render.push(this_filter.animate);
+					if ( render.has() ) render.doIt();
 				}
 				old_filter = new_filter;
 				new_filter = filter;
@@ -345,7 +366,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 
 			// If we are at zoom level 17 (where the view in some places changes to 45deg),
 			// then switch to a filter different from the one currently being used
-			coord.zoomListener = function(map_obj) {
+			coord.onZoom = function(map_obj) {
 				if ( was_in_close && (map_obj.zoom <= close_thresh) ) {
 					coord.applyFilter(old_filter);
 					was_in_close = false;
@@ -365,9 +386,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			
 			// start with start filter
-			coord.applyFilter(start[ rndIdxInArr(start) ]);
+			//coord.applyFilter(start[ rndIdxInArr(start) ]);
 			
-			//coord.applyFilter("cmgyk");
+			coord.applyFilter("cmgyk");
 
 			//just switch every so often 
 			window.setInterval(function() { 
@@ -382,15 +403,17 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		filter_admin.eventHandler = function(map_obj) {
 			google.maps.event.addListener(map_obj, 'zoom_changed', function() { 
 				filter_admin.attrs.cmgyk.onZoom(map_obj); 
-				filter_admin.attrs.fauvist.sequence(map_obj);
 				filter_admin.attrs.vhs.jitter(false);
-				coord.zoomListener(map_obj);
+				coord.onZoom(map_obj);
 			});
 			google.maps.event.addListener(map_obj, 'drag', function() { 
 				filter_admin.attrs.vhs.jitter(false);		
 			});
 			google.maps.event.addListener(map_obj, 'idle', function() {
 				filter_admin.attrs.vhs.jitter(true);
+			});
+			google.maps.event.addListener(map_obj, 'bounds_changed', function() {
+				filter_admin.attrs.cmgyk.onMovement();
 			});
 			google.maps.event.addListenerOnce(map_obj, 'tilesloaded', function() {
 				filter_admin.attrs.cmgyk.onLoad(map_obj);		
