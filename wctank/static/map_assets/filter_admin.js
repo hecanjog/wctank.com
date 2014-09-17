@@ -1,12 +1,12 @@
 //TODO: refine map_canvas selector, handle non-webgl and non-svg (disable filters that use webgl, 
 //svg and substitutions), create pop-up suprises, do something with wes's text
+//animate caustic glow filter and add a bit of color maybe
 
-var div = {
-	$overlay: $('#overlay'),
-	$map: $("#map-canvas")
-};
+// aliases for yt iframe API
+var onYouTubeIframeAPIReady;
+var onPlayerReady;
 
-var filter_admin = {}; 
+var filter_admin; 
 // for some reason, firefox is not playing nice with svg filters in external
 // files, so I guess I'm just going to dynamically inline it then
 $.get("static/map_assets/map_filters.xml", function(data) {
@@ -20,6 +20,11 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 	//container for all filters and related functionality 	
 	filter_admin = (function(filter_admin) {
 		
+		var div = {
+			$overlay: $('#overlay'),
+			$map: $("#map-canvas")
+		};
+
 		var cat = {
 			GENERAL: 	0x0F000000,
 			ZOOMED: 	0x00F00000,
@@ -42,7 +47,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				if (idx !== -1) doees.splice(idx, 1);
 			};
 			render.doIt = function() {
-				window.requestAnimationFrame(render.doIt);
+				id = window.requestAnimationFrame(render.doIt);
 				for (var i = 0; i < doees.length; i++) {
 					doees[i]();
 				}
@@ -57,6 +62,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		}({}))
 
 		filter_admin.webglSetup = function(canvas, shader_path) {
+			/*
 			//handle context loss	
 			canvas.addEventListener("webglcontextlost", function(e) {
 				e.preventDefault();
@@ -64,7 +70,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			canvas.addEventListener("webglcontextrestored", function() { 
 				filter_admin.webglSetup(canvas, shader_path); 
 			}, false);
-			
+			*/
+
 			var r = {};
 			
 			gl = (function() {
@@ -133,17 +140,57 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			denoise: document.getElementById("pa-denoise"),
    			bypass: document.getElementById("pa-bypass")
    		};
-		
-   		filter_admin.attrs.caustic_glow = {
-			categories: cat.GENERAL | cat.ZOOMED,
-   			glow_radius: document.getElementById("cg-glow-radius")
-   		};
+   		
+		filter_admin.attrs.caustic_glow = (function(caustic_glow) {
+			caustic_glow.categories = cat.GENERAL | cat.ZOOMED | cat.START;
+   			caustic_glow.glow_radius = document.getElementById("cg-glow-radius");
+			
+			var caustic_glow_back = document.createElement("div");
+			caustic_glow_back.setAttribute("id", "caustic_glow_back");	
+			
+			var yt_player = document.createElement("div");
+			yt_player.setAttribute("id", "yt_player");
+			caustic_glow_back.appendChild(yt_player);
+			
+			var yt_tag = document.createElement("script");
+			yt_tag.src = "https://www.youtube.com/iframe_api";
+			caustic_glow_back.appendChild(yt_tag);
+
+			var player;
+			onYouTubeIframeAPIReady = function() {
+				player = new YT.Player('yt_player', {
+					playerVars: {
+						controls: 0,
+						disablekb: 1,
+						loop: 1,
+						modestbranding: 0
+					},
+					events: {
+						onReady: onPlayerReady
+					}			
+				});
+			};
+			
+			var start_time = 0;	
+			onPlayerReady = function(event) {
+				player.mute();
+				player.loadVideoById('X2QFL-PHb1A', start_time);
+			};
+			caustic_glow.init = function() {
+				document.body.appendChild(caustic_glow_back);
+			};
+			caustic_glow.teardown = function() {
+				start_time = ( start_time + player.getCurrentTime() ) % player.getDuration();
+				document.body.removeChild(caustic_glow_back);
+
+			};
+
+			return caustic_glow;
+		}({}));
 
    		filter_admin.attrs.cmgyk = (function(cmgyk) {
 			cmgyk.categories = cat.GENERAL | cat.ZOOMED;
 			cmgyk.denoise = document.getElementById("cmgyk-denoise");
-			cmgyk.hueRotate = document.getElementById("cmgyk-hueRotate");
-			cmgyk.rainbow = document.getElementById("cmgyk-rainbow");
 			
 			var cmgyk_back = document.createElement("div");
 			cmgyk_back.setAttribute("id", "cmgyk_back");
@@ -161,7 +208,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			var should_blink = function() {
 				if (times_engaged > 5) {
-					coord.pushCategory(cat.TAKEOVER, "cmgyk");	
+					//coord.pushCategory(cat.TAKEOVER, "cmgyk");	
 					return true;
 				}
 				return false;
@@ -189,8 +236,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
         			rad = x1 * x1 + x2 * x2;
     			} while(rad >= 1 || rad == 0);
  
-    			var c = Math.sqrt(-2 * Math.log(rad) / rad);
- 
+    			var c = Math.sqrt(-2 * Math.log(rad) / rad); 
     			return x1 * c;
 			};
 			var $kos = $();
@@ -242,6 +288,27 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				}
 			};
 			
+			/*	
+			cmgyk.webgl = (function(webgl) {
+				var cmgyk_wgl_canv = document.createElement('canvas');
+				cmgyk_wgl_canv.width = window.innerWidth * 0.75;
+				cmgyk_wgl_canv.height = window.innerHeight * 0.75;
+				cmgyk_wgl_canv.setAttribute("id", "cmgyk_wgl_canv");
+
+				var js_clock;
+				
+				window.addEventListener('resize', function(e) {
+					cmgyk_wgl_canv.width = window.innerWidth * 0.75;
+					cmgyk_wgl_canv.height = window.innerHeight * 0.75;
+				});
+				
+				var z = filter_admin.webglSetup(cmgyk_wgl_canv, "/static/map_assets/stars.glsl");			
+
+			/////////////////HERE DUDE
+
+			}({}))
+			*/
+		   
 			cmgyk.animate = function() {
 				if ( should_blink() ) {
 					var time = new Date().getTime();
@@ -302,7 +369,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 
 			var frct = 0;
 			var os = 0;
-			//delay start of offset jitter	
+			
 			vhs.animate = function() {
 				if ( jit && ( (frct % jit_frame_div) === 0 ) ) {
 					vhs.offset.setAttribute("dy", os); 
@@ -321,11 +388,12 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 
 			vhs.webgl = (function(webgl) {
-				var js_random;
 				var vhs_canv = document.createElement('canvas');
 				vhs_canv.width = window.innerWidth * 0.75;
 				vhs_canv.height = window.innerHeight * 0.75;
 				vhs_canv.setAttribute("id", "vhs_canv");
+				
+				var js_random;
 				
 				window.addEventListener('resize', function(e) {
 					vhs_canv.width = window.innerWidth * 0.75;
@@ -333,6 +401,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				});
 				
 				var z = filter_admin.webglSetup(vhs_canv, "/static/map_assets/white_noise.glsl");
+				
 				webgl.update = function() {
 					z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
 					js_random = z.gl.getUniformLocation(z.program, "js_random");
@@ -385,7 +454,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			}
 
 			var close_thresh = 17;
-			var idle_interval = 30000;
+			var idle_interval = 300000;
 			var was_in_close = false;
 			var new_filter;
 			var old_filter;
@@ -432,14 +501,14 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 						}
 					}())
 
-					coord.applyFilter(zoomed[ rndIdxInArr(zoomed) ]);
+					coord.applyFilter(zfil);
 					was_in_close = true;
 				}		
 			};
 			
 			// start with start filter
 			coord.applyFilter(start[ rndIdxInArr(start) ]);
-
+			
 			//just switch every so often 
 			window.setInterval(function() { 
 				coord.applyFilter(general[ rndIdxInArr(general) ]); 
@@ -475,8 +544,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 	}({}))	
 		
 	// media queries for filters
-	var dppx1dot2 =  window.matchMedia("only screen and (min-resolution: 1.2dppx),"+
-					   "only screen and (-webkit-min-device-pixel-ratio: 1.2)");
+	var dppx1dot2 =  window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
+					   "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
 	if (dppx1dot2.matches) {
 		filter_admin.attrs.print_analog.denoise.setAttribute("stdDeviation", "1.16");
    		filter_admin.attrs.print_analog.bypass.setAttribute("in2", "flip");
