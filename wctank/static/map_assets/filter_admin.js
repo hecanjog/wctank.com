@@ -454,7 +454,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			}
 
 			var close_thresh = 17;
-			var idle_interval = 300000;
+			var idle_interval = 30000;
 			var was_in_close = false;
 			var new_filter;
 			var old_filter;
