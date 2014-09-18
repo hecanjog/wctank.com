@@ -1,10 +1,11 @@
 //TODO: refine map_canvas selector, handle non-webgl and non-svg (disable filters that use webgl, 
-//svg and substitutions), create pop-up suprises, do something with wes's text
-//animate caustic glow filter and add a bit of color maybe
+//svg and fallbacks), create pop-up suprises, do something with wes's text, add map sounds, dom element map icons
+//
 
 // aliases for yt iframe API
 var onYouTubeIframeAPIReady;
 var onPlayerReady;
+var onPlayerStateChange;
 
 var filter_admin; 
 // for some reason, firefox is not playing nice with svg filters in external
@@ -62,16 +63,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		}({}))
 
 		filter_admin.webglSetup = function(canvas, shader_path) {
-			/*
-			//handle context loss	
-			canvas.addEventListener("webglcontextlost", function(e) {
-				e.preventDefault();
-			}, false);		
-			canvas.addEventListener("webglcontextrestored", function() { 
-				filter_admin.webglSetup(canvas, shader_path); 
-			}, false);
-			*/
-
 			var r = {};
 			
 			gl = (function() {
@@ -140,9 +131,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			denoise: document.getElementById("pa-denoise"),
    			bypass: document.getElementById("pa-bypass")
    		};
-   		
+   		// occasionally drop entire map in caustic_glow	
 		filter_admin.attrs.caustic_glow = (function(caustic_glow) {
-			caustic_glow.categories = cat.GENERAL | cat.ZOOMED | cat.START;
+			caustic_glow.categories = cat.GENERAL | cat.TAKEOVER | cat.ZOOMED | cat.START;
    			caustic_glow.glow_radius = document.getElementById("cg-glow-radius");
 			
 			var caustic_glow_back = document.createElement("div");
@@ -163,26 +154,35 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 						controls: 0,
 						disablekb: 1,
 						loop: 1,
-						modestbranding: 0
+						modestbranding: 0,
+						rel: 0
 					},
 					events: {
-						onReady: onPlayerReady
+						onReady: onPlayerReady,
+						onStateChange: onPlayerStateChange
 					}			
 				});
 			};
-			
-			var start_time = 0;	
+			var yt_vid_id = 'Y2YkudgEDNk';
+			var start_offset = 22;
+			var start_time = start_offset;	
 			onPlayerReady = function(event) {
 				player.mute();
-				player.loadVideoById('X2QFL-PHb1A', start_time);
+				player.loadVideoById(yt_vid_id, start_time);
+			
 			};
+			onPlayerStateChange = function(event) {
+				if (event.data === YT.PlayerState.ENDED) {
+					player.loadVideoById(yt_vid_id, start_offset); 
+				}
+			};
+
 			caustic_glow.init = function() {
 				document.body.appendChild(caustic_glow_back);
 			};
 			caustic_glow.teardown = function() {
-				start_time = ( start_time + player.getCurrentTime() ) % player.getDuration();
+				start_time = player.getCurrentTime();
 				document.body.removeChild(caustic_glow_back);
-
 			};
 
 			return caustic_glow;
@@ -202,12 +202,14 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				
 			var engaged = false;
 			var times_engaged = 0;
+			// the should_ko and should_blink are available should we want to modify this behavior,
+			// but for the moment, just do everything right away
 			var should_ko = function() {
-				if (times_engaged > 2) return true;
+				if (times_engaged > 0) return true;
 				return false;
 			};
 			var should_blink = function() {
-				if (times_engaged > 5) {
+				if (times_engaged > 0) {
 					//coord.pushCategory(cat.TAKEOVER, "cmgyk");	
 					return true;
 				}
@@ -234,7 +236,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
            			x1 = 2 * Math.random() - 1;
         			x2 = 2 * Math.random() - 1;
         			rad = x1 * x1 + x2 * x2;
-    			} while(rad >= 1 || rad == 0);
+    			} while (rad >= 1 || rad == 0);
  
     			var c = Math.sqrt(-2 * Math.log(rad) / rad); 
     			return x1 * c;
@@ -248,7 +250,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 								  ":nth-child(5) :nth-child(1)").children();
 					$kos = $();		
 					var s_idx, e_idx;
-					//blink$ = [];
 					(function() {
 						var mdn = ($map_imgs.length * 0.5 + 0.5) | 0;
 						var idxGen = function() {
@@ -369,7 +370,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 
 			var frct = 0;
 			var os = 0;
-			
 			vhs.animate = function() {
 				if ( jit && ( (frct % jit_frame_div) === 0 ) ) {
 					vhs.offset.setAttribute("dy", os); 
@@ -393,22 +393,27 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				vhs_canv.height = window.innerHeight * 0.75;
 				vhs_canv.setAttribute("id", "vhs_canv");
 				
-				var js_random;
-				
 				window.addEventListener('resize', function(e) {
 					vhs_canv.width = window.innerWidth * 0.75;
 					vhs_canv.height = window.innerHeight * 0.75;
 				});
 				
 				var z = filter_admin.webglSetup(vhs_canv, "/static/map_assets/white_noise.glsl");
-				
+
+				var start_time = Date.now();	
+				var time;
+				var js_random;
+				var idle;
 				webgl.update = function() {
 					z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+					time = z.gl.getUniformLocation(z.program, "time");
+					z.gl.uniform1f(time, Date.now() - start_time);
 					js_random = z.gl.getUniformLocation(z.program, "js_random");
 					z.gl.uniform1f(js_random, Math.random());
+					idle = z.gl.getUniformLocation(z.program, "idle");
+					z.gl.uniform1i(idle, jit ? 1 : 0);
 					z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
 				};
-
 				webgl.init = function() {
 					document.body.appendChild(vhs_canv);
 				}
@@ -453,12 +458,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				}
 			}
 
-			var close_thresh = 17;
-			var idle_interval = 30000;
 			var was_in_close = false;
 			var new_filter;
 			var old_filter;
-
 			coord.applyFilter = function(filter) {
 				filter_admin.current = filter;
 				var render = filter_admin.render;
@@ -485,6 +487,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				return (Math.random() * arr.length + 0.5) | 0;
 			}
 
+			var close_thresh = 17;
+			var idle_interval = 300000;
 			// If we are at zoom level 17 (where the view in some places changes to 45deg),
 			// then switch to a filter different from the one currently being used
 			coord.onZoom = function(map_obj) {
@@ -515,7 +519,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			}, idle_interval);
 		
 			return coord;
-		
 		}({}))
 
 		// provided a google.map object, adds listeners for whatever in filter_admin needs it

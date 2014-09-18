@@ -9,11 +9,13 @@ END
 
 @@ fragment shader
 precision lowp float;
+uniform float time;
 uniform float js_random;
+uniform int idle;
 
 float rand(vec2 co)
 {
-	float a = 12.9898;
+	float a = 1.9898;
 	float b = 78.233;
 	float c = 43758.5453;
 	float dt = dot(co.xy, vec2(a, b));
@@ -23,12 +25,16 @@ float rand(vec2 co)
 
 void main(void)
 {
-	vec2 seed = vec2(gl_FragCoord.x + js_random, gl_FragCoord.y + js_random);
-	float num = rand(seed);
-	if (num > 0.5) {
-		gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-	} else {
-		gl_FragColor = vec4(0.0, 0.0, 0.0, 0.15);
-	}    
+	vec4 color;
+	float time_rand = rand(vec2(time, time));
+	float num = rand( vec2(gl_FragCoord.x + js_random, gl_FragCoord.y + js_random) );	
+	float varient = mod(time * time, 15000.0);
+	float clr = 0.2 * time_rand;
+	if (idle == 1) {
+		if ( rand(gl_FragCoord.xy * varient) < 0.01 ) color = vec4(clr, clr, clr, 0.40);
+	} else if (num < 0.5) { 
+		color = vec4(0, 0, 0, 0.15);	
+	}
+	gl_FragColor = color;
 }
 END
