@@ -25,14 +25,16 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			$overlay: $('#overlay'),
 			$map: $("#map-canvas")
 		};
-
+		
 		var cat = {
-			GENERAL: 	0x0F000000,
-			ZOOMED: 	0x00F00000,
-			TAKEOVER: 	0x000F0000,
-			START: 		0x0000F000,
-			NONE:  		0x00000000
-		};
+			GENERAL: 		0x80000000, // filter can be called on an /idle_interval setInterval
+			ZOOMED: 		0x40000000, // filter can be called when zoom level >= 17
+			TAKEOVER_DOWN: 	0x20000000, // if filter called on zoom >= 17 event, persists when zoom < 17
+			TAKEOVER_UP: 	0x10000000, // if filter already called, zoom >= 17 event has no effect
+			START: 			0x08000000, // filter can be called on load
+			NONE: 			0x00000000
+		};		
+
 
 		filter_admin.current = null;
 
@@ -127,13 +129,13 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		};
 
 		filter_admin.attrs.print_analog = {
-    		categories: cat.GENERAL | cat.ZOOMED | cat.TAKEOVER | cat.START,
+    		categories: cat.GENERAL | cat.ZOOMED | cat.TAKEOVER_DOWN | cat.START,
 			denoise: document.getElementById("pa-denoise"),
    			bypass: document.getElementById("pa-bypass")
    		};
    		// occasionally drop entire map in caustic_glow	
 		filter_admin.attrs.caustic_glow = (function(caustic_glow) {
-			caustic_glow.categories = cat.GENERAL | cat.TAKEOVER | cat.ZOOMED | cat.START;
+			caustic_glow.categories = cat.GENERAL | cat.TAKEOVER_DOWN | cat.TAKEOVER_UP | cat.ZOOMED | cat.START;
    			caustic_glow.glow_radius = document.getElementById("cg-glow-radius");
 			
 			var caustic_glow_back = document.createElement("div");
@@ -169,7 +171,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			onPlayerReady = function(event) {
 				player.mute();
 				player.loadVideoById(yt_vid_id, start_time);
-			
 			};
 			onPlayerStateChange = function(event) {
 				if (event.data === YT.PlayerState.ENDED) {
@@ -210,7 +211,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			var should_blink = function() {
 				if (times_engaged > 0) {
-					//coord.pushCategory(cat.TAKEOVER, "cmgyk");	
+					//coord.pushCategory(cat.TAKEOVER_DOWN, "cmgyk");	
 					return true;
 				}
 				return false;
@@ -399,7 +400,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				});
 				
 				var z = filter_admin.webglSetup(vhs_canv, "/static/map_assets/white_noise.glsl");
-
+				
 				var start_time = Date.now();	
 				var time;
 				var js_random;
@@ -429,7 +430,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		var coord = (function(coord) {
 			var general = [];
 			var zoomed = [];
-			var takeover = [];
+			var takeover_down = [];
+			var takeover_up = [];
 			var start = [];
 
 			for (var filter in filter_admin.attrs) {
@@ -437,7 +439,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					var cats = filter_admin.attrs[filter].categories;
 					if ( (cats & cat.GENERAL) === cat.GENERAL ) general.push(filter);
 					if ( (cats & cat.ZOOMED) === cat.ZOOMED ) zoomed.push(filter);					
-					if ( (cats & cat.TAKEOVER) === cat.TAKEOVER ) takeover.push(filter);
+					if ( (cats & cat.TAKEOVER_DOWN) === cat.TAKEOVER_DOWN ) takeover_down.push(filter);
+					if ( (cats & cat.TAKEOVER_UP) === cat.TAKEOVER_UP ) takeover_up.push(filter);
 					if ( (cats & cat.START) === cat.START ) start.push(filter);
 				}
 			}
@@ -449,8 +452,11 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					case cat.ZOOMED:
 						zoomed.push(filter);
 						break;
-					case cat.TAKEOVER:
-						takeover.push(filter);
+					case cat.TAKEOVER_DOWN:
+						takeover_down.push(filter);
+						break;
+					case cat.TAKEOVER_UP:
+						takeover_up.push(filter);
 						break;
 					case cat.START:
 						start.push(filter);
@@ -480,7 +486,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				}
 				old_filter = new_filter;
 				new_filter = filter;
-				if ( takeover.indexOf(filter) !== -1 ) old_filter = filter;	
+				if ( takeover_down.indexOf(filter) !== -1 ) old_filter = filter;	
 			};
 				
 			var rndIdxInArr = function(arr) {
@@ -488,14 +494,14 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			}
 
 			var close_thresh = 17;
-			var idle_interval = 300000;
+			var idle_interval = 30000;
 			// If we are at zoom level 17 (where the view in some places changes to 45deg),
 			// then switch to a filter different from the one currently being used
 			coord.onZoom = function(map_obj) {
 				if ( was_in_close && (map_obj.zoom <= close_thresh) ) {
 					coord.applyFilter(old_filter);
 					was_in_close = false;
-				} else if ( !was_in_close && (map_obj.zoom > close_thresh) ) {
+				} else if ( !was_in_close && (map_obj.zoom > close_thresh) && (takeover_up.indexOf(new_filter) === -1) ) {
 					var zfil = zoomed[ rndIdxInArr(zoomed) ];
 					
 					(function check_dup() {

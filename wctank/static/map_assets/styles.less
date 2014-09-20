@@ -92,13 +92,14 @@ button {
 /*
  * filter classes
  */
-
 .callFilter(@name) {
     -webkit-filter: url('/#@{name}');
     filter: url('/#@{name}');
 }
 
-.none {}
+.troller {
+	
+}
 
 .print_analog {
     .callFilter(print-analog);
@@ -121,9 +122,6 @@ button {
 
 .fauvist {
     .callFilter(fauvist);
-}
-#fauvist #fauvist-saturation {
-	.prefixed-transition(values 100ms linear);		
 }
 
 .cmgyk {

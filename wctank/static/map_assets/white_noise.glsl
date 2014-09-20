@@ -28,7 +28,8 @@ void main(void)
 	vec4 color;
 	float time_rand = rand(vec2(time, time));
 	float num = rand( vec2(gl_FragCoord.x + js_random, gl_FragCoord.y + js_random) );	
-	float varient = mod(time * time, 15000.0);
+	float time_mod = mod(time + 2000.0, 30000.0);
+	float varient = time_mod * time_mod;
 	float clr = 0.2 * time_rand;
 	if (idle == 1) {
 		if ( rand(gl_FragCoord.xy * varient) < 0.01 ) color = vec4(clr, clr, clr, 0.40);
