@@ -27,11 +27,11 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		};
 		
 		var cat = {
-			GENERAL: 		0x80000000, // filter can be called on an /idle_interval setInterval
-			ZOOMED: 		0x40000000, // filter can be called when zoom level >= 17
-			TAKEOVER_DOWN: 	0x20000000, // if filter called on zoom >= 17 event, persists when zoom < 17
-			TAKEOVER_UP: 	0x10000000, // if filter already called, zoom >= 17 event has no effect
-			START: 			0x08000000, // filter can be called on load
+			GENERAL: 		0x40000000, // filter can be called on an /idle_interval setInterval
+			ZOOMED: 		0x20000000, // filter can be called when zoom level >= 17
+			TAKEOVER_DOWN: 	0x10000000, // if filter called on zoom >= 17 event, persists when zoom < 17
+			TAKEOVER_UP: 	0x08000000, // if filter already called, zoom >= 17 event has no effect
+			START: 			0x04000000, // filter can be called on load
 			NONE: 			0x00000000
 		};		
 
@@ -79,7 +79,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			if (gl) {
 				gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 				gl.clearColor(0.0, 0.0, 0.0, 0.0);
-				
+				window.addEventListener("resize", function() {
+					gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				});
 				//draw two big triangles
 				var buffer = gl.createBuffer();
 				gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -124,9 +126,52 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		
 		filter_admin.attrs = {};
 		
-		filter_admin.attrs.none = {
-			categories: cat.GENERAL | cat.ZOOMED
-		};
+		filter_admin.attrs.troller = (function(troller) {
+			troller.categories = cat.GENERAL | cat.ZOOMED;
+			var troller_back = document.createElement('div');
+			troller_back.setAttribute("id", "troller_back");
+
+			var rot = 0;
+			var ident = "rotate(0deg)";
+			var transform = function(val) {
+				div.$map.css("transform", val);
+				div.$map.css("webkitTransform", val);
+			};
+			var getCurrentRotation = function() {
+				// basically ripped from: http://css-tricks.com/get-value-of-css-rotation-through-javascript/
+				var sty = window.getComputedStyle(div.$map.get(0));
+				var mat = sty.getPropertyValue("-webkit-transform") || sty.getPropertyValue("transform");
+				var values = mat.split('(')[1];
+				values = values.split(')')[0];
+				values = values.split(',');
+				var a = Number(values[0]);
+				var b = Number(values[1]);
+				return Math.round(Math.asin(b) * (180/Math.PI));
+			};
+			troller.preInit = function() {
+				var str = "rotate("+rot.toString()+"deg)";
+				transform(str);	
+				// calling getCurrentRotation here resolves a timing issue where the rotate in init
+				// was obliterating the preInit rotate
+				getCurrentRotation();
+			};
+			troller.init = function() {
+				document.body.appendChild(troller_back);
+				var str = "rotate(360deg)";
+				transform(str);
+				//as of now, rotating #map-canvas disables map icon click events, so make this short-lived
+				window.setTimeout(coord.forceApply, 5000); 
+			};
+			troller.preTeardown = function() {
+				rot += getCurrentRotation();
+			};
+			troller.teardown = function() {
+				transform(ident);	
+				document.body.removeChild(troller_back);
+			};
+
+			return troller;
+		}({}));
 
 		filter_admin.attrs.print_analog = {
     		categories: cat.GENERAL | cat.ZOOMED | cat.TAKEOVER_DOWN | cat.START,
@@ -336,8 +381,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				var zoom = map_obj.zoom;
 				rot = rot + ( (zoom - lzoom) * rot_interval );
 				var str = "rotate("+rot.toString()+"deg)";
-				cmgyk_back.style.transform = "rotate("+rot.toString()+"deg)";
-				cmgyk_back.style.webkitTransform = "rotate("+rot.toString()+"deg)";
+				cmgyk_back.style.transform = str; 
+				cmgyk_back.style.webkitTransform = str;
 				lzoom = zoom;			
 			};
 
@@ -444,6 +489,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					if ( (cats & cat.START) === cat.START ) start.push(filter);
 				}
 			}
+			
 			coord.pushCategory = function(catObj, filter) {
 				switch(catObj) {
 					case cat.GENERAL:
@@ -471,14 +517,16 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				filter_admin.current = filter;
 				var render = filter_admin.render;
 				if (new_filter) {
-					div.$map.removeClass(new_filter);
 					var this_filter = filter_admin.attrs[new_filter];
+					if ( this_filter.hasOwnProperty('preTeardown') ) this_filter.preTeardown();
+					div.$map.removeClass(new_filter);
 					if ( this_filter.hasOwnProperty('animate') ) filter_admin.render.rm(this_filter.animate);
 					if ( this_filter.hasOwnProperty('teardown') ) this_filter.teardown();
 					if ( !render.has() ) render.stop();
 				}
-				div.$map.addClass(filter);
 				var this_filter = filter_admin.attrs[filter]; 
+				if ( this_filter.hasOwnProperty('preInit') ) this_filter.preInit();
+				div.$map.addClass(filter);
 				if (typeof this_filter !== "undefined") {	
 					if ( this_filter.hasOwnProperty('init') ) this_filter.init();
 					if ( this_filter.hasOwnProperty('animate') ) render.push(this_filter.animate);
@@ -490,38 +538,39 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 				
 			var rndIdxInArr = function(arr) {
-				return (Math.random() * arr.length + 0.5) | 0;
+				return (Math.random() * arr.length - 0.5) | 0;
 			}
-
+			var rnd_fil_wo_dup = function(arr) {
+				var nf = arr[ rndIdxInArr(arr) ];
+				(function check_dup() {
+					if (nf === new_filter) {
+						nf = arr[ rndIdxInArr(arr) ];
+						check_dup();
+					}
+				}())
+				coord.applyFilter(nf);
+			};
+			coord.forceApply = function() {
+				rnd_fil_wo_dup(general);
+			};
 			var close_thresh = 17;
-			var idle_interval = 30000;
-			// If we are at zoom level 17 (where the view in some places changes to 45deg),
-			// then switch to a filter different from the one currently being used
+			var idle_interval = 50000;
 			coord.onZoom = function(map_obj) {
 				if ( was_in_close && (map_obj.zoom <= close_thresh) ) {
 					coord.applyFilter(old_filter);
 					was_in_close = false;
 				} else if ( !was_in_close && (map_obj.zoom > close_thresh) && (takeover_up.indexOf(new_filter) === -1) ) {
-					var zfil = zoomed[ rndIdxInArr(zoomed) ];
-					
-					(function check_dup() {
-						if (zfil === new_filter) {
-							zfil = zoomed[ rndIdxInArr(zoomed) ];
-							check_dup();
-						}
-					}())
-
-					coord.applyFilter(zfil);
+					rnd_fil_wo_dup(zoomed);
 					was_in_close = true;
 				}		
 			};
 			
-			// start with start filter
+			// start with a start filter
 			coord.applyFilter(start[ rndIdxInArr(start) ]);
 			
-			//just switch every so often 
+			//just switch every so often
 			window.setInterval(function() { 
-				coord.applyFilter(general[ rndIdxInArr(general) ]); 
+				rnd_fil_wo_dup(general);
 			}, idle_interval);
 		
 			return coord;

@@ -7,35 +7,44 @@
 @off_white: #FBFBFB; //for text in overlay
 @salmon_blood: #eb054c; //ui icon hover
 
-.prefixed-transform(@arg) {
+.transform(@arg) {
     -moz-transform: @arg;
     -ms-transform: @arg;
     -o-transform: @arg;
     -webkit-transform: @arg;
     transform: @arg;
 }
-.prefixed-animation(@arg) {
+.animation(@arg) {
     -moz-animation: @arg;
     -ms-animation: @arg;
     -o-animation: @arg;
     -webkit-animation: @arg;
     animation: @arg;
 }
-.prefixed-transition(@arg) {
+
+.keyframes(@name, @animation) {
+	@-moz-keyframes @name { @animation(); }
+	@-o-keyframes @name { @animation(); }
+	@-ms-keyframes @name { @animation(); }
+	@-webkit-keyframes @name { @animation(); }
+	@keyframes @name { @animation(); }
+}
+
+.transition(@arg) {
     -moz-transition: @arg;
     -ms-transition: @arg;
     -o-transition: @arg;
     -webkit-transition: @arg;
     transition: @arg;
 }
-.prefixed-linear-gradient(@arg) {
+.linear-gradient(@arg) {
 	background-image: -webkit-gradient(@arg);
 	background-image: -webkit-linear-gradient(@arg);
 	background-image: -moz-linear-gradient(@arg);
 	background-image: -o-linear-gradient(@arg);
 	background-image: linear-gradient(@arg);
 }
-.prefixed-repeating-linear-gradient(@arg) {
+.repeating-linear-gradient(@arg) {
 	background-image: -webkit-repeating-gradient(@arg);
 	background-image: -webkit-repeating-linear-gradient(@arg);
 	background-image: -moz-repeating-linear-gradient(@arg);
@@ -46,7 +55,7 @@
 .vert-pos(@positioning, @from_top) {
     position: @positioning;
     top: @from_top;
-    .prefixed-transform(translateY(-50%););
+    .transform(translateY(-50%););
 }
 .fullsize {
 	display: block;
@@ -98,7 +107,12 @@ button {
 }
 
 .troller {
-	
+	.transition(all 360s linear);
+}
+#troller_back {
+	.fullsize;
+	z-index: -1;
+	background-image: url('erik.jpg');
 }
 
 .print_analog {
@@ -117,7 +131,7 @@ button {
 	.fullsize;
 	width: 250%;
 	height: 250%;
-	.prefixed-transform(translate(-30%, -30%););
+	.transform(translate(-30%, -30%););
 }
 
 .fauvist {
@@ -133,7 +147,7 @@ button {
 	height: 100%;
 	z-index: -1;
 	overflow: hidden;
-	.prefixed-transition(all 300ms ease-in-out);	
+	.transition(all 300ms ease-in-out);	
 }
 #cmgyk_grad {
 	width: 200%;
@@ -148,18 +162,14 @@ button {
 		#FF0000 30%, 
 		#FF7F00 36%,
 	    #FFFF00 42%;	
-	.prefixed-repeating-linear-gradient(@lgval);
-	.prefixed-animation(slide 6s infinite linear);
+	.repeating-linear-gradient(@lgval);
+	.animation(slide 6s infinite linear);
 }
-.cmgyk-rainbow-slide {
-	0% { .prefixed-transform(translateX(-42%);) }
-	100% { .prefixed-transform(translateX(0%);) }
-}
-@-moz-keyframes slide { .cmgyk-rainbow-slide; }
-@-o-keyframes slide { .cmgyk-rainbow-slide; }
-@-ms-keyframes slide { .cmgyk-rainbow-slide; }
-@-webkit-keyframes slide { .cmgyk-rainbow-slide; }
-@keyframes slide { .cmgyk-rainbow-slide; }
+.keyframes(slide, {
+	0% { .transform(translateX(-42%);) }
+	100% { .transform(translateX(0%);) }
+});
+
 #cmgyk_steady_back {
 	.fullsize;
 	width: 200%;
@@ -173,20 +183,14 @@ button {
 		#E63E2E 30%, 
 		#FF7F00 36%,
 	    #FFFF00 42%;	
-	.prefixed-repeating-linear-gradient(@lgval);
-	.prefixed-animation(slide-left 10s infinite linear);
+	.repeating-linear-gradient(@lgval);
+	.animation(slide-left 10s infinite linear);
 	z-index: -2;
 }
-.cmgyk-rainbow-slide-rev {
-	0% { .prefixed-transform(translateX(0%);) }
-	100% { .prefixed-transform(translateX(-42%);) }
-}
-@-moz-keyframes slide-left { .cmgyk-rainbow-slide-rev; }
-@-o-keyframes slide-left { .cmgyk-rainbow-slide-rev; }
-@-ms-keyframes slide-left { .cmgyk-rainbow-slide-rev; }
-@-webkit-keyframes slide-left { .cmgyk-rainbow-slide-rev; }
-@keyframes slide-left { .cmgyk-rainbow-slide-rev; }
-
+.keyframes(slide-left, {
+	0% { .transform(translateX(0%);) }
+	100% { .transform(translateX(-42%);) }
+});
 
 .vhs {
 	.callFilter(vhs);
@@ -198,7 +202,7 @@ button {
 	top: 0;
 	left: 0;
 	pointer-events: none;
-	.prefixed-transform(scale(1.666, 1.666););
+	.transform(scale(1.666, 1.666););
 }
 #vhs_back {
 	.fullsize;
@@ -210,13 +214,16 @@ button {
 		#6F00FF 54%, 
 		#FF00FF 72%, 
 		#FF0000 90%; 
-	.prefixed-linear-gradient(@lgval);
+	.linear-gradient(@lgval);
 }
 
 /*
  * major divs
  */
-
+#map-canvas-wrapper {
+	.fullsize;
+	background: rgba(0, 0, 0, 0);
+}
 #map-canvas {
     width: 100%;
     height: 100%;
@@ -397,7 +404,7 @@ button {
     stroke: @off_white;
     stroke-width: 3;
     stroke-dasharray: 3200;
-    .prefixed-animation(dash 3500ms infinite linear);
+    .animation(dash 3500ms infinite linear);
 }
 .svg_loader_frames() {
     from { stroke-dashoffset: 3200; }
