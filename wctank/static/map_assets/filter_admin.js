@@ -27,12 +27,12 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 		};
 		
 		var cat = {
-			GENERAL: 		0x40000000, // filter can be called on an /idle_interval setInterval
-			ZOOMED: 		0x20000000, // filter can be called when zoom level >= 17
-			TAKEOVER_DOWN: 	0x10000000, // if filter called on zoom >= 17 event, persists when zoom < 17
-			TAKEOVER_UP: 	0x08000000, // if filter already called, zoom >= 17 event has no effect
-			START: 			0x04000000, // filter can be called on load
-			NONE: 			0x00000000
+			GENERAL:        0x40000000, // filter can be called on an /idle_interval setInterval
+			ZOOMED:         0x20000000, // filter can be called when zoom level >= 17
+			TAKEOVER_DOWN:  0x10000000, // if filter called on zoom >= 17 event, persists when zoom < 17
+			TAKEOVER_UP:    0x08000000, // if filter already called, zoom >= 17 event has no effect
+			START:          0x04000000, // filter can be called on load
+			NONE:           0x00000000
 		};		
 
 
@@ -160,7 +160,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				var str = "rotate(360deg)";
 				transform(str);
 				//as of now, rotating #map-canvas disables map icon click events, so make this short-lived
-				window.setTimeout(coord.forceApply, 5000); 
+				window.setTimeout(coord.forceApply, 4000); 
 			};
 			troller.preTeardown = function() {
 				rot += getCurrentRotation();
@@ -248,14 +248,12 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				
 			var engaged = false;
 			var times_engaged = 0;
-			// the should_ko and should_blink are available should we want to modify this behavior,
-			// but for the moment, just do everything right away
 			var should_ko = function() {
-				if (times_engaged > 0) return true;
+				if (times_engaged > 1) return true;
 				return false;
 			};
 			var should_blink = function() {
-				if (times_engaged > 0) {
+				if (times_engaged > 2) {
 					//coord.pushCategory(cat.TAKEOVER_DOWN, "cmgyk");	
 					return true;
 				}
@@ -540,7 +538,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var rndIdxInArr = function(arr) {
 				return (Math.random() * arr.length - 0.5) | 0;
 			}
-			var rnd_fil_wo_dup = function(arr) {
+			var rndFilWoDup = function(arr) {
 				var nf = arr[ rndIdxInArr(arr) ];
 				(function check_dup() {
 					if (nf === new_filter) {
@@ -551,7 +549,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				coord.applyFilter(nf);
 			};
 			coord.forceApply = function() {
-				rnd_fil_wo_dup(general);
+				rndFilWoDup(general);
 			};
 			var close_thresh = 17;
 			var idle_interval = 50000;
@@ -560,7 +558,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					coord.applyFilter(old_filter);
 					was_in_close = false;
 				} else if ( !was_in_close && (map_obj.zoom > close_thresh) && (takeover_up.indexOf(new_filter) === -1) ) {
-					rnd_fil_wo_dup(zoomed);
+					rndFilWoDup(zoomed);
 					was_in_close = true;
 				}		
 			};
@@ -570,7 +568,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			
 			//just switch every so often
 			window.setInterval(function() { 
-				rnd_fil_wo_dup(general);
+				rndFilWoDup(general);
 			}, idle_interval);
 		
 			return coord;
