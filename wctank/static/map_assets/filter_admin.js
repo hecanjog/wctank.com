@@ -131,10 +131,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var troller_back = document.createElement('div');
 			troller_back.setAttribute("id", "troller_back");
 			
-			var erik = new Image();
-			erik.src = '/static/map_assets/erik.jpg'
-			troller_back.style.backgroundImage = erik;
-
 			var rot = 0;
 			var ident = "rotate(0deg)";
 			var transform = function(val) {

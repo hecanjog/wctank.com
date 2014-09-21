@@ -93,6 +93,10 @@ body, html {
         font-size:   @font-base * @med-mul;
     }
 }
+body:after {
+	display: none;
+	content: url('erik.jpg');
+}
 button {
     background: none;
     border: none;
@@ -112,6 +116,7 @@ button {
 #troller_back {
 	.fullsize;
 	z-index: -1;
+	background-image: url('erik.jpg');
 }
 
 .print_analog {
