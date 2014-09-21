@@ -130,6 +130,10 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			troller.categories = cat.GENERAL | cat.ZOOMED;
 			var troller_back = document.createElement('div');
 			troller_back.setAttribute("id", "troller_back");
+			
+			var erik = new Image();
+			erik.src = '/static/map_assets/erik.jpg'
+			troller_back.style.backgroundImage = erik;
 
 			var rot = 0;
 			var ident = "rotate(0deg)";
@@ -160,7 +164,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				var str = "rotate(360deg)";
 				transform(str);
 				//as of now, rotating #map-canvas disables map icon click events, so make this short-lived
-				window.setTimeout(coord.forceApply, 4000); 
+				window.setTimeout(coord.forceApply, 5000); 
 			};
 			troller.preTeardown = function() {
 				rot += getCurrentRotation();
@@ -222,7 +226,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					player.loadVideoById(yt_vid_id, start_offset); 
 				}
 			};
-
+		
 			caustic_glow.init = function() {
 				document.body.appendChild(caustic_glow_back);
 			};
@@ -249,11 +253,11 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var engaged = false;
 			var times_engaged = 0;
 			var should_ko = function() {
-				if (times_engaged > 1) return true;
+				if (times_engaged > 2) return true;
 				return false;
 			};
 			var should_blink = function() {
-				if (times_engaged > 2) {
+				if (times_engaged > 3) {
 					//coord.pushCategory(cat.TAKEOVER_DOWN, "cmgyk");	
 					return true;
 				}
