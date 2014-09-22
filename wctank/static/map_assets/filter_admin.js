@@ -190,7 +190,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var yt_player = document.createElement("div");
 			yt_player.setAttribute("id", "yt_player");
 			caustic_glow_back.appendChild(yt_player);
-			//yt_player.style.visibility = "hidden";
 			
 			var yt_tag = document.createElement("script");
 			yt_tag.src = "https://www.youtube.com/iframe_api";
@@ -221,7 +220,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				player.pauseVideo();
 			};
 			onPlayerStateChange = function(event) {
-				if (event.data == YT.PlayerState.ENDED) {
+				if (event.data === YT.PlayerState.ENDED) {
 					player.loadVideoById(yt_vid_id, start_offset); 
 				}
 			};
