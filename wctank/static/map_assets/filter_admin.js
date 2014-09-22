@@ -140,7 +140,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var getCurrentRotation = function() {
 				// basically ripped from: http://css-tricks.com/get-value-of-css-rotation-through-javascript/
 				var sty = window.getComputedStyle(div.$map.get(0));
-				var mat = sty.getPropertyValue("-webkit-transform") || sty.getPropertyValue("transform");
+				var mat = sty.getPropertyValue("-webkit-transform") || sty.getPropertyValue("transform") 
+					|| "matrix(1, 0, 0, 1, 0, 0)"; //getPropertyValue() fails sometimes, so pass identity matrix if it does
 				var values = mat.split('(')[1];
 				values = values.split(')')[0];
 				values = values.split(',');
@@ -151,8 +152,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			troller.preInit = function() {
 				var str = "rotate("+rot.toString()+"deg)";
 				transform(str);	
-				// calling getCurrentRotation here resolves a timing issue where the rotate in init
-				// was obliterating the preInit rotate
+				// calling getCurrentRotation here resolves a timing issue where 
+				// the rotate in init was obliterating the preInit rotate
 				getCurrentRotation();
 			};
 			troller.init = function() {
@@ -189,10 +190,12 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			var yt_player = document.createElement("div");
 			yt_player.setAttribute("id", "yt_player");
 			caustic_glow_back.appendChild(yt_player);
+			//yt_player.style.visibility = "hidden";
 			
 			var yt_tag = document.createElement("script");
 			yt_tag.src = "https://www.youtube.com/iframe_api";
 			caustic_glow_back.appendChild(yt_tag);
+			document.body.appendChild(caustic_glow_back);
 
 			var player;
 			onYouTubeIframeAPIReady = function() {
@@ -212,23 +215,44 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			var yt_vid_id = 'Y2YkudgEDNk';
 			var start_offset = 22;
-			var start_time = start_offset;	
 			onPlayerReady = function(event) {
 				player.mute();
-				player.loadVideoById(yt_vid_id, start_time);
+				player.loadVideoById(yt_vid_id, start_offset);
+				player.pauseVideo();
 			};
 			onPlayerStateChange = function(event) {
-				if (event.data === YT.PlayerState.ENDED) {
+				if (event.data == YT.PlayerState.ENDED) {
 					player.loadVideoById(yt_vid_id, start_offset); 
 				}
 			};
-		
+			
+			var blink_id = null;
+			var blink_map = function() {
+				var del = Math.random() * 20000 + 10000;
+				var dur = Math.random() * 2000 + 1000;
+				blink_id = window.setTimeout(function() {
+					div.$map.css("display", "none");
+					window.setTimeout(function() {
+						div.$map.css("display", "block");
+					}, dur);
+				}, del);
+			};	
 			caustic_glow.init = function() {
-				document.body.appendChild(caustic_glow_back);
+				try {
+					player.playVideo();
+				} catch (err) {
+					window.setTimeout(function() {
+						caustic_glow.init();
+					}, 500);
+				}
+				caustic_glow_back.style.visibility = "visible";
+				if ( (Math.random() * 10) <= 5 ) blink_map(); 
 			};
 			caustic_glow.teardown = function() {
-				start_time = player.getCurrentTime();
-				document.body.removeChild(caustic_glow_back);
+				player.pauseVideo();
+				caustic_glow_back.style.visibility = "hidden";
+				if (blink_id) window.clearTimeout(blink_id);
+				blink_id = null;	
 			};
 
 			return caustic_glow;
