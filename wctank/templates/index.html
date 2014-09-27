@@ -43,11 +43,6 @@
         		]
         	}
         });
-        
-        var div = {
-        	$overlay: $('#overlay'),
-        	$map: $('#map-canvas'),
-        };
        	
         var loader;
         $.get("static/map_assets/loading_cur.svg", function(data) {
@@ -201,7 +196,8 @@
      	
      	function onMarkerClick(post) {
      		//console.log(post.lat, post.long);
-     		var trivial = 130; //mini fade for content swap
+			filter_admin.onMarkerClick();
+			var trivial = 130; //mini fade for content swap
      		 
      		var width = div.$overlay.css("width");
      		div.$overlay.find("*").fadeOut(trivial).remove();

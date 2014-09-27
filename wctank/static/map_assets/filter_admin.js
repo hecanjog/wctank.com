@@ -1,11 +1,18 @@
 //TODO: refine map_canvas selector, handle non-webgl and non-svg (disable filters that use webgl, 
 //svg and fallbacks), create pop-up suprises, do something with wes's text, add map sounds, dom element map icons
-//
+// remove wes tank video filter after video finished - introduce delay, 
+// then swap to another video with different colorization of map
+// consider ceasing filter movement while overlay is engaged
 
 // aliases for yt iframe API
 var onYouTubeIframeAPIReady;
 var onPlayerReady;
 var onPlayerStateChange;
+
+var div = {
+	$overlay: $('#overlay'),
+	$map: $("#map-canvas")
+};
 
 var filter_admin; 
 // for some reason, firefox is not playing nice with svg filters in external
@@ -17,15 +24,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 	cont.style.zIndex = -99999999;
    	document.body.appendChild(cont);
    	cont.innerHTML = new XMLSerializer().serializeToString(data);
-    
+	
 	//container for all filters and related functionality 	
 	filter_admin = (function(filter_admin) {
-		
-		var div = {
-			$overlay: $('#overlay'),
-			$map: $("#map-canvas")
-		};
-		
 		var cat = {
 			GENERAL:        0x40000000, // filter can be called on an /idle_interval setInterval
 			ZOOMED:         0x20000000, // filter can be called when zoom level >= 17
@@ -34,7 +35,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			START:          0x04000000, // filter can be called on load
 			NONE:           0x00000000
 		};		
-
 
 		filter_admin.current = null;
 
@@ -66,8 +66,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 
 		filter_admin.webglSetup = function(canvas, shader_path) {
 			var r = {};
-			
-			gl = (function() {
+			var gl = (function() {
 				try {
 					return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 				} catch (err) {
@@ -75,7 +74,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					return false;
 				}
 			}())
-
 			if (gl) {
 				gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 				gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -95,7 +93,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				gl.enableVertexAttribArray(buffer);	
 				gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
 				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-				
 				// get shader src, do typical initialization
 				$.get(shader_path, function(data) {
 					var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
@@ -130,7 +127,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			troller.categories = cat.GENERAL | cat.ZOOMED;
 			var troller_back = document.createElement('div');
 			troller_back.setAttribute("id", "troller_back");
-			
 			var rot = 0;
 			var ident = "rotate(0deg)";
 			var transform = function(val) {
@@ -170,7 +166,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				transform(ident);	
 				document.body.removeChild(troller_back);
 			};
-
 			return troller;
 		}({}));
 
@@ -179,6 +174,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			denoise: document.getElementById("pa-denoise"),
    			bypass: document.getElementById("pa-bypass")
    		};
+
    		// occasionally drop entire map in caustic_glow	
 		filter_admin.attrs.caustic_glow = (function(caustic_glow) {
 			caustic_glow.categories = cat.GENERAL | cat.TAKEOVER_DOWN | cat.TAKEOVER_UP | cat.ZOOMED | cat.START;
@@ -195,7 +191,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			yt_tag.src = "https://www.youtube.com/iframe_api";
 			caustic_glow_back.appendChild(yt_tag);
 			document.body.appendChild(caustic_glow_back);
-
+			
 			var player;
 			onYouTubeIframeAPIReady = function() {
 				player = new YT.Player('yt_player', {
@@ -221,10 +217,10 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			onPlayerStateChange = function(event) {
 				if (event.data === YT.PlayerState.ENDED) {
-					player.loadVideoById(yt_vid_id, start_offset); 
+					player.loadVideoById(yt_vid_id, start_offset);
+					//coord.rm("caustic_glow"); 
 				}
 			};
-			
 			var blink_id = null;
 			var blink_map = function() {
 				var del = Math.random() * 20000 + 10000;
@@ -253,7 +249,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				if (blink_id) window.clearTimeout(blink_id);
 				blink_id = null;	
 			};
-
 			return caustic_glow;
 		}({}));
 
@@ -282,7 +277,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				}
 				return false;
 			};
-
 			cmgyk.init = function() {
 				engaged = true;
 				times_engaged++;
@@ -295,7 +289,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				document.body.removeChild(cmgyk_back);
 				$kos.css("display", "block");
 			};
-			
 			var gaussDist = function() {
 				// snippet from http://memory.psych.mun.ca/tech/snippets/random_normal/
 				var x1, x2, rad;
@@ -310,7 +303,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			var $kos = $();
 			var blink$ = []; //array with items of form [$, blink_speed in ms]	
-			
 			cmgyk.onMovement = function() {
 				if ( engaged && should_ko() ) {
 					var $map_imgs = $("#map-canvas :nth-child(1) :nth-child(1) :nth-child(1) "+
@@ -391,7 +383,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					}
 				}
 			};
-			
 			var rot_interval = 22.5;
 			var rot = 0;
 			var lzoom = 0;
@@ -406,7 +397,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				cmgyk_back.style.webkitTransform = str;
 				lzoom = zoom;			
 			};
-
 			return cmgyk;
 		}({}))
 				
@@ -429,12 +419,10 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				document.body.removeChild(vhs_back);
 				vhs.webgl.teardown();
 			}
-			
 			var jit;
 			var jit_offset = 3;
 			var jit_delay = 150;
 			var jit_frame_div = 2;
-
 			var frct = 0;
 			var os = 0;
 			vhs.animate = function() {
@@ -453,13 +441,11 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					jit = jit_tmp;
 				}, jit_delay);
 			};
-
 			vhs.webgl = (function(webgl) {
 				var vhs_canv = document.createElement('canvas');
 				vhs_canv.width = window.innerWidth * 0.75;
 				vhs_canv.height = window.innerHeight * 0.75;
 				vhs_canv.setAttribute("id", "vhs_canv");
-				
 				window.addEventListener('resize', function(e) {
 					vhs_canv.width = window.innerWidth * 0.75;
 					vhs_canv.height = window.innerHeight * 0.75;
@@ -494,42 +480,54 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 	
 		// coordinate switching between filters		
 		var coord = (function(coord) {
-			var general = [];
-			var zoomed = [];
-			var takeover_down = [];
-			var takeover_up = [];
-			var start = [];
-
+			var sets = {
+				general: [],
+				zoomed: [],
+				takeover_down: [],
+				takeover_up: [],
+				start: []
+			};	
+			
 			for (var filter in filter_admin.attrs) {
 				if ( filter_admin.attrs.hasOwnProperty(filter) ) {
 					var cats = filter_admin.attrs[filter].categories;
-					if ( (cats & cat.GENERAL) === cat.GENERAL ) general.push(filter);
-					if ( (cats & cat.ZOOMED) === cat.ZOOMED ) zoomed.push(filter);					
-					if ( (cats & cat.TAKEOVER_DOWN) === cat.TAKEOVER_DOWN ) takeover_down.push(filter);
-					if ( (cats & cat.TAKEOVER_UP) === cat.TAKEOVER_UP ) takeover_up.push(filter);
-					if ( (cats & cat.START) === cat.START ) start.push(filter);
+					if ( (cats & cat.GENERAL) === cat.GENERAL ) sets.general.push(filter);
+					if ( (cats & cat.ZOOMED) === cat.ZOOMED ) sets.zoomed.push(filter);					
+					if ( (cats & cat.TAKEOVER_DOWN) === cat.TAKEOVER_DOWN ) sets.takeover_down.push(filter);
+					if ( (cats & cat.TAKEOVER_UP) === cat.TAKEOVER_UP ) sets.takeover_up.push(filter);
+					if ( (cats & cat.START) === cat.START ) sets.start.push(filter);
 				}
 			}
 			
 			coord.pushCategory = function(catObj, filter) {
 				switch(catObj) {
 					case cat.GENERAL:
-						general.push(filter);
+						sets.general.push(filter);
 						break;
 					case cat.ZOOMED:
-						zoomed.push(filter);
+						sets.zoomed.push(filter);
 						break;
 					case cat.TAKEOVER_DOWN:
-						takeover_down.push(filter);
+						sets.takeover_down.push(filter);
 						break;
 					case cat.TAKEOVER_UP:
-						takeover_up.push(filter);
+						sets.takeover_up.push(filter);
 						break;
 					case cat.START:
-						start.push(filter);
+						sets.start.push(filter);
 						break;
 				}
-			}
+			};
+			coord.rm = function(filter) {
+				for (var cat in sets) {
+					if ( sets.hasOwnProperty(cat) ) {
+						var idx = sets[cat].indexOf(filter);
+						if (idx > -1) {
+							sets[cat] = sets[cat].splice(idx, 1);
+						}
+					}
+				}
+			};
 
 			var was_in_close = false;
 			var new_filter;
@@ -555,9 +553,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				}
 				old_filter = new_filter;
 				new_filter = filter;
-				if ( takeover_down.indexOf(filter) !== -1 ) old_filter = filter;	
+				if ( sets.takeover_down.indexOf(filter) !== -1 ) old_filter = filter;	
 			};
-				
 			var rndIdxInArr = function(arr) {
 				return (Math.random() * arr.length - 0.5) | 0;
 			}
@@ -572,28 +569,67 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				coord.applyFilter(nf);
 			};
 			coord.forceApply = function() {
-				rndFilWoDup(general);
+				rndFilWoDup(sets.general);
 			};
 			var close_thresh = 17;
-			var idle_interval = 50000;
 			coord.onZoom = function(map_obj) {
 				if ( was_in_close && (map_obj.zoom <= close_thresh) ) {
 					coord.applyFilter(old_filter);
 					was_in_close = false;
-				} else if ( !was_in_close && (map_obj.zoom > close_thresh) && (takeover_up.indexOf(new_filter) === -1) ) {
-					rndFilWoDup(zoomed);
+				} else if ( !was_in_close && (map_obj.zoom > close_thresh) && (sets.takeover_up.indexOf(new_filter) === -1) ) {
+					rndFilWoDup(sets.zoomed);
 					was_in_close = true;
 				}		
 			};
 			
 			// start with a start filter
-			coord.applyFilter(start[ rndIdxInArr(start) ]);
+			coord.applyFilter(sets.start[ rndIdxInArr(sets.start) ]);
 			
 			//just switch every so often
-			window.setInterval(function() { 
-				rndFilWoDup(general);
-			}, idle_interval);
-		
+			var main_time = (function(main_time) {
+				main_time.interval = 50000;
+				var start = Date.now();
+				main_time.elapsed = 0;
+				var id;
+				var update = function() {
+					start = Date.now();
+					rndFilWoDup(sets.general);
+				};
+				main_time.engage = function() {
+					update();
+					id = window.setInterval(function() {
+						update();
+					}, main_time.interval);
+				};
+				main_time.cease = function() {
+					window.clearInterval(id);
+				};
+				main_time.setElapsed = function() {
+					main_time.elapsed = Date.now() - start;
+				};
+				main_time.engage();
+				return main_time;
+			}({}))
+			var on_time;
+			//enforce maximum pause - 4 min or something
+			filter_admin.onMarkerClick = function() {
+				if ( div.$overlay.is(":hidden") ) {
+					main_time.setElapsed();
+					main_time.cease();
+					on_time = Date.now();
+				} 			
+			};
+			coord.onMapClick = function() {
+				if ( !div.$overlay.is(":hidden") ) {
+					if ( (Date.now() - on_time) > main_time.interval ) {
+						main_time.engage();
+					} else {
+						window.setTimeout(function() {
+							main_time.engage();
+						}, main_time.elapsed);
+					}
+				}
+			};	
 			return coord;
 		}({}))
 
@@ -612,6 +648,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			});
 			google.maps.event.addListener(map_obj, 'bounds_changed', function() {
 				filter_admin.attrs.cmgyk.onMovement();
+			});
+			google.maps.event.addListener(map_obj, 'click', function() {
+				coord.onMapClick();
 			});
 			google.maps.event.addListenerOnce(map_obj, 'tilesloaded', function() {
 				filter_admin.attrs.cmgyk.onLoad(map_obj);		
