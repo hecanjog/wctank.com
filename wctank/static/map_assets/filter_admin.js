@@ -3,6 +3,7 @@
 // remove wes tank video filter after video finished - introduce delay, 
 // then swap to another video with different colorization of map
 // consider ceasing filter movement while overlay is engaged
+// 'oops' background with poetry text
 
 // aliases for yt iframe API
 var onYouTubeIframeAPIReady;
@@ -133,6 +134,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				div.$map.css("transform", val);
 				div.$map.css("webkitTransform", val);
 			};
+			var to_id;
 			var getCurrentRotation = function() {
 				// basically ripped from: http://css-tricks.com/get-value-of-css-rotation-through-javascript/
 				var sty = window.getComputedStyle(div.$map.get(0));
@@ -157,7 +159,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				var str = "rotate(360deg)";
 				transform(str);
 				//as of now, rotating #map-canvas disables map icon click events, so make this short-lived
-				window.setTimeout(coord.forceApply, 5000); 
+				to_id = window.setTimeout(coord.forceApply, 5000); 
 			};
 			troller.preTeardown = function() {
 				rot += getCurrentRotation();
@@ -165,6 +167,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			troller.teardown = function() {
 				transform(ident);	
 				document.body.removeChild(troller_back);
+				window.clearTimeout(to_id);
 			};
 			return troller;
 		}({}));
@@ -582,53 +585,48 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				}		
 			};
 			
-			// start with a start filter
-			coord.applyFilter(sets.start[ rndIdxInArr(sets.start) ]);
-			
-			//just switch every so often
 			var main_time = (function(main_time) {
-				main_time.interval = 50000;
-				var start = Date.now();
-				main_time.elapsed = 0;
+				var interval = 35000;
+				var start;
+				var cease = 0;
+				var elapsed = 0;
 				var id;
+				var first = true;
 				var update = function() {
 					start = Date.now();
-					rndFilWoDup(sets.general);
+					if (first) {
+						rndFilWoDup(sets.start);
+						first = false;
+					} else {
+						rndFilWoDup(sets.general);
+					}
 				};
 				main_time.engage = function() {
-					update();
-					id = window.setInterval(function() {
+					if ( (Date.now() - cease) > interval ) {
 						update();
-					}, main_time.interval);
+						id = window.setInterval(update, interval);
+					} else {
+						id = window.setTimeout(function() {
+							update();
+							id = window.setInterval(update, interval);
+						}, elapsed);
+					}
 				};
 				main_time.cease = function() {
+					cease = Date.now();
+					elapsed = cease - start;
 					window.clearInterval(id);
-				};
-				main_time.setElapsed = function() {
-					main_time.elapsed = Date.now() - start;
+					window.clearTimeout(id);
 				};
 				main_time.engage();
 				return main_time;
 			}({}))
-			var on_time;
 			//enforce maximum pause - 4 min or something
 			filter_admin.onMarkerClick = function() {
-				if ( div.$overlay.is(":hidden") ) {
-					main_time.setElapsed();
-					main_time.cease();
-					on_time = Date.now();
-				} 			
+				if ( div.$overlay.is(":hidden") ) main_time.cease();
 			};
 			coord.onMapClick = function() {
-				if ( !div.$overlay.is(":hidden") ) {
-					if ( (Date.now() - on_time) > main_time.interval ) {
-						main_time.engage();
-					} else {
-						window.setTimeout(function() {
-							main_time.engage();
-						}, main_time.elapsed);
-					}
-				}
+				if ( !div.$overlay.is(":hidden") ) main_time.engage();
 			};	
 			return coord;
 		}({}))
