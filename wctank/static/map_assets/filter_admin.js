@@ -64,7 +64,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			}
 			return render;
 		}({}))
-
+		
+		var webglSuccess;
 		filter_admin.webglSetup = function(canvas, shader_path) {
 			var r = {};
 			var gl = (function() {
@@ -72,10 +73,12 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 				} catch (err) {
 					throw "WebGL is good to have? I like to fart";
+					webglSuccess = false;
 					return false;
 				}
 			}())
 			if (gl) {
+				webglSuccess = true;
 				gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 				gl.clearColor(0.0, 0.0, 0.0, 0.0);
 				window.addEventListener("resize", function() {
@@ -488,7 +491,8 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 				zoomed: [],
 				takeover_down: [],
 				takeover_up: [],
-				start: []
+				start: [],
+				webgl: []
 			};	
 			
 			for (var filter in filter_admin.attrs) {
@@ -499,9 +503,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 					if ( (cats & cat.TAKEOVER_DOWN) === cat.TAKEOVER_DOWN ) sets.takeover_down.push(filter);
 					if ( (cats & cat.TAKEOVER_UP) === cat.TAKEOVER_UP ) sets.takeover_up.push(filter);
 					if ( (cats & cat.START) === cat.START ) sets.start.push(filter);
+					if ( filter_admin.attrs[filter].hasOwnProperty("webgl") ) sets.webgl.push(filter);
 				}
 			}
-			
 			coord.pushCategory = function(catObj, filter) {
 				switch(catObj) {
 					case cat.GENERAL:
@@ -523,14 +527,13 @@ $.get("static/map_assets/map_filters.xml", function(data) {
 			};
 			coord.rm = function(filter) {
 				for (var cat in sets) {
-					if ( sets.hasOwnProperty(cat) ) {
+					if ( sets.hasOwnProperty(cat) && (cat !== "webgl") ) {
 						var idx = sets[cat].indexOf(filter);
-						if (idx > -1) {
-							sets[cat] = sets[cat].splice(idx, 1);
-						}
+						if (idx > -1) sets[cat].splice(idx, 1);
 					}
 				}
 			};
+			if (!webglSuccess) sets.webgl.forEach(coord.rm); // if webgl init fails, disable filters dependent on it.
 
 			var was_in_close = false;
 			var new_filter;
