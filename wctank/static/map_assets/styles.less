@@ -1,9 +1,7 @@
 @small: ~"screen and (max-width: 31em)";
-
 @med-res: ~"only screen and (min-resolution: 1.2dppx), only screen and (-webkit-min-device-pixel-ratio: 1.2)";
 //@med-res: ~"only screen and (min-resolution: 1.0dppx)";
 @med-mul: 0.8;
-
 @off_white: #FBFBFB; //for text in overlay
 @salmon_blood: #eb054c; //ui icon hover
 
@@ -21,15 +19,13 @@
     -webkit-animation: @arg;
     animation: @arg;
 }
-
 .keyframes(@name, @animation) {
-	@-moz-keyframes @name { @animation(); }
-	@-o-keyframes @name { @animation(); }
-	@-ms-keyframes @name { @animation(); }
-	@-webkit-keyframes @name { @animation(); }
-	@keyframes @name { @animation(); }
+    @-moz-keyframes @name { @animation(); }
+    @-o-keyframes @name { @animation(); }
+    @-ms-keyframes @name { @animation(); }
+    @-webkit-keyframes @name { @animation(); }
+    @keyframes @name { @animation(); }
 }
-
 .transition(@arg) {
     -moz-transition: @arg;
     -ms-transition: @arg;
@@ -38,19 +34,18 @@
     transition: @arg;
 }
 .linear-gradient(@arg) {
-	background-image: -webkit-gradient(@arg);
-	background-image: -webkit-linear-gradient(@arg);
-	background-image: -moz-linear-gradient(@arg);
-	background-image: -o-linear-gradient(@arg);
-	background-image: linear-gradient(@arg);
+    background-image: -webkit-gradient(@arg);
+    background-image: -webkit-linear-gradient(@arg);
+    background-image: -moz-linear-gradient(@arg);
+    background-image: -o-linear-gradient(@arg);
+    background-image: linear-gradient(@arg);
 }
 .repeating-linear-gradient(@arg) {
-	background-image: -webkit-repeating-gradient(@arg);
-	background-image: -webkit-repeating-linear-gradient(@arg);
-	background-image: -moz-repeating-linear-gradient(@arg);
-	background-image: -o-repeating-linear-gradient(@arg);
-	background-image: repeating-linear-gradient(@arg);
-
+    background-image: -webkit-repeating-gradient(@arg);
+    background-image: -webkit-repeating-linear-gradient(@arg);
+    background-image: -moz-repeating-linear-gradient(@arg);
+    background-image: -o-repeating-linear-gradient(@arg);
+    background-image: repeating-linear-gradient(@arg);
 }
 .vert-pos(@positioning, @from_top) {
     position: @positioning;
@@ -58,16 +53,16 @@
     .transform(translateY(-50%););
 }
 .fullsize {
-	display: block;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 /*
- * ...
+ * Hide some branding
  */
 a[href^="http://maps.google.com/maps"] {
     display: none !important;
@@ -80,22 +75,21 @@ a[href^="http://maps.google.com/maps"] {
  * tags
  */
 @font-base: 12pt;
-
 body, html {
     overflow: hidden;
-	width: 100%;
+    width: 100%;
     height: 100%;
     padding: 0;
     margin: 0;
     font-size: @font-base;
-    
     @media @med-res {
         font-size:   @font-base * @med-mul;
     }
 }
+@troller_back_path: 'sunset.jpg';
 body:after {
-	display: none;
-	content: url('wes.jpg');
+    display: none;
+    content: url(@troller_back_path);
 }
 button {
     background: none;
@@ -109,14 +103,15 @@ button {
     -webkit-filter: url('/#@{name}');
     filter: url('/#@{name}');
 }
+.none {}
 
 .troller {
-	.transition(all 360s linear);
+    .transition(all 300s linear);
 }
 #troller_back {
-	.fullsize;
-	z-index: -1;
-	background-image: url('wes.jpg');
+    .fullsize;
+    z-index: -1;
+    background-image: url(@troller_back_path);
 }
 
 .print_analog {
@@ -127,15 +122,15 @@ button {
     .callFilter(caustic-glow);
 }
 #caustic_glow_back {
-	.fullsize;
-	z-index: -2;
-	overflow: hidden;
+    .fullsize;
+    z-index: -2;
+    overflow: hidden;
 }
 #yt_player {
-	.fullsize;
-	width: 250%;
-	height: 250%;
-	.transform(translate(-30%, -30%););
+    .fullsize;
+    width: 250%;
+    height: 250%;
+    .transform(translate(-30%, -30%););
 }
 
 .fauvist {
@@ -143,96 +138,105 @@ button {
 }
 
 .cmgyk {
-	.callFilter(cmgyk);
+    .callFilter(cmgyk);
 }
 #cmgyk_back {
-	.fullsize;
-	width: 100%;
-	height: 100%;
-	z-index: -1;
-	overflow: hidden;
-	.transition(all 300ms ease-in-out);	
+    .fullsize;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    .transition(all 300ms ease-in-out); 
 }
 #cmgyk_grad {
-	width: 200%;
-	height: 75%;
-	top: 200;
-	@lgval: to right, 
-		#FFFF00, 
-		#00FF00 6%, 
-		#00FFFF 12%, 
-		#6F00FF 18%, 
-		#FF00FF 24%, 
-		#FF0000 30%, 
-		#FF7F00 36%,
-	    #FFFF00 42%;	
-	.repeating-linear-gradient(@lgval);
-	.animation(slide 6s infinite linear);
+    width: 200%;
+    height: 75%;
+    top: 200;
+    @lgval: to right, 
+        #FFFF00, 
+        #00FF00 6%, 
+        #00FFFF 12%, 
+        #6F00FF 18%, 
+        #FF00FF 24%, 
+        #FF0000 30%, 
+        #FF7F00 36%,
+        #FFFF00 42%;    
+    .repeating-linear-gradient(@lgval);
+    .animation(slide 6s infinite linear);
 }
 .keyframes(slide, {
-	0% { .transform(translateX(-42%);) }
-	100% { .transform(translateX(0%);) }
+    0% { .transform(translateX(-42%);) }
+    100% { .transform(translateX(0%);) }
 });
-
 #cmgyk_steady_back {
-	.fullsize;
-	width: 200%;
-	height: 100%;
-	@lgval: to right, 
-		#95004B, 
-		#80FF00 6%, 
-		#8E2600 12%, 
-		#03158D 18%, 
-		#9C4E00 24%, 
-		#E63E2E 30%, 
-		#FF7F00 36%,
-	    #FFFF00 42%;	
-	.repeating-linear-gradient(@lgval);
-	.animation(slide-left 10s infinite linear);
-	z-index: -2;
+    .fullsize;
+    width: 200%;
+    height: 100%;
+    @lgval: to right, 
+        #95004B, 
+        #80FF00 6%, 
+        #8E2600 12%, 
+        #03158D 18%, 
+        #9C4E00 24%, 
+        #E63E2E 30%, 
+        #FF7F00 36%,
+        #FFFF00 42%;    
+    .repeating-linear-gradient(@lgval);
+    .animation(slide-left 10s infinite linear);
+    z-index: -2;
 }
 .keyframes(slide-left, {
-	0% { .transform(translateX(0%);) }
-	100% { .transform(translateX(-42%);) }
+    0% { .transform(translateX(0%);) }
+    100% { .transform(translateX(-42%);) }
 });
 
 .vhs {
-	.callFilter(vhs);
+    .callFilter(vhs);
 }
 #vhs_canv {
-	display: block;
-	z-index: 0;
-	position: absolute;
-	top: 0;
-	left: 0;
-	pointer-events: none;
-	.transform(scale(1.666, 1.666););
+    display: block;
+    z-index: 20;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    .transform(scale(1.666, 1.666););
 }
 #vhs_back {
-	.fullsize;
-	z-index: -1;
-	@lgval: to right,
-		#FFFF00, 
-		#00FF00 18%, 
-		#00FFFF 36%, 
-		#6F00FF 54%, 
-		#FF00FF 72%, 
-		#FF0000 90%; 
-	.linear-gradient(@lgval);
+    .fullsize;
+    z-index: -1;
+    @lgval: to right,
+        #FFFF00, 
+        #00FF00 18%, 
+        #00FFFF 36%, 
+        #6F00FF 54%, 
+        #FF00FF 72%, 
+        #FF0000 90%; 
+    .linear-gradient(@lgval);
 }
 
 /*
- * major divs
+ * More-or-less persistant elements
  */
-#map-canvas-wrapper {
-	.fullsize;
-	background: rgba(0, 0, 0, 0);
-}
 #map-canvas {
     width: 100%;
     height: 100%;
 }
 
+// The width and height of both these canvases is set in markers.js
+// so we can use pixel measurements in drawImage calls.
+#markers-b {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 9;
+}
+#markers-a {
+    #markers-b;
+    z-index: 10;
+}
 #overlay {
     display: none;
     overflow: auto;
@@ -244,13 +248,11 @@ button {
     min-width: 17em;
     max-width: 33em;
     z-index: 1000;
-    
     background-color: rgba(0, 0, 0, 0.5);
     color: @off_white;
     font-family: 'timeless';
     font-size: 1.05em;
     padding: 1.8em 1.9em 1.5em 1.5em;
-        
     a {
         color: @off_white;
     }
@@ -274,7 +276,6 @@ button {
         max-height: 26em;
         min-width: 26.5em;
         min-height: 21.28em;
-        
         &:-webkit-full-screen {
             max-width: none;
             max-height: none;
@@ -294,7 +295,6 @@ button {
             min-height: 15.36em;
         }
     }
-    
     .post-title {
         font-family: 'timelessbold';
         font-size: 1.2em;
@@ -339,13 +339,13 @@ button {
         text-align: right;
     }
     .quote {
-   		 
+       // TODO: this.      
     }
 }
 
 /*
- * One of the most important spaces is between the visual element of a post
- * and the following text. 
+ * One of the most important spaces is between the 
+ * visual element of a post and the following text. 
  */
 @pull: -0.15em;
 .text iframe {
@@ -368,7 +368,6 @@ button {
     padding: 0.4em 0.4em 0.4em 0.44em;
     margin: -0.15em 1px;
     outline: none;
-    
     &:hover {
       color: @salmon_blood;
     }
@@ -423,9 +422,7 @@ button {
 /*
  * fonts
  */
-
 @font_path: "../fonts/";
-
 .fontSquirrel(@family, @name) {
     font-family: @family;
     src: url('@{font_path}@{name}.eot');
@@ -436,7 +433,6 @@ button {
     font-weight: normal;
     font-style: normal;
 }
-
 @font-face {
     .fontSquirrel('timeless', 'timelesstlig');
 }
