@@ -36,7 +36,7 @@ var markers = (function(markers) {
         }())
         var imgs = {
             video: getImageCanv('static/map_assets/colorbars.png'),
-            stumble: getImageCanv('static/map_assets/perf.png'),
+            stumble: getImageCanv('static/map_assets/rap.png'),
             random: getImageCanv('static/map_assets/rand.png')
         };
         var px_$ = [];
