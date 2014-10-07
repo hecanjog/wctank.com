@@ -92,7 +92,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                      1.0,  1.0]), gl.STATIC_DRAW);
                 gl.enableVertexAttribArray(buffer); 
                 gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // try deleting depth buffer clear
                 // get shader src, do typical initialization
                 $.get(shader_path, function(data) {
                     var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
@@ -465,6 +465,75 @@ $.get("static/map_assets/map_filters.xml", function(data) {
             }({}))
             return vhs;
         }({}))
+        
+        /*
+         * alpha_strut is a special filter event that runs simultaneously with the .attrs filters
+         */
+        filter_admin.alpha_strut = (function(alpha_strut) {
+            // with raw video from vimeo cdn, draw to canvas, threshold, superimpose over whatever filter is there
+                // occasionally cover map with flashing screen  
+                // instead of opaque being black, sky gif
+                // sky with flashing?
+                // virgo logo gif 
+            var vid = document.createElement('video');
+            vid.setAttribute('id', 'dummy'); // just display: none here
+            $.get('vimeo_data_url', function(data) {
+                vid.preload = "auto";
+                vid.src = data;
+                document.body.appendChild(vid);
+
+                var alpha_strut_front = document.createElement("canvas");
+                alpha_strut_front.setAttribute("id", "alpha_strut_front");
+                
+                alpha_strut.webgl = (function(webgl) {
+                    var z = filter_admin.webglSetup(alpha_strut_front, "/static/map_assets/alpha_strut.glsl"); 
+                    var vid_tex;
+                    vid.addEventListener("canplaythrough", function() {
+                        // this part is pretty much identical to the mozilla tut:
+                        // https://developer.mozilla.org/en-US/docs/Web/WebGL/Animating_textures_in_WebGL
+                        // create texture:
+                        vid_tex = z.gl.createTexture();
+                        z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
+                        z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MAG_FILTER, z.gl.LINEAR);
+                        z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MIN_FILTER, z.gl.LINEAR);
+                        z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_S, z.gl.CLAMP_TO_EDGE);
+                        z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_T, z.gl.CLAMP_TO_EDGE);
+                        // map to rectangle: (identical to existing geometry)
+                        var texCoordBuffer = z.gl.createBuffer();
+                        z.gl.bindBuffer(z.gl.ARRAY_BUFFER, texCoordBuffer);
+                        z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array([
+                             0.0, 0.0,
+                             1.0, 0.0,
+                             0.0, 1.0,
+                             0.0, 1.0,
+                             1.0, 0.0,
+                             1.0, 1.0]), z.gl.STATIC_DRAW);
+                        var texCoordAttr = z.gl.getAttribLocation(z.program, "texCoord");
+                        z.gl.enableVertexAttribArray(texCoordAttr);
+                    }, true);
+                    webgl.update = function() {
+                        z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+                        z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
+                        z.gl.pixelStorei(z.gl.UNPACK_FLIP_Y_WEBGL, true);
+                        z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, vid);
+                        //uniforms here
+                        z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
+                    };
+                    return webgl; 
+                }({}));
+                alpha_strut.init = function() {
+                    document.body.appendChild(alpha_strut_front);
+                    vid.play();
+                };
+                alpha_strut.teardown = function() {
+                    document.body.removeChild(alpha_strut_front);
+                };
+                alpha_strut.animate = function() {
+                    alpha_strut.webgl.update();
+                }; 
+            });
+            return alpha_strut;
+        }({}))
         var coord = (function(coord) {
             var sets = {
                 general: [],
@@ -517,14 +586,14 @@ $.get("static/map_assets/map_filters.xml", function(data) {
             var was_in_close = false;
             var new_filter;
             var old_filter;
-            coord.applyFilter = function(filter) {
+            coord.applyFilter = function(filter, add_only) {
                 filter_admin.current = filter;
                 var render = filter_admin.render;
                 if (new_filter) {
                     var this_filter = filter_admin.attrs[new_filter];
                     if ( this_filter.hasOwnProperty('preTeardown') ) this_filter.preTeardown();
                     div.$map.removeClass(new_filter);
-                    if ( this_filter.hasOwnProperty('animate') ) filter_admin.render.rm(this_filter.animate);
+                    if ( this_filter.hasOwnProperty('animate') ) render.rm(this_filter.animate);
                     if ( this_filter.hasOwnProperty('teardown') ) this_filter.teardown();
                     if ( !render.has() ) render.stop();
                 }
@@ -582,6 +651,11 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                     } else {
                         applyRndFilter(sets.general);
                     }
+                };
+                main_time.setInterval = function(n) {
+                    main_time.cease();
+                    interval = n;
+                    main_time.engage();
                 };
                 main_time.engage = function() {
                     if ( (Date.now() - cease) > interval ) {

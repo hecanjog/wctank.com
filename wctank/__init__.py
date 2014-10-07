@@ -6,6 +6,7 @@ import pytumblr
 import re
 import os
 import sys
+import urllib2
 
 app = Flask(__name__)
 
@@ -16,6 +17,13 @@ def webgl():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/vimeo_data_url')
+def getVimeoDataUrl():
+    page = urllib2.urlopen("http://player.vimeo.com/video/64770002")
+    vimcdn = re.compile('(http:\/\/pdl\.vimeocdn\.com\/93159\/486\/160286516\.mp4\?token2=.{43})');
+    url = vimcdn.findall(page.read())[0]
+    return url
 
 @app.route('/<swk>/<swa>/<nek>/<nea>')
 def getPosts(swk, swa, nek, nea):
