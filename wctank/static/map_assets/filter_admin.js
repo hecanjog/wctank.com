@@ -41,6 +41,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
         filter_admin.render = (function(render) {
             var stk = [];
             var id;
+            render.rendering = false;
             render.push = function(funct) {
                 stk.push(funct);
             };
@@ -49,6 +50,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                 if (idx !== -1) stk.splice(idx, 1);
             };
             render.go = function() {
+                render.rendering = true;
                 id = window.requestAnimationFrame(render.go);
                 for (var i = 0; i < stk.length; i++) {
                     stk[i]();
@@ -58,13 +60,18 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                 return (stk.length > 0) ? true : false;
             }
             render.stop = function() {
+                render.rendering = false;
                 cancelAnimationFrame(id);
             }
             return render;
         }({}))
         var webglSuccess = false;
-        filter_admin.webglSetup = function(canvas, shader_path) {
+        filter_admin.webglSetup = function(canvas, shader_path, DEBUG) {
             var r = {};
+            var getShaderLog = function(gl_shader_obj) {
+                if ( !gl.getShaderParameter(gl_shader_obj, gl.COMPILE_STATUS) ) 
+                    console.log( gl.getShaderInfoLog(gl_shader_obj) );
+            };
             var gl = (function() {
                 try {
                     return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -103,7 +110,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                     gl.shaderSource(vert_shader, vert_src);
                     gl.shaderSource(frag_shader, frag_src); 
                     gl.compileShader(vert_shader);
+if (DEBUG) getShaderLog(vert_shader);
                     gl.compileShader(frag_shader);
+if (DEBUG) getShaderLog(frag_shader);
                     var prgm = gl.createProgram();
                     gl.attachShader(prgm, vert_shader);
                     gl.attachShader(prgm, frag_shader);
@@ -479,6 +488,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
             vid.setAttribute('id', 'dummy'); // just display: none here
             $.get('vimeo_data_url', function(data) {
                 vid.preload = "auto";
+                vid.crossOrigin = "anonymous";
                 vid.src = data;
                 document.body.appendChild(vid);
 
@@ -486,8 +496,9 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                 alpha_strut_front.setAttribute("id", "alpha_strut_front");
                 
                 alpha_strut.webgl = (function(webgl) {
-                    var z = filter_admin.webglSetup(alpha_strut_front, "/static/map_assets/alpha_strut.glsl"); 
+                    var z = filter_admin.webglSetup(alpha_strut_front, "/static/map_assets/alpha_strut.glsl", true); 
                     var vid_tex;
+                    var threshold = 1;
                     vid.addEventListener("canplaythrough", function() {
                         // this part is pretty much identical to the mozilla tut:
                         // https://developer.mozilla.org/en-US/docs/Web/WebGL/Animating_textures_in_WebGL
@@ -510,13 +521,16 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                              1.0, 1.0]), z.gl.STATIC_DRAW);
                         var texCoordAttr = z.gl.getAttribLocation(z.program, "texCoord");
                         z.gl.enableVertexAttribArray(texCoordAttr);
+                        z.gl.vertexAttribPointer(texCoordAttr, 2, z.gl.FLOAT, false, 0, 0);
                     }, true);
                     webgl.update = function() {
                         z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+                        z.gl.activeTexture(z.gl.TEXTURE0);
                         z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
+                        z.gl.uniform1i( z.gl.getUniformLocation(z.program, "vidTexels"), 0 );
                         z.gl.pixelStorei(z.gl.UNPACK_FLIP_Y_WEBGL, true);
                         z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, vid);
-                        //uniforms here
+                        z.gl.uniform1f( z.gl.getUniformLocation(z.program, "threshold"), threshold );
                         z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
                     };
                     return webgl; 
@@ -527,10 +541,16 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                 };
                 alpha_strut.teardown = function() {
                     document.body.removeChild(alpha_strut_front);
+                    vid.pause();
                 };
                 alpha_strut.animate = function() {
                     alpha_strut.webgl.update();
-                }; 
+                };
+                window.setTimeout(function() {
+                    alpha_strut.init();
+                    filter_admin.render.push(alpha_strut.animate);
+                    filter_admin.render.go();
+                }, 10000); 
             });
             return alpha_strut;
         }({}))
