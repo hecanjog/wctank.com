@@ -23,7 +23,7 @@ void main()
     float luma = 0.2126 * texel.r + 0.7152 * texel.g + 0.0722 * texel.b;
     vec4 color_out;
     if (luma < 0.1) {
-        color_out = vec4(0, 0, 0, luma);
+        color_out = vec4(0, 0, 0, 0);
     } else {
         color_out = vec4(0, 0, 0, 1);
     }
