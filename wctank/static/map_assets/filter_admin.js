@@ -469,7 +469,6 @@ if (DEBUG) getShaderLog(frag_shader);
                 //  caustic glow (the yt vid only), cmgyk, a flashing thing, 
             var vid = document.createElement('video');
             vid.style.display = "none";
-            //vid.setAttribute('id', 'dummy'); // just display: none here
             vid.preload = "auto";
             vid.crossOrigin = 'anonymous';
             $.get('/vimeo_data', function(url) {
