@@ -1,7 +1,7 @@
 @@ vertex shader
 attribute vec2 position;
 attribute vec2 texCoord;
-varying vec2 texMapCoord;
+varying highp vec2 texMapCoord;
 
 void main()
 {
@@ -12,19 +12,20 @@ END
 
 @@ fragment shader
 precision highp float;
-varying vec2 texMapCoord;
+varying highp vec2 texMapCoord;
 uniform sampler2D vidTexels;
 uniform float threshold;
 
 void main() 
 {
-    vec4 texel = texture2D(vidTexels, vec2(texMapCoord.s, texMapCoord.t));
+    
+    highp vec4 texel = texture2D(vidTexels, vec2(texMapCoord.s, texMapCoord.t));
     float luma = 0.2126 * texel.r + 0.7152 * texel.g + 0.0722 * texel.b;
     vec4 color_out;
-    if (luma < threshold) {
-        color_out = vec4(0, 0, 0, 1);
+    if (luma < 0.1) {
+        color_out = vec4(0, 0, 0, luma);
     } else {
-        color_out = vec4(0, 0, 0, 0);
+        color_out = vec4(0, 0, 0, 1);
     }
     gl_FragColor = color_out;
 }

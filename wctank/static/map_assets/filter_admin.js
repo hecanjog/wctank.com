@@ -2,10 +2,9 @@
 //svg and fallbacks), create pop-up suprises, do something with wes's text, add map sounds, 
 // remove wes tank video filter after video finished - introduce delay, 
 // then swap to another video with different colorization of map
-// 'oops' background with poetry text - persistant, hide yt player on error
-//
-
+// 'oops' background with poetry text - persistant
 // aliases for yt iframe API
+//
 var onYouTubeIframeAPIReady;
 var onPlayerReady;
 var onPlayerStateChange;
@@ -87,19 +86,6 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                 window.addEventListener("resize", function() {
                     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
                 });
-                //draw two big triangles
-                var buffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-                    -1.0, -1.0,
-                     1.0, -1.0,
-                    -1.0,  1.0,
-                    -1.0,  1.0,
-                     1.0, -1.0,
-                     1.0,  1.0]), gl.STATIC_DRAW);
-                gl.enableVertexAttribArray(buffer); 
-                gl.vertexAttribPointer(buffer, 2, gl.FLOAT, false, 0, 0);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // try deleting depth buffer clear
                 // get shader src, do typical initialization
                 $.get(shader_path, function(data) {
                     var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
@@ -119,6 +105,21 @@ if (DEBUG) getShaderLog(frag_shader);
                     gl.linkProgram(prgm);
                     gl.useProgram(prgm);
                     r.program = prgm;
+
+                    //draw two big triangles
+                    var buffer = gl.createBuffer();
+                    var pos_loc = gl.getAttribLocation(prgm, 'position');
+                    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                        -1.0, -1.0,
+                         1.0, -1.0,
+                        -1.0,  1.0,
+                        -1.0,  1.0,
+                         1.0, -1.0,
+                         1.0,  1.0]), gl.STATIC_DRAW);
+                    gl.enableVertexAttribArray(pos_loc); 
+                    gl.vertexAttribPointer(pos_loc, 2, gl.FLOAT, false, 0, 0);
+                    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // try deleting depth buffer clear
                 });
                 r.gl = gl;
                 return r;
@@ -349,27 +350,8 @@ if (DEBUG) getShaderLog(frag_shader);
                 }
             };
             
-            /*  
-            cmgyk.webgl = (function(webgl) {
-                var cmgyk_wgl_canv = document.createElement('canvas');
-                cmgyk_wgl_canv.width = window.innerWidth * 0.75;
-                cmgyk_wgl_canv.height = window.innerHeight * 0.75;
-                cmgyk_wgl_canv.setAttribute("id", "cmgyk_wgl_canv");
+            //TODO: cmgyk webgl starscape?           
 
-                var js_clock;
-                
-                window.addEventListener('resize', function(e) {
-                    cmgyk_wgl_canv.width = window.innerWidth * 0.75;
-                    cmgyk_wgl_canv.height = window.innerHeight * 0.75;
-                });
-                
-                var z = filter_admin.webglSetup(cmgyk_wgl_canv, "/static/map_assets/stars.glsl");           
-
-            /////////////////HERE DUDE
-
-            }({}))
-            */
-           
             cmgyk.animate = function() {
                 if ( should_blink() ) {
                     var time = new Date().getTime();
@@ -479,79 +461,91 @@ if (DEBUG) getShaderLog(frag_shader);
          * alpha_strut is a special filter event that runs simultaneously with the .attrs filters
          */
         filter_admin.alpha_strut = (function(alpha_strut) {
-            // with raw video from vimeo cdn, draw to canvas, threshold, superimpose over whatever filter is there
                 // occasionally cover map with flashing screen  
                 // instead of opaque being black, sky gif
                 // sky with flashing?
                 // virgo logo gif 
+                // limit backgrounds to only the most colorful (and resource cheap) filters:
+                //  caustic glow (the yt vid only), cmgyk, a flashing thing, 
             var vid = document.createElement('video');
-            vid.setAttribute('id', 'dummy'); // just display: none here
-            $.get('vimeo_data_url', function(data) {
-                vid.preload = "auto";
-                vid.crossOrigin = "anonymous";
-                vid.src = data;
-                document.body.appendChild(vid);
-
-                var alpha_strut_front = document.createElement("canvas");
-                alpha_strut_front.setAttribute("id", "alpha_strut_front");
-                
-                alpha_strut.webgl = (function(webgl) {
-                    var z = filter_admin.webglSetup(alpha_strut_front, "/static/map_assets/alpha_strut.glsl", true); 
-                    var vid_tex;
-                    var threshold = 1;
-                    vid.addEventListener("canplaythrough", function() {
-                        // this part is pretty much identical to the mozilla tut:
-                        // https://developer.mozilla.org/en-US/docs/Web/WebGL/Animating_textures_in_WebGL
-                        // create texture:
-                        vid_tex = z.gl.createTexture();
-                        z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
-                        z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MAG_FILTER, z.gl.LINEAR);
-                        z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MIN_FILTER, z.gl.LINEAR);
-                        z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_S, z.gl.CLAMP_TO_EDGE);
-                        z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_T, z.gl.CLAMP_TO_EDGE);
-                        // map to rectangle: (identical to existing geometry)
-                        var texCoordBuffer = z.gl.createBuffer();
-                        z.gl.bindBuffer(z.gl.ARRAY_BUFFER, texCoordBuffer);
-                        z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array([
-                             0.0, 0.0,
-                             1.0, 0.0,
-                             0.0, 1.0,
-                             0.0, 1.0,
-                             1.0, 0.0,
-                             1.0, 1.0]), z.gl.STATIC_DRAW);
-                        var texCoordAttr = z.gl.getAttribLocation(z.program, "texCoord");
-                        z.gl.enableVertexAttribArray(texCoordAttr);
-                        z.gl.vertexAttribPointer(texCoordAttr, 2, z.gl.FLOAT, false, 0, 0);
-                    }, true);
-                    webgl.update = function() {
-                        z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-                        z.gl.activeTexture(z.gl.TEXTURE0);
-                        z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
-                        z.gl.uniform1i( z.gl.getUniformLocation(z.program, "vidTexels"), 0 );
-                        z.gl.pixelStorei(z.gl.UNPACK_FLIP_Y_WEBGL, true);
-                        z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, vid);
-                        z.gl.uniform1f( z.gl.getUniformLocation(z.program, "threshold"), threshold );
-                        z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
-                    };
-                    return webgl; 
-                }({}));
-                alpha_strut.init = function() {
-                    document.body.appendChild(alpha_strut_front);
-                    vid.play();
-                };
-                alpha_strut.teardown = function() {
-                    document.body.removeChild(alpha_strut_front);
-                    vid.pause();
-                };
-                alpha_strut.animate = function() {
-                    alpha_strut.webgl.update();
-                };
-                window.setTimeout(function() {
-                    alpha_strut.init();
-                    filter_admin.render.push(alpha_strut.animate);
-                    filter_admin.render.go();
-                }, 10000); 
+            vid.style.display = "none";
+            //vid.setAttribute('id', 'dummy'); // just display: none here
+            vid.preload = "auto";
+            vid.crossOrigin = 'anonymous';
+            $.get('/vimeo_data', function(url) {
+                vid.src = url;
             });
+            document.body.appendChild(vid);
+
+            var alpha_strut_front = document.createElement("canvas");
+            alpha_strut_front.setAttribute("id", "alpha_strut_front");
+                
+            alpha_strut.webgl = (function(webgl) {
+                var z = filter_admin.webglSetup(alpha_strut_front, "/static/map_assets/alpha_strut.glsl", true); 
+                var vid_tex;
+                var texCoordBuffer;
+                var texCoordAttr;
+                var threshold = 50;
+                vid.addEventListener("canplaythrough", function() {
+                    
+                    //TODO: fix cross-origin in Firefox (prob via proxy stream) 
+                    vid_tex = z.gl.createTexture();
+                    z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
+                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_S, z.gl.CLAMP_TO_EDGE);
+                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_T, z.gl.CLAMP_TO_EDGE);
+                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MIN_FILTER, z.gl.NEAREST);
+                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MAG_FILTER, z.gl.NEAREST);
+                   
+                    texCoordBuffer = z.gl.createBuffer();
+                    texCoordAttr = z.gl.getAttribLocation(z.program, 'texCoord');
+                    z.gl.bindBuffer(z.gl.ARRAY_BUFFER, texCoordBuffer);
+                    z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array([
+                         0.0,  0.0,
+                         1.0,  0.0,
+                         0.0,  1.0,
+                         0.0,  1.0,
+                         1.0,  0.0,
+                         1.0,  1.0        
+                        ]), z.gl.STATIC_DRAW); 
+                    z.gl.enableVertexAttribArray(texCoordAttr);
+                    z.gl.vertexAttribPointer(texCoordAttr, 2, z.gl.FLOAT, false, 0, 0);
+                }, true);
+                webgl.update = function() {
+                    z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+                    
+                    z.gl.uniform1f( z.gl.getUniformLocation(z.program, "threshold"), threshold );
+                    
+                    texCoordAttr = z.gl.getAttribLocation(z.program, "texCoord");
+                    z.gl.enableVertexAttribArray(texCoordAttr);
+                    
+                    z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
+                    z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, vid);
+                    
+                    z.gl.activeTexture(z.gl.TEXTURE0);
+                    z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
+                    z.gl.pixelStorei(z.gl.UNPACK_FLIP_Y_WEBGL, true);
+                    z.gl.uniform1i( z.gl.getUniformLocation(z.program, "vidTexels"), 0 );
+                    
+                    z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
+                };
+                return webgl; 
+            }({}));
+            alpha_strut.init = function() {
+                document.body.appendChild(alpha_strut_front);
+                vid.play();
+            };
+            alpha_strut.teardown = function() {
+                document.body.removeChild(alpha_strut_front);
+                vid.pause();
+            };
+            alpha_strut.animate = function() {
+                alpha_strut.webgl.update();
+            };
+            window.setTimeout(function() {
+                alpha_strut.init();
+                if (!filter_admin.render_rendering) filter_admin.render.push(alpha_strut.animate);
+                filter_admin.render.go();
+            }, 10000); 
             return alpha_strut;
         }({}))
         var coord = (function(coord) {
@@ -601,7 +595,10 @@ if (DEBUG) getShaderLog(frag_shader);
                     }
                 }
             };
-            if (!webglSuccess) sets.webgl.forEach(coord.rm); // if webgl init fails, disable filters dependent on it.
+            
+            // if webgl init fails, disable filters dependent on it.
+            if (!webglSuccess) sets.webgl.forEach(coord.rm); 
+
             // TODO: consider displaying message to encourage WebGl use
             var was_in_close = false;
             var new_filter;
@@ -655,6 +652,7 @@ if (DEBUG) getShaderLog(frag_shader);
                     was_in_close = true;
                 }       
             };
+
             //TODO: consider enforcing maximum pause - 4 min or something
             var main_time = (function(main_time) {
                 var interval = 30000;
@@ -697,6 +695,7 @@ if (DEBUG) getShaderLog(frag_shader);
                 main_time.engage();
                 return main_time;
             }({}))
+            
             // onMarkerClick is called in index.html where markers are defined
             // we use the marker_clicked flag to weed out cases where clicking on a marker
             // also triggers the map click event
@@ -717,6 +716,7 @@ if (DEBUG) getShaderLog(frag_shader);
             };  
             return coord;
         }({}))
+        
         // provided a google.map object, adds listeners for whatever in filter_admin needs it
         filter_admin.eventHandler = function(map_obj) {
             google.maps.event.addListener(map_obj, 'zoom_changed', function() { 
@@ -742,6 +742,7 @@ if (DEBUG) getShaderLog(frag_shader);
         };
         return filter_admin;
     }({}))  
+    
     // media queries for filters
     var dppx1dot2 =  window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
                        "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
