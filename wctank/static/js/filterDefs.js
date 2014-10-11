@@ -1,9 +1,3 @@
-// aliases for yt iframe API
-var onYouTubeIframeAPIReady;
-var onPlayerReady;
-var onPlayerStateChange;
-var onPlayerError;
-
 var filterDefs = {};
 
 $.get("static/map_filters.xml", function(data) {
