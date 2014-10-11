@@ -123,18 +123,16 @@ var core = (function(core) {
         filters.parse = function() {
             for (var filter in filterDefs) {
                 if ( filterDefs.hasOwnProperty(filter) ) {
-                    var u = filterDefs[filter].usage;
-                    var cfu = core.filters.usage;
-                    if ( (u & cfu.GENERAL) === cfu.GENERAL ) 
-                        sets.general.push(filter);
-                    if ( (u & cfu.ZOOMED) === cfu.ZOOMED ) 
-                        sets.zoomed.push(filter);                 
-                    if ( (u & cfu.TAKEOVER_DOWN) === cfu.TAKEOVER_DOWN ) 
-                        sets.takeover_down.push(filter);
-                    if ( (u & cfu.TAKEOVER_UP) === cfu.TAKEOVER_UP ) 
-                        sets.takeover_up.push(filter);
-                    if ( (u & cfu.START) === cfu.START ) 
-                        sets.start.push(filter);
+                    var f = filterDefs[filter].usage;
+                    var c = core.filters.usage;
+                    var UBit = function(x, y) {
+                        return ( (x & y) === y ) ? true : false;
+                    };
+                    if ( UBit(f, c.GENERAL) ) sets.general.push(filter);
+                    if ( UBit(f, c.ZOOMED ) ) sets.zoomed.push(filter);                 
+                    if ( UBit(f, c.TAKEOVER_DOWN) ) sets.takeover_down.push(filter);
+                    if ( UBit(f, c.TAKEOVER_UP) ) sets.takeover_up.push(filter);
+                    if ( UBit(f, c.START) ) sets.start.push(filter);
                     if ( filterDefs[filter].hasOwnProperty("webgl") ) 
                         sets.webgl.push(filter);
                 }

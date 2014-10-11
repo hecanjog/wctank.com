@@ -124,7 +124,7 @@ var markers = (function(markers) {
             disp.drawCycle( marks.getDrawingInfo() );         
         }
     };
-    markers.eventHandler = function(map_obj) {
+    markers.events = function(map_obj) {
         google.maps.event.addListener(map_obj, 'bounds_changed', function() {
             disp.drawCycle( marks.getDrawingInfo() );
         });

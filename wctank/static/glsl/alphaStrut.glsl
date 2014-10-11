@@ -18,7 +18,6 @@ uniform float threshold;
 
 void main() 
 {
-    
     highp vec4 texel = texture2D(vidTexels, vec2(texMapCoord.s, texMapCoord.t));
     float luma = 0.2126 * texel.r + 0.7152 * texel.g + 0.0722 * texel.b;
     vec4 color_out;
