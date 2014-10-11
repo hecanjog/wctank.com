@@ -6,7 +6,7 @@ var onPlayerError;
 
 var filterDefs = {};
 
-$.get("static/map_assets/map_filters.xml", function(data) {
+$.get("static/map_filters.xml", function(data) {
     var cont = document.createElement("svg_filters");
     cont.style.position = "fixed";
     cont.style.bottom = 0;
@@ -346,7 +346,7 @@ $.get("static/map_assets/map_filters.xml", function(data) {
                     vhs_canv.width = window.innerWidth * 0.75;
                     vhs_canv.height = window.innerHeight * 0.75;
                 });
-                var z = core.webgl.setup(vhs_canv, "/static/map_assets/white_noise.glsl");
+                var z = core.webgl.setup(vhs_canv, "/static/glsl/white_noise.glsl");
                 var start_time = Date.now();    
                 var time;
                 var js_random;

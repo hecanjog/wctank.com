@@ -2,7 +2,7 @@
     <title>WC Tank</title>
     
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/static/map_assets/styles.less" type="text/css" rel="stylesheet/less">
+    <link href="/static/styles.less" type="text/css" rel="stylesheet/less">
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
@@ -18,10 +18,10 @@
     <div id="overlay"></div>
     
     <!--<script src="/static/map_assets/filter_admin.js"></script>-->
-    <script src="/static/map_assets/core.js"></script>
-    <script src="/static/map_assets/filterDefs.js"></script>
-    <script src="/static/map_assets/markers.js"></script>
-    <script src="/static/map_assets/alphaStrut.js"></script>
+    <script src="/static/js/core.js"></script>
+    <script src="/static/js/filterDefs.js"></script>
+    <script src="/static/js/markers.js"></script>
+    <script src="/static/js/alphaStrut.js"></script>
 
     <ul id="social-links">
         <li><a href="http://wctank.tumblr.com" target="_blank"><i class="fa fa-tumblr-square"></i></a><li>
@@ -51,7 +51,7 @@
             }
         });
         var loader; // contains 'loading' script graphic
-        $.get("static/map_assets/loading_cur.svg", function(data) {
+        $.get("static/assets/loading_cur.svg", function(data) {
             loader = new XMLSerializer().serializeToString(data);
         });
         var renderPost = function(post, $template) {
@@ -120,7 +120,7 @@
 
             // TODO: Change to animated version?
             var overlay = new google.maps.GroundOverlay(
-                'static/map_assets/virgo-logo.png',
+                'static/assets/virgo-logo.png',
                 bounds
             );
             overlay.setMap(map);
@@ -177,7 +177,7 @@
                         
                         // Marker.icon is an invisible placeholder; draw actual icon above it in the canvas 
                         // layers, c.f. markers.js
-                        markerOptions.icon = "static/map_assets/blank.png";
+                        markerOptions.icon = "static/assets/blank.png";
                         m = new google.maps.Marker(markerOptions);
                         if($.inArray('videos', post.tags) !== -1) {
                             m.post_type = 'video';    

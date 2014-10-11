@@ -35,9 +35,9 @@ var markers = (function(markers) {
             });
         }())
         var imgs = {
-            video: getImageCanv('static/map_assets/colorbars.png'),
-            stumble: getImageCanv('static/map_assets/rap.png'),
-            random: getImageCanv('static/map_assets/rand.png')
+            video: getImageCanv('static/assets/colorbars.png'),
+            stumble: getImageCanv('static/assets/rap.png'),
+            random: getImageCanv('static/assets/rand.png')
         };
         var px_$ = [];
         disp.drawCycle = function(px_arr) {

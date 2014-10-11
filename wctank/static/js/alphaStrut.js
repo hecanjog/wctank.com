@@ -24,7 +24,7 @@ var alphaStrut = (function(alphaStrut) {
     alphaStrut_front.setAttribute("id", "alphaStrut_front");
         
     alphaStrut.webgl = (function(webgl) {
-        var z = core.webgl.setup(alphaStrut_front, "/static/map_assets/alphaStrut.glsl", true); 
+        var z = core.webgl.setup(alphaStrut_front, "/static/glsl/alphaStrut.glsl", true); 
         var vid_tex;
         var texCoordBuffer;
         var texCoordAttr;

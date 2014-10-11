@@ -86,7 +86,7 @@ body, html {
         font-size:   @font-base * @med-mul;
     }
 }
-@troller_back_path: 'sunset.jpg';
+@troller_back_path: 'assets/sunset.jpg';
 body:after {
     display: none;
     content: url(@troller_back_path);
@@ -427,7 +427,7 @@ button {
 /*
  * fonts
  */
-@font_path: "../fonts/";
+@font_path: "fonts/";
 .fontSquirrel(@family, @name) {
     font-family: @family;
     src: url('@{font_path}@{name}.eot');

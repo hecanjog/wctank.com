@@ -9,14 +9,14 @@ import re
 import os
 import sys
 import urllib2
-import requests
+#import requests
 
 app = Flask(__name__)
 
-@app.route('/webgl')
-def webgl():
-    return render_template('webgl.html')
-
+#@app.route('/webgl')
+#def webgl():
+#    return render_template('webgl.html')
+#
 @app.route('/')
 def index():
     return render_template('index.html')
