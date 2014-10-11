@@ -125,14 +125,14 @@ var core = (function(core) {
                 if ( filterDefs.hasOwnProperty(filter) ) {
                     var f = filterDefs[filter].usage;
                     var c = core.filters.usage;
-                    var UBit = function(x, y) {
+                    var hasBit = function(x, y) {
                         return ( (x & y) === y ) ? true : false;
                     };
-                    if ( UBit(f, c.GENERAL) ) sets.general.push(filter);
-                    if ( UBit(f, c.ZOOMED ) ) sets.zoomed.push(filter);                 
-                    if ( UBit(f, c.TAKEOVER_DOWN) ) sets.takeover_down.push(filter);
-                    if ( UBit(f, c.TAKEOVER_UP) ) sets.takeover_up.push(filter);
-                    if ( UBit(f, c.START) ) sets.start.push(filter);
+                    if ( hasBit(f, c.GENERAL) ) sets.general.push(filter);
+                    if ( hasBit(f, c.ZOOMED ) ) sets.zoomed.push(filter);                 
+                    if ( hasBit(f, c.TAKEOVER_DOWN) ) sets.takeover_down.push(filter);
+                    if ( hasBit(f, c.TAKEOVER_UP) ) sets.takeover_up.push(filter);
+                    if ( hasBit(f, c.START) ) sets.start.push(filter);
                     if ( filterDefs[filter].hasOwnProperty("webgl") ) 
                         sets.webgl.push(filter);
                 }
@@ -269,7 +269,8 @@ var core = (function(core) {
             };
             return mainTime;
         }({}))
-        
+       
+        // alias .engage() so that it can be called during filter init
         filters.start = mainTime.engage;
 
         /* 

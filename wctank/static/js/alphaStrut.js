@@ -11,6 +11,10 @@ var alphaStrut = (function(alphaStrut) {
     //  remove some layers from cmgyk
     //  increased caustic glow video usage
     //
+    // TODO: select portion of video to use
+    // create resource saving filter modes
+    // functions to cull filter sets
+    // picture filter
     var vid = document.createElement('video');
     vid.style.display = "none";
     vid.preload = "auto";
@@ -84,10 +88,14 @@ var alphaStrut = (function(alphaStrut) {
     alphaStrut.animate = function() {
         alphaStrut.webgl.update();
     };
+    
+    /*
     window.setTimeout(function() {
         alphaStrut.init();
         if (!core.render.rendering) core.render.push(alphaStrut.animate);
         core.render.go();
     }, 10000); 
+    */
+
     return alphaStrut;
 }({}))

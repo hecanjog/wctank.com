@@ -85,49 +85,23 @@ $.get("static/map_filters.xml", function(data) {
             var caustic_glow_back = document.createElement("div");
             caustic_glow_back.setAttribute("id", "caustic_glow_back");  
             
-            var yt_player = document.createElement("div");
-            yt_player.setAttribute("id", "yt_player");
-            caustic_glow_back.appendChild(yt_player);
-            
-            var yt_tag = document.createElement("script");
-            yt_tag.src = "https://www.youtube.com/iframe_api";
-            caustic_glow_back.appendChild(yt_tag);
+            var vid_id = "107871876";
+            var vimeo_player = document.createElement("iframe");
+            vimeo_player.setAttribute("id", "vimeo_player");
+            vimeo_player.src = 
+                "//player.vimeo.com/video/"+vid_id+
+                "?api=1&player_id=vimeo_player&autopause=0&loop=1";
+            caustic_glow_back.appendChild(vimeo_player);
             
             document.body.appendChild(caustic_glow_back);
-            
-            var player;
-            var yt_vid_id = 'Y2YkudgEDNk';
-            var start_offset = 22;
-            onYouTubeIframeAPIReady = function() {
-                player = new YT.Player('yt_player', {
-                    playerVars: {
-                        controls: 0,
-                        disablekb: 1,
-                        loop: 1,
-                        modestbranding: 0,
-                        rel: 0
-                    },
-                    events: {
-                        onReady: onPlayerReady,
-                        onStateChange: onPlayerStateChange,
-                        onError: onPlayerError
-                    }           
-                });
-            };
-            onPlayerReady = function(event) {
-                player.mute();
-                player.loadVideoById(yt_vid_id, start_offset);
-                player.pauseVideo();
-            };
-            onPlayerStateChange = function(event) {
-                if (event.data === YT.PlayerState.ENDED) {
-                    player.loadVideoById(yt_vid_id, start_offset);
-                    //coord.rm("caustic_glow"); 
-                }
-            };
-            onPlayerError = function(event) {
-                document.body.removeChild(caustic_glow_back);
-            };
+             
+            var player = $f( $('#vimeo_player')[0] );
+            var player_ready = false;
+            player.addEvent('ready', function() {
+                player_ready = true;
+                player.api("setVolume", 0);
+                player.api("pause");
+            });
             var blink_id = null;
             var blink_map = function() {
                 var del = Math.random() * 20000 + 10000;
@@ -140,18 +114,18 @@ $.get("static/map_filters.xml", function(data) {
                 }, del);
             };  
             caustic_glow.init = function() {
-                try {
-                    player.playVideo();
-                } catch (err) {
+                if (player_ready) {
+                    player.api("play");
+                } else {
                     window.setTimeout(function() {
                         caustic_glow.init();
-                    }, 500);
+                    }, 250);
                 }
                 caustic_glow_back.style.visibility = "visible";
                 if ( (Math.random() * 10) <= 5 ) blink_map(); 
             };
             caustic_glow.teardown = function() {
-                player.pauseVideo();
+                player.api("pause");
                 caustic_glow_back.style.visibility = "hidden";
                 if (blink_id) window.clearTimeout(blink_id);
                 blink_id = null;    
