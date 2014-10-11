@@ -17,7 +17,10 @@
     <canvas id="markers-a"></canvas>
     <div id="overlay"></div>
     
-    <script src="/static/map_assets/filter_admin.js"></script>
+    <!--<script src="/static/map_assets/filter_admin.js"></script>-->
+    <script src="/static/map_assets/core.js"></script>
+    <script src="/static/map_assets/filterDefs.js"></script>
+
     <script src="/static/map_assets/markers.js"></script>
     
     <ul id="social-links">
@@ -138,7 +141,8 @@
             (function initEvents() {
                 window.setTimeout(function() {
                     try {
-                        filter_admin.eventHandler(map);
+                        core.events(map);
+                        filterDefs.events(map);
                         markers.eventHandler(map);
                     } catch(err) {
                         initEvents();
@@ -189,7 +193,7 @@
             });
         };
         function onMarkerClick(post) {
-            filter_admin.onMarkerClick();
+            core.filters.onMarkerClick();
             var trivial = 130; //mini fade for content swap
             var width = div.$overlay.css("width");
             div.$overlay.find("*").fadeOut(trivial).remove();
@@ -258,7 +262,7 @@
         });
         google.maps.event.addDomListener(window, 'load', init);
     }());
-     
+
     </script>
     
 </body>
