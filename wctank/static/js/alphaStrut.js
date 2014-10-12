@@ -15,6 +15,7 @@ var alphaStrut = (function(alphaStrut) {
     // create resource saving filter modes
     // functions to cull filter sets
     // picture filter
+    // turn on background video sound during special event
     var vid = document.createElement('video');
     vid.style.display = "none";
     vid.preload = "auto";

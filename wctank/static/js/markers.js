@@ -108,26 +108,26 @@ var markers = (function(markers) {
                 var pjkt = overlay.getProjection();
                 for (var i = 0; i < stk.length; i++) {
                     var px = getMarkXY(stk[i], pjkt);
-                    if (px) r.push([stk[i].post_type, px]);   
+                    if (px) r.push([stk[i].markerType, px]);   
                 }
                 return r;
             }
         };  
         return marks;
     }({}))
+    var update = function() {
+        disp.drawCycle( marks.getDrawingInfo() );
+    };
     markers.setOverlay = function(g_ovr_obj) {
         overlay = g_ovr_obj;
     };
     markers.addMarker = function(m) {
         if ( !marks.isDuplicate(m) ) {
             marks.pushMark(m);
-            disp.drawCycle( marks.getDrawingInfo() );         
+            update();         
         }
     };
-    markers.events = function(map_obj) {
-        google.maps.event.addListener(map_obj, 'bounds_changed', function() {
-            disp.drawCycle( marks.getDrawingInfo() );
-        });
-    }; 
+    gMap.events.push(gMap.events.MAP, 'bounds_changed', update);
+     
    return markers;
 }({}))

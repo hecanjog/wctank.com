@@ -182,7 +182,7 @@ $.get("static/map_filters.xml", function(data) {
 
             var $kos = $();
             var blink$ = []; //array with items of form [$, blink_speed in ms]  
-            cmgyk.onMovement = function() {
+            var onMovement = function() {
                 if ( engaged && should_ko() ) {
                     var $map_imgs = $("#map-canvas :nth-child(1) :nth-child(1)" + 
                                       ":nth-child(1) :nth-child(5) :nth-child(1)").children();
@@ -227,7 +227,8 @@ $.get("static/map_filters.xml", function(data) {
                     $kos.css("display", "none");
                 }
             };
-            
+            gMap.events.push(gMap.events.MAP, 'bounds_changed', onMovement);
+
             //TODO: cmgyk webgl starscape?           
             cmgyk.animate = function() {
                 if ( should_blink() ) {
@@ -249,10 +250,12 @@ $.get("static/map_filters.xml", function(data) {
             var rot_interval = 22.5;
             var rot = 0;
             var lzoom = 0;
-            cmgyk.onLoad = function(map_obj) {
+            var onTilesLoaded = function(map_obj) {
                 lzoom = map_obj.zoom;
-            }
-            cmgyk.onZoom = function(map_obj) {
+            };
+            gMap.events.push(gMap.events.MAP, 'tilesloaded', onTilesLoaded, true); 
+            
+            var onZoom = function(map_obj) {
                 var zoom = map_obj.zoom;
                 rot = rot + ( (zoom - lzoom) * rot_interval );
                 var str = "rotate("+rot.toString()+"deg)";
@@ -260,6 +263,8 @@ $.get("static/map_filters.xml", function(data) {
                 cmgyk_back.style.webkitTransform = str;
                 lzoom = zoom;           
             };
+            gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom); 
+            
             return cmgyk;
         }({})),
                     
@@ -283,6 +288,7 @@ $.get("static/map_filters.xml", function(data) {
                 document.body.removeChild(vhs_back);
                 vhs.webgl.teardown();
             }
+            
             var jit;
             var jit_offset = 3;
             var jit_delay = 150;
@@ -298,13 +304,23 @@ $.get("static/map_filters.xml", function(data) {
                 vhs.webgl.update();
             };
             var jit_tmp;
-            vhs.jitter = function(idle) {
+            var jitter = function(idle) {
                 jit_tmp = idle;
                 if (!jit_tmp) vhs.offset.setAttribute("dy", 0);
                 window.setTimeout(function() {
                     jit = jit_tmp;
                 }, jit_delay);
             };
+            gMap.events.push(gMap.events.MAP, 'zoom_changed', function() {
+                jitter(false);
+            });
+            gMap.events.push(gMap.events.MAP, 'drag', function() {
+                jitter(false);
+            });
+            gMap.events.push(gMap.events.MAP, 'idle', function() {
+                jitter(true);
+            });
+
             vhs.webgl = (function(webgl) {
                 var vhs_canv = document.createElement('canvas');
                 vhs_canv.width = window.innerWidth * 0.75;
@@ -340,24 +356,6 @@ $.get("static/map_filters.xml", function(data) {
             return vhs;
         }({}))
     };
-    filterDefs.events = function(gMapObj) {
-        google.maps.event.addListener(gMapObj, 'zoom_changed', function() { 
-            filterDefs.cmgyk.onZoom(gMapObj); 
-            filterDefs.vhs.jitter(false);
-        });
-        google.maps.event.addListener(gMapObj, 'drag', function() { 
-            filterDefs.vhs.jitter(false);       
-        });
-        google.maps.event.addListener(gMapObj, 'idle', function() {
-            filterDefs.vhs.jitter(true);
-        });
-        google.maps.event.addListener(gMapObj, 'bounds_changed', function() {
-            filterDefs.cmgyk.onMovement();
-        });
-        google.maps.event.addListenerOnce(gMapObj, 'tilesloaded', function() {
-            filterDefs.cmgyk.onLoad(gMapObj);       
-        });
-    }
     
     // Now that everything is here, run the filters 
     core.filters.parse();

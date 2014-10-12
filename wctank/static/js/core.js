@@ -1,9 +1,3 @@
-var div = {
-    $overlay: $('#overlay'),
-    $map: $("#map-canvas"),
-    $map_U_markers: $("#map-canvas").add("#markers-a").add("#markers-b")
-};
-
 var core = (function(core) {
 
     core.render = (function(render) {
@@ -120,6 +114,7 @@ var core = (function(core) {
             START:          0x04000000, 
             NONE:           0x00000000
         };
+        filters.current = null;
         filters.parse = function() {
             for (var filter in filterDefs) {
                 if ( filterDefs.hasOwnProperty(filter) ) {
@@ -138,7 +133,6 @@ var core = (function(core) {
                 }
             }
         };
-        filters.current = null;
         filters.pushCategory = function(filter, cat_obj) {
             switch(cat_obj) {
                 case cat.GENERAL:
@@ -213,8 +207,9 @@ var core = (function(core) {
         filters.forceApply = function() {
             applyRndFilter(sets.general);
         };
+        
         var close_thresh = 17;
-        filters.onZoom = function(map_obj) {
+        var onZoom = function(map_obj) {
             if ( was_in_close && (map_obj.zoom <= close_thresh) ) {
                 filters.apply(old_filter);
                 was_in_close = false;
@@ -224,6 +219,7 @@ var core = (function(core) {
                 was_in_close = true;
             }       
         };
+        gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom);
         
         /*
          * mainTime coordinates normal interval-driven filter changes
@@ -236,6 +232,7 @@ var core = (function(core) {
             var elapsed;
             var id;
             var first = true;
+            var is_engaged = false;
             var update = function() {
                 start = Date.now();
                 if (first) {
@@ -245,20 +242,28 @@ var core = (function(core) {
                     applyRndFilter(sets.general);
                 }
             };
+            //dep setInterval
             mainTime.setInterval = function(n) {
                 mainTime.cease();
-                interval = n;
-                mainTime.engage();
+                mainTime.engage(n);
             };
-            mainTime.engage = function() {
-                if ( (Date.now() - cease) > interval ) {
-                    update();
-                    id = window.setInterval(update, interval);
+            mainTime.engage = function(n) {
+                if (n) interval = n;
+                if (is_engaged) {
+                    mainTime.cease();
+                    is_engaged = false;
+                    mainTime.engage();
                 } else {
-                    id = window.setTimeout(function() {
+                    is_engaged = true;
+                    if ( (Date.now() - cease) > interval ) {
                         update();
                         id = window.setInterval(update, interval);
-                    }, elapsed);
+                    } else {
+                        id = window.setTimeout(function() {
+                            update();
+                            id = window.setInterval(update, interval);
+                        }, elapsed);
+                    }
                 }
             };
             mainTime.cease = function() {
@@ -272,7 +277,8 @@ var core = (function(core) {
        
         // alias .engage() so that it can be called during filter init
         filters.start = mainTime.engage;
-
+        filters.pause = mainTime.cease;
+        
         /* 
          * A couple of events that need to be hooked;
          * onMarkerClick is called in index.html where markers are defined
@@ -280,35 +286,25 @@ var core = (function(core) {
          * also triggers the map click event)
          */
         var marker_clicked = false;
-        filters.onMarkerClick = function() {
+        var onMarkerClick = function() {
             marker_clicked = true;
             window.setTimeout(function() {
                 marker_clicked = false;
             }, 100);
             if ( div.$overlay.is(":hidden") ) mainTime.cease();
         };
-        filters.onMapClick = function() {
+        gMap.events.push(gMap.events.MARKER, 'click', onMarkerClick);
+        var onMapClick = function() {
             if ( !div.$overlay.is(":hidden") ) {
                 window.setTimeout(function() {
                     if (!marker_clicked) mainTime.engage();
                 }, 50);
             }
-        };  
+        };
+        gMap.events.push(gMap.events.MAP, 'click', onMapClick, true);  
+        
         return filters;
     }({}))
     
-    /*
-     * core.events wraps core event listeners (except filters.onMarkerClick)
-     * and is evoked in the main listener hook
-     */
-    core.events = function(gMapObj) {
-        google.maps.event.addListener(gMapObj, 'zoom_changed', function() {
-            core.filters.onZoom(gMapObj);
-        });
-        google.maps.event.addListenerOnce(gMapObj, 'click', function() {
-            core.filters.onMapClick();
-        });
-    };
-
     return core;
 }({}))

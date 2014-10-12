@@ -6,7 +6,9 @@
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false&libraries=weather"></script>
+    <script type="text/javascript" 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&sensor=false&libraries=weather">
+    </script>
     <script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
     <script src="//f.vimeocdn.com/js/froogaloop2.min.js"></script>
 </head>
@@ -16,12 +18,6 @@
     <canvas id="markers-b"></canvas>
     <canvas id="markers-a"></canvas>
     <div id="overlay"></div>
-    
-    <!--<script src="/static/map_assets/filter_admin.js"></script>-->
-    <script src="/static/js/core.js"></script>
-    <script src="/static/js/filterDefs.js"></script>
-    <script src="/static/js/markers.js"></script>
-    <script src="/static/js/alphaStrut.js"></script>
 
     <ul id="social-links">
         <li><a href="http://wctank.tumblr.com" target="_blank"><i class="fa fa-tumblr-square"></i></a><li>
@@ -36,234 +32,14 @@
         <div class="~!type">~!content</div>
         <div class="permalink"><a href="~!link" target="_blank"><p>view on tumblr</p></a></div>
     </script>
-
-    <script type="text/javascript">
-
-    (function() {
-        WebFont.load({custom: {families: [
-                    'timeless',
-                    'timelessbold',
-                    'frutigerlight',
-                    'timelessitalic',
-                    'frutigerlightitalic',
-                    'frutigerbold'
-                ]
-            }
-        });
-        var loader; // contains 'loading' script graphic
-        $.get("static/assets/loading_cur.svg", function(data) {
-            loader = new XMLSerializer().serializeToString(data);
-        });
-        var renderPost = function(post, $template) {
-            var content = '';
-            if(typeof post.title !== 'undefined') {
-                if(post.type === "link") {
-                    content += "<div class='post-title'>"+
-                        "<a target='_blank' href='"+post.url+"'>"+post.title+"</a></div>";
-                } else {
-                    content += "<div class='post-title'>"+post.title+"</div>";
-                }
-            }
-            if(typeof post.body !== 'undefined') {
-                content += "<div class='post-body'>"+post.body+"</div>";
-            }
-            if(typeof post.photos !== 'undefined') {
-                content += '<img src="' + post.photos[0].alt_sizes[0].url + '"/>';
-            }
-            if(typeof post.text !== 'undefined') {
-                content += "<div class='post-text'>"+post.text+"</div>";
-            }
-            if(typeof post.player !== 'undefined') {
-                content += post.player[0].embed_code;
-            }
-            if(typeof post.description !== 'undefined') {
-                content += "<div class='post-description'>"+post.description+"</div>";
-            }
-            if(typeof post.caption !== 'undefined') {
-                content += "<div class='post-caption'>"+post.caption+"</div>";
-            }
-            if(typeof post.source !== 'undefined') {
-                content += post.source;
-            }
-            var post_data = {
-                'type': post.type,
-                'date': post.date,
-                'link': post.short_url,
-                'content': content
-            };
-            var template = $template.html();
-            $.each(post_data, function(i, v) {
-                var rg = "~!" + i;
-                var r = new RegExp(rg, "g");
-                template = template.replace(r, v);
-            });
-            return template;
-        };
-        
-        var marker_clicked = false;
-        
-        var init = function() {
-            var map = new google.maps.Map(document.getElementById("map-canvas"), {
-                center: new google.maps.LatLng(43.1, -87.107180),
-                zoom: 11,
-                mapTypeId: google.maps.MapTypeId.SATELLITE,
-                disableDefaultUI: true,
-                zoomControl: true,
-                zoomControlOptions: {
-                    position: google.maps.ControlPosition.LEFT_BOTTOM
-                }
-            });
-            var bounds = new google.maps.LatLngBounds(
-                new google.maps.LatLng(42.96, -87.3159),
-                new google.maps.LatLng(43.25, -86.9059)
-            );
-
-            // TODO: Change to animated version?
-            var overlay = new google.maps.GroundOverlay(
-                'static/assets/virgo-logo.png',
-                bounds
-            );
-            overlay.setMap(map);
-            var clouds = new google.maps.weather.CloudLayer();
-            clouds.setMap(map);
-            var m_px = new google.maps.OverlayView();
-            m_px.draw = function() {};
-            m_px.setMap(map);
-            markers.setOverlay(m_px);
-
-            //TODO: Do a little something special?
-            google.maps.event.addListener(overlay, 'click', function() {
-                map.setZoom(9);
-            });
-
-            // Any events in submodules that need access to the map object
-            // should be instantiated here
-            (function initEvents() {
-                window.setTimeout(function() {
-                    try {
-                        core.events(map);
-                        filterDefs.events(map);
-                        markers.events(map);
-                    } catch(err) {
-                        initEvents();
-                    }
-                }, 250);
-            }())
-            google.maps.event.addListener(map, 'idle', function() {
-                var visibleBounds = map.getBounds();
-                var sw = visibleBounds.getSouthWest();
-                var ne = visibleBounds.getNorthEast();
-                var url = '/' + sw.lat() + '/' + sw.lng() + '/' + ne.lat() + '/' + ne.lng();
-                $.getJSON(url, function(data) {
-                    var m;
-                    $.each(data, function(i, post) {
-                        var loc = new google.maps.LatLng(post.lat, post.long);
-                        var markerOptions = {
-                            position: loc,
-                            map: map
-                        };
-                        
-                        // TODO: For some reason, text posts break the removal of the preloading
-                        // image, so provide a property to sniff on for the time being (c.f. line 215). 
-                        // Also, a pure text post shouldn't take a long enough time to load where 
-                        // we would want to bother with displaying the preloader anyway?
-                        post.isTextPost = (function() {
-                            var text_posts = ['text', 'audio', 'link', 'quote'];
-                            if (text_posts.indexOf(post.type) !== -1) {
-                                return true;
-                            }
-                            return false; 
-                        }());
-                        
-                        // Marker.icon is an invisible placeholder; draw actual icon above it in the canvas 
-                        // layers, c.f. markers.js
-                        markerOptions.icon = "static/assets/blank.png";
-                        m = new google.maps.Marker(markerOptions);
-                        if($.inArray('videos', post.tags) !== -1) {
-                            m.post_type = 'video';    
-                        } else if ($.inArray('stumblesome', post.tags) !== -1) {
-                            m.post_type = 'stumble';
-                        } else {
-                            m.post_type = 'random';
-                        }
-                        markers.addMarker(m); 
-                        google.maps.event.addListener(m, 'click', function() { onMarkerClick(post); });
-                    });
-                });
-            });
-        };
-        function onMarkerClick(post) {
-            core.filters.onMarkerClick();
-            var trivial = 130; //mini fade for content swap
-            var width = div.$overlay.css("width");
-            div.$overlay.find("*").fadeOut(trivial).remove();
-             
-            var $post = renderPost(post, $('#post-template'));
-            div.$overlay.html($post).removeClass().addClass(post.type);
-             
-            var mm = window.matchMedia("screen and (max-width: 31em)");
-            if ( div.$overlay.is(':hidden') ) {
-                div.$overlay.fadeIn('fast');
-                if (mm.matches) {
-                    width = 'auto'; //will fill screen when @small c.f. styles.less
-                } else {
-                    width = div.$overlay.css('min-width');
-                }
-             }
-            var $contents = div.$overlay.find("*");
-            var waiting = true;
-            var $loading;
-            
-            // TODO: pure text posts break this... need to replace .find with a
-            // function that will *also* traverse the DOM and get text nodes
-            if ( !post.isTextPost ) {
-                div.$overlay.css("width", width);
-                $contents.hide();
-                window.setTimeout(function() {
-                    if (waiting) {
-                        $loading = div.$overlay.append(loader).find("#loading");
-                    }
-                }, 300);
-                $contents.load(function() {
-                    if ($loading) {
-                        $loading.fadeOut(trivial).remove(); 
-                    }
-                    div.$overlay.css("width", "auto");
-                    $contents.fadeIn(trivial);
-                    waiting = false;
-                });
-             } else {
-                $contents.fadeIn(trivial); // for now, just fade in if text
-             }
-             marker_clicked = true;
-             window.setTimeout(function() {
-                marker_clicked = false;
-             }, 200);
-        }
-        
-        // TODO: Hiding the overlay does  not stop audio/video playback, 
-        // which is something to think about.
-        
-        // Close overlay when usr clicks on the X
-        $(document).on('click', '.close-post', function(e) {
-            e.preventDefault();
-            $(this).parent().fadeOut('fast');
-        });
-
-        // Close overlay on mousedown over map, i.e., to move it.
-        // TODO: Consider handling zoom events also.    
-        div.$map.mousedown(function() {
-            window.setTimeout(function() {
-                if ( div.$overlay.is(':visible') && (div.$overlay.css('opacity') === '1') 
-                    && (marker_clicked === false) ) {
-                    div.$overlay.fadeOut('fast'); 
-                }
-            }, 150);
-        });
-        google.maps.event.addDomListener(window, 'load', init);
-    }());
-
-    </script>
     
+    <script src="/static/js/div.js"></script>    
+    <script src="/static/js/posts.js"></script> 
+    <script src="/static/js/gMap.js"></script>
+    <script src="/static/js/core.js"></script>
+    <script src="/static/js/filterDefs.js"></script>
+    <script src="/static/js/markers.js"></script>
+    <script src="/static/js/alphaStrut.js"></script>
+    <script src="/static/js/main.js"></script>
 </body>
 </html>
