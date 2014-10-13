@@ -280,12 +280,10 @@ var core = (function(core) {
         filters.pause = mainTime.cease;
         
         /* 
-         * A couple of events that need to be hooked;
-         * onMarkerClick is called in index.html where markers are defined
-         * (we use the marker_clicked flag to weed out cases where clicking on a marker
-         * also triggers the map click event)
+         * events
          */
         var marker_clicked = false;
+        
         var onMarkerClick = function() {
             marker_clicked = true;
             window.setTimeout(function() {
@@ -294,6 +292,7 @@ var core = (function(core) {
             if ( div.$overlay.is(":hidden") ) mainTime.cease();
         };
         gMap.events.push(gMap.events.MARKER, 'click', onMarkerClick);
+        
         var onMapClick = function() {
             if ( !div.$overlay.is(":hidden") ) {
                 window.setTimeout(function() {

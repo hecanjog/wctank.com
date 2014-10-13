@@ -1,16 +1,22 @@
-var filterDefs = {};
+var filterDefs = (function(filterDefs) {
+    
+    var _filterDefsReady = new Event('filterDefsReady');
+    filterDefs.addReadyListener = function(fn) { 
+        document.addEventListener('filterDefsReady', function() {
+            fn();
+            document.removeEventListener('filterDefsReady', fn);
+        }); 
+    };
+    
+    $.get("static/map_filters.xml", function(data) {
+        var cont = document.createElement("svg_filters");
+        cont.style.position = "fixed";
+        cont.style.bottom = 0;
+        cont.style.zIndex = -99999999;
+        document.body.appendChild(cont);
+        cont.innerHTML = new XMLSerializer().serializeToString(data);   
 
-$.get("static/map_filters.xml", function(data) {
-    var cont = document.createElement("svg_filters");
-    cont.style.position = "fixed";
-    cont.style.bottom = 0;
-    cont.style.zIndex = -99999999;
-    document.body.appendChild(cont);
-    cont.innerHTML = new XMLSerializer().serializeToString(data);   
-
-    filterDefs = {
-
-        troller: (function(troller) {
+        filterDefs.troller = (function(troller) {
             var u = core.filters.usage;
             troller.usage = u.GENERAL | u.ZOOMED;
             
@@ -59,18 +65,18 @@ $.get("static/map_filters.xml", function(data) {
                 window.clearTimeout(to_id);
             };
             return troller;
-        }({})),
+        }({}))
 
-        print_analog: {
+        filterDefs.print_analog = {
             usage: core.filters.usage.GENERAL | 
                    core.filters.usage.ZOOMED | 
                    core.filters.usage.TAKEOVER_DOWN | 
                    core.filters.usage.START,
             denoise: document.getElementById("pa-denoise"),
             bypass: document.getElementById("pa-bypass")
-        },
+        };
             
-        caustic_glow: (function(caustic_glow) {
+        filterDefs.caustic_glow = (function(caustic_glow) {
             var u = core.filters.usage;
             caustic_glow.usage = u.GENERAL | u.TAKEOVER_DOWN | u.TAKEOVER_UP | 
                                  u.ZOOMED | u.START;
@@ -125,9 +131,9 @@ $.get("static/map_filters.xml", function(data) {
                 blink_id = null;    
             };
             return caustic_glow;
-        }({})),
+        }({}))
 
-        cmgyk: (function(cmgyk) {
+        filterDefs.cmgyk = (function(cmgyk) {
             var u = core.filters.usage;
             cmgyk.usage = u.GENERAL | u.ZOOMED;
             cmgyk.denoise = document.getElementById("cmgyk-denoise");
@@ -266,13 +272,13 @@ $.get("static/map_filters.xml", function(data) {
             gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom); 
             
             return cmgyk;
-        }({})),
+        }({}))
                     
-        fauvist: {
+        filterDefs.fauvist = {
             usage: core.filters.usage.ZOOMED
-        },
+        };
             
-        vhs: (function(vhs) {
+        filterDefs.vhs = (function(vhs) {
             var u = core.filters.usage;
             vhs.usage = u.GENERAL | u.ZOOMED | u.START;
             vhs.offset = document.getElementById("vhs-offset");
@@ -355,21 +361,19 @@ $.get("static/map_filters.xml", function(data) {
             }({}))
             return vhs;
         }({}))
-    };
-    
-    // Now that everything is here, run the filters 
-    core.filters.parse();
-    core.filters.start();
-    
-    // media queries for filters
-    (function() {
-        var dppx1dot2 =  window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
-                            "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
-        if (dppx1dot2.matches) {
-            filterDefs.print_analog.denoise.setAttribute("stdDeviation", "1.16");
-            filterDefs.print_analog.bypass.setAttribute("in2", "flip");
-            filterDefs.caustic_glow.glow_radius.setAttribute("stdDeviation", "10.6");
-            filterDefs.cmgyk.denoise.setAttribute("stdDeviation", "1");
-        }
-    }())
-});
+        core.filters.parse();
+        document.dispatchEvent(_filterDefsReady);
+        
+        (function() {
+            var dppx1dot2 =  window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
+                                "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
+            if (dppx1dot2.matches) {
+                filterDefs.print_analog.denoise.setAttribute("stdDeviation", "1.16");
+                filterDefs.print_analog.bypass.setAttribute("in2", "flip");
+                filterDefs.caustic_glow.glow_radius.setAttribute("stdDeviation", "10.6");
+                filterDefs.cmgyk.denoise.setAttribute("stdDeviation", "1");
+            }
+        }())
+    });
+    return filterDefs;
+}({}))

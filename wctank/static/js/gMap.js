@@ -1,5 +1,8 @@
 // UTILITY FUNCTION TO GET CURRENT EVENTS
+// control appearance with seq module
 var gMap = (function(gMap) {
+    
+    // On init, provides ref to google.maps.Map obj
     gMap.map; 
     
     /*
@@ -37,9 +40,6 @@ var gMap = (function(gMap) {
                 google.maps.event.addListener(caller, event, fn);
             }
         };
-        evHeap.dBug = function() {
-            console.log(heap);
-        };
         evHeap.addHeapEvents = function(set, marker) {
             var ev_set = set ? heap[set] : heap.map_events;
             var caller = (function() {
@@ -64,7 +64,7 @@ var gMap = (function(gMap) {
             }; 
             for (var ev in ev_set) { 
                 if ( ev_set.hasOwnProperty(ev) ) {
-                    (function() {
+                    (function() { //I'm so ready for let
                         var persist = [];
                         var once = [];
                         for (var i = 0; i < nOfChildKeys(ev_set[ev]); i++) {
@@ -95,12 +95,11 @@ var gMap = (function(gMap) {
         return evHeap;
     }({});
     
-    // public events members
+    // public evHeap members
     gMap.events = {
         MAP: evHeap.MAP,
         MARKER: evHeap.MARKER,
         push: evHeap.push,
-        dBug: evHeap.dBug
     };
     
     gMap.init = function() {
@@ -114,20 +113,7 @@ var gMap = (function(gMap) {
                 position: google.maps.ControlPosition.LEFT_BOTTOM
             }
         });
-        // refactor overlays to main?
-        var bounds = new google.maps.LatLngBounds(
-            new google.maps.LatLng(42.96, -87.3159),
-            new google.maps.LatLng(43.25, -86.9059)
-        );
-
-        // TODO: Change to animated version?
-        var overlay = new google.maps.GroundOverlay(
-            'static/assets/virgo-logo.png',
-            bounds
-        );
-        overlay.setMap(gMap.map);
-        var clouds = new google.maps.weather.CloudLayer();
-        clouds.setMap(gMap.map);
+        
         var m_px = new google.maps.OverlayView();
         m_px.draw = function() {};
         m_px.setMap(gMap.map);
@@ -139,8 +125,6 @@ var gMap = (function(gMap) {
             gMap.map.setZoom(9);
         });
 
-        // Any events in submodules that need access to the map object
-        // should be instantiated here
         (function initEvents() {
             window.setTimeout(function() {
                 try {
