@@ -1,4 +1,7 @@
-var core = (function(core) {
+wctank = wctank || {};
+
+wctank.core = (function(core) {
+    wctank.aliasNamespace.call(core.prototype);
 
     core.render = (function(render) {
         var stk = [];

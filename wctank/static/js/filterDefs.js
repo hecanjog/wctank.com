@@ -1,5 +1,9 @@
-var filterDefs = (function(filterDefs) {
-    
+wctank = wctank || {};
+
+//unique lengths for each filter ... interval/timeout multiplier
+wctank.filterDefs = (function(filterDefs) {
+    wctank.aliasNamespace.call(filterDefs.prototype); 
+
     var _filterDefsReady = new Event('filterDefsReady');
     filterDefs.addReadyListener = function(fn) { 
         document.addEventListener('filterDefsReady', function() {

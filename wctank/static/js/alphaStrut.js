@@ -2,6 +2,8 @@
  * alphaStrut is a special filter event that runs simultaneously with the .attrs filters
  */
 var alphaStrut = (function(alphaStrut) {
+    wctank.aliasNamespace.call(alphaStrut.prototype);
+    
     // occasionally cover map with flashing screen  
     // instead of opaque being black, sky gif
     // sky with flashing?

@@ -1,4 +1,7 @@
-var posts = (function(posts) {
+wctank = wctank || {};
+
+wctank.posts = (function(posts) {
+    wctank.aliasNamespace.call(posts.prototype);
     var renderTemplate = function(post, $template) {
         var content = '';
         if(typeof post.title !== 'undefined') {

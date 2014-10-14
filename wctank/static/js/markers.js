@@ -1,9 +1,13 @@
+wctank = wctank || {};
+
 /*
  * markers creates a canvas overlay so that the pins can 
  * appear unadulterated by filters applied to the map
  */
 // use invisible placeholder image in richmarker
-var markers = (function(markers) {
+wctank.markers = (function(markers) {
+    wctank.aliasNamespace.call(markers.prototype);
+    
     var overlay;
     var disp = (function(disp) {
         var CanvPrep = function(canv_elem) {

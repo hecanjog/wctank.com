@@ -1,6 +1,8 @@
-// UTILITY FUNCTION TO GET CURRENT EVENTS
-// control appearance with seq module
-var gMap = (function(gMap) {
+wctank = wctank || {};
+
+// TODO: UTILITY FUNCTION TO GET CURRENT EVENTS
+wctank.gMap = (function(gMap) {
+    wctank.aliasNamespace.call(gMap.prototype); 
     
     // On init, provides ref to google.maps.Map obj
     gMap.map; 
@@ -19,7 +21,6 @@ var gMap = (function(gMap) {
             marker_events: {}
         }; 
         evHeap.push = function(loc, event, fn, once) {
-            //console.log(loc+" "+event+" "+fn.toString()+" "+once);
             var makeEvObj = function(once, fn) {
                 return { once: once, fn: fn } 
             };
@@ -118,23 +119,9 @@ var gMap = (function(gMap) {
         m_px.draw = function() {};
         m_px.setMap(gMap.map);
         markers.setOverlay(m_px);
-
-        //TODO: Do a little something special?
-        // factor this out
-        google.maps.event.addListener(overlay, 'click', function() {
-            gMap.map.setZoom(9);
-        });
-
-        (function initEvents() {
-            window.setTimeout(function() {
-                try {
-                    evHeap.addHeapEvents(evHeap.MAP);
-                } catch(err) {
-                    initEvents();
-                }
-            }, 250);
-        }())
-
+        
+        evHeap.addHeapEvents(evHeap.MAP);
+        
         google.maps.event.addListener(gMap.map, 'idle', function() {
             posts.get(gMap.map.getBounds(), function(data) {
                 $.each(data, function(i, post) {

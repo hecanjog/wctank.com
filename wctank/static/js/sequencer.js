@@ -1,4 +1,10 @@
-var sequencer = (function(sequencer) {
+wctank = wctank || {};
+
+//incorporate alpha strut
+//make class for tableux
+wctank.sequencer = (function(sequencer) {
+    wctank.aliasNamespace.call(sequencer.prototype);
+    
     var current_stage = null;
     var stages = {
         0: function() {
@@ -37,7 +43,8 @@ var sequencer = (function(sequencer) {
             filterDefs.addReadyListener(core.filters.start);
         },
     };
-    var stages_length = Object.keys(stages).length;
+    stages.length =  Object.keys(stages).length;
+    
     var callStage = function(n) {
         current_stage = n;
         stages[n]();
@@ -47,7 +54,7 @@ var sequencer = (function(sequencer) {
     };
     sequencer.forward = function() {
         var next = current_stage + 1;
-        if (next < stages_length) {
+        if (next < stages.length) {
             callStage(next);
         } else {
             throw "stage undefined!";
@@ -67,4 +74,4 @@ var sequencer = (function(sequencer) {
     return sequencer;
 }({}))
 
-sequencer.goTo(0);
+wctank.sequencer.goTo(0);
