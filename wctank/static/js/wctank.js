@@ -13,11 +13,11 @@ var wctank = (function(wctank) {
     };
 
     wctank.objectLength = function() {
-        var l = 0;
+        this.length = 0;
         for (var p in this) {
-            if ( this.hasOwnProperty(p) ) l++;
+            if ( this.hasOwnProperty(p) ) this.length++;
         }
-        this.length = l;
+        this.length--;
     };
     
     /*
