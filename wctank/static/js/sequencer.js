@@ -38,6 +38,7 @@ wctank.sequencer = (function(sequencer) {
                 google.maps.event.addListener(overlay, 'click', function() {
                     gMap.map.setZoom(9);
                 });
+                
                 tableux.pickTableux();
                 gMap.events.initHeapEvents(gMap.events.MAP);
             };
@@ -45,7 +46,7 @@ wctank.sequencer = (function(sequencer) {
             filterDefs.addReadyListener(core.filters.start);
         },
     };
-    stages.length =  Object.keys(stages).length;
+    wctank.objectLength.call(stages);
     
     var callStage = function(n) {
         current_stage = n;

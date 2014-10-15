@@ -18,6 +18,9 @@ var wctank = (function(wctank) {
             if ( this.hasOwnProperty(p) ) this.length++;
         }
         this.length--;
+        Object.defineProperty(this, "length", {
+            writable: false
+        });
     };
     
     /*
