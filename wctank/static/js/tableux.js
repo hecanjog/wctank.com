@@ -11,7 +11,7 @@ wctank.tableux = (function(tableux) {
         r.zoom = zoom;
         return r;
     };
-
+//restructure with nice spots, and tag them for each filter
     var dat = {
         print_analog: [
             makeTableuxData(43.035578033062414, -87.92508879368779, 20)
@@ -20,7 +20,7 @@ wctank.tableux = (function(tableux) {
             makeTableuxData(42.70103069787964, -87.99994131176345, 18)
         ],
         cmgyk: [
-            makeTableuxData(41.73787991072762, -87.47784991638764, 16)
+            makeTableuxData(41.73787991072762, -87.47784991638764, 16) //cool with vhs also
         ],
         vhs: [
             makeTableuxData(42.75690051169562, -87.80957013350911, 20)

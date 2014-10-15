@@ -188,7 +188,7 @@ wctank.core = (function(core) {
             if (typeof this_filter !== "undefined") {   
                 if ( this_filter.hasOwnProperty('init') ) this_filter.init();
                 if ( this_filter.hasOwnProperty('animate') ) render.push(this_filter.animate);
-                if ( render.has() ) render.go();
+                if ( render.has() && (!render.rendering) ) render.go();
             }
             old_filter = new_filter;
             new_filter = filter;
@@ -309,5 +309,36 @@ wctank.core = (function(core) {
         return filters;
     }({}))
     
+    /*
+     * special visual events are morphologically similar to filters, 
+     * except that they can be applied simultaneously and are 
+     * triggered by user interaction rather than setInterval 
+     */ 
+    core.special = (function(special) {
+        var render = core.render;
+        special.current = [];
+        var currentRm = function(special) {
+            var idx = special.current.indexOf(special);
+            if (idx !== -1) special.current.splice(idx, 1);
+        };
+        special.apply = function(special) {
+            if ( special.hasOwnProperty('init') ) special.init();
+            if ( special.hasOwnProperty('animate') ) {
+                render.push(special.animate);
+                if ( render.has() && (!render.rendering) ) render.go();
+            };
+            special.current.push(special.constructor.name);
+        };
+        special.remove = function(special) {
+            if ( special.hasOwnProperty('teardown' ) ) special.teardown();
+            if ( special.hasOwnProperty('animate') ) {
+                render.rm(special.animate);
+                if ( !render.has() ) render.stop();
+            }
+            currentRm(special.constructor.name);
+        };
+        return special;
+    }({})); 
+
     return core;
 }({}))

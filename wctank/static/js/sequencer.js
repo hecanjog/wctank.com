@@ -1,7 +1,6 @@
 wctank = wctank || {};
 
 //incorporate alpha strut
-//make class for tableux
 wctank.sequencer = (function(sequencer) {
     wctank.aliasNamespace.call(sequencer.prototype);
     
