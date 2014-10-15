@@ -1,10 +1,9 @@
 wctank = wctank || {};
 
 /*
- * markers creates a canvas overlay so that the pins can 
- * appear unadulterated by filters applied to the map
+ * markers creates a canvas overlay so that the pins are
+ * not modified by svg filters applied to the map
  */
-// use invisible placeholder image in richmarker
 wctank.markers = (function(markers) {
     wctank.aliasNamespace.call(markers.prototype);
     

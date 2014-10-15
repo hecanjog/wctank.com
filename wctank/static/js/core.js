@@ -213,6 +213,7 @@ wctank.core = (function(core) {
         
         var close_thresh = 17;
         var onZoom = function(map_obj) {
+            
             if ( was_in_close && (map_obj.zoom <= close_thresh) ) {
                 filters.apply(old_filter);
                 was_in_close = false;
@@ -222,14 +223,14 @@ wctank.core = (function(core) {
                 was_in_close = true;
             }       
         };
-        //gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom);
+        gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom);
         
         /*
          * mainTime coordinates normal interval-driven filter changes
          */
         //TODO: consider enforcing maximum pause - 4 min or something
         var mainTime = (function(mainTime) {
-            var interval = 30000000;
+            var interval = 30000;
             var start;
             var cease = 0;
             var elapsed;
