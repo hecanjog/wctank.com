@@ -222,14 +222,14 @@ wctank.core = (function(core) {
                 was_in_close = true;
             }       
         };
-        gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom);
+        //gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom);
         
         /*
          * mainTime coordinates normal interval-driven filter changes
          */
         //TODO: consider enforcing maximum pause - 4 min or something
         var mainTime = (function(mainTime) {
-            var interval = 30000;
+            var interval = 30000000;
             var start;
             var cease = 0;
             var elapsed;

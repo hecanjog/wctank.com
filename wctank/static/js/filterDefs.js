@@ -139,7 +139,7 @@ wctank.filterDefs = (function(filterDefs) {
 
         filterDefs.cmgyk = (function(cmgyk) {
             var u = core.filters.usage;
-            cmgyk.usage = u.GENERAL | u.ZOOMED;
+            cmgyk.usage = u.GENERAL | u.ZOOMED | u.START;
             cmgyk.denoise = document.getElementById("cmgyk-denoise");
             
             var cmgyk_back = document.createElement("div");

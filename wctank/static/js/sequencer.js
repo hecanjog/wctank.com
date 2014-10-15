@@ -38,6 +38,8 @@ wctank.sequencer = (function(sequencer) {
                 google.maps.event.addListener(overlay, 'click', function() {
                     gMap.map.setZoom(9);
                 });
+                tableux.pickTableux();
+                gMap.events.initHeapEvents(gMap.events.MAP);
             };
             google.maps.event.addDomListener(window, 'load', startMap);
             filterDefs.addReadyListener(core.filters.start);
@@ -74,4 +76,9 @@ wctank.sequencer = (function(sequencer) {
     return sequencer;
 }({}))
 
+/*
+ * dev stupidness
+ */
+var af = wctank.core.filters.apply;
+var gt = wctank.gMap.tool;
 wctank.sequencer.goTo(0);

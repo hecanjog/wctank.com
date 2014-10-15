@@ -43,6 +43,7 @@ wctank.gMap = (function(gMap) {
         };
         evHeap.addHeapEvents = function(set, marker) {
             var ev_set = set ? heap[set] : heap.map_events;
+            wctank.objectLength.call(ev_set);
             var caller = (function() {
                 if (set === evHeap.MAP) {
                     return gMap.map;
@@ -54,21 +55,13 @@ wctank.gMap = (function(gMap) {
                     throw "err: events could not be added";
                 }
             }())
-            var nOfChildKeys = function(obj) {
-                var n = 0;
-                for (var p in obj) {
-                    if ( obj.hasOwnProperty(p) ) {
-                        n++;
-                    }
-                }
-                return n;
-            }; 
             for (var ev in ev_set) { 
                 if ( ev_set.hasOwnProperty(ev) ) {
+                    wctank.objectLength.call(ev_set[ev]);
                     (function() { //I'm so ready for let
                         var persist = [];
                         var once = [];
-                        for (var i = 0; i < nOfChildKeys(ev_set[ev]); i++) {
+                        for (var i = 0; i < ev_set[ev].length; i++) {
                             if (ev_set[ev][i].once) {
                                 once.push(ev_set[ev][i].fn); 
                             } else {
@@ -100,9 +93,13 @@ wctank.gMap = (function(gMap) {
     gMap.events = {
         MAP: evHeap.MAP,
         MARKER: evHeap.MARKER,
-        push: evHeap.push,
+        initHeapEvents: evHeap.addHeapEvents,
+        push: evHeap.push
     };
-    
+    gMap.tool = function() {
+        console.log(gMap.map.center.lat()+" "+gMap.map.center.lng());
+        console.log(gMap.map.zoom);
+    }; 
     gMap.init = function() {
         gMap.map = new google.maps.Map(document.getElementById("map-canvas"), {
             center: new google.maps.LatLng(43.1, -87.107180),
@@ -119,8 +116,6 @@ wctank.gMap = (function(gMap) {
         m_px.draw = function() {};
         m_px.setMap(gMap.map);
         markers.setOverlay(m_px);
-        
-        evHeap.addHeapEvents(evHeap.MAP);
         
         google.maps.event.addListener(gMap.map, 'idle', function() {
             posts.get(gMap.map.getBounds(), function(data) {
