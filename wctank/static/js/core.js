@@ -267,15 +267,15 @@ wctank.core = (function(core) {
             };
             //dep setInterval
             mainTime.setInterval = function(n) {
-                mainTime.cease();
-                mainTime.engage(n);
+                mainTime.pause();
+                mainTime.start(n);
             };
-            mainTime.engage = function(n) {
+            mainTime.start = function(n) {
                 if (n) interval = n;
                 if (is_engaged) {
-                    mainTime.cease();
+                    mainTime.pause();
                     is_engaged = false;
-                    mainTime.engage();
+                    mainTime.start();
                 } else {
                     is_engaged = true;
                     if ( (Date.now() - cease) > interval ) {
@@ -289,7 +289,7 @@ wctank.core = (function(core) {
                     }
                 }
             };
-            mainTime.cease = function() {
+            mainTime.pause = function() {
                 cease = Date.now();
                 elapsed = cease - start;
                 window.clearInterval(id);
@@ -299,8 +299,8 @@ wctank.core = (function(core) {
         }({}))
        
         // alias .engage() so that it can be called during filter init
-        filters.start = mainTime.engage;
-        filters.pause = mainTime.cease;
+        filters.start = mainTime.start;
+        filters.pause = mainTime.pause;
         
         /* 
          * events
@@ -312,14 +312,14 @@ wctank.core = (function(core) {
             window.setTimeout(function() {
                 marker_clicked = false;
             }, 100);
-            if ( div.$overlay.is(":hidden") ) mainTime.cease();
+            if ( div.$overlay.is(":hidden") ) mainTime.pause();
         };
         gMap.events.push(gMap.events.MARKER, 'click', onMarkerClick);
         
         var onMapClick = function() {
             if ( !div.$overlay.is(":hidden") ) {
                 window.setTimeout(function() {
-                    if (!marker_clicked) mainTime.engage();
+                    if (!marker_clicked) mainTime.start();
                 }, 50);
             }
         };
@@ -342,7 +342,6 @@ wctank.core = (function(core) {
         special.apply = function(special) {
             special.current.push(special);
             filterTypeOp('init', specialDefs[special]);
-
         };
         special.remove = function(special) {
             currentRm(special);
