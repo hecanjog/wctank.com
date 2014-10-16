@@ -2,6 +2,7 @@ wctank = wctank || {};
 
 wctank.posts = (function(posts) {
     wctank.aliasNamespace.call(posts.prototype);
+    
     var renderTemplate = function(post, $template) {
         var content = '';
         if(typeof post.title !== 'undefined') {
@@ -47,6 +48,7 @@ wctank.posts = (function(posts) {
         });
         return template;
     };
+    
     posts.get = function(visibleBounds, callback) {
         var sw = visibleBounds.getSouthWest();
         var ne = visibleBounds.getNorthEast();
@@ -70,43 +72,42 @@ wctank.posts = (function(posts) {
             callback(data);    
         }); 
     };
+    
     var marker_clicked = false;
     var loading; 
     $.get("static/assets/loading_cur.svg", function(data) {
         loading = new XMLSerializer().serializeToString(data);
     });
+    
     posts.display = function(post) {
         var trivial = 130; //mini fade for content swap
-        var width = div.$overlay.css("width");
+        
+        // cache overlay width before removing content if the overlay is visible,
+        // otherwise set it to the current min width
+        var width;
+        if ( div.$overlay.is(':hidden') ) {
+            div.$overlay.fadeIn('fast');
+            var mm = window.matchMedia("screen and (max-width: 31em)"); // c.f. '@small' in styles
+            width = mm.matches ? 'auto' : div.$overlay.css('min-width'); // 'auto' fills screen when @small
+        } else {
+            width = div.$overlay.css("width");
+        } 
         div.$overlay.find("*").fadeOut(trivial).remove();
+        
         var $post = renderTemplate(post, $('#post-template'));
         div.$overlay.html($post).removeClass().addClass(post.type);
 
-        var mm = window.matchMedia("screen and (max-width: 31em)");
-        if ( div.$overlay.is(':hidden') ) {
-            div.$overlay.fadeIn('fast');
-            if (mm.matches) {
-                width = 'auto'; //will fill screen when @small c.f. styles.less
-            } else {
-                width = div.$overlay.css('min-width');
-            }
-         }
         var $contents = div.$overlay.find("*");
         var waiting = true;
         var $loading;
-        
         if (!post.isTextPost) {
             div.$overlay.css("width", width);
             $contents.hide();
             window.setTimeout(function() {
-                if (waiting) {
-                    $loading = div.$overlay.append(loading).find("#loading");
-                }
+                if (waiting) $loading = div.$overlay.append(loading).find("#loading");
             }, 300);
             $contents.load(function() {
-                if ($loading) {
-                    $loading.fadeOut(trivial).remove(); 
-                }
+                if ($loading) $loading.fadeOut(trivial).remove(); 
                 div.$overlay.css("width", "auto");
                 $contents.fadeIn(trivial);
                 waiting = false;
@@ -114,6 +115,7 @@ wctank.posts = (function(posts) {
         } else {
             $contents.fadeIn(trivial); // for now, just fade in if text
         }
+
         marker_clicked = true;
         window.setTimeout(function() {
             marker_clicked = false;
@@ -136,5 +138,6 @@ wctank.posts = (function(posts) {
             }
         }, 150);
     });
+
     return posts;
 }({}))
