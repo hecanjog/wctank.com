@@ -94,6 +94,35 @@ wctank.core = (function(core) {
         };
         return webgl;
     }({}))
+    
+    var filterTypeOp = function(stage, filterObj, postPreHookFn) {
+        var ops = [];
+        var r_op;
+        if (stage === 'init') {
+            ops = ['preInit', 'init', 'animate'];
+            r_op = 'push';   
+        } else if (stage === 'teardown') {
+            ops = ['preTeardown', 'animate', 'teardown'];
+            r_op = 'rm';
+        }
+        var callFunct = function(obj, fnName) {
+            if (fnName !== 'animate') {
+                obj[fnName]();
+            } else if (fnName === 'animate') {
+                core.render[r_op](obj[fnName]);
+            }
+        };
+        if ( filterObj.hasOwnProperty(ops[0]) ) callFunct(filterObj, ops[0]);
+        if (typeof postPreHookFn === 'function') postPreHookFn();
+        if ( filterObj.hasOwnProperty(ops[1]) ) callFunct(filterObj, ops[1]);
+        if ( filterObj.hasOwnProperty(ops[2]) ) callFunct(filterObj, ops[2]);
+        
+        if ( core.render.has() && (!core.render.rendering) ) {
+            core.render.go();
+        } else if ( !core.render.has() ) {
+            core.render.stop();
+        }
+    };
 
     core.filters = (function(filters) {
         var sets = {
@@ -175,21 +204,14 @@ wctank.core = (function(core) {
             core.filters.current = filter;
             var render = core.render;
             if (new_filter) {
-                var this_filter = filterDefs[new_filter];
-                if ( this_filter.hasOwnProperty('preTeardown') ) this_filter.preTeardown();
-                div.$map.removeClass(new_filter);
-                if ( this_filter.hasOwnProperty('animate') ) render.rm(this_filter.animate);
-                if ( this_filter.hasOwnProperty('teardown') ) this_filter.teardown();
-                if ( !render.has() ) render.stop();
+                filterTypeOp('teardown', filterDefs[new_filter], function() {
+                    div.$map.removeClass(new_filter);
+                });
             }
             var this_filter = filterDefs[filter]; 
-            if ( this_filter.hasOwnProperty('preInit') ) this_filter.preInit();
-            div.$map.addClass(filter);
-            if (typeof this_filter !== "undefined") {   
-                if ( this_filter.hasOwnProperty('init') ) this_filter.init();
-                if ( this_filter.hasOwnProperty('animate') ) render.push(this_filter.animate);
-                if ( render.has() && (!render.rendering) ) render.go();
-            }
+            filterTypeOp('init', filterDefs[filter], function() {
+                div.$map.addClass(filter);
+            });
             old_filter = new_filter;
             new_filter = filter;
             if ( sets.takeover_down.indexOf(filter) !== -1 ) old_filter = filter;   
@@ -213,7 +235,6 @@ wctank.core = (function(core) {
         
         var close_thresh = 17;
         var onZoom = function(map_obj) {
-            
             if ( was_in_close && (map_obj.zoom <= close_thresh) ) {
                 filters.apply(old_filter);
                 was_in_close = false;
@@ -315,27 +336,19 @@ wctank.core = (function(core) {
      * triggered by user interaction rather than setInterval 
      */ 
     core.special = (function(special) {
-        var render = core.render;
         special.current = [];
         var currentRm = function(special) {
             var idx = special.current.indexOf(special);
             if (idx !== -1) special.current.splice(idx, 1);
         };
         special.apply = function(special) {
-            if ( special.hasOwnProperty('init') ) special.init();
-            if ( special.hasOwnProperty('animate') ) {
-                render.push(special.animate);
-                if ( render.has() && (!render.rendering) ) render.go();
-            };
-            special.current.push(special.constructor.name);
+            special.current.push(special);
+            filterTypeOp('init', specialDefs[special]);
+
         };
         special.remove = function(special) {
-            if ( special.hasOwnProperty('teardown' ) ) special.teardown();
-            if ( special.hasOwnProperty('animate') ) {
-                render.rm(special.animate);
-                if ( !render.has() ) render.stop();
-            }
-            currentRm(special.constructor.name);
+            currentRm(special);
+            filterTypeOp('teardown', specialDefs[special]);
         };
         return special;
     }({})); 

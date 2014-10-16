@@ -7,7 +7,7 @@ var wctank = (function(wctank) {
         this.core = wctank.core;
         this.filterDefs = wctank.filterDefs;
         this.markers = wctank.markers;
-        this.alphaStrut = wctank.alphaStrut;
+        this.specialDefs = wctank.specialDefs;
         this.sequencer = wctank.sequencer;
         this.tableux = wctank.tableux;
     };

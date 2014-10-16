@@ -10,7 +10,7 @@ wctank.specialDefs = (function(specialDefs) {
             document.appendChild(words_front);
         };
         words.teardown = function() {
-            document.removeChile(words_front);
+            document.removeChild(words_front);
         };
         return words;
     }({}));
