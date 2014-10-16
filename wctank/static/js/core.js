@@ -152,9 +152,7 @@ wctank.core = (function(core) {
                 if ( filterDefs.hasOwnProperty(filter) ) {
                     var f = filterDefs[filter].usage;
                     var c = core.filters.usage;
-                    var hasBit = function(x, y) {
-                        return ( (x & y) === y ) ? true : false;
-                    };
+                    var hasBit = wctank.hasBit;
                     if ( hasBit(f, c.GENERAL) ) sets.general.push(filter);
                     if ( hasBit(f, c.ZOOMED ) ) sets.zoomed.push(filter);                 
                     if ( hasBit(f, c.TAKEOVER_DOWN) ) sets.takeover_down.push(filter);

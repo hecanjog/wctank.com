@@ -22,7 +22,11 @@ var wctank = (function(wctank) {
             writable: false
         });
     };
-    
+   
+    wctank.hasBit = function(x, y) {
+        return ( (x & y) === y ) ? true : false;
+    }; 
+
     /*
      * just the jQuery objs we need a lot
      */
