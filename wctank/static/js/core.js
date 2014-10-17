@@ -326,7 +326,7 @@ wctank.core = (function(core) {
                 }, 50);
             }
         };
-        gMap.events.push(gMap.events.MAP, 'click', onMapClick, true);  
+        gMap.events.push(gMap.events.MAP, 'click', onMapClick);  
         
         return filters;
     }({}))
