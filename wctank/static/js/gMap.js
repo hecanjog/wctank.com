@@ -2,7 +2,7 @@ wctank = wctank || {};
 
 // TODO: UTILITY FUNCTION TO GET CURRENT EVENTS
 wctank.gMap = (function(gMap) {
-    wctank.aliasNamespace.call(gMap.prototype); 
+    wctank.util.aliasNamespace.call(gMap.prototype); 
     
     // On init, provides ref to google.maps.Map obj
     gMap.map; 
@@ -43,7 +43,7 @@ wctank.gMap = (function(gMap) {
         };
         evHeap.addHeapEvents = function(set, marker) {
             var ev_set = set ? heap[set] : heap.map_events;
-            wctank.objectLength.call(ev_set);
+            util.objectLength.call(ev_set);
             var caller = (function() {
                 if (set === evHeap.MAP) {
                     return gMap.map;
@@ -57,7 +57,7 @@ wctank.gMap = (function(gMap) {
             }())
             for (var ev in ev_set) { 
                 if ( ev_set.hasOwnProperty(ev) ) {
-                    wctank.objectLength.call(ev_set[ev]);
+                    util.objectLength.call(ev_set[ev]);
                     (function() { //I'm so ready for let
                         var persist = [];
                         var once = [];
@@ -116,7 +116,6 @@ wctank.gMap = (function(gMap) {
         m_px.draw = function() {};
         m_px.setMap(gMap.map);
         markers.setOverlay(m_px);
-        
         google.maps.event.addListener(gMap.map, 'idle', function() {
             posts.get(gMap.map.getBounds(), function(data) {
                 $.each(data, function(i, post) {

@@ -1,7 +1,7 @@
 wctank = wctank || {};
 
 wctank.core = (function(core) {
-    wctank.aliasNamespace.call(core.prototype);
+    wctank.util.aliasNamespace.call(core.prototype);
 
     core.render = (function(render) {
         var stk = [];
@@ -95,15 +95,18 @@ wctank.core = (function(core) {
         return webgl;
     }({}))
     
-    var filterTypeOp = function(stage, filterObj, postPreHookFn) {
+    var filterTypeOp = function(stage, filterTypeObj) {
         var ops = [];
         var r_op;
+        var $op;
         if (stage === 'init') {
             ops = ['preInit', 'init', 'animate'];
-            r_op = 'push';   
+            r_op = 'push';
+            $op = 'addClass';   
         } else if (stage === 'teardown') {
             ops = ['preTeardown', 'animate', 'teardown'];
             r_op = 'rm';
+            $op = 'removeClass';
         }
         var callFunct = function(obj, fnName) {
             if (fnName !== 'animate') {
@@ -112,10 +115,10 @@ wctank.core = (function(core) {
                 core.render[r_op](obj[fnName]);
             }
         };
-        if ( filterObj.hasOwnProperty(ops[0]) ) callFunct(filterObj, ops[0]);
-        if (typeof postPreHookFn === 'function') postPreHookFn();
-        if ( filterObj.hasOwnProperty(ops[1]) ) callFunct(filterObj, ops[1]);
-        if ( filterObj.hasOwnProperty(ops[2]) ) callFunct(filterObj, ops[2]);
+        if ( filterTypeObj.hasOwnProperty(ops[0]) ) callFunct(filterTypeObj, ops[0]);
+        div.$map[$op](filterTypeObj.name);
+        if ( filterTypeObj.hasOwnProperty(ops[1]) ) callFunct(filterTypeObj, ops[1]);
+        if ( filterTypeObj.hasOwnProperty(ops[2]) ) callFunct(filterTypeObj, ops[2]);
         
         if ( core.render.has() && (!core.render.rendering) ) {
             core.render.go();
@@ -152,7 +155,7 @@ wctank.core = (function(core) {
                 if ( filterDefs.hasOwnProperty(filter) ) {
                     var f = filterDefs[filter].usage;
                     var c = core.filters.usage;
-                    var hasBit = wctank.hasBit;
+                    var hasBit = util.hasBit;
                     if ( hasBit(f, c.GENERAL) ) sets.general.push(filter);
                     if ( hasBit(f, c.ZOOMED ) ) sets.zoomed.push(filter);                 
                     if ( hasBit(f, c.TAKEOVER_DOWN) ) sets.takeover_down.push(filter);

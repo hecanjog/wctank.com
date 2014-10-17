@@ -1,7 +1,7 @@
 wctank = wctank || {};
 
 wctank.posts = (function(posts) {
-    wctank.aliasNamespace.call(posts.prototype);
+    wctank.util.aliasNamespace.call(posts.prototype);
     
     var renderTemplate = function(post, $template) {
         var content = '';

@@ -86,11 +86,9 @@ body, html {
         font-size:   @font-base * @med-mul;
     }
 }
-@troller_back_path: 'assets/sunset.jpg';
 @words_front_path: 'assets/words.png';
 body:after {
     display: none;
-    content: url(@troller_back_path);
     content: url(@words_front_path);
 }
 button {
@@ -108,12 +106,17 @@ button {
 .none {}
 
 .troller {
-    .transition(all 300s linear);
+    .transition(all 1000s linear);
 }
 #troller_back {
     .fullsize;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
     z-index: -1;
-    background-image: url(@troller_back_path);
+    top: 0;
+    bottom: 0;
 }
 
 .print_analog {

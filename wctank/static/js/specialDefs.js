@@ -1,7 +1,7 @@
 wctank = wctank || {};
 
 wctank.specialDefs = (function(specialDefs) {
-    wctank.aliasNamespace.call(specialDefs.prototype);
+    wctank.util.aliasNamespace.call(specialDefs.prototype);
     
     specialDefs.words = (function(words) {
         var words_front = document.createElement('div');

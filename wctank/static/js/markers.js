@@ -5,7 +5,7 @@ wctank = wctank || {};
  * not modified by svg filters applied to the map
  */
 wctank.markers = (function(markers) {
-    wctank.aliasNamespace.call(markers.prototype);
+    wctank.util.aliasNamespace.call(markers.prototype);
     
     var overlay;
     var disp = (function(disp) {
@@ -73,11 +73,9 @@ wctank.markers = (function(markers) {
             var lat_idx =  lats.indexOf( pos.lat() );
             if ( lat_idx !== -1 ) {
                 var lng_idx = lngs.indexOf( pos.lng() );
-                if ( lng_idx !== -1 ) {
-                    if (lat_idx === lng_idx) return lat_idx;
-                }
+                if ( lng_idx !== -1 ) 
+                    return (lat_idx === lng_idx) ? lat_idx : false;
             }
-            return false;
         };
         marks.pushMark = function(m) {
             var pos = m.getPosition();

@@ -2,7 +2,7 @@ wctank = wctank || {};
 
 //incorporate alpha strut
 wctank.sequencer = (function(sequencer) {
-    wctank.aliasNamespace.call(sequencer.prototype);
+    wctank.util.aliasNamespace.call(sequencer.prototype);
     
     var current_stage = null;
     var stages = {
@@ -45,7 +45,7 @@ wctank.sequencer = (function(sequencer) {
             filterDefs.addReadyListener(core.filters.start);
         },
     };
-    wctank.objectLength.call(stages);
+    util.objectLength.call(stages);
     
     var callStage = function(n) {
         current_stage = n;

@@ -4,7 +4,7 @@ wctank = wctank || {};
  * tableux determines starting center and zoom level depending on what filter is selected first.
  */
 wctank.tableux = (function(tableux) {
-    wctank.aliasNamespace.call(tableux.prototype);
+    wctank.util.aliasNamespace.call(tableux.prototype);
     var dat = (function(dat) {
         dat.sets = {
             print_analog: [],
@@ -34,7 +34,7 @@ wctank.tableux = (function(tableux) {
         (function() {
             for (var i = 0; i < dat.locs.length; i++) {
                 for (var t in tags) {
-                    if ( wctank.hasBit(dat.locs[i].tag, tags[t]) ) 
+                    if ( util.hasBit(dat.locs[i].tag, tags[t]) ) 
                        dat.sets[t.toLowerCase()]
                         .push({ loc: dat.locs[i].loc, zoom: dat.locs[i].zoom }); 
                 }

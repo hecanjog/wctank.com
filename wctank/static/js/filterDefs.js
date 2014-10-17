@@ -2,8 +2,7 @@ wctank = wctank || {};
 
 //unique lengths for each filter ... interval/timeout multiplier
 wctank.filterDefs = (function(filterDefs) {
-    wctank.aliasNamespace.call(filterDefs.prototype); 
-
+    wctank.util.aliasNamespace.call(filterDefs.prototype); 
     var _filterDefsReady = new Event('filterDefsReady');
     filterDefs.addReadyListener = function(fn) { 
         document.addEventListener('filterDefsReady', function() {
@@ -20,11 +19,13 @@ wctank.filterDefs = (function(filterDefs) {
         document.body.appendChild(cont);
         cont.innerHTML = new XMLSerializer().serializeToString(data);   
 
+        // TODO: define both filter and special troller?
         filterDefs.troller = (function(troller) {
             var u = core.filters.usage;
             troller.usage = u.GENERAL | u.ZOOMED;
             
-            var troller_back = document.createElement('div');
+            var troller_back = document.createElement('video');
+            troller_back.src = "https://archive.org/download/C.E.PriceSunClouds/SunClouds_512kb.mp4";
             troller_back.setAttribute("id", "troller_back");
             
             var rot = 0;
@@ -54,19 +55,39 @@ wctank.filterDefs = (function(filterDefs) {
                 // the rotate in troller.init was obliterating the preInit rotate
                 getCurrentRotation();
             };
+            
+            //TODO: Figure out why troller needs to be applied twice; 
+            //some weird interaction with the rotate transform?
+            var cntr = 0;
             troller.init = function() {
+                div.$map.css({'width': '50vh', 'height': '50vh', 'top': '25%', 'left': '25%'});
+                gMap.map.zoomControl = false;
                 document.body.appendChild(troller_back);
+                troller_back.play();
                 var str = "rotate(360deg)";
                 transform(str);
-                to_id = window.setTimeout(core.filters.forceApply, 5000); 
+                if (cntr === 0) {
+                    to_id = window.setTimeout(core.filters.forceApply, 10000);
+                    window.setTimeout(function() {
+                        core.filters.apply('troller');
+                    }, 50);
+                }
+                cntr++;
             };
             troller.preTeardown = function() {
                 rot += getCurrentRotation();
             };
             troller.teardown = function() {
-                transform(ident);   
-                document.body.removeChild(troller_back);
-                window.clearTimeout(to_id);
+                if (cntr === 2) {
+                    div.$map.css({'width': '100%', 'height': '100%', 'top': '0', 'left': '0'});
+                    gMap.map.zoomControl = true;
+                    troller_back.pause();
+                    troller_back.currentTime = 0;
+                    transform(ident);
+                    document.body.removeChild(troller_back);
+                    window.clearTimeout(to_id);
+                    cntr = 0;
+                }
             };
             return troller;
         }({}))
@@ -365,6 +386,7 @@ wctank.filterDefs = (function(filterDefs) {
             }({}))
             return vhs;
         }({}))
+        util.appendNameProps(filterDefs);
         core.filters.parse();
         document.dispatchEvent(_filterDefsReady);
         
@@ -381,3 +403,4 @@ wctank.filterDefs = (function(filterDefs) {
     });
     return filterDefs;
 }({}))
+
