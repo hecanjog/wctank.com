@@ -59,13 +59,40 @@ wctank.filterDefs = (function(filterDefs) {
             //TODO: Figure out why troller needs to be applied twice; 
             //some weird interaction with the rotate transform?
             var cntr = 0;
+            var set$mapCss = function(clear_set) {
+                var w = window.innerWidth;
+                var h = window.innerHeight;
+                var px = function(n) {
+                    return n+'px';
+                };
+                var side = px(h * 0.5); 
+                var makeCss = function(w, h, t, l) {
+                    return {
+                        'width': w,
+                        'height': h,
+                        'top': t,
+                        'left': l
+                    };
+                };
+                var obj = (function() {
+                    if (!clear_set) {
+                        return makeCss(side, side, '25%', px((w * 0.5) - (h * 0.25)));
+                    } else if (clear_set) {
+                        return makeCss(px(w), px(h), '0', '0');
+                    }
+                }());
+                div.$map.css(obj);
+            };
+            var $mapOnResize = function() {
+                set$mapCss(false);
+            };
             troller.init = function() {
-                div.$map.css({'width': '50vh', 'height': '50vh', 'top': '25%', 'left': '25%'});
+                set$mapCss(false);
+                window.addEventListener('resize', $mapOnResize);
                 gMap.zoomControlsVisible(false);
                 document.body.appendChild(troller_back);
                 troller_back.play();
-                var str = "rotate(360deg)";
-                transform(str);
+                transform("rotate(360deg)");
                 if (cntr === 0) {
                     to_id = window.setTimeout(core.filters.forceApply, util.smudgeNumber(7000, 5));
                     window.setTimeout(function() {
@@ -79,7 +106,8 @@ wctank.filterDefs = (function(filterDefs) {
             };
             troller.teardown = function() {
                 if (cntr === 2) {
-                    div.$map.css({'width': '100%', 'height': '100%', 'top': '0', 'left': '0'});
+                    window.removeEventListener('resize', $mapOnResize);
+                    set$mapCss(true);
                     gMap.zoomControlsVisible(true);
                     troller_back.pause();
                     troller_back.currentTime = 0;
