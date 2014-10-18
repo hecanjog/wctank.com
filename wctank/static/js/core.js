@@ -279,12 +279,8 @@ wctank.core = (function(core) {
                 interval = util.smudgeNumber(interval_base, 10);
             };
             mainTime.start = function(n) {
-                function loop() {
-                    id = window.setTimeout(function() {
-                        setAndUpdateInterval();
-                        updateAndLoop();
-                    }, interval);
-                }
+                n ? setAndUpdateInterval(n) : setAndUpdateInterval();
+               
                 function updateAndLoop() {
                     update();
                     loop();
@@ -293,11 +289,13 @@ wctank.core = (function(core) {
                     elapsed = 0;
                     cease = 0;
                 }
-                if (n) {
-                    setAndUpdateInterval(n);
-                } else {
-                    setAndUpdateInterval();
+                function loop() {
+                    id = window.setTimeout(function() {
+                        setAndUpdateInterval();
+                        updateAndLoop();
+                    }, interval);
                 }
+                                
                 if (is_engaged) {
                     mainTime.pause();
                     is_engaged = false;

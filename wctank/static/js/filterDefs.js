@@ -238,12 +238,12 @@ wctank.filterDefs = (function(filterDefs) {
                     }())
                     var b_mod = (function() {
                         var range = [5, 6, 7, 8, 9, 10, 11];
-                        var rtn = [];
+                        var r = [];
                         var num = (Math.random() * 4 + 0.5) | 0
                         for (var i = 0; i < num; i++) {
-                            rtn.push(range[ (Math.random() * range.length - 1 + 0.5) | 0 ]);
+                            r.push(range[ (Math.random() * range.length - 1 + 0.5) | 0 ]);
                         }
-                        return rtn;
+                        return r;
                     }())
                     for (var i = s_idx; i <= e_idx; i++) {
                         var $img = $map_imgs.eq(i);
