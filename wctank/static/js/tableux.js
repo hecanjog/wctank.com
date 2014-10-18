@@ -19,11 +19,11 @@ wctank.tableux = (function(tableux) {
             VHS:          0x0000F000
         };
         var makeTableuxData = function(lat, lng, zoom, tag) {
-            var r = {};
-            r.loc = new google.maps.LatLng(lat, lng);
-            r.zoom = zoom;
-            r.tag = tag;
-            return r;
+            return {
+                loc: new google.maps.LatLng(lat, lng),
+                zoom: zoom,
+                tag: tag
+            };
         };
         dat.locs = [
             makeTableuxData(43.035578033062414, -87.92508879368779, 20, tags.PRINT_ANALOG),

@@ -5,7 +5,7 @@ wctank.gMap = (function(gMap) {
     wctank.util.aliasNamespace.call(gMap.prototype); 
     
     // On init, provides ref to google.maps.Map obj
-    gMap.map; 
+    gMap.map;
     
     /*
      * the event heap is used to init events associated with google map objects;
@@ -99,9 +99,10 @@ wctank.gMap = (function(gMap) {
     gMap.tool = function() {
         console.log(gMap.map.center.lat()+" "+gMap.map.center.lng());
         console.log(gMap.map.zoom);
-    }; 
+    };
+    var mapOptions = {}; 
     gMap.init = function() {
-        gMap.map = new google.maps.Map(document.getElementById("map-canvas"), {
+        mapOptions = {
             center: new google.maps.LatLng(43.1, -87.107180),
             zoom: 11,
             mapTypeId: google.maps.MapTypeId.SATELLITE,
@@ -110,8 +111,9 @@ wctank.gMap = (function(gMap) {
             zoomControlOptions: {
                 position: google.maps.ControlPosition.LEFT_BOTTOM
             }
-        });
-        
+        };
+        gMap.map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+    
         var m_px = new google.maps.OverlayView();
         m_px.draw = function() {};
         m_px.setMap(gMap.map);
@@ -134,6 +136,12 @@ wctank.gMap = (function(gMap) {
                 });
             });
         });
-    }; 
+    };
+
+    gMap.zoomControlsVisible = function(b) {
+        var $zoomCtl = $(".gmnoprint");
+        b ? $zoomCtl.show() : $zoomCtl.hide(); 
+    };
+
     return gMap;
 }({}));

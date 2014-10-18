@@ -61,7 +61,7 @@ wctank.filterDefs = (function(filterDefs) {
             var cntr = 0;
             troller.init = function() {
                 div.$map.css({'width': '50vh', 'height': '50vh', 'top': '25%', 'left': '25%'});
-                gMap.map.zoomControl = false;
+                gMap.zoomControlsVisible(false);
                 document.body.appendChild(troller_back);
                 troller_back.play();
                 var str = "rotate(360deg)";
@@ -80,7 +80,7 @@ wctank.filterDefs = (function(filterDefs) {
             troller.teardown = function() {
                 if (cntr === 2) {
                     div.$map.css({'width': '100%', 'height': '100%', 'top': '0', 'left': '0'});
-                    gMap.map.zoomControl = true;
+                    gMap.zoomControlsVisible(true);
                     troller_back.pause();
                     troller_back.currentTime = 0;
                     transform(ident);
