@@ -67,7 +67,7 @@ wctank.filterDefs = (function(filterDefs) {
                 var str = "rotate(360deg)";
                 transform(str);
                 if (cntr === 0) {
-                    to_id = window.setTimeout(core.filters.forceApply, 10000);
+                    to_id = window.setTimeout(core.filters.forceApply, util.smudgeNumber(7000, 5));
                     window.setTimeout(function() {
                         core.filters.apply('troller');
                     }, 50);

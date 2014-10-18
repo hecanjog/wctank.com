@@ -2,7 +2,8 @@ wctank = wctank || {};
 
 wctank.posts = (function(posts) {
     wctank.util.aliasNamespace.call(posts.prototype);
-    
+    posts.displayedPostType = null;
+
     var renderTemplate = function(post, $template) {
         var content = '';
         if(typeof post.title !== 'undefined') {
@@ -80,6 +81,7 @@ wctank.posts = (function(posts) {
     });
     
     posts.display = function(post) {
+        posts.displayedPostType = post.type;
         var trivial = 130; //mini fade for content swap
         
         // cache overlay width before removing content if the overlay is visible,
@@ -87,8 +89,10 @@ wctank.posts = (function(posts) {
         var width;
         if ( div.$overlay.is(':hidden') ) {
             div.$overlay.fadeIn('fast');
-            var mm = window.matchMedia("screen and (max-width: 31em)"); // c.f. '@small' in styles
-            width = mm.matches ? 'auto' : div.$overlay.css('min-width'); // 'auto' fills screen when @small
+            // c.f. '@small' in styles
+            var mm = window.matchMedia("screen and (max-width: 31em)"); 
+            // 'auto' fills screen when @small
+            width = mm.matches ? 'auto' : div.$overlay.css('min-width');
         } else {
             width = div.$overlay.css("width");
         } 

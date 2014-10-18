@@ -252,7 +252,8 @@ wctank.core = (function(core) {
          */
         //TODO: consider enforcing maximum pause - 4 min or something
         var mainTime = (function(mainTime) {
-            var interval = 30000;
+            var interval_base = 30000;
+            var interval;
             var start;
             var cease = 0;
             var elapsed;
@@ -273,22 +274,49 @@ wctank.core = (function(core) {
                 mainTime.pause();
                 mainTime.start(n);
             };
+            var setAndUpdateInterval = function(n) {
+                if (n) interval_base = n;
+                interval = util.smudgeNumber(interval_base, 10);
+            };
             mainTime.start = function(n) {
-                if (n) interval = n;
+                function loop() {
+                    id = window.setTimeout(function() {
+                        setAndUpdateInterval();
+                        updateAndLoop();
+                    }, interval);
+                }
+                function updateAndLoop() {
+                    update();
+                    loop();
+                }
+                function clearPausedParams() {
+                    elapsed = 0;
+                    cease = 0;
+                }
+                if (n) {
+                    setAndUpdateInterval(n);
+                } else {
+                    setAndUpdateInterval();
+                }
                 if (is_engaged) {
                     mainTime.pause();
                     is_engaged = false;
                     mainTime.start();
                 } else {
                     is_engaged = true;
-                    if ( (Date.now() - cease) > interval ) {
-                        update();
-                        id = window.setInterval(update, interval);
+                    if (cease !== 0) {
+                        if ( (Date.now() - cease) > interval ) {
+                            updateAndLoop();
+                            clearPausedParams();
+                        } else {
+                            id = window.setTimeout(function() {
+                                updateAndLoop();
+                                clearPausedParams();
+                            }, interval - elapsed);
+                        }
                     } else {
-                        id = window.setTimeout(function() {
-                            update();
-                            id = window.setInterval(update, interval);
-                        }, elapsed);
+                        setAndUpdateInterval();
+                        updateAndLoop();
                     }
                 }
             };

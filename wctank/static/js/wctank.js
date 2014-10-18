@@ -40,6 +40,15 @@ var wctank = (function(wctank) {
                 if ( obj.hasOwnProperty(p) )
                     obj[p].name = p;
             }
+        },
+        /*
+         * given a number n, return a new number randomly 
+         * within a range n * +/-percentage f
+         */
+        smudgeNumber: function(n, f) {
+            var s = n * f * 0.01;
+            if (Math.random() < 0.05) s*=-1;
+            return Math.random() * s + n;  
         }
     };
      
