@@ -186,11 +186,14 @@ wctank.filterDefs = (function(filterDefs) {
                 }
                 return false;
             };
+
+            var $kos = $();
             cmgyk.init = function() {
                 engaged = true;
                 times_engaged++;
                 document.body.appendChild(cmgyk_steady_back);
                 document.body.appendChild(cmgyk_back);
+                $kos = $();
             };
             cmgyk.teardown = function() {
                 engaged = false;
@@ -211,13 +214,12 @@ wctank.filterDefs = (function(filterDefs) {
                 return x1 * c;
             };
 
-            var $kos = $();
             var blink$ = []; //array with items of form [$, blink_speed in ms]  
             var onMovement = function() {
                 if ( engaged && should_ko() ) {
                     var $map_imgs = $("#map-canvas :nth-child(1) :nth-child(1)" + 
                                       ":nth-child(1) :nth-child(5) :nth-child(1)").children();
-                    $kos = $();     
+                    //$kos = $();     
                     var s_idx, e_idx;
                     (function() {
                         var mdn = ($map_imgs.length * 0.5 + 0.5) | 0;
