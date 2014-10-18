@@ -78,7 +78,7 @@ wctank.filterDefs = (function(filterDefs) {
                     if (!clear_set) {
                         return makeCss(side, side, '25%', px((w * 0.5) - (h * 0.25)));
                     } else if (clear_set) {
-                        return makeCss(px(w), px(h), '0', '0');
+                        return makeCss('100%', '100%', '0', '0');
                     }
                 }());
                 div.$map.css(obj);
