@@ -139,7 +139,7 @@ wctank.gMap = (function(gMap) {
     };
 
     gMap.zoomControlsVisible = function(b) {
-        var $zoomCtl = $(".gmnoprint");
+        var $zoomCtl = $(".gmnoprint").not(".gm-style-cc");
         b ? $zoomCtl.show() : $zoomCtl.hide(); 
     };
 
