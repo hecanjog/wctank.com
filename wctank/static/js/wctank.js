@@ -63,7 +63,7 @@ var wctank = (function(wctank) {
         // useful css selectors
         selectors: {
             $_map_imgs: "#map-canvas :nth-child(1) :nth-child(1)" + 
-                ":nth-child(1) :nth-child(5) :nth-child(1) > div > img" 
+                ":nth-child(1) :nth-child(5) :nth-child(1) > div" 
         }
     };
 

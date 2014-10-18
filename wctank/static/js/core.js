@@ -364,8 +364,8 @@ wctank.core = (function(core) {
     core.special = (function(special) {
         special.current = [];
         var currentRm = function(special) {
-            var idx = special.current.indexOf(special);
-            if (idx !== -1) special.current.splice(idx, 1);
+            var idx = core.special.current.indexOf(special);
+            if (idx !== -1) core.special.current.splice(idx, 1);
         };
         special.apply = function(special) {
             core.special.current.push(special);

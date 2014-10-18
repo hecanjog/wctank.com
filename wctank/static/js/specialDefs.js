@@ -14,21 +14,45 @@ wctank.specialDefs = (function(specialDefs) {
         };
         return words;
     }({}));
-    
+   
+    /*
+     * trying to special.remove this glitches a bit, but I like it
+     */
     specialDefs.showBorders = (function(showBorders) {
         var $imgs;
         var first = true;
-        showBorders.init = function() {
-            $imgs = $(div.selectors.$_map_imgs);
-            $imgs.css("border", "3px solid");
-            $imgs = null;
-            if (first) google.maps.event.addListenerOnce(gMap.map, 'idle', showBorders.init);
-            first = false;
-            google.maps.event.addListenerOnce(gMap.map, 'tilesloaded', showBorders.init);
+        var tni = false;
+        var types = ['dotted', 'solid', 'groove'];
+        var rndType = function() {
+            return types[(Math.random() * types.length) | 0];
         };
-        showBorders.teardown = function() {
+        function cycle() {
             $imgs = null;
-            google.maps.event.removeListener(gMap.map, 'tilesloaded', showBorders.init);
+            $imgs = $(div.selectors.$_map_imgs);
+            $imgs.each(function() {
+                $(this).css("border", "4px "+rndType());
+            });
+            if (tni) {
+                if (first) {
+                    google.maps.event.addListenerOnce(gMap.map, 'idle', cycle);
+                    first = false;
+                }
+                //TODO: also attach to onZoom listeners
+                google.maps.event.addListenerOnce(gMap.map, 'tilesloaded', cycle);
+            };
+        }
+        showBorders.init = function(e) {
+            tni = true;
+            cycle(); 
+        };
+        var f = 0;
+        showBorders.teardown = function() {
+            tni = false; 
+            $(div.selectors.$_map_imgs).css('border', '0'); 
+            $imgs = null;
+            f++;
+            // ugh, there's something going on with the maps cache here
+            if (f < 2) showBorders.teardown;
         };
         return showBorders;
     }({}));
