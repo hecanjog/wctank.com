@@ -58,7 +58,13 @@ var wctank = (function(wctank) {
     wctank.div = {
         $overlay: $('#overlay'),
         $map: $("#map-canvas"),
-        $map_U_markers: $("#map-canvas").add("#markers-a").add("#markers-b")
+        $map_U_markers: $("#map-canvas").add("#markers-a").add("#markers-b"),
+        
+        // useful css selectors
+        selectors: {
+            $_map_imgs: "#map-canvas :nth-child(1) :nth-child(1)" + 
+                ":nth-child(1) :nth-child(5) :nth-child(1) > div > img" 
+        }
     };
 
     return wctank;

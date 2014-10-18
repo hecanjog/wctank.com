@@ -249,9 +249,7 @@ wctank.filterDefs = (function(filterDefs) {
             var blink$ = []; //array with items of form [$, blink_speed in ms]  
             var onMovement = function() {
                 if ( engaged && should_ko() ) {
-                    var $map_imgs = $("#map-canvas :nth-child(1) :nth-child(1)" + 
-                                      ":nth-child(1) :nth-child(5) :nth-child(1)").children();
-                    //$kos = $();     
+                    var $map_imgs = $(div.selectors.$_map_imgs); 
                     var s_idx, e_idx;
                     (function() {
                         var mdn = ($map_imgs.length * 0.5 + 0.5) | 0;

@@ -368,7 +368,7 @@ wctank.core = (function(core) {
             if (idx !== -1) special.current.splice(idx, 1);
         };
         special.apply = function(special) {
-            special.current.push(special);
+            core.special.current.push(special);
             core.filterTypeOp('init', specialDefs[special]);
         };
         special.remove = function(special) {

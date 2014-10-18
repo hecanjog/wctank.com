@@ -14,6 +14,24 @@ wctank.specialDefs = (function(specialDefs) {
         };
         return words;
     }({}));
+    
+    specialDefs.showBorders = (function(showBorders) {
+        var $imgs;
+        var first = true;
+        showBorders.init = function() {
+            $imgs = $(div.selectors.$_map_imgs);
+            $imgs.css("border", "3px solid");
+            $imgs = null;
+            if (first) google.maps.event.addListenerOnce(gMap.map, 'idle', showBorders.init);
+            first = false;
+            google.maps.event.addListenerOnce(gMap.map, 'tilesloaded', showBorders.init);
+        };
+        showBorders.teardown = function() {
+            $imgs = null;
+            google.maps.event.removeListener(gMap.map, 'tilesloaded', showBorders.init);
+        };
+        return showBorders;
+    }({}));
 
     /*
      * alphaStrut is a special filter event that runs simultaneously with the filters
