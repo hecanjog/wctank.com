@@ -66,19 +66,20 @@ wctank.filterDefs = (function(filterDefs) {
                     return n+'px';
                 };
                 var side = px(h * 0.5); 
-                var makeCss = function(w, h, t, l) {
+                var makeCss = function(w, h, t, l, b) {
                     return {
                         'width': w,
                         'height': h,
                         'top': t,
-                        'left': l
+                        'left': l,
+                        'border': b
                     };
                 };
                 var obj = (function() {
                     if (!clear_set) {
-                        return makeCss(side, side, '25%', px((w * 0.5) - (h * 0.25)));
+                        return makeCss(side, side, '25%', px((w * 0.5) - (h * 0.25)), '3px solid');
                     } else if (clear_set) {
-                        return makeCss('100%', '100%', '0', '0');
+                        return makeCss('100%', '100%', '0', '0', '0');
                     }
                 }());
                 div.$map.css(obj);
@@ -87,16 +88,19 @@ wctank.filterDefs = (function(filterDefs) {
                 set$mapCss(false);
             };
             troller.init = function() {
-                set$mapCss(false);
                 window.addEventListener('resize', $mapOnResize);
+                set$mapCss(false);
                 gMap.zoomControlsVisible(false);
                 document.body.appendChild(troller_back);
                 troller_back.play();
                 transform("rotate(360deg)");
                 if (cntr === 0) {
                     to_id = window.setTimeout(core.filters.forceApply, util.smudgeNumber(7000, 5));
-                    window.setTimeout(function() {
-                        core.filters.apply('troller');
+                    window.setTimeout(function() { 
+                        core.filterTypeOp('teardown', filterDefs.troller);
+                        core.filterTypeOp('init', filterDefs.troller, function() {
+                            div.$map.addClass('troller');
+                        });
                     }, 50);
                 }
                 cntr++;

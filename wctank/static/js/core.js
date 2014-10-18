@@ -95,7 +95,7 @@ wctank.core = (function(core) {
         return webgl;
     }({}))
     
-    var filterTypeOp = function(stage, filterTypeObj) {
+    core.filterTypeOp = function(stage, filterTypeObj) {
         var ops = [];
         var r_op;
         var $op;
@@ -205,12 +205,11 @@ wctank.core = (function(core) {
             core.filters.current = filter;
             var render = core.render;
             if (new_filter) {
-                filterTypeOp('teardown', filterDefs[new_filter], function() {
+                core.filterTypeOp('teardown', filterDefs[new_filter], function() {
                     div.$map.removeClass(new_filter);
                 });
             }
-            var this_filter = filterDefs[filter]; 
-            filterTypeOp('init', filterDefs[filter], function() {
+            core.filterTypeOp('init', filterDefs[filter], function() {
                 div.$map.addClass(filter);
             });
             old_filter = new_filter;
@@ -370,11 +369,11 @@ wctank.core = (function(core) {
         };
         special.apply = function(special) {
             special.current.push(special);
-            filterTypeOp('init', specialDefs[special]);
+            core.filterTypeOp('init', specialDefs[special]);
         };
         special.remove = function(special) {
             currentRm(special);
-            filterTypeOp('teardown', specialDefs[special]);
+            core.filterTypeOp('teardown', specialDefs[special]);
         };
         return special;
     }({})); 
