@@ -41,6 +41,6 @@ def getPosts(swk, swa, nek, nea):
         lat = wct.posts[i]['lat']
         lng = wct.posts[i]['long']
         if lat >= float(swk) and lng >= float(swa) and lat <= float(nek) and lng <= float(nea):
-            posts += [wct.posts[i]]
+            posts += [ wct.posts[i] ]
 
     return json.dumps(posts)

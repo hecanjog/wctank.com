@@ -1,10 +1,8 @@
 import re
 import os
 import pytumblr
-import dataset
 import ZODB, ZODB.FileStorage, BTrees.OOBTree, transaction
 from persistent import Persistent
-import pprint
 
 pyClient = pytumblr.TumblrRestClient(
     os.environ['WES_TUMBLR_CONSUMER_KEY'],
@@ -33,7 +31,6 @@ class WctCron(Persistent):
             all_posts += res['posts']
        
         r = re.compile('-?\d+\.\d+ -?\d+\.\d+')
-        pp = pprint.PrettyPrinter(indent=4)
 
         for i, post in enumerate(all_posts):
             for tag in post['tags']:

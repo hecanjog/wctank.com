@@ -8,6 +8,8 @@ setup(
     install_requires=[
         'flask', 
         'pytumblr',
+        'ZODB',
+        'crontab'
     ],
     zip_safe=False,
 )
