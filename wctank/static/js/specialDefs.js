@@ -2,7 +2,9 @@ wctank = wctank || {};
 
 wctank.specialDefs = (function(specialDefs) {
     wctank.util.aliasNamespace.call(specialDefs.prototype);
-    
+   
+    //TODO: remove non-transparent parts in image
+    // do something else besides just show and hide the image?
     specialDefs.words = (function(words) {
         var back_z = "-999";
         var front_z = "19";
