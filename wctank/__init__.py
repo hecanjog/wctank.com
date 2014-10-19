@@ -3,10 +3,7 @@ from flask import render_template
 from flask import json
 from flask import jsonify
 from flask import Response
-import pytumblr
 import re
-import os
-import sys
 import urllib2
 from crontab import CronTab
 from cron import WctCron
@@ -36,7 +33,6 @@ def getVimeoData():
 @app.route('/<swk>/<swa>/<nek>/<nea>')
 def getPosts(swk, swa, nek, nea):
     posts = []
-    print(wct.posts[10]['lat'])
     for i in wct.posts: 
         lat = wct.posts[i]['lat']
         lng = wct.posts[i]['long']
