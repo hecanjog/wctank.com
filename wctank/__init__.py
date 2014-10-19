@@ -1,8 +1,6 @@
 from flask import Flask
 from flask import render_template
 from flask import json
-from flask import jsonify
-from flask import Response
 import re
 import urllib2
 from crontab import CronTab
@@ -17,6 +15,7 @@ app = Flask(__name__)
 #job.enable()
 
 wct = WctCron()
+print(' * Populating database...')
 wct.populate()
 
 @app.route('/')
