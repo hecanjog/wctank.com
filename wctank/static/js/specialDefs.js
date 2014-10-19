@@ -4,13 +4,18 @@ wctank.specialDefs = (function(specialDefs) {
     wctank.util.aliasNamespace.call(specialDefs.prototype);
     
     specialDefs.words = (function(words) {
+        var back_z = "-999";
+        var front_z = "19";
         var words_front = document.createElement('div');
         words_front.setAttribute("id", "words_front");
+        words_front.style.zIndex = back_z;
+        document.body.appendChild(words_front);
+        
         words.init = function() {
-            document.appendChild(words_front);
+            words_front.style.zIndex = front_z;    
         };
         words.teardown = function() {
-            document.removeChild(words_front);
+            words_front.style.zIndex = back_z;
         };
         return words;
     }({}));
