@@ -17,7 +17,6 @@ wctank.tableux = (function(tableux) {
             CAUSTIC_GLOW: 0x00F00000,
             CMGYK:        0x000F0000,
             VHS:          0x0000F000,
-            ALL:          0x0FFFF000
         };
         var makeTableuxData = function(lat, lng, zoom, tag) {
             return {
@@ -38,7 +37,8 @@ wctank.tableux = (function(tableux) {
             makeTableuxData(1.31960789248782, -89.7875060971246, 20, tags.VHS),
             makeTableuxData(41.3207838120689, -89.8110525395141, 16, tags.VHS | tags.PRINT_ANALOG | tags.CMGYK),
             // this one is nice consider maing fauvist a start
-            makeTableuxData(50.67774455640808, -111.7312581585038, 19, tags.ALL) 
+            makeTableuxData(50.67774455640808, -111.7312581585038, 19, 
+                            tags.PRINT_ANALOG | tags.CAUSTIC_GLOW | tags.CMGYK | tags.VHS) 
         ];
         (function() {
             for (var i = 0; i < dat.locs.length; i++) {

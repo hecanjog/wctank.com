@@ -2,7 +2,6 @@ import re
 import os
 import pytumblr
 import ZODB, ZODB.FileStorage, BTrees.OOBTree, transaction
-from persistent import Persistent
 
 pyClient = pytumblr.TumblrRestClient(
     os.environ['WES_TUMBLR_CONSUMER_KEY'],
@@ -16,7 +15,7 @@ connection = db.open()
 root = connection.root
 root.posts = BTrees.OOBTree.BTree()
 
-class WctCron(Persistent): 
+class WctCron(): 
     def __init__(self):
         self.posts = root.posts
     def populate(self):
