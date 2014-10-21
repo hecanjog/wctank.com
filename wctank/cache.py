@@ -9,16 +9,33 @@ pyClient = pytumblr.TumblrRestClient(
     os.environ['WES_TUMBLR_OAUTH_TOKEN'],
     os.environ['WES_TUMBLR_OAUTH_SECRET']
 )
-fs = ZODB.FileStorage.FileStorage('cache.fs')
-db = ZODB.DB(fs)
-connection = db.open()
-root = connection.root
-root.posts = BTrees.OOBTree.BTree()
 
-class WctCron(): 
+# basically ripped from the ibm tutorial because it's handy and simple:
+# http://www.ibm.com/developerworks/aix/library/au-zodb/
+class zodb_utl(object):
+    def __init__(self, path):
+        self.storage = ZODB.FileStorage.FileStorage(path)
+        self.db = ZODB.DB(self.storage)
+        self.connection = self.db.open()
+        self.root = self.connection.root()
+    def close(self):
+        self.connection.close()
+        self.db.close()
+        self.storage.close()
+
+class post_cache(): 
     def __init__(self):
-        self.posts = root.posts
+        self.instance = {}
+
+    def setup(self):
+        db = zodb_utl('./cache.fs')
+        db.root.posts = BTrees.OOBTree.BTree()
+        transaction.commit()
+        db.close()
+    
     def populate(self):
+        db = zodb_utl('./cache.fs')
+        self.posts = db.root.posts
         all_posts = []
         offset = 0
         total_posts = 1
@@ -38,6 +55,12 @@ class WctCron():
                     tag = [ float(t) for t in tag ]
                     post['lat'] = tag[0]
                     post['long'] = tag[1]
-                    self.posts[i] = post
-                    transaction.commit()
-
+                    db.root.posts[i] = post
+        
+        transaction.commit()
+        db.close()
+   
+    def getposts(self):
+        if not self.instance:
+            self.instance = zodb_utl('./cache.fs')
+        return self.instance.root.posts

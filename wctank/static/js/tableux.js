@@ -38,7 +38,9 @@ wctank.tableux = (function(tableux) {
             makeTableuxData(41.3207838120689, -89.8110525395141, 16, tags.VHS | tags.PRINT_ANALOG | tags.CMGYK),
             // this one is nice consider maing fauvist a start
             makeTableuxData(50.67774455640808, -111.7312581585038, 19, 
-                            tags.PRINT_ANALOG | tags.CAUSTIC_GLOW | tags.CMGYK | tags.VHS) 
+                            tags.PRINT_ANALOG | tags.CAUSTIC_GLOW | tags.CMGYK | tags.VHS),
+            makeTableuxData(29.552106270595818, -95.0983114995252, 19, tags.CAUSTIC_GLOW | tags.CMGYK | tags.VHS)
+
         ];
         (function() {
             for (var i = 0; i < dat.locs.length; i++) {

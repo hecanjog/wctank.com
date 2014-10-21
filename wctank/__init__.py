@@ -3,39 +3,34 @@ from flask import render_template
 from flask import json
 import re
 import urllib2
-from crontab import CronTab
-from cron import WctCron
+from cache import post_cache
 
 app = Flask(__name__)
 
-# set up database cron job
-#sys = CronTab();
-#job = sys.new(command='/usr/bin/echo')
-#job.hour.every(24)
-#job.enable()
-
-wct = WctCron()
+cache = post_cache()
+print(' * Initializing database...')
+cache.setup()
 print(' * Populating database...')
-wct.populate()
+cache.populate()
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/vimeo_data')
-def getVimeoData():
+def getvimeodata():
     page = urllib2.urlopen("http://player.vimeo.com/video/64770002")
     vimcdn = re.compile('(http:\/\/pdl\.vimeocdn\.com\/93159\/486\/160286516\.mp4\?token2=.{43})');
     url = vimcdn.findall(page.read())[0]
     return url
     
 @app.route('/<swk>/<swa>/<nek>/<nea>')
-def getPosts(swk, swa, nek, nea):
+def getposts(swk, swa, nek, nea):
+    all_posts = cache.getposts()
     posts = []
-    for i in wct.posts: 
-        lat = wct.posts[i]['lat']
-        lng = wct.posts[i]['long']
+    for i in all_posts: 
+        lat = all_posts[i]['lat']
+        lng = all_posts[i]['long']
         if lat >= float(swk) and lng >= float(swa) and lat <= float(nek) and lng <= float(nea):
-            posts += [ wct.posts[i] ]
-
+            posts += [ all_posts[i] ]
     return json.dumps(posts)
