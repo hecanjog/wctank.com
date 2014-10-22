@@ -2,6 +2,7 @@ import re
 import os
 import pytumblr
 import ZODB, ZODB.FileStorage, BTrees.OOBTree, transaction
+from flask import json
 
 pyClient = pytumblr.TumblrRestClient(
     os.environ['WES_TUMBLR_CONSUMER_KEY'],
@@ -55,6 +56,7 @@ class post_cache():
                     tag = [ float(t) for t in tag ]
                     post['lat'] = tag[0]
                     post['long'] = tag[1]
+                    post['json'] = json.dumps(post)
                     db.root.posts[i] = post
         
         transaction.commit()

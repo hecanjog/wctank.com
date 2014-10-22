@@ -1,6 +1,5 @@
 from flask import Flask
 from flask import render_template
-from flask import json
 import re
 import urllib2
 from cache import post_cache
@@ -32,5 +31,5 @@ def getposts(swk, swa, nek, nea):
         lat = all_posts[i]['lat']
         lng = all_posts[i]['long']
         if lat >= float(swk) and lng >= float(swa) and lat <= float(nek) and lng <= float(nea):
-            posts += [ all_posts[i] ]
-    return json.dumps(posts)
+            posts.append(all_posts[i]['json'])
+    return ' '.join(['[', ','.join(posts), ']'])
