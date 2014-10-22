@@ -6,6 +6,7 @@ from cache import post_cache
 
 app = Flask(__name__)
 
+# create and fill cache
 cache = post_cache()
 print(' * Initializing database...')
 cache.setup()
@@ -32,4 +33,5 @@ def getposts(swk, swa, nek, nea):
         lng = all_posts[i]['long']
         if lat >= float(swk) and lng >= float(swa) and lat <= float(nek) and lng <= float(nea):
             posts.append(all_posts[i]['json'])
+    #cache.finish_transaction()
     return ' '.join(['[', ','.join(posts), ']'])

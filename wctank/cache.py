@@ -19,10 +19,17 @@ class zodb_utl(object):
         self.db = ZODB.DB(self.storage)
         self.connection = self.db.open()
         self.root = self.connection.root()
-    def close(self):
+    
+    def close_all(self):
         self.connection.close()
         self.db.close()
         self.storage.close()
+    
+    def close_connection(self):
+        self.connection.close()
+    
+    def open_connection(self):
+        self.connection = self.db.open()
 
 class post_cache(): 
     def __init__(self):
@@ -32,7 +39,7 @@ class post_cache():
         db = zodb_utl('./cache.fs')
         db.root.posts = BTrees.OOBTree.BTree()
         transaction.commit()
-        db.close()
+        db.close_all()
     
     def populate(self):
         db = zodb_utl('./cache.fs')
@@ -42,7 +49,8 @@ class post_cache():
         total_posts = 1
     
         while offset <= total_posts:
-            res = pyClient.posts('wctank.tumblr.com', tag='worlds', limit=20, reblog_info=True, offset=offset)
+            res = pyClient.posts('wctank.tumblr.com', 
+                    tag='worlds', limit=20, reblog_info=True, offset=offset)
             offset += 20
             total_posts = res['total_posts']
             all_posts += res['posts']
@@ -60,9 +68,14 @@ class post_cache():
                     db.root.posts[i] = post
         
         transaction.commit()
-        db.close()
+        db.close_all()
    
     def getposts(self):
         if not self.instance:
             self.instance = zodb_utl('./cache.fs')
+        else:
+            self.instance.open_connection()
         return self.instance.root.posts
+    
+    def finish_transaction(self):
+        self.instance.close_connection()

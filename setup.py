@@ -9,7 +9,6 @@ setup(
         'flask', 
         'pytumblr',
         'ZODB',
-        'crontab'
     ],
     zip_safe=False,
 )
