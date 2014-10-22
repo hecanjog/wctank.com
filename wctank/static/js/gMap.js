@@ -100,9 +100,9 @@ wctank.gMap = (function(gMap) {
         console.log(gMap.map.center.lat()+" "+gMap.map.center.lng());
         console.log(gMap.map.zoom);
     };
-    var mapOptions = {}; 
+    
     gMap.init = function() {
-        mapOptions = {
+        var mapOptions = {
             center: new google.maps.LatLng(43.1, -87.107180),
             zoom: 11,
             mapTypeId: google.maps.MapTypeId.SATELLITE,
