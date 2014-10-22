@@ -50,28 +50,37 @@ wctank.posts = (function(posts) {
         return template;
     };
     
+    var clip = false;
+    var clip_interval = 500;
     posts.get = function(visibleBounds, callback) {
         var sw = visibleBounds.getSouthWest();
         var ne = visibleBounds.getNorthEast();
         var url = '/' + sw.lat() + '/' + sw.lng() + '/' + ne.lat() + '/' + ne.lng();
-        $.getJSON(url, function(data) {
-            $.each(data, function(i, post) {
-                post.isTextPost = (function() {
-                    var text_posts = ['text', 'audio', 'link', 'quote'];
-                    return (text_posts.indexOf(post.type) !== -1) ? true : false;
-                }());
-                post.markerType = (function() {
-                 if($.inArray('videos', post.tags) !== -1) {
-                        return 'video';    
-                    } else if ($.inArray('stumblesome', post.tags) !== -1) {
-                        return 'stumble';
-                    } else {
-                        return 'random';
-                    }
-                }()); 
-            }); 
-            callback(data);    
-        }); 
+        if (!clip) {    
+            $.getJSON(url, function(data) {
+                // only allow 1 request per clip_interval
+                clip = true;
+                window.setTimeout(function() {
+                    clip = false;
+                }, clip_interval);
+                $.each(data, function(i, post) {
+                    post.isTextPost = (function() {
+                        var text_posts = ['text', 'audio', 'link', 'quote'];
+                        return (text_posts.indexOf(post.type) !== -1) ? true : false;
+                    }());
+                    post.markerType = (function() {
+                     if($.inArray('videos', post.tags) !== -1) {
+                            return 'video';    
+                        } else if ($.inArray('stumblesome', post.tags) !== -1) {
+                            return 'stumble';
+                        } else {
+                            return 'random';
+                        }
+                    }()); 
+                }); 
+                callback(data);    
+            });
+        } 
     };
     
     var marker_clicked = false;
