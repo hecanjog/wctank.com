@@ -237,7 +237,7 @@ button {
 }
 
 /*
- * More-or-less persistant elements
+ * More-or-less persistent elements
  */
 #fail-through {
     .fullsize;
@@ -435,15 +435,10 @@ button {
     stroke-dasharray: 3200;
     .animation(dash 3500ms infinite linear);
 }
-.svg_loader_frames() {
+.keyframes(dash, {
     from { stroke-dashoffset: 3200; }
     to { stroke-dashoffset: -3200; }
-}
-@-moz-keyframes dash { .svg_loader_frames; }
-@-o-keyframes dash { .svg_loader_frames; }
-@-ms-keyframes dash { .svg_loader_frames; }
-@-webkit-keyframes dash { .svg_loader_frames; }
-@keyframes dash { .svg_loader_frames; }
+});
 
 /*
  * fonts
