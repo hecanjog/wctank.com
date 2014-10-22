@@ -118,7 +118,7 @@ wctank.gMap = (function(gMap) {
         m_px.draw = function() {};
         m_px.setMap(gMap.map);
         markers.setOverlay(m_px);
-        google.maps.event.addListener(gMap.map, 'idle', function() {
+        google.maps.event.addListener(gMap.map, 'tilesloaded', function() {
             posts.get(gMap.map.getBounds(), function(data) {
                 $.each(data, function(i, post) {
                     var m;
