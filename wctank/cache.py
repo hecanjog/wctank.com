@@ -30,6 +30,7 @@ class zodb_utl(object):
     
     def open_connection(self):
         self.connection = self.db.open()
+        self.root = self.connection.root()
 
 class post_cache(): 
     def __init__(self):

@@ -10,7 +10,11 @@ wctank.filterDefs = (function(filterDefs) {
             document.removeEventListener('filterDefsReady', fn);
         }); 
     };
-    
+   
+    filterDefs.names = [
+        'troller', 'print_analog', 'caustic_glow', 'cmgyk', 'fauvist', 'vhs'
+    ]; 
+
     $.get("static/map_filters.xml", function(data) {
         var cont = document.createElement("svg_filters");
         cont.style.position = "fixed";
@@ -332,7 +336,7 @@ wctank.filterDefs = (function(filterDefs) {
         }({}))
                     
         filterDefs.fauvist = {
-            usage: core.filters.usage.ZOOMED
+            usage: core.filters.usage.ZOOMED | core.filters.usage.START
         };
             
         filterDefs.vhs = (function(vhs) {
@@ -423,7 +427,7 @@ wctank.filterDefs = (function(filterDefs) {
         document.dispatchEvent(_filterDefsReady);
         
         (function() {
-            var dppx1dot2 =  window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
+            var dppx1dot2 = window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
                                 "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
             if (dppx1dot2.matches) {
                 filterDefs.print_analog.denoise.setAttribute("stdDeviation", "1.16");

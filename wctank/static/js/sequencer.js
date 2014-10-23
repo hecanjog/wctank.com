@@ -80,5 +80,6 @@ wctank.sequencer = (function(sequencer) {
  * dev stupidness
  */
 var af = wctank.core.filters.apply;
-var gt = wctank.gMap.tool;
+var loc = wctank.gMap.tool;
+var gt = wctank.gMap.goTo
 wctank.sequencer.goTo(0);

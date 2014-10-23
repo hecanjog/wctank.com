@@ -100,6 +100,10 @@ wctank.gMap = (function(gMap) {
         console.log(gMap.map.center.lat()+" "+gMap.map.center.lng());
         console.log(gMap.map.zoom);
     };
+    gMap.goTo = function(lat, lng, zoom) {
+        gMap.map.setCenter(new google.maps.LatLng(lat, lng));
+        gMap.map.setZoom(zoom);
+    };
     
     gMap.init = function() {
         var mapOptions = {
