@@ -1,11 +1,20 @@
-//TODO: cmgyk blink right away
-// closely related to the last
-// TODO: variations on vhs noise pattern
+// TODO: more vhs filter noises
+// limit 'general' filter set against tableux data, e.g.,
+// if close to one of these points, only allow approved filters
 
 (function() {
     
 var add = wctank.tableux.add;
 var f = wctank.tableux.flags;
+var ALL_FLAGS = (function() {
+    var af = 0x00000000;
+    for (var flag in wctank.tableux.flags) {
+        if ( wctank.tableux.flags.hasOwnProperty(flag) ) {
+            af = af | wctank.tableux.flags[flag]; 
+        }
+    }
+    return af;
+}())
 
 /*
  * Milwaukee Area
@@ -51,10 +60,13 @@ add(-82.06481558476122, -180.5787857465493, 5, f.VHS | f.CMGYK | f.PRINT_ANALOG 
     }]
 );
 // industrial agriculture - these are nice 
-add(50.677401244851545, -111.73200775079476, 18, f.FAUVIST | f.PRINT_ANALOG | f.CAUSTIC_GLOW | 
-    f.TROLLER | f.CMGYK | f.VHS);
+add(50.677401244851545, -111.73200775079476, 18, ALL_FLAGS); 
 add(50.684622622794876, -111.752220877931, 16, f.VHS | f.PRINT_ANALOG | f.FAUVIST | f.CMGYK);
 add(50.683246001156895, -111.7443836219054, 16, f.CAUSTIC_GLOW);                
+// a port near so cal
+add(33.74546214254659, -118.22587598936661, 18, ALL_FLAGS);
+// a world map
+add(46.81244726322789, 16.65002231745169, 2, f.PRINT_ANALOG | f.FAUVIST); 
 
 wctank.tableux.parse();
 
