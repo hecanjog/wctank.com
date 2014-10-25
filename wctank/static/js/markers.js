@@ -30,6 +30,7 @@ wctank.markers = (function(markers) {
             1: new CanvPrep( document.getElementById("markers-b") ),
             y: 0
         };
+        disp.c = c; // alias this out
         (function resizeC() {
             c[0].canv.width = c[1].canv.width = window.innerWidth;
             c[0].canv.height = c[1].canv.height = window.innerHeight;
@@ -119,6 +120,7 @@ wctank.markers = (function(markers) {
     var update = function() {
         disp.drawCycle( marks.getDrawingInfo() );
     };
+    gMap.events.push(gMap.events.MAP, 'bounds_changed', update);
     markers.setOverlay = function(g_ovr_obj) {
         overlay = g_ovr_obj;
     };
@@ -128,7 +130,11 @@ wctank.markers = (function(markers) {
             update();         
         }
     };
-    gMap.events.push(gMap.events.MAP, 'bounds_changed', update);
+    markers.setVisibility = function(bool) {
+        var vis = bool ? 'visible' : 'hidden';
+        disp.c[0].canv.style.visibility = vis;
+        disp.c[1].canv.style.visibility = vis; 
+    };
      
    return markers;
 }({}))

@@ -99,6 +99,7 @@ wctank.filterDefs = (function(filterDefs) {
                 window.addEventListener('resize', $mapOnResize);
                 set$mapCss(false);
                 gMap.zoomControlsVisible(false);
+                markers.setVisibility(false);
                 document.body.appendChild(troller_back);
                 troller_back.play();
                 transform("rotate(360deg)");
@@ -121,6 +122,7 @@ wctank.filterDefs = (function(filterDefs) {
                     window.removeEventListener('resize', $mapOnResize);
                     set$mapCss(true);
                     gMap.zoomControlsVisible(true);
+                    markers.setVisibility(true);
                     troller_back.pause();
                     troller_back.currentTime = 0;
                     transform(ident);
