@@ -10,7 +10,9 @@ wctank.filterDefs = (function(filterDefs) {
             document.removeEventListener('filterDefsReady', fn);
         }); 
     };
-   
+    
+    // having the names of the filters before they are loaded is handy, so 
+    // update this list when adding a filter 
     filterDefs.names = [
         'troller', 'print_analog', 'caustic_glow', 'cmgyk', 'fauvist', 'vhs'
     ]; 
