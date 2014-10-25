@@ -4,7 +4,7 @@
 
 (function() {
     
-var add = wctank.tableux.addTableux;
+var add = wctank.tableux.add;
 var f = wctank.tableux.flags;
 
 /*
@@ -45,13 +45,17 @@ add(-38.233798810401765, -213.56086938040062, 18, f.FAUVIST);
 add(-38.230836513895284, -213.57230631964012, 15, f.VHS);
 // antartica
 add(-76.25189561591111, 165.7761947222007, 6, f.PRINT_ANALOG | f.VHS);
-add(-82.06481558476122, -180.5787857465493, 5, f.VHS | f.CMGYK);
+add(-82.06481558476122, -180.5787857465493, 5, f.VHS | f.CMGYK | f.PRINT_ANALOG | f.VHS, 
+    [function() {
+        if (core.filters.current === 'cmgyk') wctank.filterDefs.cmgyk.setImmediateBlink();
+    }]
+);
 // industrial agriculture - these are nice 
 add(50.677401244851545, -111.73200775079476, 18, f.FAUVIST | f.PRINT_ANALOG | f.CAUSTIC_GLOW | 
     f.TROLLER | f.CMGYK | f.VHS);
 add(50.684622622794876, -111.752220877931, 16, f.VHS | f.PRINT_ANALOG | f.FAUVIST | f.CMGYK);
 add(50.683246001156895, -111.7443836219054, 16, f.CAUSTIC_GLOW);                
 
-wctank.tableux.parseTableux();
+wctank.tableux.parse();
 
 }())

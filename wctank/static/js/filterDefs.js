@@ -213,18 +213,23 @@ wctank.filterDefs = (function(filterDefs) {
             
             var engaged = false;
             var times_engaged = 0;
+            ko_num = 2;
+            blink_num = 3;
             var should_ko = function() {
-                if (times_engaged > 2) return true;
+                if (times_engaged > ko_num) return true;
                 return false;
             };
             var should_blink = function() {
-                if (times_engaged > 3) {
+                if (times_engaged > blink_num) {
                     //coord.pushCategory("cmgyk", cat.TAKEOVER_DOWN);   
                     return true;
                 }
                 return false;
             };
-
+            cmgyk.setImmediateBlink = function() {
+                ko_num = 0 ;
+                blink_num = 0;
+            };
             var $kos = $();
             cmgyk.init = function() {
                 engaged = true;
@@ -253,7 +258,7 @@ wctank.filterDefs = (function(filterDefs) {
             };
 
             var blink$ = []; //array with items of form [$, blink_speed in ms]  
-            var onMovement = function() {
+            var koAndBlink = function() {
                 if ( engaged && should_ko() ) {
                     var $map_imgs = $(div.selectors.$_map_imgs); 
                     var s_idx, e_idx;
@@ -296,8 +301,9 @@ wctank.filterDefs = (function(filterDefs) {
                     $kos.css("display", "none");
                 }
             };
-            gMap.events.push(gMap.events.MAP, 'bounds_changed', onMovement);
-
+            gMap.events.push(gMap.events.MAP, 'tilesloaded', koAndBlink);
+            gMap.events.push(gMap.events.MAP, 'bounds_changed', koAndBlink);
+           
             //TODO: cmgyk webgl starscape?           
             cmgyk.animate = function() {
                 if ( should_blink() ) {

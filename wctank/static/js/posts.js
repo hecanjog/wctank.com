@@ -69,7 +69,7 @@ wctank.posts = (function(posts) {
                         return (text_posts.indexOf(post.type) !== -1) ? true : false;
                     }());
                     post.markerType = (function() {
-                     if($.inArray('videos', post.tags) !== -1) {
+                        if($.inArray('videos', post.tags) !== -1) {
                             return 'video';    
                         } else if ($.inArray('stumblesome', post.tags) !== -1) {
                             return 'stumble';

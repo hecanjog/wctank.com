@@ -38,7 +38,7 @@ wctank.sequencer = (function(sequencer) {
                     gMap.map.setZoom(9);
                 });
                 
-                tableux.pickTableux();
+                tableux.pick(core.filters.current);
                 gMap.events.initHeapEvents(gMap.events.MAP);
             };
             google.maps.event.addDomListener(window, 'load', startMap);
