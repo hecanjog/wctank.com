@@ -3,14 +3,15 @@
 // if close to one of these points, only allow approved filters
 
 (function() {
-    
-var add = wctank.tableux.add;
-var f = wctank.tableux.flags;
+wctank.util.aliasNamespace.call(this.prototype);
+
+var add = tableux.add;
+var f = tableux.flags;
 var ALL_FLAGS = (function() {
     var af = 0x00000000;
-    for (var flag in wctank.tableux.flags) {
-        if ( wctank.tableux.flags.hasOwnProperty(flag) ) {
-            af = af | wctank.tableux.flags[flag]; 
+    for (var flag in tableux.flags) {
+        if ( tableux.flags.hasOwnProperty(flag) ) {
+            af = af | tableux.flags[flag]; 
         }
     }
     return af;
@@ -37,7 +38,12 @@ add(43.04786791144118, -87.90162418859109, 19, f.PRINT_ANALOG);
 add(43.01021208352276, 272.1016006032805, 20, f.FAUVIST | f.VHS);
 // rows of working-class houses
 add(42.99286263118931, -87.97206972615822, 18, f.PRINT_ANALOG | f.VHS | f.FAUVIST | f.CAUSTIC_GLOW);
-
+// over lake michigan somewhere
+add(33.62344395619926, -118.12228629350284, 13, f.CAUSTIC_GLOW | f.VHS | f.CMGYK | f.FAUVIST, 
+    [function() {
+        if (core.filters.current === 'cmgyk') filterDefs.cmgyk.setImmediateBlink();
+    }]
+); 
 /*
  * the bigger wider world
  */
@@ -56,7 +62,7 @@ add(-38.230836513895284, -213.57230631964012, 15, f.VHS);
 add(-76.25189561591111, 165.7761947222007, 6, f.PRINT_ANALOG | f.VHS);
 add(-82.06481558476122, -180.5787857465493, 5, f.VHS | f.CMGYK | f.PRINT_ANALOG | f.VHS, 
     [function() {
-        if (core.filters.current === 'cmgyk') wctank.filterDefs.cmgyk.setImmediateBlink();
+        if (core.filters.current === 'cmgyk') filterDefs.cmgyk.setImmediateBlink();
     }]
 );
 // industrial agriculture - these are nice 
@@ -67,6 +73,8 @@ add(50.683246001156895, -111.7443836219054, 16, f.CAUSTIC_GLOW);
 add(33.74546214254659, -118.22587598936661, 18, ALL_FLAGS);
 // a world map
 add(46.81244726322789, 16.65002231745169, 2, f.PRINT_ANALOG | f.FAUVIST); 
+// a road somewhere
+add(50.60152354612505, -111.64077556435313, 18, f.VHS | f.FAUVIST); 
 
 wctank.tableux.parse();
 

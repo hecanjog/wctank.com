@@ -1,5 +1,4 @@
 wctank = wctank || {};
-
 //unique lengths for each filter ... interval/timeout multiplier
 wctank.filterDefs = (function(filterDefs) {
     wctank.util.aliasNamespace.call(filterDefs.prototype); 
@@ -48,6 +47,9 @@ wctank.filterDefs = (function(filterDefs) {
                 var mat = sty.getPropertyValue("-webkit-transform") || 
                             sty.getPropertyValue("transform") || "matrix(1, 0, 0, 1, 0, 0)";
                 var values = mat.split('(')[1];
+                console.log(sty);
+                console.log(mat);
+                console.log(values);
                 values = values.split(')')[0];
                 values = values.split(',');
                 var a = Number(values[0]);
