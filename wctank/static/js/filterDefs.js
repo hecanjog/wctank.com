@@ -179,7 +179,7 @@ wctank.filterDefs = (function(filterDefs) {
                         div.$map_U_markers.css("display", "block");
                     }, dur);
                 }, del);
-            };  
+            }; 
             caustic_glow.init = function() {
                 if (player_ready) {
                     player.api("play");
