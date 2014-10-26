@@ -8,11 +8,11 @@ wctank.audio = (function(audio) {
     // a layer tied to zoom level 
     var A = (function(A) {
         var actx = new (window.AudioContext || window.webkitAudioContext)();  
-        
+   
         // alias destination
         A.out = actx.destination;
         
-        // make a white noise buffer source
+        // make a buffer for white noise
         var sr = actx.sampleRate;
         var samples = sr * 2.5;
         var noise_buf = actx.createBuffer(2, samples, sr);
@@ -33,9 +33,20 @@ wctank.audio = (function(audio) {
             if ( !core.render.has() ) core.render.stop();
         };
         
-        var AudioModule = function() {
+        /*
+         * Usually, audio modules will contain more than one AudioNode.
+         * The AudioModule object provides facilities for aliasing outside connections
+         * to the appropriate AudioNode through _link_alias_in and _out properties, 
+         * as well as a .link function that sniffs both modules involved to 
+         * make the correct connection.
+         *
+         * AudioModules that only wrap one AudioNode can mixin AudioModule,
+         * otherwise full prototype inheritance would be more appropriate.
+         */ 
+        function AudioModule() {
             this._link_alias_in = null;
             this._link_alias_out = null;
+            this.start = null;
 
             // this is gross, but needs to be this verbose b/c of Web Audio API internals...
             this.link = function(out) {
@@ -54,27 +65,43 @@ wctank.audio = (function(audio) {
                 }
             };
         };
-        
+         
         A.Noise = function() {
-            var node = actx.createBufferSource();
-            node.buffer = noise_buf;
-            node.loop = true;
-            AudioModule.call(node);
-            return node;
+            if (this.constructor !== AudioModule) return new A.Noise();
+
+            var source = actx.createBufferSource();
+            source.buffer = noise_buf;
+            source.loop = true;
+            this.bufferSource = source;
+            this.start = function() {
+                source.start();
+            }; 
+            this._link_alias_in = this._link_alias_in = 
+                this._link_alias_out = this._link_alias_out = source;
         };
+        A.Noise.prototype = new AudioModule();
+
+        
+        A.Osc = function(freq) {
+            if (this.constructor !== AudioModule) return new A.Osc(freq);
+
+        };
+        A.Noise.prototype = new AudioModule();
 
         A.Gain = function(gain) {
+            if (this.constructor !== AudioModule) return new A.Gain(gain);
+            
             var node = actx.createGain();
             node.gain.value = gain;
             node.setGain = function(gain) {
                 node.gain.value = gain;
             };
-            AudioModule.call(node);
-            return node;
         };
+        A.Gain.prototype = new AudioModule();
+
         A.BandPass = function(freq, Q) {
-            var node = {};
-            AudioModule.call(node);
+            if (this.constructor !== AudioModule) return new A.BandPass(freq, Q);
+
             var biquad = actx.createBiquadFilter();
             biquad.type = "bandpass";
             biquad.frequency.value = freq;
@@ -85,18 +112,18 @@ wctank.audio = (function(audio) {
             biquad.setQ = function(Q) {
                 biquad.Q.value = Q;
             };
-            node.biquad = biquad;
+            this.biquad = biquad;
             
             var gain = actx.createGain();
             gain.gain.value = 1;
             biquad.connect(gain);
-            node.gain = gain;
+            this.gain = gain;
             
-            node._link_alias_in = node.biquad;
-            node._link_alias_out = node.gain;
+            this._link_alias_in = biquad;
+            this._link_alias_out = gain;
 
             var vibing = false;
-            node.vibrato = function() {
+            this.vibrato = function() {
                 if (!vibing) {        
                     var freq = biquad.frequency.value;
                     var Q = biquad.Q.value;
@@ -127,7 +154,6 @@ wctank.audio = (function(audio) {
                     var endQ = new TWEEN.Tween(biquad_params)
                                 .to({Q: genQ(false)}, Q_trans_time)
                                 .onUpdate(updateQ); 
-                      
                     var vibA = new TWEEN.Tween(biquad_params)
                                 .to({freq: genFreq(true)}, vib_time )
                                 .repeat(util.smudgeNumber(8, 50) | 0)
@@ -154,22 +180,31 @@ wctank.audio = (function(audio) {
                     animateTweens();
                 }
             };
-            return node;
-        };      
+        };
+        A.BandPass.prototype = new AudioModule();      
+
         return A;
     }({})) 
     
     var noise = A.Noise();
+    console.log(noise);
     var bp = A.BandPass(440, 80); 
+    console.log(bp);
+    var low = A.BandPass(420, 80);
     noise.link(bp);
-    console.log(A.out);
+    noise.link(low);
     noise.start();
     bp.link(A.out);
-    
-    wctank.gMap.events.push(wctank.gMap.events.MAP, 'drag', bp.vibrato);
+    low.link(A.out);
+    var vibEve = function() {
+        bp.vibrato();
+        low.vibrato();
+    };
+    wctank.gMap.events.push(wctank.gMap.events.MAP, 'drag', vibEve);
     audio.start = function() {
         noise.start();
     };
+
     
     return audio;
 }({}))
