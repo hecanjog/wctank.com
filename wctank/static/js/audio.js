@@ -86,7 +86,7 @@ wctank.audio = (function(audio) {
             if (this.constructor !== AudioModule) return new A.Osc(freq);
 
         };
-        A.Noise.prototype = new AudioModule();
+        A.Osc.prototype = new AudioModule();
 
         A.Gain = function(gain) {
             if (this.constructor !== AudioModule) return new A.Gain(gain);
@@ -122,12 +122,13 @@ wctank.audio = (function(audio) {
             this._link_alias_in = biquad;
             this._link_alias_out = gain;
 
-            var vibing = false;
-            this.vibrato = function() {
-                if (!vibing) {        
+            var accenting = false;
+            this.accent = function() {
+                if (!accenting) {        
                     var freq = biquad.frequency.value;
                     var Q = biquad.Q.value;
-                    var biquad_params = { freq: freq, Q: Q };
+                    var amp = gain.gain.value;
+                    var accent_params = { freq: freq, Q: Q, amp: amp };
                     var soundVal = function(prop, base, range) {
                         var diff = (Math.random() < 0.5) ? base * -1 : base;
                         return prop + util.smudgeNumber(diff, range);
@@ -136,47 +137,67 @@ wctank.audio = (function(audio) {
                         return peak ? soundVal(freq, 8, 10) : soundVal(freq, 1, 10);
                     };
                     var updateFreq = function() {
-                        biquad.frequency.value = biquad_params.freq;
+                        biquad.frequency.value = accent_params.freq;
                     };
                     var genQ = function(peak) {
-                        return peak ? Q + util.smudgeNumber(40, 20) : Q;
+                        return peak ? Q + util.smudgeNumber(70, 20) : Q;
                     };
                     var updateQ = function() {
-                        biquad.Q.value = biquad_params.Q;
+                        biquad.Q.value = accent_params.Q;
                     };
-                    var vib_time = util.smudgeNumber(100, 10);
+                    var genGain = function(peak) {
+                        return peak ? amp + util.smudgeNumber(1, 50) : amp;
+                    };
+                    var updateGain = function() {
+                        gain.gain.value = accent_params.amp;
+                    };
+                    var accent_time = util.smudgeNumber(100, 10);
                     var repeats = util.smudgeNumber(8, 50) | 0;
                     var recovery_time = util.smudgeNumber(500, 20);
-                    var Q_trans_time = vib_time * repeats + recovery_time * 0.5;
-                    var startQ = new TWEEN.Tween(biquad_params)
+                    var total = accent_time * repeats + recovery_time;
+
+                    var Q_trans_time = total * 0.5;
+                    var gain_in_part = util.smudgeNumber(0.3, 20);
+                    var gain_out_part = 1 - gain_in_part;
+                    var gain_in_time = total * gain_in_part;
+                    var gain_out_time = total * gain_out_part; 
+                    var QIn = new TWEEN.Tween(accent_params)
                                 .to({Q: genQ(true)}, Q_trans_time)
                                 .onUpdate(updateQ);
-                    var endQ = new TWEEN.Tween(biquad_params)
+                    var QOut = new TWEEN.Tween(accent_params)
                                 .to({Q: genQ(false)}, Q_trans_time)
                                 .onUpdate(updateQ); 
-                    var vibA = new TWEEN.Tween(biquad_params)
-                                .to({freq: genFreq(true)}, vib_time )
+                    var gainIn = new TWEEN.Tween(accent_params)
+                                .to({amp: genGain(true)}, gain_in_time)
+                                .onUpdate(updateGain);
+                    var gainOut = new TWEEN.Tween(accent_params)
+                                .to({amp: genGain(false)}, gain_out_time)
+                                .onUpdate(updateGain);
+                    gainIn.chain(gainOut);
+                    var freqIn = new TWEEN.Tween(accent_params)
+                                .to({freq: genFreq(true)}, accent_time )
                                 .repeat(util.smudgeNumber(8, 50) | 0)
                                 .yoyo(true)
                                 .onStart(function() {
-                                    startQ.start();
+                                    QIn.start();
+                                    gainIn.start();
                                 })
                                 .onUpdate(updateFreq);
-                    vibA.easing(TWEEN.Easing.Bounce.InOut);
-                    var vibB = new TWEEN.Tween(biquad_params)
+                    freqIn.easing(TWEEN.Easing.Bounce.InOut);
+                    var freqOut = new TWEEN.Tween(accent_params)
                                 .to({freq: genFreq(false)}, recovery_time )
                                 .onUpdate(updateFreq)
                                 .onStart(function() {
-                                    endQ.start();
+                                    QOut.start();
                                 })
                                 .onComplete(function() {
-                                    vibing = false;
+                                    accenting = false;
                                     stopTweens();
                                 }); 
-                    vibB.easing(TWEEN.Easing.Bounce.InOut);
-                    vibA.chain(vibB);
-                    vibing = true;
-                    vibA.start();
+                    freqOut.easing(TWEEN.Easing.Bounce.InOut);
+                    freqIn.chain(freqOut);
+                    accenting = true;
+                    freqIn.start();
                     animateTweens();
                 }
             };
@@ -188,17 +209,23 @@ wctank.audio = (function(audio) {
     
     var noise = A.Noise();
     console.log(noise);
-    var bp = A.BandPass(440, 80); 
+    var vlow = A.BandPass(500, 80);
+    var bp = A.BandPass(262, 80); 
     console.log(bp);
-    var low = A.BandPass(420, 80);
+    var low = A.BandPass(327.5, 80);
+    var hi = A.BandPass(393.0, 80);
+    noise.link(vlow);
     noise.link(bp);
     noise.link(low);
+    noise.link(hi);
     noise.start();
     bp.link(A.out);
     low.link(A.out);
+    hi.link(A.out);
+    vlow.link(A.out);
     var vibEve = function() {
-        bp.vibrato();
-        low.vibrato();
+        bp.accent();
+        low.accent();
     };
     wctank.gMap.events.push(wctank.gMap.events.MAP, 'drag', vibEve);
     audio.start = function() {
