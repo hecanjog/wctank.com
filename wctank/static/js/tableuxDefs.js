@@ -3,19 +3,22 @@
 // if close to one of these points, only allow approved filters
 
 (function() {
-wctank.util.aliasNamespace.call(this.prototype);
+    var _ = wctank;
+    var core = _.core; 
+    var filterDefs = _.filterDefs;
+    var tableux = _.tableux;
 
-var add = tableux.add;
-var f = tableux.flags;
-var ALL_FLAGS = (function() {
-    var af = 0x00000000;
-    for (var flag in tableux.flags) {
-        if ( tableux.flags.hasOwnProperty(flag) ) {
-            af = af | tableux.flags[flag]; 
+    var add = tableux.add;
+    var f = tableux.flags;
+    var ALL_FLAGS = (function() {
+        var af = 0x00000000;
+        for (var flag in tableux.flags) {
+            if ( tableux.flags.hasOwnProperty(flag) ) {
+                af = af | tableux.flags[flag]; 
+            }
         }
-    }
-    return af;
-}())
+        return af;
+    }())
 
 /*
  * Milwaukee Area

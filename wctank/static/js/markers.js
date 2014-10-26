@@ -5,8 +5,9 @@ wctank = wctank || {};
  * not modified by svg filters applied to the map
  */
 wctank.markers = (function(markers) {
-    wctank.util.aliasNamespace.call(markers.prototype);
-    
+    var _ = wctank;     
+    var gMap = _.gMap;
+
     var overlay;
     var disp = (function(disp) {
         var CanvPrep = function(canv_elem) {

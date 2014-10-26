@@ -3,7 +3,11 @@ wctank = wctank || {};
  * tableux determines starting center and zoom level depending on what filter is selected first.
  */
 wctank.tableux = (function(tableux) {
-    wctank.util.aliasNamespace.call(tableux.prototype);
+    var _ = wctank;
+    var util = _.util;
+    var gMap = _.gMap;
+    var filterDefs = _.filterDefs;
+
     tableux.flags = {};
     var dat = (function(dat) {
         dat.sets = {};

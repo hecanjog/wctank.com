@@ -1,5 +1,7 @@
-var audio = (function(audio) {
-    wctank.util.aliasNamespace.call(audio.prototype);
+wctank = wctank || {};
+
+wctank.audio = (function(audio) {
+    var _ = wctank;
     var actx = new (window.AudioContext || window.webkitAudioContext)();  
     
     // make a white noise buffer source

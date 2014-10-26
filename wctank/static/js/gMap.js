@@ -2,8 +2,11 @@ wctank = wctank || {};
 
 // TODO: UTILITY FUNCTION TO GET CURRENT EVENTS
 wctank.gMap = (function(gMap) {
-    wctank.util.aliasNamespace.call(gMap.prototype); 
-    
+    var _ = wctank; 
+    var posts = _.posts;
+    var util = _.util
+    var posts = _.posts;
+
     // On init, provides ref to google.maps.Map obj
     gMap.map;
     
@@ -121,7 +124,7 @@ wctank.gMap = (function(gMap) {
         var m_px = new google.maps.OverlayView();
         m_px.draw = function() {};
         m_px.setMap(gMap.map);
-        markers.setOverlay(m_px);
+        _.markers.setOverlay(m_px);
          
         google.maps.event.addListener(gMap.map, 'tilesloaded', function() {
             posts.get(gMap.map.getBounds(), function(data) {
@@ -135,7 +138,7 @@ wctank.gMap = (function(gMap) {
                     };
                     m = new google.maps.Marker(markerOptions);
                     m.markerType = post.markerType;
-                    markers.addMarker(m);
+                    _.markers.addMarker(m);
                     evHeap.addHeapEvents(evHeap.MARKER, m);
                     google.maps.event.addListener(m, 'click', function() { posts.display(post); });
                 });

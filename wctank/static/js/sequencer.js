@@ -2,8 +2,13 @@ wctank = wctank || {};
 
 //incorporate alpha strut
 wctank.sequencer = (function(sequencer) {
-    wctank.util.aliasNamespace.call(sequencer.prototype);
-    
+    var util = wctank.util;
+    var gMap = wctank.gMap;
+    var core = wctank.core;
+    var filterDefs = wctank.filterDefs;
+    var tableux = wctank.tableux; 
+    var audio = wctank.audio;
+
     var current_stage = null;
     var stages = {
         0: function() {

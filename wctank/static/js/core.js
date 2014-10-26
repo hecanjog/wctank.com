@@ -1,7 +1,10 @@
 wctank = wctank || {};
 
 wctank.core = (function(core) {
-    wctank.util.aliasNamespace.call(core.prototype);
+    var _ = wctank; 
+    var div = _.div;
+    var util = _.util;
+    var gMap = _.gMap;
 
     core.render = (function(render) {
         var stk = [];
@@ -151,9 +154,9 @@ wctank.core = (function(core) {
         };
         filters.current = null;
         filters.parse = function() {
-            for (var filter in filterDefs) {
-                if ( filterDefs.hasOwnProperty(filter) ) {
-                    var f = filterDefs[filter].usage;
+            for (var filter in _.filterDefs) {
+                if ( _.filterDefs.hasOwnProperty(filter) ) {
+                    var f = _.filterDefs[filter].usage;
                     var c = core.filters.usage;
                     var hasBit = util.hasBit;
                     if ( hasBit(f, c.GENERAL) ) sets.general.push(filter);
@@ -161,7 +164,7 @@ wctank.core = (function(core) {
                     if ( hasBit(f, c.TAKEOVER_DOWN) ) sets.takeover_down.push(filter);
                     if ( hasBit(f, c.TAKEOVER_UP) ) sets.takeover_up.push(filter);
                     if ( hasBit(f, c.START) ) sets.start.push(filter);
-                    if ( filterDefs[filter].hasOwnProperty("webgl") ) 
+                    if ( _.filterDefs[filter].hasOwnProperty("webgl") ) 
                         sets.webgl.push(filter);
                 }
             }
@@ -205,11 +208,11 @@ wctank.core = (function(core) {
             core.filters.current = filter;
             var render = core.render;
             if (new_filter) {
-                core.filterTypeOp('teardown', filterDefs[new_filter], function() {
+                core.filterTypeOp('teardown', _.filterDefs[new_filter], function() {
                     div.$map.removeClass(new_filter);
                 });
             }
-            core.filterTypeOp('init', filterDefs[filter], function() {
+            core.filterTypeOp('init', _.filterDefs[filter], function() {
                 div.$map.addClass(filter);
             });
             old_filter = new_filter;

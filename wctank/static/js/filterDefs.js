@@ -1,7 +1,12 @@
 wctank = wctank || {};
 //unique lengths for each filter ... interval/timeout multiplier
 wctank.filterDefs = (function(filterDefs) {
-    wctank.util.aliasNamespace.call(filterDefs.prototype); 
+    var _ = wctank;
+    var util = _.util;
+    var div = _.div;
+    var gMap = _.gMap;
+    var core = _.core;
+
     var _filterDefsReady = new Event('filterDefsReady');
     filterDefs.addReadyListener = function(fn) { 
         document.addEventListener('filterDefsReady', function() {
@@ -47,9 +52,6 @@ wctank.filterDefs = (function(filterDefs) {
                 var mat = sty.getPropertyValue("-webkit-transform") || 
                             sty.getPropertyValue("transform") || "matrix(1, 0, 0, 1, 0, 0)";
                 var values = mat.split('(')[1];
-                console.log(sty);
-                console.log(mat);
-                console.log(values);
                 values = values.split(')')[0];
                 values = values.split(',');
                 var a = Number(values[0]);
@@ -99,7 +101,7 @@ wctank.filterDefs = (function(filterDefs) {
                 window.addEventListener('resize', $mapOnResize);
                 set$mapCss(false);
                 gMap.zoomControlsVisible(false);
-                markers.setVisibility(false);
+                _.markers.setVisibility(false);
                 document.body.appendChild(troller_back);
                 troller_back.play();
                 transform("rotate(360deg)");
@@ -122,7 +124,7 @@ wctank.filterDefs = (function(filterDefs) {
                     window.removeEventListener('resize', $mapOnResize);
                     set$mapCss(true);
                     gMap.zoomControlsVisible(true);
-                    markers.setVisibility(true);
+                    _.markers.setVisibility(true);
                     troller_back.pause();
                     troller_back.currentTime = 0;
                     transform(ident);
@@ -217,8 +219,8 @@ wctank.filterDefs = (function(filterDefs) {
             
             var engaged = false;
             var times_engaged = 0;
-            ko_num = 2;
-            blink_num = 3;
+            var ko_num = 2;
+            var blink_num = 3;
             var should_ko = function() {
                 if (times_engaged > ko_num) return true;
                 return false;

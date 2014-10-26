@@ -2,22 +2,6 @@ var wctank = (function(wctank) {
 
     wctank.util = {
         /*
-         * .call on module prototypes
-         */
-        aliasNamespace: function() {
-            this.util = wctank.util;
-            this.div = wctank.div;
-            this.posts = wctank.posts;
-            this.gMap = wctank.gMap;
-            this.core = wctank.core;
-            this.filterDefs = wctank.filterDefs;
-            this.markers = wctank.markers;
-            this.specialDefs = wctank.specialDefs;
-            this.sequencer = wctank.sequencer;
-            this.tableux = wctank.tableux;
-        },
-        
-        /*
          * .call on obj to define a static read-only length prop
          */
         objectLength: function() {
@@ -42,7 +26,7 @@ var wctank = (function(wctank) {
             }
         },
         /*
-         * given a number n, return a new number randomly 
+         * given a number n, return a new random number 
          * within a range n * +/-percentage f
          */
         smudgeNumber: function(n, f) {

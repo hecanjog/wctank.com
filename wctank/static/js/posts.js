@@ -1,14 +1,12 @@
 wctank = wctank || {};
 
 wctank.posts = (function(posts) {
-    wctank.util.aliasNamespace.call(posts.prototype);
+    var _ = wctank;
     posts.displayedPostType = null;
-
     var renderTemplate = function(post, $template) {
         var content = '';
         if(typeof post.title !== 'undefined') {
             if(post.type === "link") {
-                content += "<div class='post-title'>"+
                     "<a target='_blank' href='"+post.url+"'>"+post.title+"</a></div>";
             } else {
                 content += "<div class='post-title'>"+post.title+"</div>";
@@ -96,32 +94,32 @@ wctank.posts = (function(posts) {
         // cache overlay width before removing content if the overlay is visible,
         // otherwise set it to the current min width
         var width;
-        if ( div.$overlay.is(':hidden') ) {
-            div.$overlay.fadeIn('fast');
+        if ( _.div.$overlay.is(':hidden') ) {
+            _.div.$overlay.fadeIn('fast');
             // c.f. '@small' in styles
             var mm = window.matchMedia("screen and (max-width: 31em)"); 
             // 'auto' fills screen when @small
-            width = mm.matches ? 'auto' : div.$overlay.css('min-width');
+            width = mm.matches ? 'auto' : _.div.$overlay.css('min-width');
         } else {
-            width = div.$overlay.css("width");
+            width = _.div.$overlay.css("width");
         } 
-        div.$overlay.find("*").fadeOut(trivial).remove();
+        _.div.$overlay.find("*").fadeOut(trivial).remove();
         
         var $post = renderTemplate(post, $('#post-template'));
-        div.$overlay.html($post).removeClass().addClass(post.type);
+        _.div.$overlay.html($post).removeClass().addClass(post.type);
 
-        var $contents = div.$overlay.find("*");
+        var $contents = _.div.$overlay.find("*");
         var waiting = true;
         var $loading;
         if (!post.isTextPost) {
-            div.$overlay.css("width", width);
+            _.div.$overlay.css("width", width);
             $contents.hide();
             window.setTimeout(function() {
-                if (waiting) $loading = div.$overlay.append(loading).find("#loading");
+                if (waiting) $loading = _.div.$overlay.append(loading).find("#loading");
             }, 300);
             $contents.load(function() {
                 if ($loading) $loading.fadeOut(trivial).remove(); 
-                div.$overlay.css("width", "auto");
+                _.div.$overlay.css("width", "auto");
                 $contents.fadeIn(trivial);
                 waiting = false;
             });
@@ -143,11 +141,11 @@ wctank.posts = (function(posts) {
     
     // Close overlay on mousedown over map, i.e., to move it.
     // TODO: Consider handling zoom events also.    
-    div.$map.mousedown(function() {
+    _.div.$map.mousedown(function() {
         window.setTimeout(function() {
-            if ( div.$overlay.is(':visible') && (div.$overlay.css('opacity') === '1') 
+            if ( _.div.$overlay.is(':visible') && (_.div.$overlay.css('opacity') === '1') 
                 && (marker_clicked === false) ) {
-                div.$overlay.fadeOut('fast'); 
+                _.div.$overlay.fadeOut('fast'); 
             }
         }, 150);
     });
