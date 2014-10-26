@@ -24,8 +24,13 @@ wctank.core = (function(core) {
                 stk[i]();
             }
         };
-        render.has = function() {
-            return (stk.length > 0) ? true : false;
+        render.has = function(fn) {
+            if (typeof fn === 'function') {
+                var idx = stk.indexOf(fn);
+                return (idx !== -1) ? idx : false;
+            } else {
+                return (stk.length > 0) ? true : false;
+            }
         }
         render.stop = function() {
             render.rendering = false;
