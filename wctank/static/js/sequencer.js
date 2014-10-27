@@ -42,14 +42,13 @@ wctank.sequencer = (function(sequencer) {
                 google.maps.event.addListener(overlay, 'click', function() {
                     gMap.map.setZoom(9);
                 });
-                
                 tableux.pick(core.filters.current);
                 gMap.events.initHeapEvents(gMap.events.MAP);
                 // sonify loading process
             };
             google.maps.event.addDomListener(window, 'load', startMap);
             filterDefs.addReadyListener(core.filters.start);
-            //audio.start(); // main audio start
+                //audio.start(); // main audio start
         },
     };
     util.objectLength.call(stages);

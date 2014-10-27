@@ -1,5 +1,11 @@
 wctank = wctank || {};
 
+// TODO: convolve bps with violins perhaps four convolvenodes panned archlike
+// combine sines with noise driver
+// try feedback!@
+// add clipping distortion to bps
+// sampler
+// etc.
 wctank.audio = (function(audio) {
     var util = wctank.util;
     var core = wctank.core;
@@ -24,7 +30,7 @@ wctank.audio = (function(audio) {
         }
         
         // TWEEN management
-        var animateTweens = function() {
+        var startTweens = function() {
             if ( !core.render.has(TWEEN.update) ) core.render.push(TWEEN.update);
             if (!core.render.rendering) core.render.go();  
         };
@@ -198,35 +204,65 @@ wctank.audio = (function(audio) {
                     freqIn.chain(freqOut);
                     accenting = true;
                     freqIn.start();
-                    animateTweens();
+                    startTweens();
                 }
+            };
+            var prior_amp = 0;
+            // if bool, override, else flip states
+            this.fadeInOut = function(time, bool) {
+                var amp = gain.gain.value;
+                var on  = (gain.gain.value > 0) ? true : false;
+                if (on) prior_amp = amp;
+                var gain_params = {amp: amp}; 
+                var updateGain = function() {
+                    gain.gain.value = gain_params.amp;
+                };
+                var target = (function() {
+                    if (typeof bool === "boolean") {
+                        return bool ? prior_amp : 0;
+                    } else {
+                        return on ? 0 : prior_amp; 
+                    }
+                }())
+                var env = new TWEEN.Tween(gain_params)
+                        .to({amp: target}, util.smudgeNumber(time, 50))
+                        .onUpdate(updateGain)
+                        .onComplete(function() {
+                            stopTweens();
+                        });
+                env.start();
+                startTweens(); 
             };
         };
         A.BandPass.prototype = new AudioModule();      
 
         return A;
-    }({})) 
-    
-    var noise = A.Noise();
-    console.log(noise);
-    var vlow = A.BandPass(500, 80);
-    var bp = A.BandPass(262, 80); 
-    console.log(bp);
-    var low = A.BandPass(327.5, 80);
-    var hi = A.BandPass(393.0, 80);
-    noise.link(vlow);
-    noise.link(bp);
-    noise.link(low);
-    noise.link(hi);
+    }({}))
+    var noise = A.Noise(); 
+    var bank = [
+        A.BandPass(500, 80),
+        A.BandPass(262, 80),
+        A.BandPass(327.5, 80),
+        A.BandPass(393.0, 80)
+    ]; 
+    for (var i = 0; i < bank.length; i++) {
+        noise.link(bank[i]);
+    }
     noise.start();
-    bp.link(A.out);
-    low.link(A.out);
-    hi.link(A.out);
-    vlow.link(A.out);
+    for (var i = 0; i < bank.length; i++) {
+        bank[i].link(A.out);
+    }
     var vibEve = function() {
-        bp.accent();
-        low.accent();
+        for (var i = 0; i < bank.length; i++) {
+            bank[i].accent();
+        }
     };
+    var turnOff = function() {
+        for (var i = 0; i < bank.length; i++) {
+            bank[i].fadeInOut(1000);
+        }
+    };
+    wctank.gMap.events.push(wctank.gMap.events.MAP, 'zoom_changed', turnOff); 
     wctank.gMap.events.push(wctank.gMap.events.MAP, 'drag', vibEve);
     audio.start = function() {
         noise.start();

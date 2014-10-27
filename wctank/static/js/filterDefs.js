@@ -7,7 +7,7 @@ wctank.filterDefs = (function(filterDefs) {
     var gMap = _.gMap;
     var core = _.core;
 
-    var _filterDefsReady = new Event('filterDefsReady');
+    var filterDefsReady = new Event('filterDefsReady');
     filterDefs.addReadyListener = function(fn) { 
         document.addEventListener('filterDefsReady', function() {
             fn();
@@ -438,7 +438,7 @@ wctank.filterDefs = (function(filterDefs) {
         }({}))
         util.appendNameProps(filterDefs);
         core.filters.parse();
-        document.dispatchEvent(_filterDefsReady);
+        document.dispatchEvent(filterDefsReady);
         
         (function() {
             var dppx1dot2 = window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
