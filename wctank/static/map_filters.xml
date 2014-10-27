@@ -46,7 +46,11 @@
 
 <filter id="fauvist">
     <feColorMatrix id="fauvist-saturate" in="SourceGraphic" type="saturate" values="30"></feColorMatrix>
-    <feGaussianBlur id="fauvist-blur" stdDeviation="1"></feGaussianBlur> 
+    <feGaussianBlur id="fauvist-blur" stdDeviation="1">
+        <animate id="fauvist-blur-animate" attributeName="stdDeviation" 
+            values="1;1.55;1" calcMode="linear" dur="1500ms" repeatCount="indefinite">
+        </animate>
+    </feGaussianBlur> 
 </filter>
 
 <filter id="vhs" filterRes="1">
