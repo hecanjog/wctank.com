@@ -225,14 +225,11 @@ wctank.core = (function(core) {
             if ( sets.takeover_down.indexOf(filter) !== -1 ) old_filter = filter;   
         };
         var applyRndFilter = function(arr) {
-            var rndIdxInArr = function(arr) {
-                return (Math.random() * arr.length - 0.5) | 0;
-            }
-            var nf = arr[ rndIdxInArr(arr) ];
-            (function check_dup() {
+            var nf = util.getRndItem(arr);
+            (function checkDup() {
                 if (nf === new_filter) {
-                    nf = arr[ rndIdxInArr(arr) ];
-                    check_dup();
+                    nf = util.getRndItem(arr);
+                    checkDup();
                 }
             }())
             core.filters.apply(nf);
@@ -259,7 +256,7 @@ wctank.core = (function(core) {
          */
         //TODO: consider enforcing maximum pause - 4 min or something
         var mainTime = (function(mainTime) {
-            var interval_base = 30000;
+            var interval_base = 5000;
             var interval;
             var start;
             var cease = 0;

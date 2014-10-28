@@ -33,6 +33,11 @@ var wctank = (function(wctank) {
             var s = n * f * 0.01;
             if (Math.random() < 0.5) s*=-1;
             return Math.random() * s + n;  
+        },
+
+        getRndItem: function(arr) {
+            var idx = (Math.random() * arr.length) | 0;
+            return arr[idx];
         }
     };
      

@@ -17,11 +17,11 @@ wctank.filterDefs = (function(filterDefs) {
 
     function Filter() {
         this.usage = 0x00000000;
-        this.preInit = function() {};
-        this.init = function() {};
-        this.animate = function() {};
-        this.preTeardown = function() {};
-        this.teardown = function() {};
+        this.preInit = null; //function() {};
+        this.init = null; //function() {};
+        this.animate = null; //function() {};
+        this.preTeardown = null; //function() {};
+        this.teardown = null //function() {};
     }
     
     // having the names of the filters before they are loaded is handy, so 
@@ -144,6 +144,7 @@ wctank.filterDefs = (function(filterDefs) {
             };
             return troller;
         }({}))
+        
 
         filterDefs.print_analog = {
             usage: core.filters.usage.GENERAL | 
@@ -359,7 +360,9 @@ wctank.filterDefs = (function(filterDefs) {
         }({}))
                     
         filterDefs.fauvist = {
-            usage: core.filters.usage.ZOOMED | core.filters.usage.START
+            usage: core.filters.usage.ZOOMED | 
+                   core.filters.usage.START |
+                   core.filters.usage.GENERAL
         };
             
         filterDefs.vhs = (function(vhs) {

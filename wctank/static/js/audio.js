@@ -32,15 +32,34 @@ wctank.audio = (function(audio) {
             }
         }
         
-        // TWEEN rendering management utils
-        var startTweens = function() {
-            if ( !core.render.has(TWEEN.update) ) core.render.push(TWEEN.update);
-            if (!core.render.rendering) core.render.go();  
-        };
-        var stopTweens = function() {
-            if ( (TWEEN.getAll().length === 0) ) core.render.rm(TWEEN.update);
-            if ( !core.render.has() ) core.render.stop();
-        };
+        // tween utils
+        var twUtl = (function(twUtl) {
+            twUtl.startTweens = function() {
+                if ( !core.render.has(TWEEN.update) ) core.render.push(TWEEN.update);
+                if (!core.render.rendering) core.render.go();  
+            };
+            twUtl.stopTweens = function() {
+                if ( (TWEEN.getAll().length === 0) ) core.render.rm(TWEEN.update);
+                if ( !core.render.has() ) core.render.stop();
+            };
+            var getRand
+            var easing_list = Object.keys(TWEEN.Easing); 
+            twUtl.getRandomEasingFn = function() {
+                var type = TWEEN.Easing[ util.getRndItem(easing_list) ];
+                var keys = Object.keys(type);
+                return type[ util.getRndItem(keys) ];
+            };
+            var interpolation_list = (function() {
+                var list = Object.keys(TWEEN.Interpolation);
+                var idx = list.indexOf('Utils');
+                list.splice(idx, 1);
+                return list;
+            }()) 
+            twUtl.getRandomInterpolationFn = function() {
+                return TWEEN.Interpolation[ util.getRndItem(interpolation_list) ]; 
+            };
+            return twUtl;
+        }({})) 
         
         /*
          * AudioModule provides facilities to wrap multiple AudioNodes into single units
@@ -189,6 +208,7 @@ wctank.audio = (function(audio) {
                     
                     var freqIn = new TWEEN.Tween(params)
                                 .to({frequency: genFreq(true)}, accent_time )
+                                .easing(TWEEN.Easing.Bounce.InOut)
                                 .repeat(util.smudgeNumber(8, 50) | 0)
                                 .yoyo(true)
                                 .onStart(function() {
@@ -196,50 +216,81 @@ wctank.audio = (function(audio) {
                                     gainIn.start();
                                 })
                                 .onUpdate(updateFrequency);
-                    freqIn.easing(TWEEN.Easing.Bounce.InOut);
                     var freqOut = new TWEEN.Tween(params)
                                 .to({frequency: genFreq(false)}, recovery_time )
+                                .easing(TWEEN.Easing.Bounce.InOut)
                                 .onUpdate(updateFrequency)
                                 .onStart(function() {
                                     QOut.start();
                                 })
                                 .onComplete(function() {
                                     accenting = false;
-                                    stopTweens();
-                                }); 
-                    freqOut.easing(TWEEN.Easing.Bounce.InOut);
+                                    twUtl.stopTweens();
+                                });
                     freqIn.chain(freqOut);
                     
                     accenting = true;
                     freqIn.start();
-                    startTweens();
+                    twUtl.startTweens();
+                }
+            };
+
+            var envelope;
+            var target_amp; 
+            var prior_amp = 0;
+            var fading = false;
+            this.fadeInOut = function(time) {
+                if (!fading) {
+                    var on  = (gain.gain.value > 0) ? true : false;
+                    if (on) prior_amp = gain.gain.value;
+                    target_amp = on ? 0 : prior_amp;
+                    envelope = new TWEEN.Tween(params)
+                        .to({amplitude: target_amp}, time)
+                        .onUpdate(updateGain)
+                        .onStart(function() {
+                            fading = true;
+                        })
+                        .onComplete(function() {
+                            fading = false;
+                            twUtl.stopTweens();
+                        })
+                        .start();
+                        twUtl.startTweens();
+                } else {
+                    envelope.stop();
+                    if (target_amp < gain.gain.value) {
+                        target_amp = prior_amp;
+                        envelope.to({amplitude: prior_amp}, time).start();
+                    } else { 
+                        target_amp = 0;
+                        envelope.to({amplitude: 0}, time).start();
+                    }
                 }
             };
             
-            // if bool, override, else flip states
-            var prior_amp = 0;
-            this.fadeInOut = function(time, bool) {
-                var amp = gain.gain.value;
-                var on  = (gain.gain.value > 0) ? true : false;
-                if (on) prior_amp = gain.gain.value;
-                var target = (function() {
-                    if (typeof bool === "boolean") {
-                        return bool ? prior_amp : 0;
-                    } else {
-                        return on ? 0 : prior_amp; 
-                    }
-                }())
-                var env = new TWEEN.Tween(params)
-                        .to({amplitude: target}, util.smudgeNumber(time, 50))
-                        .onUpdate(updateGain)
+            var gliss;
+            var glissing = false;
+            this.glissTo = function(freq, time) {
+                if (!glissing) {
+                    gliss = new TWEEN.Tween(params)
+                        .to({frequency: freq}, time)
+                        .easing( twUtl.getRandomEasingFn() )
+                        .interpolation( twUtl.getRandomInterpolationFn() )
+                        .onUpdate(updateFrequency)
                         .onComplete(function() {
-                            stopTweens();
-                        });
-                env.start();
-                startTweens(); 
+                            glissing = false;
+                            twUtl.stopTweens();
+                        })
+                        .start();
+                        twUtl.startTweens();
+                } else {
+                    envelope.stop();
+                    envelope.to({frequency: freq}, time)
+                    .easing( twUtl.getRandomEasingFn() )
+                    .interpolation( twUtl.getRandomInterpolationFn() )
+                    .start();
+                }            
             };
-            
-
         };
         A.BandPass.prototype = new A.AudioModule();      
 
@@ -270,7 +321,15 @@ wctank.audio = (function(audio) {
     };
     var turnOff = function() {
         for (var i = 0; i < bank.length; i++) {
-            bank[i].fadeInOut(1000);
+            bank[i].fadeInOut(2000);//util.smudgeNumber(10000, 50));
+        }
+    };
+    var whatever = 0;
+    wctank.glissDbg = function(freq, time) {
+        whatever = freq * 0.75;
+        for (var i = 0; i < bank.length; i++) {
+            bank[i].glissTo(whatever, time);
+            whatever *= 1.10;
         }
     };
     wctank.gMap.events.push(wctank.gMap.events.MAP, 'zoom_changed', turnOff); 
