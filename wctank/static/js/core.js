@@ -256,7 +256,7 @@ wctank.core = (function(core) {
          */
         //TODO: consider enforcing maximum pause - 4 min or something
         var mainTime = (function(mainTime) {
-            var interval_base = 5000;
+            var interval_base = 30000;
             var interval;
             var start;
             var cease = 0;

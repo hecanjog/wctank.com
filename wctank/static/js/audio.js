@@ -62,8 +62,8 @@ wctank.audio = (function(audio) {
         }({})) 
         
         /*
-         * AudioModule provides facilities to wrap multiple AudioNodes into single units
-         * and when used as a mixin on an AudioNode, for AudioNodes to connect to AudioModules
+         * AudioModule provides facilities to wrap multiple AudioNodes into single units,
+         * and, when used as a mixin on an AudioNode, for AudioNodes to connect to AudioModules
          */ 
         A.AudioModule = function AudioModule() {
             
@@ -162,25 +162,38 @@ wctank.audio = (function(audio) {
 
             // behaviors 
             var accenting = false;
-            this.accent = function() {
-                if (!accenting) {        
+            var gen = (function(gen) {
+                    var _$ = {
+                        Q: 0,
+                        amplitude: 0
+                    };
+                    var ret = function(p, pos, diff_base, smdg_pcnt) {
+                        if (pos) {
+                            _$[p] = params[p];
+                            return params[p] + util.smudgeNumber(diff_base, smdg_pcnt);
+                        } else {
+                            return _$[p];
+                        }
+                    };
                     var freqTarget = function(prop, base, range) {
                         var diff = (Math.random() < 0.5) ? base * -1 : base;
                         return prop + util.smudgeNumber(diff, range);
                     };
-                    var genFreq = function(peak) {
+                    gen.Q = function(pos) {
+                        var rq = ret('Q', pos, 70, 20);
+                        return rq;
+                    };
+                    gen.amp = function(pos) {
+                        return ret('amplitude', pos, 1, 50);
+                    };
+                    gen.freq = function(pos) {
                         var freq = params.frequency;
-                        return peak ? freqTarget(freq, 8, 10) : freqTarget(freq, 1, 10);
+                        return pos ? freqTarget(freq, 8, 10) : freqTarget(freq, 1, 10);
                     };
-                    var genQ = function(peak) {
-                        var Q = params.Q;
-                        return peak ? Q + util.smudgeNumber(70, 20) : Q;
-                    };
-                    var genGain = function(peak) {
-                        var amp = params.amplitude;
-                        return peak ? amp + util.smudgeNumber(1, 50) : amp;
-                    };
-                    
+                    return gen;
+                }({}))
+            this.accent = function() {
+                if (!accenting) {        
                     var accent_time = util.smudgeNumber(100, 10);
                     var repeats = util.smudgeNumber(8, 50) | 0;
                     var recovery_time = util.smudgeNumber(500, 20);
@@ -190,34 +203,37 @@ wctank.audio = (function(audio) {
                     var gain_in_portion = util.smudgeNumber(0.3, 20);
                     var gain_in_time = total * gain_in_portion;
                     var gain_out_time = total * (1 - gain_in_portion); 
-                    
+                   
+                    // I tried this with persistent TWEENs, and with single tweens 
+                    // for each parameter, and it didn't seem to work as well...
                     var QIn = new TWEEN.Tween(params)
-                                .to({Q: genQ(true)}, Q_trans_time)
+                                .to({Q: gen.Q(true)}, Q_trans_time)
                                 .onUpdate(updateQ);
                     var QOut = new TWEEN.Tween(params)
-                                .to({Q: genQ(false)}, Q_trans_time)
+                                .to({Q: gen.Q(false)}, Q_trans_time)
                                 .onUpdate(updateQ); 
                     
                     var gainIn = new TWEEN.Tween(params)
-                                .to({amplitude: genGain(true)}, gain_in_time)
+                                .to({amplitude: gen.amp(true)}, gain_in_time)
                                 .onUpdate(updateGain);
                     var gainOut = new TWEEN.Tween(params)
-                                .to({amplitude: genGain(false)}, gain_out_time)
+                                .to({amplitude: gen.amp(false)}, gain_out_time)
                                 .onUpdate(updateGain);
                     gainIn.chain(gainOut);
                     
                     var freqIn = new TWEEN.Tween(params)
-                                .to({frequency: genFreq(true)}, accent_time )
+                                .to({frequency: gen.freq(true)}, accent_time )
                                 .easing(TWEEN.Easing.Bounce.InOut)
                                 .repeat(util.smudgeNumber(8, 50) | 0)
                                 .yoyo(true)
                                 .onStart(function() {
+                                    accenting = true;
                                     QIn.start();
                                     gainIn.start();
                                 })
                                 .onUpdate(updateFrequency);
                     var freqOut = new TWEEN.Tween(params)
-                                .to({frequency: genFreq(false)}, recovery_time )
+                                .to({frequency: gen.freq(false)}, recovery_time )
                                 .easing(TWEEN.Easing.Bounce.InOut)
                                 .onUpdate(updateFrequency)
                                 .onStart(function() {
@@ -229,7 +245,6 @@ wctank.audio = (function(audio) {
                                 });
                     freqIn.chain(freqOut);
                     
-                    accenting = true;
                     freqIn.start();
                     twUtl.startTweens();
                 }
@@ -268,27 +283,30 @@ wctank.audio = (function(audio) {
                 }
             };
             
-            var gliss;
+            var gliss = new TWEEN.Tween(params);
             var glissing = false;
-            this.glissTo = function(freq, time) {
-                if (!glissing) {
-                    gliss = new TWEEN.Tween(params)
-                        .to({frequency: freq}, time)
+            this.setFrequency = function(freq, time) {
+                if (time > 0) {
+                    if (!glissing) {
+                        gliss.to({frequency: freq}, time)
+                            .easing( twUtl.getRandomEasingFn() )
+                            .interpolation( twUtl.getRandomInterpolationFn() )
+                            .onUpdate(updateFrequency)
+                            .onComplete(function() {
+                                glissing = false;
+                                twUtl.stopTweens();
+                            })
+                            .start();
+                            twUtl.startTweens();
+                    } else {
+                        envelope.stop();
+                        envelope.to({frequency: freq}, time)
                         .easing( twUtl.getRandomEasingFn() )
                         .interpolation( twUtl.getRandomInterpolationFn() )
-                        .onUpdate(updateFrequency)
-                        .onComplete(function() {
-                            glissing = false;
-                            twUtl.stopTweens();
-                        })
                         .start();
-                        twUtl.startTweens();
+                    }
                 } else {
-                    envelope.stop();
-                    envelope.to({frequency: freq}, time)
-                    .easing( twUtl.getRandomEasingFn() )
-                    .interpolation( twUtl.getRandomInterpolationFn() )
-                    .start();
+                    biquad.frequency.value = freq;    
                 }            
             };
         };
@@ -328,7 +346,7 @@ wctank.audio = (function(audio) {
     wctank.glissDbg = function(freq, time) {
         whatever = freq * 0.75;
         for (var i = 0; i < bank.length; i++) {
-            bank[i].glissTo(whatever, time);
+            bank[i].setFrequency(whatever, time);
             whatever *= 1.10;
         }
     };
@@ -337,7 +355,6 @@ wctank.audio = (function(audio) {
     audio.start = function() {
         noise.start();
     };
-
     
     return audio;
 }({}))
