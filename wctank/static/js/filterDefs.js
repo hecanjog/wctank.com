@@ -14,6 +14,15 @@ wctank.filterDefs = (function(filterDefs) {
             document.removeEventListener('filterDefsReady', fn);
         }); 
     };
+
+    function Filter() {
+        this.usage = 0x00000000;
+        this.preInit = function() {};
+        this.init = function() {};
+        this.animate = function() {};
+        this.preTeardown = function() {};
+        this.teardown = function() {};
+    }
     
     // having the names of the filters before they are loaded is handy, so 
     // update this list when adding a filter 

@@ -6,12 +6,15 @@ wctank = wctank || {};
 // add clipping distortion to bps
 // sampler
 // etc.
+// certain elements will be foreground, and not executed when posts are open
+// some elements mirror visual filter changes
+// a layer tied to zoom level 
+
 wctank.audio = (function(audio) {
     var util = wctank.util;
     var core = wctank.core;
-    // certain elements will be foreground, and not executed when posts are open
-    // some elements mirror visual filter changes
-    // a layer tied to zoom level 
+    
+    // A contains primitive elements
     var A = (function(A) {
         var actx = new (window.AudioContext || window.webkitAudioContext)();  
    
@@ -29,7 +32,7 @@ wctank.audio = (function(audio) {
             }
         }
         
-        // TWEEN management
+        // TWEEN rendering management utils
         var startTweens = function() {
             if ( !core.render.has(TWEEN.update) ) core.render.push(TWEEN.update);
             if (!core.render.rendering) core.render.go();  
@@ -40,62 +43,60 @@ wctank.audio = (function(audio) {
         };
         
         /*
-         * Usually, audio modules will contain more than one AudioNode.
-         * The AudioModule object provides facilities for aliasing outside connections
-         * to the appropriate AudioNode through _link_alias_in and _out properties, 
-         * as well as a .link function that sniffs both modules involved to 
-         * make the correct connection.
-         *
-         * AudioModules that only wrap one AudioNode can mixin AudioModule,
-         * otherwise full prototype inheritance would be more appropriate.
+         * AudioModule provides facilities to wrap multiple AudioNodes into single units
+         * and when used as a mixin on an AudioNode, for AudioNodes to connect to AudioModules
          */ 
-        function AudioModule() {
+        A.AudioModule = function AudioModule() {
+            
+            // if an AudioModule needs to be turned on...
+            this.start = null;
+            
             this._link_alias_in = null;
             this._link_alias_out = null;
-            this.start = null;
 
             // this is gross, but needs to be this verbose b/c of Web Audio API internals...
-            this.link = function(out) {
-                if (this._link_alias_out) {
-                    if (out._link_alias_in) {
-                        this._link_alias_out.connect(out._link_alias_in);
+            this.link = function(out) {        
+                    if (this._link_alias_out) {
+                        if (out._link_alias_in) {
+                            this._link_alias_out.connect(out._link_alias_in);
+                        } else {
+                            this._link_alias_out.connect(out);
+                        }
                     } else {
-                        this._link_alias_out.connect(out);
+                        // for the cases where an AudioModule has one AudioNode
+                        // and we have chosen to mixin AudioModule instead of inheriting 
+                        if (out._link_alias_in) {
+                            this.connect(out._link_alias_in);
+                        } else {
+                            this.connect(out);
+                        }
                     }
-                } else {
-                    if (out._link_alias_in) {
-                        this.connect(out._link_alias_in);
-                    } else {
-                        this.connect(out);
-                    }
-                }
             };
         };
          
         A.Noise = function() {
-            if (this.constructor !== AudioModule) return new A.Noise();
-
-            var source = actx.createBufferSource();
-            source.buffer = noise_buf;
-            source.loop = true;
-            this.bufferSource = source;
+            if (this.constructor !== A.AudioModule) return new A.Noise();
+            this.source = actx.createBufferSource();
+            this.source.buffer = noise_buf;
+            this.source.loop = true;
             this.start = function() {
-                source.start();
+                this.source.start();
             }; 
             this._link_alias_in = this._link_alias_in = 
-                this._link_alias_out = this._link_alias_out = source;
+                this._link_alias_out = this._link_alias_out = this.source;
         };
-        A.Noise.prototype = new AudioModule();
+        A.Noise.prototype = new A.AudioModule();
 
         
         A.Osc = function(freq) {
-            if (this.constructor !== AudioModule) return new A.Osc(freq);
+            if (this.constructor !== A.AudioModule) return new A.Osc(freq);
 
         };
-        A.Osc.prototype = new AudioModule();
-
+        A.Osc.prototype = new A.AudioModule();
+        
+        // TODO: module to deal with output amplitude
         A.Gain = function(gain) {
-            if (this.constructor !== AudioModule) return new A.Gain(gain);
+            if (this.constructor !== A.AudioModule) return new A.Gain(gain);
             
             var node = actx.createGain();
             node.gain.value = gain;
@@ -103,11 +104,11 @@ wctank.audio = (function(audio) {
                 node.gain.value = gain;
             };
         };
-        A.Gain.prototype = new AudioModule();
+        A.Gain.prototype = new A.AudioModule();
 
         A.BandPass = function(freq, Q) {
             // construct sans new
-            if (this.constructor !== AudioModule) return new A.BandPass(freq, Q);
+            if (this.constructor !== A.AudioModule) return new A.BandPass(freq, Q);
             
             // bp filter
             this.biquad = actx.createBiquadFilter();
@@ -237,20 +238,24 @@ wctank.audio = (function(audio) {
                 env.start();
                 startTweens(); 
             };
+            
+
         };
-        A.BandPass.prototype = new AudioModule();      
+        A.BandPass.prototype = new A.AudioModule();      
 
         return A;
     }({}))
 
 
     var noise = A.Noise(); 
+    console.log(noise);
     var bank = [
         A.BandPass(262, 80),
         A.BandPass(327.5, 80),
         A.BandPass(393, 80),
         A.BandPass(500, 80),
-    ]; 
+    ];
+   console.log(bank[2]); 
     for (var i = 0; i < bank.length; i++) {
         noise.link(bank[i]);
     }
