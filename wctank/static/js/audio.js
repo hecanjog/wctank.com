@@ -9,6 +9,7 @@ wctank = wctank || {};
 // certain elements will be foreground, and not executed when posts are open
 // some elements mirror visual filter changes
 // a layer tied to zoom level 
+// rm virgo logo?
 
 wctank.audio = (function(audio) {
     var util = wctank.util;
@@ -60,16 +61,65 @@ wctank.audio = (function(audio) {
             };
             return twUtl;
         }({})) 
-        
+
         /*
          * AudioModule provides facilities to wrap multiple AudioNodes into single units,
          * and, when used as a mixin on an AudioNode, for AudioNodes to connect to AudioModules
          */ 
         A.AudioModule = function AudioModule() {
             
-            // if an AudioModule needs to be turned on...
-            this.start = null;
+            //creates .start and .stop functions, if needed 
+            this._startStopThese = function() {
+                var nodes = arguments;
+                this.start = function() {
+                    for (var i = 0; i < nodes.length; i++) {
+                        nodes[i].start();
+                    }
+                };
+                this.stop = function() {
+                    for (var i = 0; i < nodes.length; i++) {
+                        nodes[i].stop();
+                    }
+                };
+            };
             
+            // make a glissing function/frequency setter, if needed
+            this._makeSetFrequency = function(node) {
+                if ( !(node.hasOwnProperty('frequency')) )
+                    throw 'AudioNode has no property frequency garblegarble';
+                var params = {frequency: node.frequency.value};
+                var gliss = new TWEEN.Tween(params);
+                var updateFrequency = function() {
+                    node.frequency.value = params.frequency;
+                };
+                var glissing = false;
+                this.setFrequency = function(freq, time) {
+                    if (time > 0) {
+                        if (!glissing) {
+                            glissing = true;
+                            gliss.to({frequency: freq}, time)
+                                .easing( twUtl.getRandomEasingFn() )
+                                .interpolation( twUtl.getRandomInterpolationFn() )
+                                .onUpdate(updateFrequency)
+                                .onComplete(function() {
+                                    glissing = false;
+                                    twUtl.stopTweens();
+                                })
+                                .start();
+                                twUtl.startTweens();
+                        } else {
+                            gliss.stop();
+                            gliss.to({frequency: freq}, time)
+                                .easing( twUtl.getRandomEasingFn() )
+                                .interpolation( twUtl.getRandomInterpolationFn() )
+                                .start();
+                        }
+                    } else {
+                        node.frequency.value = freq;    
+                    }            
+                };
+            };
+
             this._link_alias_in = null;
             this._link_alias_out = null;
 
@@ -93,37 +143,41 @@ wctank.audio = (function(audio) {
             };
         };
          
-        A.Noise = function() {
+        A.Noise = function(amp) {
             if (this.constructor !== A.AudioModule) return new A.Noise();
             this.source = actx.createBufferSource();
             this.source.buffer = noise_buf;
             this.source.loop = true;
-            this.start = function() {
-                this.source.start();
-            }; 
-            this._link_alias_in = this._link_alias_in = 
-                this._link_alias_out = this._link_alias_out = this.source;
+            this._startStopThese(this.source);
+            
+            this.gain = actx.createGain();
+            this.gain.gain.value = amp;
+
+            this.source.connect(this.gain);
+            this._link_alias_out = this.gain;
         };
         A.Noise.prototype = new A.AudioModule();
 
         
-        A.Osc = function(freq) {
-            if (this.constructor !== A.AudioModule) return new A.Osc(freq);
+        A.Osc = function(type, freq, amp) {
+            if (this.constructor !== A.AudioModule) return new A.Osc(type, freq, amp);
+            
+            this.osc = actx.createOscillator();
+            this.osc.frequency.value = freq;
+            this.osc.type = type;
 
+            this.gain = actx.createGain();
+            this.gain.gain.value = amp;
+
+            this.osc.connect(this.gain);
+            this._link_alias_out = this.gain;
+
+            this._startStopThese(this.osc);
+            this._makeSetFrequency(this.osc);
         };
         A.Osc.prototype = new A.AudioModule();
-        
-        // TODO: module to deal with output amplitude
-        A.Gain = function(gain) {
-            if (this.constructor !== A.AudioModule) return new A.Gain(gain);
-            
-            var node = actx.createGain();
-            node.gain.value = gain;
-            node.setGain = function(gain) {
-                node.gain.value = gain;
-            };
-        };
-        A.Gain.prototype = new A.AudioModule();
+       
+        //TODO: spatialization and output stuff
 
         A.BandPass = function(freq, Q) {
             // construct sans new
@@ -161,6 +215,8 @@ wctank.audio = (function(audio) {
             this._link_alias_out = this.gain;
 
             // behaviors 
+            this._makeSetFrequency(this.biquad);
+            
             var accenting = false;
             var gen = (function(gen) {
                     var _$ = {
@@ -204,8 +260,8 @@ wctank.audio = (function(audio) {
                     var gain_in_time = total * gain_in_portion;
                     var gain_out_time = total * (1 - gain_in_portion); 
                    
-                    // I tried this with persistent TWEENs, and with single tweens 
-                    // for each parameter, and it didn't seem to work as well...
+                    // I tried this with persistent TWEENs and it didn't seem to work as well...
+                    // TODO: figure out what that's about and try again, because this is bullshit
                     var QIn = new TWEEN.Tween(params)
                                 .to({Q: gen.Q(true)}, Q_trans_time)
                                 .onUpdate(updateQ);
@@ -282,35 +338,9 @@ wctank.audio = (function(audio) {
                     }
                 }
             };
-            
-            var gliss = new TWEEN.Tween(params);
-            var glissing = false;
-            this.setFrequency = function(freq, time) {
-                if (time > 0) {
-                    if (!glissing) {
-                        gliss.to({frequency: freq}, time)
-                            .easing( twUtl.getRandomEasingFn() )
-                            .interpolation( twUtl.getRandomInterpolationFn() )
-                            .onUpdate(updateFrequency)
-                            .onComplete(function() {
-                                glissing = false;
-                                twUtl.stopTweens();
-                            })
-                            .start();
-                            twUtl.startTweens();
-                    } else {
-                        envelope.stop();
-                        envelope.to({frequency: freq}, time)
-                        .easing( twUtl.getRandomEasingFn() )
-                        .interpolation( twUtl.getRandomInterpolationFn() )
-                        .start();
-                    }
-                } else {
-                    biquad.frequency.value = freq;    
-                }            
-            };
         };
         A.BandPass.prototype = new A.AudioModule();      
+
 
         return A;
     }({}))
@@ -324,9 +354,12 @@ wctank.audio = (function(audio) {
         A.BandPass(393, 80),
         A.BandPass(500, 80),
     ];
+    var censor_out_that_thanks = A.Osc('triangle', 440, 0.6);
+    censor_out_that_thanks.start();
    console.log(bank[2]); 
     for (var i = 0; i < bank.length; i++) {
         noise.link(bank[i]);
+        censor_out_that_thanks.link(bank[i]);
     }
     noise.start();
     for (var i = 0; i < bank.length; i++) {
@@ -349,11 +382,15 @@ wctank.audio = (function(audio) {
             bank[i].setFrequency(whatever, time);
             whatever *= 1.10;
         }
+        censor_out_that_thanks.setFrequency(freq, time);
     };
-    wctank.gMap.events.push(wctank.gMap.events.MAP, 'zoom_changed', turnOff); 
+    wctank.gMap.events.push(wctank.gMap.events.MAP, 'zoom_changed', function() {
+        google.maps.event.addListener(wctank.gMap.map, 'zoom_changed', turnOff);
+    }, true); 
     wctank.gMap.events.push(wctank.gMap.events.MAP, 'drag', vibEve);
     audio.start = function() {
         noise.start();
+        censor_out_that_thanks.start();
     };
     
     return audio;
