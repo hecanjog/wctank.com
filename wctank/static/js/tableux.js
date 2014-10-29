@@ -7,14 +7,23 @@ wctank.tableux = (function(tableux) {
     var util = _.util;
     var gMap = _.gMap;
     var filterDefs = _.filterDefs;
+    var mapFilters = _.mapFilters;
 
     tableux.flags = {};
+    var filter_names = (function() {
+        var list = [];
+        for (var filter in filterDefs.filters) {
+            if ( filterDefs.filters.hasOwnProperty(filter) )
+                list.push( filter.toLowerCase() );
+        }
+        return list;
+    }())
     var dat = (function(dat) {
         dat.sets = {};
         dat.locs = [];
         var bit = 0x40000000;
-        for (var i = 0; i < filterDefs.names.length; i++) {
-            var name = filterDefs.names[i];
+        for (var i = 0; i < filter_names.length; i++) {
+            var name = filter_names[i];
             dat.sets[ name ] = [];
             tableux.flags[ name.toUpperCase() ] = bit;
             bit = bit >>> 1;    

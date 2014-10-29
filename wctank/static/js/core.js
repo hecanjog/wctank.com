@@ -123,10 +123,10 @@ wctank.core = (function(core) {
                 core.render[r_op](obj[fnName]);
             }
         };
-        if ( filterTypeObj.hasOwnProperty(ops[0]) ) callFunct(filterTypeObj, ops[0]);
-        div.$map[$op](filterTypeObj.name);
-        if ( filterTypeObj.hasOwnProperty(ops[1]) ) callFunct(filterTypeObj, ops[1]);
-        if ( filterTypeObj.hasOwnProperty(ops[2]) ) callFunct(filterTypeObj, ops[2]);
+        if ( filterTypeObj[ ops[0] ] ) callFunct(filterTypeObj, ops[0]);
+        div.$map[$op](filterTypeObj.css_class);
+        if ( filterTypeObj[ ops[1] ] ) callFunct(filterTypeObj, ops[1]);
+        if ( filterTypeObj[ ops[2] ] ) callFunct(filterTypeObj, ops[2]);
         
         if ( core.render.has() && (!core.render.rendering) ) {
             core.render.go();
@@ -136,6 +136,8 @@ wctank.core = (function(core) {
     };
 
     core.filters = (function(filters) {
+        filters.current = null;
+        
         var sets = {
             general: [],
             zoomed: [],
@@ -144,32 +146,18 @@ wctank.core = (function(core) {
             start: [],
             webgl: []
         };
-        filters.usage = {
-            // filter can be called on an /idle_interval setInterval
-            GENERAL:        0x40000000,             
-            // filter can be called when zoom level >= 17
-            ZOOMED:         0x20000000,             
-            // if filter called on zoom >= 17 event, persists when zoom < 17
-            TAKEOVER_DOWN:  0x10000000,
-            // if filter already called, zoom >= 17 event has no effect
-            TAKEOVER_UP:    0x08000000,             
-            // filter can be called on load
-            START:          0x04000000, 
-            NONE:           0x00000000
-        };
-        filters.current = null;
         filters.parse = function() {
-            for (var filter in _.filterDefs) {
-                if ( _.filterDefs.hasOwnProperty(filter) ) {
-                    var f = _.filterDefs[filter].usage;
-                    var c = core.filters.usage;
+            for (var filter in _.mapFilters) {
+                if ( _.mapFilters.hasOwnProperty(filter) ) {
+                    var f = _.mapFilters[filter].usage;
+                    var c = _.filterDefs.usageFlags;
                     var hasBit = util.hasBit;
                     if ( hasBit(f, c.GENERAL) ) sets.general.push(filter);
                     if ( hasBit(f, c.ZOOMED ) ) sets.zoomed.push(filter);                 
                     if ( hasBit(f, c.TAKEOVER_DOWN) ) sets.takeover_down.push(filter);
                     if ( hasBit(f, c.TAKEOVER_UP) ) sets.takeover_up.push(filter);
                     if ( hasBit(f, c.START) ) sets.start.push(filter);
-                    if ( _.filterDefs[filter].hasOwnProperty("webgl") ) 
+                    if ( _.mapFilters[filter].hasOwnProperty("webgl") ) 
                         sets.webgl.push(filter);
                 }
             }
@@ -213,11 +201,11 @@ wctank.core = (function(core) {
             core.filters.current = filter;
             var render = core.render;
             if (new_filter) {
-                core.filterTypeOp('teardown', _.filterDefs[new_filter], function() {
+                core.filterTypeOp('teardown', _.mapFilters[new_filter], function() {
                     div.$map.removeClass(new_filter);
                 });
             }
-            core.filterTypeOp('init', _.filterDefs[filter], function() {
+            core.filterTypeOp('init', _.mapFilters[filter], function() {
                 div.$map.addClass(filter);
             });
             old_filter = new_filter;

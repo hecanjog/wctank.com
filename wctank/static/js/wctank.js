@@ -19,12 +19,6 @@ var wctank = (function(wctank) {
             return ( (x & y) === y ) ? true : false;
         },
         
-        appendNameProps: function(obj) {
-            for (var p in obj) {
-                if ( obj.hasOwnProperty(p) )
-                    obj[p].name = p;
-            }
-        },
         /*
          * given a number n, return a new random number 
          * within a range n * +/-percentage f

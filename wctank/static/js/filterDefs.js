@@ -7,46 +7,49 @@ wctank.filterDefs = (function(filterDefs) {
     var gMap = _.gMap;
     var core = _.core;
 
-    var filterDefsReady = new Event('filterDefsReady');
+    filterDefs._mapFiltersReady = new Event('mapFiltersReady');
     filterDefs.addReadyListener = function(fn) { 
-        document.addEventListener('filterDefsReady', function() {
+        document.addEventListener('mapFiltersReady', function() {
             fn();
-            document.removeEventListener('filterDefsReady', fn);
+            document.removeEventListener('mapFiltersReady', fn);
         }); 
     };
 
-    function Filter() {
-        this.usage = 0x00000000;
+    filterDefs.FilterType = function Filter() {
+        this.usage = 0x00000000; // from flags in core.filters.usage
+        this.css_class = '';
         this.preInit = null; //function() {};
         this.init = null; //function() {};
         this.animate = null; //function() {};
         this.preTeardown = null; //function() {};
         this.teardown = null //function() {};
-    }
-    
-    // having the names of the filters before they are loaded is handy, so 
-    // update this list when adding a filter 
-    filterDefs.names = [
-        'troller', 'print_analog', 'caustic_glow', 'cmgyk', 'fauvist', 'vhs'
-    ]; 
+    };
 
-    $.get("static/map_filters.xml", function(data) {
-        var cont = document.createElement("svg_filters");
-        cont.style.position = "fixed";
-        cont.style.bottom = 0;
-        cont.style.zIndex = -99999999;
-        document.body.appendChild(cont);
-        cont.innerHTML = new XMLSerializer().serializeToString(data);   
+    filterDefs.usageFlags = {
+        // filter can be called on an /idle_interval setInterval
+        GENERAL:        0x40000000,             
+        // filter can be called when zoom level >= 17
+        ZOOMED:         0x20000000,             
+        // if filter called on zoom >= 17 event, persists when zoom < 17
+        TAKEOVER_DOWN:  0x10000000,
+        // if filter already called, zoom >= 17 event has no effect
+        TAKEOVER_UP:    0x08000000,             
+        // filter can be called on load
+        START:          0x04000000, 
+        NONE:           0x00000000
+    };
 
-        // TODO: define both filter and special troller?
-        filterDefs.troller = (function(troller) {
-            var u = core.filters.usage;
-            troller.usage = u.GENERAL | u.ZOOMED;
-            
+    filterDefs.filters = (function(filters) {
+        
+        filters.Troller = function() {
+            var u = filterDefs.usageFlags;
+            this.usage = u.GENERAL | u.ZOOMED;
+            this.css_class = 'troller'; 
+
             var troller_back = document.createElement('video');
             troller_back.src = "https://archive.org/download/C.E.PriceSunClouds/SunClouds_512kb.mp4";
             troller_back.setAttribute("id", "troller_back");
-            
+             
             var rot = 0;
             var ident = "rotate(0deg)";
             var transform = function(val) {
@@ -59,7 +62,7 @@ wctank.filterDefs = (function(filterDefs) {
                 // value-of-css-rotation-through-javascript/
                 var sty = window.getComputedStyle(div.$map.get(0));
                 var mat = sty.getPropertyValue("-webkit-transform") || 
-                            sty.getPropertyValue("transform") || "matrix(1, 0, 0, 1, 0, 0)";
+                          sty.getPropertyValue("transform") || "matrix(1, 0, 0, 1, 0, 0)";
                 var values = mat.split('(')[1];
                 values = values.split(')')[0];
                 values = values.split(',');
@@ -67,14 +70,14 @@ wctank.filterDefs = (function(filterDefs) {
                 var b = Number(values[1]);
                 return Math.round(Math.asin(b) * (180/Math.PI));
             };
-            troller.preInit = function() {
+            this.preInit = function() {
                 var str = "rotate("+rot.toString()+"deg)";
                 transform(str); 
                 // calling getCurrentRotation here resolves a timing issue where 
                 // the rotate in troller.init was obliterating the preInit rotate
                 getCurrentRotation();
             };
-            
+             
             //TODO: Figure out why troller needs to be applied twice; 
             //some weird interaction with the rotate transform?
             var cntr = 0;
@@ -106,7 +109,8 @@ wctank.filterDefs = (function(filterDefs) {
             var $mapOnResize = function() {
                 set$mapCss(false);
             };
-            troller.init = function() {
+            var parent = this;
+            this.init = function() {
                 window.addEventListener('resize', $mapOnResize);
                 set$mapCss(false);
                 gMap.zoomControlsVisible(false);
@@ -117,18 +121,18 @@ wctank.filterDefs = (function(filterDefs) {
                 if (cntr === 0) {
                     to_id = window.setTimeout(core.filters.forceApply, util.smudgeNumber(7000, 5));
                     window.setTimeout(function() { 
-                        core.filterTypeOp('teardown', filterDefs.troller);
-                        core.filterTypeOp('init', filterDefs.troller, function() {
-                            div.$map.addClass('troller');
+                        core.filterTypeOp('teardown', parent);
+                        core.filterTypeOp('init', parent, function() {
+                            div.$map.addClass(parent.css_class);
                         });
                     }, 50);
                 }
                 cntr++;
             };
-            troller.preTeardown = function() {
+            this.preTeardown = function() {
                 rot += getCurrentRotation();
             };
-            troller.teardown = function() {
+            this.teardown = function() {
                 if (cntr === 2) {
                     window.removeEventListener('resize', $mapOnResize);
                     set$mapCss(true);
@@ -142,24 +146,26 @@ wctank.filterDefs = (function(filterDefs) {
                     cntr = 0;
                 }
             };
-            return troller;
-        }({}))
-        
-
-        filterDefs.print_analog = {
-            usage: core.filters.usage.GENERAL | 
-                   core.filters.usage.ZOOMED | 
-                   core.filters.usage.TAKEOVER_DOWN | 
-                   core.filters.usage.START,
-            denoise: document.getElementById("pa-denoise"),
-            bypass: document.getElementById("pa-bypass")
         };
-            
-        filterDefs.caustic_glow = (function(caustic_glow) {
-            var u = core.filters.usage;
-            caustic_glow.usage = u.GENERAL | u.TAKEOVER_DOWN | u.TAKEOVER_UP | 
+        filters.Troller.prototype = new filterDefs.FilterType(); 
+        
+        filters.Print_Analog = function() {
+            this.usage = filterDefs.usageFlags.GENERAL |
+                         filterDefs.usageFlags.ZOOMED | 
+                         filterDefs.usageFlags.TAKEOVER_DOWN | 
+                         filterDefs.usageFlags.START;
+            this.css_class = 'print_analog';
+            this.denoise = document.getElementById("pa-denoise");
+            this.bypass = document.getElementById("pa-bypass");
+        };
+        filters.Troller.prototype = new filterDefs.FilterType();
+        
+        filters.Caustic_Glow = function() {
+            var u = filterDefs.usageFlags;
+            this.usage = u.GENERAL | u.TAKEOVER_DOWN | u.TAKEOVER_UP | 
                                  u.ZOOMED | u.START;
-            caustic_glow.glow_radius = document.getElementById("cg-glow-radius");
+            this.css_class = 'caustic_glow';
+            this.glow_radius = document.getElementById("cg-glow-radius");
             
             var caustic_glow_back = document.createElement("div");
             caustic_glow_back.setAttribute("id", "caustic_glow_back");  
@@ -192,31 +198,36 @@ wctank.filterDefs = (function(filterDefs) {
                     }, dur);
                 }, del);
             }; 
-            caustic_glow.init = function() {
+            
+            // sigh...
+            var parent = this;
+            this.init = function() {
                 if (player_ready) {
                     player.api("play");
                 } else {
                     window.setTimeout(function() {
-                        caustic_glow.init();
+                        parent.init();
                     }, 250);
                 }
                 caustic_glow_back.style.visibility = "visible";
                 if ( (Math.random() * 10) <= 5 ) blink_map(); 
             };
-            caustic_glow.teardown = function() {
+            this.teardown = function() {
                 player.api("pause");
                 caustic_glow_back.style.visibility = "hidden";
                 if (blink_id) window.clearTimeout(blink_id);
                 blink_id = null;    
             };
-            return caustic_glow;
-        }({}))
+        };
+        filters.Caustic_Glow.prototype = new filterDefs.FilterType(); 
+        
+        filters.Cmgyk = function() {
+            var u = filterDefs.usageFlags;
+            this.usage = u.GENERAL | u.ZOOMED | u.START;
+            this.css_class = 'cmgyk';
 
-        filterDefs.cmgyk = (function(cmgyk) {
-            var u = core.filters.usage;
-            cmgyk.usage = u.GENERAL | u.ZOOMED | u.START;
-            cmgyk.denoise = document.getElementById("cmgyk-denoise");
-            
+            this.denoise = document.getElementById("cmgyk-denoise"); 
+
             var cmgyk_back = document.createElement("div");
             cmgyk_back.setAttribute("id", "cmgyk_back");
             
@@ -242,19 +253,19 @@ wctank.filterDefs = (function(filterDefs) {
                 }
                 return false;
             };
-            cmgyk.setImmediateBlink = function() {
+            this.setImmediateBlink = function() {
                 ko_num = 0 ;
                 blink_num = 0;
             };
             var $kos = $();
-            cmgyk.init = function() {
+            this.init = function() {
                 engaged = true;
                 times_engaged++;
                 document.body.appendChild(cmgyk_steady_back);
                 document.body.appendChild(cmgyk_back);
                 $kos = $();
             };
-            cmgyk.teardown = function() {
+            this.teardown = function() {
                 engaged = false;
                 document.body.removeChild(cmgyk_steady_back);
                 document.body.removeChild(cmgyk_back);
@@ -321,7 +332,7 @@ wctank.filterDefs = (function(filterDefs) {
             gMap.events.push(gMap.events.MAP, 'bounds_changed', koAndBlink);
            
             //TODO: cmgyk webgl starscape?           
-            cmgyk.animate = function() {
+            this.animate = function() {
                 if ( should_blink() ) {
                     var time = new Date().getTime();
                     for (var i = 0; i < blink$.length; i++) {
@@ -355,51 +366,53 @@ wctank.filterDefs = (function(filterDefs) {
                 lzoom = zoom;           
             };
             gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom); 
-            
-            return cmgyk;
-        }({}))
-                    
-        filterDefs.fauvist = {
-            usage: core.filters.usage.ZOOMED | 
-                   core.filters.usage.START |
-                   core.filters.usage.GENERAL
         };
-            
-        filterDefs.vhs = (function(vhs) {
-            var u = core.filters.usage;
-            vhs.usage = u.GENERAL | u.ZOOMED | u.START;
-            vhs.offset = document.getElementById("vhs-offset");
-            
+        filters.Cmgyk.prototype = new filterDefs.FilterType();
+
+        filters.Fauvist = function() {
+            var u = filterDefs.usageFlags;
+            this.usage = u.ZOOMED | u.START | u.GENERAL;
+            this.css_class = 'fauvist';
+        };
+        filters.Fauvist.prototype = new filterDefs.FilterType();
+
+        filters.Vhs = function() {
+            var u = filterDefs.usageFlags;
+            this.usage = u.GENERAL | u.ZOOMED | u.START;
+            this.offset = document.getElementById("vhs-offset");
+            this.css_class = 'vhs';
+
             var vhs_back = document.createElement('div');   
             vhs_back.setAttribute("id", "vhs_back");
             
-            vhs.init = function() {
+            this.init = function() {
                 document.body.appendChild(vhs_back);
-                vhs.webgl.init();
+                this.webgl.init();
             }
-            vhs.teardown = function() {
+            this.teardown = function() {
                 document.body.removeChild(vhs_back);
-                vhs.webgl.teardown();
+                this.webgl.teardown();
             }
-            
+           
+            var parent = this; 
             var jit;
             var jit_offset = 3;
             var jit_delay = 150;
             var jit_frame_div = 2;
             var frct = 0;
             var os = 0;
-            vhs.animate = function() {
+            this.animate = function() {
                 if ( jit && ( (frct % jit_frame_div) === 0 ) ) {
-                    vhs.offset.setAttribute("dy", os); 
+                    parent.offset.setAttribute("dy", os); 
                     os = (os === jit_offset) ? 0 : jit_offset;
                 }
                 frct++;
-                vhs.webgl.update();
+                parent.webgl.update();
             };
             var jit_tmp;
             var jitter = function(idle) {
                 jit_tmp = idle;
-                if (!jit_tmp) vhs.offset.setAttribute("dy", 0);
+                if (!jit_tmp) parent.offset.setAttribute("dy", 0);
                 window.setTimeout(function() {
                     jit = jit_tmp;
                 }, jit_delay);
@@ -414,7 +427,7 @@ wctank.filterDefs = (function(filterDefs) {
                 jitter(true);
             });
 
-            vhs.webgl = (function(webgl) {
+            this.webgl = (function(webgl) {
                 var vhs_canv = document.createElement('canvas');
                 vhs_canv.width = window.innerWidth * 0.75;
                 vhs_canv.height = window.innerHeight * 0.75;
@@ -446,23 +459,12 @@ wctank.filterDefs = (function(filterDefs) {
                 }
                 return webgl;
             }({}))
-            return vhs;
-        }({}))
-        util.appendNameProps(filterDefs);
-        core.filters.parse();
-        document.dispatchEvent(filterDefsReady);
-        
-        (function() {
-            var dppx1dot2 = window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
-                                "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
-            if (dppx1dot2.matches) {
-                filterDefs.print_analog.denoise.setAttribute("stdDeviation", "1.16");
-                filterDefs.print_analog.bypass.setAttribute("in2", "flip");
-                filterDefs.caustic_glow.glow_radius.setAttribute("stdDeviation", "10.6");
-                filterDefs.cmgyk.denoise.setAttribute("stdDeviation", "1");
-            }
-        }())
-    });
+        };
+        filters.Vhs.prototype = new filterDefs.FilterType();
+
+        return filters;
+    }({}))
+    
     return filterDefs;
 }({}))
 
