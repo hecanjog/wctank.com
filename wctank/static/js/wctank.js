@@ -28,11 +28,21 @@ var wctank = (function(wctank) {
             if (Math.random() < 0.5) s*=-1;
             return Math.random() * s + n;  
         },
-
-        getRndItem: function(arr) {
-            var idx = (Math.random() * arr.length) | 0;
-            return arr[idx];
+       
+        getRndItem: function(set) {
+            if ( Array.isArray(set) ) { 
+                var idx = (Math.random() * set.length) | 0;
+                return set[idx];
+            } else {
+                var keys = Object.keys(set);
+                return set[ util.getRndItem(keys) ];
+            }
         }
+       /* 
+        arg2Array: function(argObj) {
+            return Array.slice(argObj);   
+        }*/
+
     };
      
     /*
