@@ -5,12 +5,12 @@ wctank.audio.actors = (function(actors) {
     var audio = wctank.audio;
     var elements = wctank.audio.elements;
     
-    actors.Driver = function(sonority) {
+    actors.Driver = function(sonority, amplitude) {
         this.noise = elements.Noise();
      
         this.oscBank = [];
         for (var i = 0; i < num_osc; i++) {
-            this.oscBank.push(A.Osc);
+            this.oscBank.push(elements.Osc);
             this.noise.link(oscBank[i]);
         }
      
@@ -26,10 +26,10 @@ wctank.audio.actors = (function(actors) {
 var noise = wctank.audio.elements.Noise(); 
  console.log(noise);
  var bank = [
-     wctank.audio.elements.Bandpass(262, 120),
-     wctank.audio.elements.Bandpass(327.5, 120),
-     wctank.audio.elements.Bandpass(393, 120),
-     wctank.audio.elements.Bandpass(500, 120),
+     wctank.audio.elements.Bandpass(262, 140),
+     wctank.audio.elements.Bandpass(327.5, 140),
+     wctank.audio.elements.Bandpass(393, 140),
+     wctank.audio.elements.Bandpass(500, 140),
  ];
  var censor_out_that_thanks = wctank.audio.elements.Osc('triangle', 440, 0.6);
  censor_out_that_thanks.start();

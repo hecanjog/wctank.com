@@ -17,7 +17,7 @@ wctank.audio.elements = (function(elements) {
         }
     }
     
-    elements.Noise = function(amplitude) {
+    elements.Noise = function Noise(amplitude) {
         if (this.constructor !== audio.AudioModule) 
             return new elements.Noise(amplitude);
         this.source = ctx.createBufferSource();
@@ -40,7 +40,7 @@ wctank.audio.elements = (function(elements) {
     };
     elements.Noise.prototype = new audio.AudioModule();
     
-    elements.Osc = function(oscType, frequency, amplitude) {
+    elements.Osc = function Osc(oscType, frequency, amplitude) {
         if (this.constructor !== audio.AudioModule) 
             return new elements.Osc(oscType, frequency, amplitude);
 
@@ -59,7 +59,7 @@ wctank.audio.elements = (function(elements) {
     };
     elements.Osc.prototype = new audio.AudioModule();
    
-    elements.Bandpass = function(frequency, Q) {
+    elements.Bandpass = function Bandpass(frequency, Q) {
         // construct sans new
         if (this.constructor !== audio.AudioModule) 
             return new elements.Bandpass(frequency, Q);
