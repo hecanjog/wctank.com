@@ -147,20 +147,21 @@ wctank.core = (function(core) {
             webgl: []
         };
         filters.parse = function() {
-            for (var filter in _.mapFilters) {
-                if ( _.mapFilters.hasOwnProperty(filter) ) {
-                    var f = _.mapFilters[filter].usage;
-                    var c = _.mapFilterDefs.usageFlags;
+            for (var filter in _.mapFilters.instances) {
+                if ( _.mapFilters.instances.hasOwnProperty(filter) ) {
+                    var f = _.mapFilters.instances[filter].usage;
+                    var c = _.mapFilters.usageFlags;
                     var hasBit = util.hasBit;
                     if ( hasBit(f, c.GENERAL) ) sets.general.push(filter);
                     if ( hasBit(f, c.ZOOMED ) ) sets.zoomed.push(filter);                 
                     if ( hasBit(f, c.TAKEOVER_DOWN) ) sets.takeover_down.push(filter);
                     if ( hasBit(f, c.TAKEOVER_UP) ) sets.takeover_up.push(filter);
                     if ( hasBit(f, c.START) ) sets.start.push(filter);
-                    if ( _.mapFilters[filter].hasOwnProperty("webgl") ) 
+                    if ( _.mapFilters.instances[filter].hasOwnProperty("webgl") ) 
                         sets.webgl.push(filter);
                 }
             }
+            console.log(sets);
         };
         filters.pushCategory = function(filter, cat_obj) {
             switch(cat_obj) {
@@ -201,11 +202,11 @@ wctank.core = (function(core) {
             core.filters.current = filter;
             var render = core.render;
             if (new_filter) {
-                core.filterTypeOp('teardown', _.mapFilters[new_filter], function() {
+                core.filterTypeOp('teardown', _.mapFilters.instances[new_filter], function() {
                     div.$map.removeClass(new_filter);
                 });
             }
-            core.filterTypeOp('init', _.mapFilters[filter], function() {
+            core.filterTypeOp('init', _.mapFilters.instances[filter], function() {
                 div.$map.addClass(filter);
             });
             old_filter = new_filter;

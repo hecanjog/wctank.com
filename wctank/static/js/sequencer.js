@@ -5,7 +5,7 @@ wctank.sequencer = (function(sequencer) {
     var util = wctank.util;
     var gMap = wctank.gMap;
     var core = wctank.core;
-    var mapFilterDefs = wctank.mapFilterDefs;
+    var mapFilters = wctank.mapFilters;
     var tableux = wctank.tableux; 
     var audio = wctank.audio;
 
@@ -48,7 +48,7 @@ wctank.sequencer = (function(sequencer) {
                 // sonify loading process
             };
             google.maps.event.addDomListener(window, 'load', startMap);
-            mapFilterDefs.addReadyListener(core.filters.start);
+            mapFilters.addReadyListener(core.filters.start);
                 //audio.start(); // main audio start
         },
     };

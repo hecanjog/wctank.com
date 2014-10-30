@@ -6,18 +6,19 @@ wctank.tableux = (function(tableux) {
     var _ = wctank;
     var util = _.util;
     var gMap = _.gMap;
-    var mapFilterDefs = _.mapFilterDefs;
-    var mapFilters = _.mapFilters;
+    var defs = wctank.mapFilters.defs;
+    var instances = wctank.mapFilters.instances;
 
     tableux.flags = {};
     var filter_names = (function() {
         var list = [];
-        for (var filter in mapFilterDefs.filters) {
-            if ( mapFilterDefs.filters.hasOwnProperty(filter) )
+        for (var filter in defs) {
+            if ( defs.hasOwnProperty(filter) )
                 list.push( filter.toLowerCase() );
         }
         return list;
     }())
+    
     var dat = (function(dat) {
         dat.sets = {};
         dat.locs = [];
@@ -30,14 +31,17 @@ wctank.tableux = (function(tableux) {
         }
         return dat; 
     }({})); 
-    var makeTableuxData = function(lat, lng, zoom, flag, exes) {
-        return {
-            loc: new google.maps.LatLng(lat, lng),
-            zoom: zoom,
-            flag: flag,
-            exes: exes
-        };
+    
+    var TableuxDataTuple = function TableuxDataTuple(lat, lng, zoom, flag, exes) {
+        this.loc = new google.maps.LatLng(lat, lng);
+        this.zoom = zoom;
+        this.flag = flag;
+        exes = exes;
     };
+    tableux.add = function(lat, lng, zoom, flags, exes) {
+        dat.locs.push( new TableuxDataTuple(lat, lng, zoom, flags, exes) );
+    };
+    
     tableux.pick = function(filter) {
         var s = dat.sets[filter];
         var i = (Math.random() * s.length) | 0;
@@ -49,9 +53,6 @@ wctank.tableux = (function(tableux) {
             }
         }
     };
-    tableux.add = function(lat, lng, zoom, flags, exes) {
-        dat.locs.push(makeTableuxData(lat, lng, zoom, flags, exes));
-    };
     tableux.parse = function() {
         for (var i = 0; i < dat.locs.length; i++) {
             for (var t in tableux.flags) {
@@ -61,5 +62,6 @@ wctank.tableux = (function(tableux) {
             }
         }  
     };
+    
     return tableux;
 }({}))

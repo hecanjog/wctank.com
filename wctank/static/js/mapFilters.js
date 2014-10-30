@@ -1,38 +1,38 @@
 wctank = wctank || {};
-
-/*
- *  Here, we get the XML component of the visual filters and instantiate
- */
+//unique lengths for each filter ... interval/timeout multiplier
 wctank.mapFilters = (function(mapFilters) {
-    var mapFilterDefs = wctank.mapFilterDefs;
-    var core = wctank.core;
+    mapFilters._mapFiltersReady = new Event('mapFiltersReady');
+    mapFilters.addReadyListener = function(fn) { 
+        document.addEventListener('mapFiltersReady', function() {
+            fn();
+            document.removeEventListener('mapFiltersReady', fn);
+        }); 
+    };
 
-    $.get("static/map_filters.xml", function(data) {
-        var cont = document.createElement("svg_filters");
-        cont.style.position = "fixed";
-        cont.style.bottom = 0;
-        cont.style.zIndex = -99999999;
-        document.body.appendChild(cont);
-        cont.innerHTML = new XMLSerializer().serializeToString(data);   
-        
-        for (var f in mapFilterDefs.filters) {
-            if ( mapFilterDefs.filters.hasOwnProperty(f) )
-                mapFilters[ f.toLowerCase() ] = new mapFilterDefs.filters[f]();
-        }
-        
-        core.filters.parse();
-        document.dispatchEvent(mapFilterDefs._mapFiltersReady);
+    mapFilters.FilterType = function Filter() { /// change this!!!
+        this.usage = 0x00000000; // from flags in .usage
+        this.css_class = '';
+        this.preInit = null; //function() {};
+        this.init = null; //function() {};
+        this.animate = null; //function() {};
+        this.preTeardown = null; //function() {};
+        this.teardown = null //function() {};
+    };
 
-        (function() {
-            var dppx1dot2 = window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
-                                "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
-            if (dppx1dot2.matches) {
-                mapFilters.print_analog.denoise.setAttribute("stdDeviation", "1.16");
-                mapFilters.print_analog.bypass.setAttribute("in2", "flip");
-                mapFilters.caustic_glow.glow_radius.setAttribute("stdDeviation", "10.6");
-                mapFilters.cmgyk.denoise.setAttribute("stdDeviation", "1");
-            }
-        }())
-    });
+    mapFilters.usageFlags = {
+        // filter can be called on an /idle_interval setInterval
+        GENERAL:        0x40000000,             
+        // filter can be called when zoom level >= 17
+        ZOOMED:         0x20000000,             
+        // if filter called on zoom >= 17 event, persists when zoom < 17
+        TAKEOVER_DOWN:  0x10000000,
+        // if filter already called, zoom >= 17 event has no effect
+        TAKEOVER_UP:    0x08000000,             
+        // filter can be called on load
+        START:          0x04000000, 
+        NONE:           0x00000000
+    };
+
     return mapFilters;
 }({}))
+
