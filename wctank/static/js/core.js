@@ -241,7 +241,7 @@ wctank.core = (function(core) {
         gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom);
         
         /*
-         * mainTime coordinates normal interval-driven filter changes
+         * mainTime coordinates setTimeout-driven filter changes
          */
         //TODO: consider enforcing maximum pause - 4 min or something
         var mainTime = (function(mainTime) {

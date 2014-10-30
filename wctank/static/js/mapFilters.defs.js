@@ -87,7 +87,7 @@ wctank.mapFilters.defs = (function(defs) {
             troller_back.play();
             transform("rotate(360deg)");
             if (cntr === 0) {
-                to_id = window.setTimeout(core.defs.forceApply, util.smudgeNumber(7000, 5));
+                to_id = window.setTimeout(core.filters.forceApply, util.smudgeNumber(7000, 5));
                 window.setTimeout(function() { 
                     core.filterTypeOp('teardown', parent);
                     core.filterTypeOp('init', parent, function() {
