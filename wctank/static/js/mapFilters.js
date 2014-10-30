@@ -4,7 +4,7 @@ wctank = wctank || {};
  *  Here, we get the XML component of the visual filters and instantiate
  */
 wctank.mapFilters = (function(mapFilters) {
-    var filterDefs = wctank.filterDefs;
+    var mapFilterDefs = wctank.mapFilterDefs;
     var core = wctank.core;
 
     $.get("static/map_filters.xml", function(data) {
@@ -15,13 +15,13 @@ wctank.mapFilters = (function(mapFilters) {
         document.body.appendChild(cont);
         cont.innerHTML = new XMLSerializer().serializeToString(data);   
         
-        for (var f in filterDefs.filters) {
-            if ( filterDefs.filters.hasOwnProperty(f) )
-                mapFilters[ f.toLowerCase() ] = new filterDefs.filters[f]();
+        for (var f in mapFilterDefs.filters) {
+            if ( mapFilterDefs.filters.hasOwnProperty(f) )
+                mapFilters[ f.toLowerCase() ] = new mapFilterDefs.filters[f]();
         }
         
         core.filters.parse();
-        document.dispatchEvent(filterDefs._mapFiltersReady);
+        document.dispatchEvent(mapFilterDefs._mapFiltersReady);
 
         (function() {
             var dppx1dot2 = window.matchMedia("only screen and (min-resolution: 1.0dppx),"+

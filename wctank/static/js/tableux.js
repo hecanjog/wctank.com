@@ -6,14 +6,14 @@ wctank.tableux = (function(tableux) {
     var _ = wctank;
     var util = _.util;
     var gMap = _.gMap;
-    var filterDefs = _.filterDefs;
+    var mapFilterDefs = _.mapFilterDefs;
     var mapFilters = _.mapFilters;
 
     tableux.flags = {};
     var filter_names = (function() {
         var list = [];
-        for (var filter in filterDefs.filters) {
-            if ( filterDefs.filters.hasOwnProperty(filter) )
+        for (var filter in mapFilterDefs.filters) {
+            if ( mapFilterDefs.filters.hasOwnProperty(filter) )
                 list.push( filter.toLowerCase() );
         }
         return list;

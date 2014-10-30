@@ -4,7 +4,7 @@
 
 (function() {
     var core = wctank.core; 
-    var filterDefs = wctank.filterDefs;
+    var mapFilterDefs = wctank.mapFilterDefs;
     var tableux = wctank.tableux;
     var mapFilters = wctank.mapFilters;
     

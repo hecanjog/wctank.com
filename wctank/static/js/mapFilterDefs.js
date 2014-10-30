@@ -1,22 +1,22 @@
 wctank = wctank || {};
 //unique lengths for each filter ... interval/timeout multiplier
-wctank.filterDefs = (function(filterDefs) {
+wctank.mapFilterDefs = (function(mapFilterDefs) {
     var _ = wctank;
     var util = _.util;
     var div = _.div;
     var gMap = _.gMap;
     var core = _.core;
 
-    filterDefs._mapFiltersReady = new Event('mapFiltersReady');
-    filterDefs.addReadyListener = function(fn) { 
+    mapFilterDefs._mapFiltersReady = new Event('mapFiltersReady');
+    mapFilterDefs.addReadyListener = function(fn) { 
         document.addEventListener('mapFiltersReady', function() {
             fn();
             document.removeEventListener('mapFiltersReady', fn);
         }); 
     };
 
-    filterDefs.FilterType = function Filter() {
-        this.usage = 0x00000000; // from flags in core.filters.usage
+    mapFilterDefs.FilterType = function Filter() {
+        this.usage = 0x00000000; // from flags in .usage
         this.css_class = '';
         this.preInit = null; //function() {};
         this.init = null; //function() {};
@@ -25,7 +25,7 @@ wctank.filterDefs = (function(filterDefs) {
         this.teardown = null //function() {};
     };
 
-    filterDefs.usageFlags = {
+    mapFilterDefs.usageFlags = {
         // filter can be called on an /idle_interval setInterval
         GENERAL:        0x40000000,             
         // filter can be called when zoom level >= 17
@@ -39,10 +39,10 @@ wctank.filterDefs = (function(filterDefs) {
         NONE:           0x00000000
     };
 
-    filterDefs.filters = (function(filters) {
+    mapFilterDefs.filters = (function(filters) {
         
         filters.Troller = function() {
-            var u = filterDefs.usageFlags;
+            var u = mapFilterDefs.usageFlags;
             this.usage = u.GENERAL | u.ZOOMED;
             this.css_class = 'troller'; 
 
@@ -147,21 +147,21 @@ wctank.filterDefs = (function(filterDefs) {
                 }
             };
         };
-        filters.Troller.prototype = new filterDefs.FilterType(); 
+        filters.Troller.prototype = new mapFilterDefs.FilterType(); 
         
         filters.Print_Analog = function() {
-            this.usage = filterDefs.usageFlags.GENERAL |
-                         filterDefs.usageFlags.ZOOMED | 
-                         filterDefs.usageFlags.TAKEOVER_DOWN | 
-                         filterDefs.usageFlags.START;
+            this.usage = mapFilterDefs.usageFlags.GENERAL |
+                         mapFilterDefs.usageFlags.ZOOMED | 
+                         mapFilterDefs.usageFlags.TAKEOVER_DOWN | 
+                         mapFilterDefs.usageFlags.START;
             this.css_class = 'print_analog';
             this.denoise = document.getElementById("pa-denoise");
             this.bypass = document.getElementById("pa-bypass");
         };
-        filters.Troller.prototype = new filterDefs.FilterType();
+        filters.Troller.prototype = new mapFilterDefs.FilterType();
         
         filters.Caustic_Glow = function() {
-            var u = filterDefs.usageFlags;
+            var u = mapFilterDefs.usageFlags;
             this.usage = u.GENERAL | u.TAKEOVER_DOWN | u.TAKEOVER_UP | 
                                  u.ZOOMED | u.START;
             this.css_class = 'caustic_glow';
@@ -219,10 +219,10 @@ wctank.filterDefs = (function(filterDefs) {
                 blink_id = null;    
             };
         };
-        filters.Caustic_Glow.prototype = new filterDefs.FilterType(); 
+        filters.Caustic_Glow.prototype = new mapFilterDefs.FilterType(); 
         
         filters.Cmgyk = function() {
-            var u = filterDefs.usageFlags;
+            var u = mapFilterDefs.usageFlags;
             this.usage = u.GENERAL | u.ZOOMED | u.START;
             this.css_class = 'cmgyk';
 
@@ -367,17 +367,17 @@ wctank.filterDefs = (function(filterDefs) {
             };
             gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom); 
         };
-        filters.Cmgyk.prototype = new filterDefs.FilterType();
+        filters.Cmgyk.prototype = new mapFilterDefs.FilterType();
 
         filters.Fauvist = function() {
-            var u = filterDefs.usageFlags;
+            var u = mapFilterDefs.usageFlags;
             this.usage = u.ZOOMED | u.START | u.GENERAL;
             this.css_class = 'fauvist';
         };
-        filters.Fauvist.prototype = new filterDefs.FilterType();
+        filters.Fauvist.prototype = new mapFilterDefs.FilterType();
 
         filters.Vhs = function() {
-            var u = filterDefs.usageFlags;
+            var u = mapFilterDefs.usageFlags;
             this.usage = u.GENERAL | u.ZOOMED | u.START;
             this.offset = document.getElementById("vhs-offset");
             this.css_class = 'vhs';
@@ -460,11 +460,11 @@ wctank.filterDefs = (function(filterDefs) {
                 return webgl;
             }({}))
         };
-        filters.Vhs.prototype = new filterDefs.FilterType();
+        filters.Vhs.prototype = new mapFilterDefs.FilterType();
 
         return filters;
     }({}))
     
-    return filterDefs;
+    return mapFilterDefs;
 }({}))
 

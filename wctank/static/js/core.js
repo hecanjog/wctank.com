@@ -150,7 +150,7 @@ wctank.core = (function(core) {
             for (var filter in _.mapFilters) {
                 if ( _.mapFilters.hasOwnProperty(filter) ) {
                     var f = _.mapFilters[filter].usage;
-                    var c = _.filterDefs.usageFlags;
+                    var c = _.mapFilterDefs.usageFlags;
                     var hasBit = util.hasBit;
                     if ( hasBit(f, c.GENERAL) ) sets.general.push(filter);
                     if ( hasBit(f, c.ZOOMED ) ) sets.zoomed.push(filter);                 
