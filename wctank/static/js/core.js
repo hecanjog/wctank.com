@@ -161,7 +161,6 @@ wctank.core = (function(core) {
                         sets.webgl.push(filter);
                 }
             }
-            console.log(sets);
         };
         filters.pushCategory = function(filter, cat_obj) {
             switch(cat_obj) {

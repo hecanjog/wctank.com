@@ -1,5 +1,7 @@
 wctank = wctank || {};
 
+//TODO: with caustic, intermediate blink with only roads`
+
 // TODO: UTILITY FUNCTION TO GET CURRENT EVENTS
 wctank.gMap = (function(gMap) {
     var _ = wctank; 
