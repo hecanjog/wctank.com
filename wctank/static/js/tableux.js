@@ -3,9 +3,8 @@ wctank = wctank || {};
  * tableux determines starting center and zoom level depending on what filter is selected first.
  */
 wctank.tableux = (function(tableux) {
-    var _ = wctank;
-    var util = _.util;
-    var gMap = _.gMap;
+    var util = wctank.util;
+    var gMap = wctank.gMap;
     var defs = wctank.mapFilters.defs;
     var instances = wctank.mapFilters.instances;
 
@@ -45,14 +44,14 @@ wctank.tableux = (function(tableux) {
     tableux.pick = function(filter) {
         var s = dat.sets[filter];
         var i = (Math.random() * s.length) | 0;
-        gMap.map.setCenter(s[i].loc);
-        gMap.map.setZoom(s[i].zoom);
+        gMap.goTo(s[i].loc, s[i].zoom);
         if (s[i].exes) {
             for (var j = 0; j < s[i].exes.length; j++) {
                 s[i].exes[j]();
             }
         }
     };
+
     tableux.parse = function() {
         for (var i = 0; i < dat.locs.length; i++) {
             for (var t in tableux.flags) {

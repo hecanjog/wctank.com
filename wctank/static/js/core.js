@@ -1,14 +1,13 @@
 wctank = wctank || {};
 
 wctank.core = (function(core) {
-    var _ = wctank; 
-    var div = _.div;
-    var util = _.util;
-    var gMap = _.gMap;
+    var div = wctank.div,
+        util = wctank.util,
+        gMap = wctank.gMap;
 
     core.render = (function(render) {
-        var stk = [];
-        var id;
+        var stk = [],
+            id;
         render.rendering = false;
         render.push = function(funct) {
             stk.push(funct);
@@ -63,11 +62,11 @@ wctank.core = (function(core) {
                     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
                 });
                 $.get(shader_path, function(data) {
-                    var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm);
-                    var vert_src = matches[0];
-                    var frag_src = matches[1];
-                    var vert_shader = gl.createShader(gl.VERTEX_SHADER);
-                    var frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
+                    var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm),
+                        vert_src = matches[0],
+                        frag_src = matches[1],
+                        vert_shader = gl.createShader(gl.VERTEX_SHADER),
+                        frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
                     gl.shaderSource(vert_shader, vert_src);
                     gl.shaderSource(frag_shader, frag_src); 
                     gl.compileShader(vert_shader);
@@ -104,9 +103,10 @@ wctank.core = (function(core) {
     }({}))
     
     core.filterTypeOp = function(stage, filterTypeObj) {
-        var ops = [];
-        var r_op;
-        var $op;
+        var ops = [],
+            r_op,
+            $op;
+        
         if (stage === 'init') {
             ops = ['preInit', 'init', 'animate'];
             r_op = 'push';
@@ -116,6 +116,7 @@ wctank.core = (function(core) {
             r_op = 'rm';
             $op = 'removeClass';
         }
+        
         var callFunct = function(obj, fnName) {
             if (fnName !== 'animate') {
                 obj[fnName]();
@@ -146,22 +147,24 @@ wctank.core = (function(core) {
             start: [],
             webgl: []
         };
+
         filters.parse = function() {
-            for (var filter in _.mapFilters.instances) {
-                if ( _.mapFilters.instances.hasOwnProperty(filter) ) {
-                    var f = _.mapFilters.instances[filter].usage;
-                    var c = _.mapFilters.usageFlags;
-                    var hasBit = util.hasBit;
-                    if ( hasBit(f, c.GENERAL) ) sets.general.push(filter);
-                    if ( hasBit(f, c.ZOOMED ) ) sets.zoomed.push(filter);                 
-                    if ( hasBit(f, c.TAKEOVER_DOWN) ) sets.takeover_down.push(filter);
-                    if ( hasBit(f, c.TAKEOVER_UP) ) sets.takeover_up.push(filter);
-                    if ( hasBit(f, c.START) ) sets.start.push(filter);
-                    if ( _.mapFilters.instances[filter].hasOwnProperty("webgl") ) 
+            var instances = wctank.mapFilters.instances,
+                uses = wctank.mapFilters.usageFlags;
+            for (var filter in instances) {
+                if ( instances.hasOwnProperty(filter) ) {
+                    for (var flag in uses) {
+                        if ( uses.hasOwnProperty(flag) ) {
+                            if ( util.hasBit(instances[filter].usage, uses[flag]) ) 
+                                sets[flag.toLowerCase()].push(filter);
+                        };
+                    } 
+                    if ( instances[filter].hasOwnProperty('webgl') )
                         sets.webgl.push(filter);
                 }
             }
         };
+
         filters.pushCategory = function(filter, cat_obj) {
             switch(cat_obj) {
                 case cat.GENERAL:
@@ -181,6 +184,7 @@ wctank.core = (function(core) {
                     break;
             }
         };
+
         filters.rm = function(filter) {
             for (var cat in sets) {
                 if ( sets.hasOwnProperty(cat) && (cat !== "webgl") ) {
@@ -194,18 +198,19 @@ wctank.core = (function(core) {
         if (!core.webgl.success) sets.webgl.forEach(filters.rm); 
 
         // TODO: consider displaying message to encourage WebGl use
-        var was_in_close = false;
-        var new_filter;
-        var old_filter;
+        var was_in_close = false,
+            new_filter,
+            old_filter;
+
         filters.apply = function(filter) {
             core.filters.current = filter;
-            var render = core.render;
+            
             if (new_filter) {
-                core.filterTypeOp('teardown', _.mapFilters.instances[new_filter], function() {
+                core.filterTypeOp('teardown', wctank.mapFilters.instances[new_filter], function() {
                     div.$map.removeClass(new_filter);
                 });
             }
-            core.filterTypeOp('init', _.mapFilters.instances[filter], function() {
+            core.filterTypeOp('init', wctank.mapFilters.instances[filter], function() {
                 div.$map.addClass(filter);
             });
             old_filter = new_filter;
@@ -244,14 +249,15 @@ wctank.core = (function(core) {
          */
         //TODO: consider enforcing maximum pause - 4 min or something
         var mainTime = (function(mainTime) {
-            var interval_base = 30000;
-            var interval;
-            var start;
-            var cease = 0;
-            var elapsed;
-            var id;
-            var first = true;
-            var is_engaged = false;
+            var interval_base = 30000,
+                interval,
+                start,
+                cease = 0,
+                elapsed,
+                id,
+                first = true,
+                is_engaged = false;
+            
             var update = function() {
                 start = Date.now();
                 if (first) {
@@ -266,11 +272,13 @@ wctank.core = (function(core) {
                 mainTime.pause();
                 mainTime.start(n);
             };
-            var setAndUpdateInterval = function(n) {
-                if (n) interval_base = n;
-                interval = util.smudgeNumber(interval_base, 10);
-            };
+            
             mainTime.start = function(n) {
+                var setAndUpdateInterval = function(n) {
+                    if (n) interval_base = n;
+                    interval = util.smudgeNumber(interval_base, 10);
+                };
+                
                 n ? setAndUpdateInterval(n) : setAndUpdateInterval();
                
                 function updateAndLoop() {
@@ -310,6 +318,7 @@ wctank.core = (function(core) {
                     }
                 }
             };
+            
             mainTime.pause = function() {
                 cease = Date.now();
                 elapsed = cease - start;
@@ -362,11 +371,11 @@ wctank.core = (function(core) {
         };
         special.apply = function(special) {
             core.special.current.push(special);
-            core.filterTypeOp('init', specialDefs[special]);
+            core.filterTypeOp('init', wctank.specialDefs[special]);
         };
         special.remove = function(special) {
             currentRm(special);
-            core.filterTypeOp('teardown', specialDefs[special]);
+            core.filterTypeOp('teardown', wctank.specialDefs[special]);
         };
         return special;
     }({})); 

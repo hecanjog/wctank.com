@@ -2,12 +2,10 @@ wctank = wctank || {};
 
 //TODO: with caustic, intermediate blink with only roads`
 
-// TODO: UTILITY FUNCTION TO GET CURRENT EVENTS
 wctank.gMap = (function(gMap) {
-    var _ = wctank; 
-    var posts = _.posts;
-    var util = _.util
-    var posts = _.posts;
+    var posts = wctank.posts,
+        util = wctank.util,
+        posts = wctank.posts;
 
     // On init, provides ref to google.maps.Map obj
     gMap.map;
@@ -19,12 +17,16 @@ wctank.gMap = (function(gMap) {
      * with the map (gMap.map) object directly
      */
     var evHeap = function(evHeap) {
+        
+        // enum event groups
         evHeap.MAP = 'map_events';
         evHeap.MARKER = 'marker_events';
+        
         var heap = {
             map_events: {},
             marker_events: {}
         }; 
+        
         evHeap.push = function(loc, event, fn, once) {
             var makeEvObj = function(once, fn) {
                 return { once: once, fn: fn } 
@@ -38,17 +40,18 @@ wctank.gMap = (function(gMap) {
                 heap[loc][event][0] = makeEvObj(add1, fn);  
             }
         };
-        var addSingleEvent = function(event, fn, once, marker) {
-            var caller = marker ? marker : gMap.map;
-            if (once) {
-                google.maps.event.addListenerOnce(caller, event, fn);
-            } else {
-                google.maps.event.addListener(caller, event, fn);
-            }
-        };
+        
         evHeap.addHeapEvents = function(set, marker) {
             var ev_set = set ? heap[set] : heap.map_events;
             util.objectLength.call(ev_set);
+            var addSingleEvent = function(event, fn, once, marker) {
+                var caller = marker ? marker : gMap.map;
+                if (once) {
+                    google.maps.event.addListenerOnce(caller, event, fn);
+                } else {
+                    google.maps.event.addListener(caller, event, fn);
+                }
+            };
             var caller = (function() {
                 if (set === evHeap.MAP) {
                     return gMap.map;
@@ -101,13 +104,21 @@ wctank.gMap = (function(gMap) {
         initHeapEvents: evHeap.addHeapEvents,
         push: evHeap.push
     };
+    
+    // for tableux dev 
     gMap.tool = function() {
         console.log(gMap.map.center.lat()+" "+gMap.map.center.lng());
         console.log(gMap.map.zoom);
     };
-    gMap.goTo = function(lat, lng, zoom) {
-        gMap.map.setCenter(new google.maps.LatLng(lat, lng));
-        gMap.map.setZoom(zoom);
+
+    gMap.goTo = function(lat_latLng, lng_zoom, zoom) {
+        if ( ('lat' in lat_latLng) && ('lng' in lat_latLng) ) {
+            gMap.map.setCenter(lat_latLng);
+            gMap.map.setZoom(lng_zoom);
+        } else {   
+            gMap.map.setCenter(new google.maps.LatLng(lat_latLng, lng_zoom));
+            gMap.map.setZoom(zoom);
+        }
     };
     
     gMap.init = function() {
@@ -126,21 +137,20 @@ wctank.gMap = (function(gMap) {
         var m_px = new google.maps.OverlayView();
         m_px.draw = function() {};
         m_px.setMap(gMap.map);
-        _.markers.setOverlay(m_px);
+        wctank.markers.setOverlay(m_px);
          
         google.maps.event.addListener(gMap.map, 'tilesloaded', function() {
             posts.get(gMap.map.getBounds(), function(data) {
                 $.each(data, function(i, post) {
-                    var m;
-                    var loc = new google.maps.LatLng(post.lat, post.long);
-                    var markerOptions = {
+                    var m,
+                        loc = new google.maps.LatLng(post.lat, post.long);
+                    m = new google.maps.Marker({
                         position: loc,
                         map: gMap.map,
                         icon: "static/assets/blank.png"
-                    };
-                    m = new google.maps.Marker(markerOptions);
+                    });
                     m.markerType = post.markerType;
-                    _.markers.addMarker(m);
+                    wctank.markers.addMarker(m);
                     evHeap.addHeapEvents(evHeap.MARKER, m);
                     google.maps.event.addListener(m, 'click', function() { posts.display(post); });
                 });
