@@ -1,14 +1,23 @@
-wctank = wctank || {};
-
 //TODO: with caustic, intermediate blink with only roads`
+define(
+    
+    [
+        'jquery', 
+        'posts', 
+        'util',
+        //'markers',
+        'require',
+        'async!https://maps.googleapis.com/maps/api/js?'+
+            'key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&'+
+            'sensor=false&'+
+            'libraries=weather'+
+            '!callback'
+    ], 
 
-wctank.gMap = (function(gMap) {
-    var posts = wctank.posts,
-        util = wctank.util,
-        posts = wctank.posts;
+function($, posts, util, require) { gMap = {}; 
 
     // On init, provides ref to google.maps.Map obj
-    gMap.map;
+    //gMap.map;
     
     /*
      * the event heap is used to init events associated with google map objects;
@@ -134,11 +143,13 @@ wctank.gMap = (function(gMap) {
         };
         gMap.map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
     
-        var m_px = new google.maps.OverlayView();
-        m_px.draw = function() {};
-        m_px.setMap(gMap.map);
-        wctank.markers.setOverlay(m_px);
-         
+        gMap.pxOverlay = new google.maps.OverlayView();
+        gMap.pxOverlay.draw = function() {};
+        gMap.pxOverlay.setMap(gMap.map);
+        require(['markers'], function(markers) {
+            markers.setOverlay(gMap.pxOverlay); 
+        });
+        
         google.maps.event.addListener(gMap.map, 'tilesloaded', function() {
             posts.get(gMap.map.getBounds(), function(data) {
                 $.each(data, function(i, post) {
@@ -150,7 +161,7 @@ wctank.gMap = (function(gMap) {
                         icon: "static/assets/blank.png"
                     });
                     m.markerType = post.markerType;
-                    wctank.markers.addMarker(m);
+                    require('markers').addMarker(m);
                     evHeap.addHeapEvents(evHeap.MARKER, m);
                     google.maps.event.addListener(m, 'click', function() { posts.display(post); });
                 });
@@ -163,5 +174,4 @@ wctank.gMap = (function(gMap) {
         b ? $zoomCtl.show() : $zoomCtl.hide(); 
     };
 
-    return gMap;
-}({}));
+return gMap; });

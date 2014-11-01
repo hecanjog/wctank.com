@@ -1,9 +1,16 @@
-wctank = wctank || {};
+define(
+    
+    [
+        'jquery', 
+        'div', 
+        'util', 
+        'gMap',
+        'mapFilter',
+        'mapFilterInstances',
+        'require'
+    ], 
 
-wctank.core = (function(core) {
-    var div = wctank.div,
-        util = wctank.util,
-        gMap = wctank.gMap;
+function($, div, util, gMap, mapFilter, mapFilterInstances, require) { var core = {};
 
     core.render = (function(render) {
         var stk = [],
@@ -40,7 +47,7 @@ wctank.core = (function(core) {
     
     core.webgl = (function(webgl) {
         webgl.success = false;
-        webgl.setup = function(canvas, shader_path, DEBUG) {
+        webgl.setup = function(canvas, shaders, DEBUG) {
             var r = {};
             var getShaderLog = function(gl_shader_obj) {
                 if ( !gl.getShaderParameter(gl_shader_obj, gl.COMPILE_STATUS) ) 
@@ -61,40 +68,38 @@ wctank.core = (function(core) {
                 window.addEventListener("resize", function() {
                     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
                 });
-                $.get(shader_path, function(data) {
-                    var matches = data.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm),
-                        vert_src = matches[0],
-                        frag_src = matches[1],
-                        vert_shader = gl.createShader(gl.VERTEX_SHADER),
-                        frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
-                    gl.shaderSource(vert_shader, vert_src);
-                    gl.shaderSource(frag_shader, frag_src); 
-                    gl.compileShader(vert_shader);
-                if (DEBUG) getShaderLog(vert_shader);
-                    gl.compileShader(frag_shader);
-                if (DEBUG) getShaderLog(frag_shader);
-                    var prgm = gl.createProgram();
-                    gl.attachShader(prgm, vert_shader);
-                    gl.attachShader(prgm, frag_shader);
-                    gl.linkProgram(prgm);
-                    gl.useProgram(prgm);
-                    r.program = prgm;
+                var matches = shaders.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm),
+                    vert_src = matches[0],
+                    frag_src = matches[1],
+                    vert_shader = gl.createShader(gl.VERTEX_SHADER),
+                    frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
+                gl.shaderSource(vert_shader, vert_src);
+                gl.shaderSource(frag_shader, frag_src); 
+                gl.compileShader(vert_shader);
+            if (DEBUG) getShaderLog(vert_shader);
+                gl.compileShader(frag_shader);
+            if (DEBUG) getShaderLog(frag_shader);
+                var prgm = gl.createProgram();
+                gl.attachShader(prgm, vert_shader);
+                gl.attachShader(prgm, frag_shader);
+                gl.linkProgram(prgm);
+                gl.useProgram(prgm);
+                r.program = prgm;
 
-                    //draw two big triangles
-                    var buffer = gl.createBuffer();
-                    var pos_loc = gl.getAttribLocation(prgm, 'position');
-                    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-                        -1.0, -1.0,
-                         1.0, -1.0,
-                        -1.0,  1.0,
-                        -1.0,  1.0,
-                         1.0, -1.0,
-                         1.0,  1.0]), gl.STATIC_DRAW);
-                    gl.enableVertexAttribArray(pos_loc); 
-                    gl.vertexAttribPointer(pos_loc, 2, gl.FLOAT, false, 0, 0);
-                    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
-                });
+                //draw two big triangles
+                var buffer = gl.createBuffer();
+                var pos_loc = gl.getAttribLocation(prgm, 'position');
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                    -1.0, -1.0,
+                     1.0, -1.0,
+                    -1.0,  1.0,
+                    -1.0,  1.0,
+                     1.0, -1.0,
+                     1.0,  1.0]), gl.STATIC_DRAW);
+                gl.enableVertexAttribArray(pos_loc); 
+                gl.vertexAttribPointer(pos_loc, 2, gl.FLOAT, false, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
                 r.gl = gl;
                 return r;
             }
@@ -147,10 +152,11 @@ wctank.core = (function(core) {
             start: [],
             webgl: []
         };
-
+        //may require require()
         filters.parse = function() {
-            var instances = wctank.mapFilters.instances,
-                uses = wctank.mapFilters.usageFlags;
+            console.log('here');
+            instances = mapFilterInstances; 
+            uses = mapFilter.usageFlags;
             for (var filter in instances) {
                 if ( instances.hasOwnProperty(filter) ) {
                     for (var flag in uses) {
@@ -163,6 +169,7 @@ wctank.core = (function(core) {
                         sets.webgl.push(filter);
                 }
             }
+            console.log(sets);
         };
 
         filters.pushCategory = function(filter, cat_obj) {
@@ -206,11 +213,11 @@ wctank.core = (function(core) {
             core.filters.current = filter;
             
             if (new_filter) {
-                core.filterTypeOp('teardown', wctank.mapFilters.instances[new_filter], function() {
+                core.filterTypeOp('teardown', mapFilterInstances[new_filter], function() {
                     div.$map.removeClass(new_filter);
                 });
             }
-            core.filterTypeOp('init', wctank.mapFilters.instances[filter], function() {
+            core.filterTypeOp('init', mapFilterInstances[filter], function() {
                 div.$map.addClass(filter);
             });
             old_filter = new_filter;
@@ -317,6 +324,7 @@ wctank.core = (function(core) {
                         updateAndLoop();
                     }
                 }
+                return core.filters.current;
             };
             
             mainTime.pause = function() {
@@ -380,5 +388,4 @@ wctank.core = (function(core) {
         return special;
     }({})); 
 
-    return core;
-}({}))
+return core; });

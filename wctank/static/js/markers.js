@@ -1,13 +1,14 @@
-wctank = wctank || {};
+define(
+    [
+        'gMap'
+    ],
 
-/*
- * markers creates a canvas overlay so that the pins are
- * not modified by svg filters applied to the map
- */
-wctank.markers = (function(markers) {
-    var _ = wctank;     
-    var gMap = _.gMap;
+function(gMap) { var markers = {};
 
+    /*
+     * markers creates a canvas overlay so that the pins are
+     * not modified by svg filters applied to the map
+     */
     var overlay;
     var disp = (function(disp) {
         var CanvPrep = function(canv_elem) {
@@ -137,5 +138,4 @@ wctank.markers = (function(markers) {
         disp.c[1].canv.style.visibility = vis; 
     };
      
-   return markers;
-}({}))
+return markers; });

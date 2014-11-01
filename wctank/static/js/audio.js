@@ -1,5 +1,3 @@
-wctank = wctank || {};
-
 // TODO: convolve bps with violins perhaps four convolvenodes panned archlike
 // combine sines with noise driver
 // try feedback!@
@@ -11,9 +9,14 @@ wctank = wctank || {};
 // a layer tied to zoom level 
 // rm virgo logo?
 
-wctank.audio = (function(audio) {
-    var util = wctank.util;
-    var core = wctank.core;
+define(
+    [
+        'util',
+        'core', 
+        'tween'
+    ],
+
+function(util, core, TWEEN) { var audio = {};
     
     audio.ctx = new ( window.AudioContext || window.webkitAudioContext )();  
     
@@ -141,5 +144,4 @@ wctank.audio = (function(audio) {
                 }
         };
     };
-    return audio;
-}({}))
+return audio; });

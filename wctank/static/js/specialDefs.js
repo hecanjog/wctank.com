@@ -1,10 +1,12 @@
-wctank = wctank || {};
+define(
+    [
+        'div',
+        'gMap',
+        'core',
+        'jquery'
+    ],
 
-wctank.specialDefs = (function(specialDefs) {
-    var _ = wctank;
-    var div = _.div; 
-    var gMap = _.gMap;
-    var core = _.core;
+function(div, gMap, core, $) { var specialDefs = {};
     
     //TODO: remove non-transparent parts in image
     // do something else besides just show and hide the image?
@@ -159,16 +161,7 @@ wctank.specialDefs = (function(specialDefs) {
             alphaStrut.webgl.update();
         };
         
-        /*
-        window.setTimeout(function() {
-            alphaStrut.init();
-            if (!core.render.rendering) core.render.push(alphaStrut.animate);
-            core.render.go();
-        }, 10000); 
-        */
-
         return alphaStrut;
     }({}))
 
-    return specialDefs;
-}({}))
+return specialDefs; });

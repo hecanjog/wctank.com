@@ -1,23 +1,18 @@
-wctank = wctank || {}; 
 /*
  * tableux determines starting center and zoom level depending on what filter is selected first.
  */
-wctank.tableux = (function(tableux) {
-    var util = wctank.util;
-    var gMap = wctank.gMap;
-    var defs = wctank.mapFilters.defs;
-    var instances = wctank.mapFilters.instances;
+define(
+    [
+        'util',
+        'gMap',
+        'mapFilterDefs',
+        'mapFilterInstances'
+    ],
+
+function(util, gMap, mapFilterDefs, mapFilterInstances) { var tableux = {};
 
     tableux.flags = {};
-    var filter_names = (function() {
-        var list = [];
-        for (var filter in defs) {
-            if ( defs.hasOwnProperty(filter) )
-                list.push( filter.toLowerCase() );
-        }
-        return list;
-    }())
-    
+    var filter_names = Object.keys(mapFilterInstances);
     var dat = (function(dat) {
         dat.sets = {};
         dat.locs = [];
@@ -56,11 +51,10 @@ wctank.tableux = (function(tableux) {
         for (var i = 0; i < dat.locs.length; i++) {
             for (var t in tableux.flags) {
                 if ( util.hasBit(dat.locs[i].flag, tableux.flags[t]) ) 
-                   dat.sets[t.toLowerCase()]
+                    dat.sets[t.toLowerCase()]
                     .push({ loc: dat.locs[i].loc, zoom: dat.locs[i].zoom, exes: dat.locs[i].exes }); 
             }
-        }  
+        }
     };
     
-    return tableux;
-}({}))
+return tableux; });

@@ -1,13 +1,12 @@
-wctank = wctank || {};
-wctank.audio = wctank.audio || {};
+define(
 
-wctank.audio.sonorities = (function(sonorities) {
-    
-    sonorities.VoiceTuple = function VoiceTuple(frequency, amplitude) {
+{
+    VoiceTuple: function VoiceTuple(frequency, amplitude) {
         this.frequency = frequency;
         this.amplitude = amplitude;
-    };
-    sonorities.Sonority = function Sonority() {
+    },
+
+    Sonority: function Sonority() {
         this.values = {};
         var args = arguments;
         for (var i = 0; i < args.length; i++) {
@@ -25,9 +24,8 @@ wctank.audio.sonorities = (function(sonorities) {
         this.addVoice 
         this.removeVoice
         */
-    };
+    }
    
     //TODO: a pool of neat chords
 
-    return sonorities;
-}({}))
+return sonorities; });

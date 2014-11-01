@@ -1,10 +1,11 @@
-wctank = wctank || {};
-wctank.audio = wctank.audio || {};
+define(
+    [
+        'audio',
+        'util'
+    ],
 
-wctank.audio.elements = (function(elements) {
-    var audio = wctank.audio;
+function(audio, util) { var elements = {};
     var ctx = audio.ctx;
-    var util = wctank.util;
 
     // make a buffer for white noise
     var sr = ctx.sampleRate;
@@ -223,8 +224,4 @@ wctank.audio.elements = (function(elements) {
     };
     elements.Bandpass.prototype = new audio.AudioModule();      
 
-
-
-
-    return elements;
-}({}))
+return elements; });

@@ -1,9 +1,10 @@
-wctank = wctank || {};
+define(['div'], 
 
-wctank.posts = (function(posts) {
-    var div = wctank.div;
+function(div) { 
+    var posts = {};
     
-    posts.displayedPostType = null;
+    posts.displayedPostType = null;    
+    
     var renderTemplate = function(post, $template) {
         var content = '';
         if(typeof post.title !== 'undefined') {
@@ -49,12 +50,12 @@ wctank.posts = (function(posts) {
         return template;
     };
     
-    var clip = false;
-    var clip_interval = 500;
+    var clip = false,
+        clip_interval = 500;
     posts.get = function(visibleBounds, callback) {
-        var sw = visibleBounds.getSouthWest();
-        var ne = visibleBounds.getNorthEast();
-        var url = '/' + sw.lat() + '/' + sw.lng() + '/' + ne.lat() + '/' + ne.lng();
+        var sw = visibleBounds.getSouthWest(),
+            ne = visibleBounds.getNorthEast(),
+            url = '/' + sw.lat() + '/' + sw.lng() + '/' + ne.lat() + '/' + ne.lng();
         if (!clip) {    
             $.getJSON(url, function(data) {
                 // only allow 1 request per clip_interval
@@ -82,12 +83,12 @@ wctank.posts = (function(posts) {
         } 
     };
     
-    var marker_clicked = false;
     var loading; 
     $.get("static/assets/loading_cur.svg", function(data) {
         loading = new XMLSerializer().serializeToString(data);
     });
     
+    var marker_clicked = false;
     posts.display = function(post) {
         posts.displayedPostType = post.type;
         var trivial = 130; //mini fade for content swap
@@ -152,4 +153,4 @@ wctank.posts = (function(posts) {
     });
 
     return posts;
-}({}))
+});

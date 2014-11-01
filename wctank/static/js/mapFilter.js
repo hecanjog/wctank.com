@@ -1,19 +1,20 @@
-wctank = wctank || {};
 //unique lengths for each filter ... interval/timeout multiplier
 // TODO: remove fn / constructor / css_class tangle
 // -38.23189840361451 146.42333777291972 gMap.js:103
 // 15 
-wctank.mapFilters = (function(mapFilters) {
+define(
+
+{
+    _mapFiltersReady: new Event('mapFiltersReady'),
     
-    mapFilters._mapFiltersReady = new Event('mapFiltersReady');
-    mapFilters.addReadyListener = function(fn) { 
+    addReadyListener:  function(fn) { 
         document.addEventListener('mapFiltersReady', function() {
             fn();
             document.removeEventListener('mapFiltersReady', fn);
         }); 
-    };
+    },
     
-    mapFilters.FilterType = function FilterType() { 
+    FilterType: function FilterType() { 
         this.usage = 0x00000000; // from flags in .usage
         this.css_class = '';
         this.preInit = null; //function() {};
@@ -21,9 +22,9 @@ wctank.mapFilters = (function(mapFilters) {
         this.animate = null; //function() {};
         this.preTeardown = null; //function() {};
         this.teardown = null //function() {};
-    };
+    },
 
-    mapFilters.usageFlags = {
+    usageFlags: {
         // filter can be called on an /idle_interval setInterval
         GENERAL:        0x40000000,             
         // filter can be called when zoom level >= 17
@@ -34,8 +35,6 @@ wctank.mapFilters = (function(mapFilters) {
         TAKEOVER_UP:    0x08000000,             
         // filter can be called on load
         START:          0x04000000, 
-    };
-
-    return mapFilters;
-}({}))
+    }
+});
 

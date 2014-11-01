@@ -2,10 +2,14 @@
 // limit 'general' filter set against tableux data, e.g.,
 // if close to one of these points, only allow approved filters
 
-(function() {
-    var core = wctank.core; 
-    var tableux = wctank.tableux;
-    var instances = wctank.mapFilters.instances;
+define(
+    [
+        'core',
+        'tableux',
+        'mapFilterInstances'
+    ],
+
+(function(core, tableux, mapFilterInstances) {
     
     var add = tableux.add;
     var f = tableux.flags;
@@ -43,7 +47,8 @@ add(42.99286263118931, -87.97206972615822, 18, f.PRINT_ANALOG | f.VHS | f.FAUVIS
 // over lake michigan somewhere
 add(33.62344395619926, -118.12228629350284, 13, f.CAUSTIC_GLOW | f.VHS | f.CMGYK | f.FAUVIST, 
     [function() {
-        if (core.filters.current === 'cmgyk') instances.cmgyk.setImmediateBlink();
+        if (core.filters.current === 'cmgyk') 
+            mapFilterInstances.cmgyk.setImmediateBlink();
     }]
 ); 
 /*
@@ -64,7 +69,8 @@ add(-38.230836513895284, -213.57230631964012, 15, f.VHS);
 add(-76.25189561591111, 165.7761947222007, 6, f.PRINT_ANALOG | f.VHS);
 add(-82.06481558476122, -180.5787857465493, 5, f.VHS | f.CMGYK | f.PRINT_ANALOG | f.VHS, 
     [function() {
-        if (core.filters.current === 'cmgyk') instances.cmgyk.setImmediateBlink();
+        if (core.filters.current === 'cmgyk') 
+            mapFilterInstances.cmgyk.setImmediateBlink();
     }]
 );
 // industrial agriculture - these are nice 
@@ -80,5 +86,5 @@ add(50.60152354612505, -111.64077556435313, 18, f.VHS | f.FAUVIST);
 // i don't remember what this is
 add(47.45747901459409, 117.24761052530815, 13, f.VHS | f.FAUVIST | f.CAUSTIC_GLOW); 
 
-wctank.tableux.parse();
-}())
+tableux.parse();
+}));

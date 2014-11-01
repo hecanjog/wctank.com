@@ -1,15 +1,20 @@
-wctank = wctank || {};
-wctank.mapFilters = wctank.mapFilters || {};
+define(
+    [
+        'util',
+        'div',
+        'gMap',
+        'core',
+        'markers',
+        'mapFilter',
+        'jquery',
+        'froogaloop2',
+        'text!VHSglsl.glsl',
+        'require'
+    ],
 
-wctank.mapFilters.defs = (function(defs) {
-    var util = wctank.util;
-    var div = wctank.div;
-    var gMap = wctank.gMap;
-    var core = wctank.core;
-    var mapFilters = wctank.mapFilters;
-
+function(util, div, gMap, core, markers, mapFilter, $, $f, VHSglsl, require) { var defs = {};
     defs.Troller = function Troller() {
-        var u = mapFilters.usageFlags;
+        var u = mapFilter.usageFlags;
         this.usage = u.GENERAL | u.ZOOMED;
         this.css_class = 'troller'; 
 
@@ -82,18 +87,20 @@ wctank.mapFilters.defs = (function(defs) {
             window.addEventListener('resize', $mapOnResize);
             set$mapCss(false);
             gMap.zoomControlsVisible(false);
-            wctank.markers.setVisibility(false);
+            markers.setVisibility(false);
             document.body.appendChild(troller_back);
             troller_back.play();
             transform("rotate(360deg)");
             if (cntr === 0) {
-                to_id = window.setTimeout(core.filters.forceApply, util.smudgeNumber(7000, 5));
-                window.setTimeout(function() { 
-                    core.filterTypeOp('teardown', parent);
-                    core.filterTypeOp('init', parent, function() {
-                        div.$map.addClass(parent.css_class);
-                    });
-                }, 50);
+                require(['core'], function(core) {
+                    to_id = window.setTimeout(core.filters.forceApply, util.smudgeNumber(7000, 5));
+                    window.setTimeout(function() { 
+                        core.filterTypeOp('teardown', parent);
+                        core.filterTypeOp('init', parent, function() {
+                            div.$map.addClass(parent.css_class);
+                        });
+                    }, 50);
+                });
             }
             cntr++;
         };
@@ -105,7 +112,7 @@ wctank.mapFilters.defs = (function(defs) {
                 window.removeEventListener('resize', $mapOnResize);
                 set$mapCss(true);
                 gMap.zoomControlsVisible(true);
-                wctank.markers.setVisibility(true);
+                markers.setVisibility(true);
                 troller_back.pause();
                 troller_back.currentTime = 0;
                 transform(ident);
@@ -115,23 +122,23 @@ wctank.mapFilters.defs = (function(defs) {
             }
         };
     };
-    defs.Troller.prototype = new mapFilters.FilterType(); 
+    defs.Troller.prototype = new mapFilter.FilterType(); 
     
     defs.Print_Analog = function Print_Analog() {
-        this.usage = mapFilters.usageFlags.GENERAL |
-                     mapFilters.usageFlags.ZOOMED | 
-                     mapFilters.usageFlags.TAKEOVER_DOWN | 
-                     mapFilters.usageFlags.START;
+        this.usage = mapFilter.usageFlags.GENERAL |
+                     mapFilter.usageFlags.ZOOMED | 
+                     mapFilter.usageFlags.TAKEOVER_DOWN | 
+                     mapFilter.usageFlags.START;
         this.css_class = 'print_analog';
         this.denoise = document.getElementById("pa-denoise");
         this.bypass = document.getElementById("pa-bypass");
     };
-    defs.Troller.prototype = new mapFilters.FilterType();
+    defs.Troller.prototype = new mapFilter.FilterType();
     
     defs.Caustic_Glow = function Caustic_Glow() {
-        var u = mapFilters.usageFlags;
+        var u = mapFilter.usageFlags;
         this.usage = u.GENERAL | u.TAKEOVER_DOWN | u.TAKEOVER_UP | 
-                             u.ZOOMED | u.START;
+                     u.ZOOMED | u.START;
         this.css_class = 'caustic_glow';
         this.glow_radius = document.getElementById("cg-glow-radius");
         
@@ -187,10 +194,10 @@ wctank.mapFilters.defs = (function(defs) {
             blink_id = null;    
         };
     };
-    defs.Caustic_Glow.prototype = new mapFilters.FilterType(); 
+    defs.Caustic_Glow.prototype = new mapFilter.FilterType(); 
     
     defs.Cmgyk = function Cmgyk() {
-        var u = mapFilters.usageFlags;
+        var u = mapFilter.usageFlags;
         this.usage = u.GENERAL | u.ZOOMED | u.START;
         this.css_class = 'cmgyk';
 
@@ -335,17 +342,17 @@ wctank.mapFilters.defs = (function(defs) {
         };
         gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom); 
     };
-    defs.Cmgyk.prototype = new mapFilters.FilterType();
+    defs.Cmgyk.prototype = new mapFilter.FilterType();
 
     defs.Fauvist = function Fauvist() {
-        var u = mapFilters.usageFlags;
+        var u = mapFilter.usageFlags;
         this.usage = u.ZOOMED | u.START | u.GENERAL;
         this.css_class = 'fauvist';
     };
-    defs.Fauvist.prototype = new mapFilters.FilterType();
+    defs.Fauvist.prototype = new mapFilter.FilterType();
 
     defs.Vhs = function Vhs() {
-        var u = mapFilters.usageFlags;
+        var u = mapFilter.usageFlags;
         this.usage = u.GENERAL | u.ZOOMED | u.START;
         this.offset = document.getElementById("vhs-offset");
         this.css_class = 'vhs';
@@ -404,31 +411,32 @@ wctank.mapFilters.defs = (function(defs) {
                 vhs_canv.width = window.innerWidth * 0.75;
                 vhs_canv.height = window.innerHeight * 0.75;
             });
-            var z = core.webgl.setup(vhs_canv, "/static/glsl/white_noise.glsl");
-            var start_time = Date.now();    
-            var time;
-            var js_random;
-            var idle;
-            webgl.update = function() {
-                z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-                time = z.gl.getUniformLocation(z.program, "time");
-                z.gl.uniform1f(time, Date.now() - start_time);
-                js_random = z.gl.getUniformLocation(z.program, "js_random");
-                z.gl.uniform1f(js_random, Math.random());
-                idle = z.gl.getUniformLocation(z.program, "idle");
-                z.gl.uniform1i(idle, jit ? 1 : 0);
-                z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
-            };
-            webgl.init = function() {
-                document.body.appendChild(vhs_canv);
-            }
-            webgl.teardown = function() {
-                document.body.removeChild(vhs_canv);
-            }
+            require(['core'], function(core) {
+                var z = core.webgl.setup(vhs_canv, VHSglsl);
+                var start_time = Date.now();    
+                var time;
+                var js_random;
+                var idle;
+                webgl.update = function() {
+                    z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+                    time = z.gl.getUniformLocation(z.program, "time");
+                    z.gl.uniform1f(time, Date.now() - start_time);
+                    js_random = z.gl.getUniformLocation(z.program, "js_random");
+                    z.gl.uniform1f(js_random, Math.random());
+                    idle = z.gl.getUniformLocation(z.program, "idle");
+                    z.gl.uniform1i(idle, jit ? 1 : 0);
+                    z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
+                };
+                webgl.init = function() {
+                    document.body.appendChild(vhs_canv);
+                }
+                webgl.teardown = function() {
+                    document.body.removeChild(vhs_canv);
+                }
+            });
             return webgl;
         }({}))
     };
-    defs.Vhs.prototype = new mapFilters.FilterType();
+    defs.Vhs.prototype = new mapFilter.FilterType();
 
-    return defs;
-}({}))
+return defs; });
