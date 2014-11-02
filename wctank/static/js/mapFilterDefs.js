@@ -7,12 +7,13 @@ define(
         'markers',
         'mapFilterCycle',
         'text!filterXML.xml',
-        'text!VHSglsl.glsl',
+        'text!VHSShaders.glsl',
         'jquery',
         'froogaloop2'
     ],
 
-function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, $, $f) { var defs = {};
+function(util, div, gMap, visCore, markers, mapFilterCycle, 
+         filterXML, VHSShaders, $, $f) { var defs = {};
     
     var cont = document.createElement("svg_filters");
     cont.style.position = "fixed";
@@ -30,8 +31,9 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
         troller_back.src = "https://archive.org/download/C.E.PriceSunClouds/SunClouds_512kb.mp4";
         troller_back.setAttribute("id", "troller_back");
          
-        var rot = 0;
-        var ident = "rotate(0deg)";
+        var rot = 0,
+            ident = "rotate(0deg)";
+        
         var transform = function(val) {
             div.$map.css("transform", val);
             div.$map.css("webkitTransform", val);
@@ -40,13 +42,12 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
         var getCurrentRotation = function() {
             // basically ripped from: http://css-tricks.com/get-
             // value-of-css-rotation-through-javascript/
-            var sty = window.getComputedStyle(div.$map.get(0));
-            var mat = sty.getPropertyValue("-webkit-transform") || 
-                      sty.getPropertyValue("transform") || "matrix(1, 0, 0, 1, 0, 0)";
-            var values = mat.split('(')[1];
+            var sty = window.getComputedStyle(div.$map.get(0)),
+                mat = sty.getPropertyValue("-webkit-transform") || 
+                      sty.getPropertyValue("transform") || "matrix(1, 0, 0, 1, 0, 0)",
+                values = mat.split('(')[1];
             values = values.split(')')[0];
             values = values.split(',');
-            var a = Number(values[0]);
             var b = Number(values[1]);
             return Math.round(Math.asin(b) * (180/Math.PI));
         };
@@ -62,8 +63,8 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
         //some weird interaction with the rotate transform?
         var cntr = 0;
         var set$mapCss = function(clear_set) {
-            var w = window.innerWidth;
-            var h = window.innerHeight;
+            var w = window.innerWidth,
+                h = window.innerHeight;
             var px = function(n) {
                 return n+'px';
             };
@@ -154,8 +155,8 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
         var caustic_glow_back = document.createElement("div");
         caustic_glow_back.setAttribute("id", "caustic_glow_back");  
         
-        var vid_id = "107871876";
-        var vimeo_player = document.createElement("iframe");
+        var vid_id = "107871876",
+            vimeo_player = document.createElement("iframe");
         vimeo_player.setAttribute("id", "vimeo_player");
         vimeo_player.src = 
             "//player.vimeo.com/video/"+vid_id+
@@ -164,17 +165,18 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
         
         document.body.appendChild(caustic_glow_back);
          
-        var player = $f( $('#vimeo_player')[0] );
-        var player_ready = false;
+        var player = $f( $('#vimeo_player')[0] ),
+            player_ready = false;
         player.addEvent('ready', function() {
             player_ready = true;
             player.api("setVolume", 0);
             player.api('pause');
         });
+
         var blink_id = null;
         var blink_map = function() {
-            var del = Math.random() * 20000 + 10000;
-            var dur = Math.random() * 2000 + 1000;
+            var del = Math.random() * 20000 + 10000,
+                dur = Math.random() * 2000 + 1000;
             blink_id = window.setTimeout(function() {
                 div.$map_U_markers.css("display", "none");
                 window.setTimeout(function() {
@@ -187,7 +189,6 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
         var parent = this;
         this.init = function() {
             if (player_ready) {
-                console.log('playcall');
                 player.api("play");
             } else {
                 window.setTimeout(function() {
@@ -195,7 +196,7 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
                 }, 250);
             }
             caustic_glow_back.style.visibility = "visible";
-            if ( (Math.random() * 10) <= 5 ) blink_map(); 
+            if ( (Math.random() * 10) <= 7 ) blink_map(); 
         };
         this.teardown = function() {
             player.api("pause");
@@ -225,10 +226,10 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
         var cmgyk_steady_back = document.createElement("div");
         cmgyk_steady_back.setAttribute("id", "cmgyk_steady_back");
         
-        var engaged = false;
-        var times_engaged = 0;
-        var ko_num = 2;
-        var blink_num = 3;
+        var engaged = false,
+            times_engaged = 0,
+            ko_num = 2,
+            blink_num = 3;
         var should_ko = function() {
             if (times_engaged > ko_num) return true;
             return false;
@@ -240,10 +241,12 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
             }
             return false;
         };
+        
         this.setImmediateBlink = function() {
             ko_num = 0 ;
             blink_num = 0;
         };
+        
         var $kos = $();
         this.init = function() {
             engaged = true;
@@ -281,8 +284,8 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
                     var idxGen = function() {
                         return (gaussDist() * 2 + mdn + 0.5) | 0;
                     };
-                    var x = idxGen();
-                    var y = idxGen();
+                    var x = idxGen(),
+                        y = idxGen();
                     if (x > y) {
                         s_idx = x;
                         e_idx = y;
@@ -294,9 +297,9 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
                     e_idx++;
                 }())
                 var b_mod = (function() {
-                    var range = [5, 6, 7, 8, 9, 10, 11];
-                    var r = [];
-                    var num = (Math.random() * 4 + 0.5) | 0
+                    var range = [5, 6, 7, 8, 9, 10, 11],
+                        r = [],
+                        num = (Math.random() * 4 + 0.5) | 0
                     for (var i = 0; i < num; i++) {
                         r.push(range[ (Math.random() * range.length - 1 + 0.5) | 0 ]);
                     }
@@ -336,9 +339,9 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
         };
         
         // events
-        var rot_interval = 22.5;
-        var rot = 0;
-        var lzoom = 0;
+        var rot_interval = 22.5,
+            rot = 0,
+            lzoom = 0;
         var onTilesLoaded = function(map_obj) {
             lzoom = map_obj.zoom;
         };
@@ -385,13 +388,13 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
             this.webgl.teardown();
         }
        
-        var parent = this; 
-        var jit;
-        var jit_offset = 3;
-        var jit_delay = 150;
-        var jit_frame_div = 2;
-        var frct = 0;
-        var os = 0;
+        var parent = this,
+            jit,
+            jit_offset = 3,
+            jit_delay = 150,
+            jit_frame_div = 2,
+            frct = 0,
+            os = 0;
         this.animate = function() {
             if ( jit && ( (frct % jit_frame_div) === 0 ) ) {
                 parent.offset.setAttribute("dy", os); 
@@ -427,11 +430,12 @@ function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, 
                 vhs_canv.width = window.innerWidth * 0.75;
                 vhs_canv.height = window.innerHeight * 0.75;
             });
-            var z = visCore.webgl.setup(vhs_canv, VHSglsl);
-            var start_time = Date.now();    
-            var time;
-            var js_random;
-            var idle;
+            
+            var z = visCore.webgl.setup(vhs_canv, VHSShaders),
+                start_time = Date.now(),
+                time,
+                js_random,
+                idle;
             webgl.update = function() {
                 z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
                 time = z.gl.getUniformLocation(z.program, "time");

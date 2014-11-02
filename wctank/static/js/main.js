@@ -9,9 +9,12 @@ require.config({
                 '/static/lib/jquery-2.1.1.min'],
         froogaloop2: '/static/lib/froogaloop2.min',
         tween: '/static/lib/tween.min',
+        sylvester: '/static/lib/sylvester',
         filterXML: '/static/map_filters',
-        VHSglsl: '/static/glsl/white_noise'
+        VHSShaders: '/static/glsl/white_noise',
+        MarkerShaders: '/static/glsl/markers'
     },
+
     shim: {
         'froogaloop2': {
             deps: ['jquery'],
@@ -19,6 +22,9 @@ require.config({
         },
         'tween': {
             exports: 'TWEEN'
+        },
+        'sylvester': {
+            exports: 'sylvester'
         }
     }
 });

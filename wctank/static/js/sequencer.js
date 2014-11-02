@@ -26,7 +26,6 @@ function(util, gMap, mapFilterCycle, tableux,
     var stages = {
         0: function() {
             gMap.init();
-            console.log(google);
             var bounds = new google.maps.LatLngBounds(
                 new google.maps.LatLng(42.96, -87.3159),
                 new google.maps.LatLng(43.25, -86.9059)

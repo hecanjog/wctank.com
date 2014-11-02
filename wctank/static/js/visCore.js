@@ -84,8 +84,8 @@ function(div) { var visCore = {};
                 r.program = prgm;
 
                 //draw two big triangles
-                var buffer = gl.createBuffer();
-                var pos_loc = gl.getAttribLocation(prgm, 'position');
+                var buffer = gl.createBuffer(),
+                    pos_loc = gl.getAttribLocation(prgm, 'position');
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
                     -1.0, -1.0,
