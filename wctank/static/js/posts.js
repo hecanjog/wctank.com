@@ -1,6 +1,10 @@
-define(['div'], 
+define(
+    [
+        'div', 
+        'jquery'
+    ], 
 
-function(div) { 
+function(div, $) { 
     var posts = {};
     
     posts.displayedPostType = null;    

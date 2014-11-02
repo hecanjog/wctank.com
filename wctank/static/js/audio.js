@@ -12,11 +12,11 @@
 define(
     [
         'util',
-        'core', 
+        'visCore', 
         'tween'
     ],
 
-function(util, core, TWEEN) { var audio = {};
+function(util, visCore, TWEEN) { var audio = {};
     
     audio.ctx = new ( window.AudioContext || window.webkitAudioContext )();  
     
@@ -37,12 +37,12 @@ function(util, core, TWEEN) { var audio = {};
     // TWEEN utils
     audio.tweenUtil = (function(tweenUtil) {
         tweenUtil.startTweens = function() {
-            if ( !core.render.has(TWEEN.update) ) core.render.push(TWEEN.update);
-            if (!core.render.rendering) core.render.go();  
+            if ( !visCore.render.has(TWEEN.update) ) visCore.render.push(TWEEN.update);
+            if (!visCore.render.rendering) visCore.render.go();  
         };
         tweenUtil.stopTweens = function() {
-            if ( (TWEEN.getAll().length === 0) ) core.render.rm(TWEEN.update);
-            if ( !core.render.has() ) core.render.stop();
+            if ( (TWEEN.getAll().length === 0) ) visCore.render.rm(TWEEN.update);
+            if ( !visCore.render.has() ) visCore.render.stop();
         };
         var easing_list = Object.keys(TWEEN.Easing); 
         tweenUtil.getRandomEasingFn = function() {

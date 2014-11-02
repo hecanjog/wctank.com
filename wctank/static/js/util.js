@@ -38,8 +38,4 @@ define(
             return set[ util.getRndItem(keys) ];
         }
     }
-    /* 
-    arg2Array: function(argObj) {
-        return Array.slice(argObj);   
-    }*/
 });

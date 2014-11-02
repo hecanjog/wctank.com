@@ -2,11 +2,9 @@
 define(
     
     [
-        'jquery', 
         'posts', 
         'util',
-        //'markers',
-        'require',
+        'jquery',
         'async!https://maps.googleapis.com/maps/api/js?'+
             'key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&'+
             'sensor=false&'+
@@ -14,7 +12,7 @@ define(
             '!callback'
     ], 
 
-function($, posts, util, require) { gMap = {}; 
+function(posts, util, $) { gMap = {}; 
 
     // On init, provides ref to google.maps.Map obj
     //gMap.map;
@@ -111,7 +109,8 @@ function($, posts, util, require) { gMap = {};
         MAP: evHeap.MAP,
         MARKER: evHeap.MARKER,
         initHeapEvents: evHeap.addHeapEvents,
-        push: evHeap.push
+        push: evHeap.push,
+        addHeapEvents: evHeap.addHeapEvents
     };
     
     // for tableux dev 
@@ -146,27 +145,6 @@ function($, posts, util, require) { gMap = {};
         gMap.pxOverlay = new google.maps.OverlayView();
         gMap.pxOverlay.draw = function() {};
         gMap.pxOverlay.setMap(gMap.map);
-        require(['markers'], function(markers) {
-            markers.setOverlay(gMap.pxOverlay); 
-        });
-        
-        google.maps.event.addListener(gMap.map, 'tilesloaded', function() {
-            posts.get(gMap.map.getBounds(), function(data) {
-                $.each(data, function(i, post) {
-                    var m,
-                        loc = new google.maps.LatLng(post.lat, post.long);
-                    m = new google.maps.Marker({
-                        position: loc,
-                        map: gMap.map,
-                        icon: "static/assets/blank.png"
-                    });
-                    m.markerType = post.markerType;
-                    require('markers').addMarker(m);
-                    evHeap.addHeapEvents(evHeap.MARKER, m);
-                    google.maps.event.addListener(m, 'click', function() { posts.display(post); });
-                });
-            });
-        });
     };
 
     gMap.zoomControlsVisible = function(b) {

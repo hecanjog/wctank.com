@@ -5,26 +5,30 @@ define(
     [
         'util',
         'gMap',
-        'mapFilterDefs',
-        'mapFilterInstances'
+        'mapFilterDefs'
     ],
 
-function(util, gMap, mapFilterDefs, mapFilterInstances) { var tableux = {};
+function(util, gMap, mapFilterDefs) { var tableux = {};
+
+    var filter_names = (function() {
+        var names = [];
+        for (var cycledFilter in mapFilterDefs) {
+            if ( mapFilterDefs.hasOwnProperty(cycledFilter) ) 
+                names.push( cycledFilter.toLowerCase() )
+        }
+        return names;
+    }())
 
     tableux.flags = {};
-    var filter_names = Object.keys(mapFilterInstances);
-    var dat = (function(dat) {
-        dat.sets = {};
-        dat.locs = [];
-        var bit = 0x40000000;
-        for (var i = 0; i < filter_names.length; i++) {
-            var name = filter_names[i];
-            dat.sets[ name ] = [];
-            tableux.flags[ name.toUpperCase() ] = bit;
-            bit = bit >>> 1;    
-        }
-        return dat; 
-    }({})); 
+    var sets = {};
+   
+    var bit = 0x40000000;
+    for (var i = 0; i < filter_names.length; i++) {
+        var name = filter_names[i];
+        sets[ name.toLowerCase() ] = [];
+        tableux.flags[ name.toUpperCase() ] = bit;
+        bit = bit >>> 1;    
+    }
     
     var TableuxDataTuple = function TableuxDataTuple(lat, lng, zoom, flag, exes) {
         this.loc = new google.maps.LatLng(lat, lng);
@@ -33,26 +37,20 @@ function(util, gMap, mapFilterDefs, mapFilterInstances) { var tableux = {};
         exes = exes;
     };
     tableux.add = function(lat, lng, zoom, flags, exes) {
-        dat.locs.push( new TableuxDataTuple(lat, lng, zoom, flags, exes) );
+        var data = new TableuxDataTuple(lat, lng, zoom, flags, exes);
+        for (var t in tableux.flags) {
+            if ( util.hasBit(data.flag, tableux.flags[t]) ) 
+                sets[t.toLowerCase()].push(data); 
+        }
     };
     
     tableux.pick = function(filter) {
-        var s = dat.sets[filter];
+        var s = sets[filter.css_class];
         var i = (Math.random() * s.length) | 0;
         gMap.goTo(s[i].loc, s[i].zoom);
         if (s[i].exes) {
             for (var j = 0; j < s[i].exes.length; j++) {
                 s[i].exes[j]();
-            }
-        }
-    };
-
-    tableux.parse = function() {
-        for (var i = 0; i < dat.locs.length; i++) {
-            for (var t in tableux.flags) {
-                if ( util.hasBit(dat.locs[i].flag, tableux.flags[t]) ) 
-                    dat.sets[t.toLowerCase()]
-                    .push({ loc: dat.locs[i].loc, zoom: dat.locs[i].zoom, exes: dat.locs[i].exes }); 
             }
         }
     };

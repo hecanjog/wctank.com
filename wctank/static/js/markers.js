@@ -1,15 +1,15 @@
 define(
     [
-        'gMap'
+        'gMap',
+        'posts'
     ],
 
-function(gMap) { var markers = {};
+function(gMap, posts) { var markers = {};
 
     /*
      * markers creates a canvas overlay so that the pins are
      * not modified by svg filters applied to the map
      */
-    var overlay;
     var disp = (function(disp) {
         var CanvPrep = function(canv_elem) {
             this.canv = canv_elem;
@@ -109,7 +109,7 @@ function(gMap) { var markers = {};
         marks.getDrawingInfo = function() {
             if (stk.length > 0) {   
                 var r = [];
-                var pjkt = overlay.getProjection();
+                var pjkt = gMap.pxOverlay.getProjection();
                 for (var i = 0; i < stk.length; i++) {
                     var px = getMarkXY(stk[i], pjkt);
                     if (px) r.push([stk[i].markerType, px]);   
@@ -123,9 +123,7 @@ function(gMap) { var markers = {};
         disp.drawCycle( marks.getDrawingInfo() );
     };
     gMap.events.push(gMap.events.MAP, 'bounds_changed', update);
-    markers.setOverlay = function(g_ovr_obj) {
-        overlay = g_ovr_obj;
-    };
+    
     markers.addMarker = function(m) {
         if ( !marks.isDuplicate(m) ) {
             marks.pushMark(m);
@@ -137,5 +135,23 @@ function(gMap) { var markers = {};
         disp.c[0].canv.style.visibility = vis;
         disp.c[1].canv.style.visibility = vis; 
     };
+
+    gMap.events.push(gMap.events.MAP, 'tilesloaded', function() {
+        posts.get(gMap.map.getBounds(), function(data) {
+            $.each(data, function(i, post) {
+                var m,
+                    loc = new google.maps.LatLng(post.lat, post.long);
+                m = new google.maps.Marker({
+                    position: loc,
+                    map: gMap.map,
+                    icon: "static/assets/blank.png"
+                });
+                m.markerType = post.markerType;
+                markers.addMarker(m);
+                gMap.events.addHeapEvents(gMap.events.MARKER, m);
+                google.maps.event.addListener(m, 'click', function() { posts.display(post); });
+            });
+        });
+    });
      
 return markers; });

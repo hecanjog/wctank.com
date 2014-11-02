@@ -2,8 +2,7 @@ define(
     [
         'util',
         'gMap',
-        'core',
-        'mapFilter',
+        'mapFilterCycle',
         'tableux',
         'audio',
         'audioElements',
@@ -20,11 +19,14 @@ define(
         ].join('/n')
     ],
 
-function(util, gMap, core, mapFilter, tableux, audio, audioElements, audioActors) { var sequencer = {};
+function(util, gMap, mapFilterCycle, tableux, 
+         audio, audioElements, audioActors) { var sequencer = {};
+    
     var current_stage = null;
     var stages = {
         0: function() {
             gMap.init();
+            console.log(google);
             var bounds = new google.maps.LatLngBounds(
                 new google.maps.LatLng(42.96, -87.3159),
                 new google.maps.LatLng(43.25, -86.9059)
@@ -44,7 +46,7 @@ function(util, gMap, core, mapFilter, tableux, audio, audioElements, audioActors
                 gMap.map.setZoom(9);
             });
             gMap.events.initHeapEvents(gMap.events.MAP);
-            tableux.pick(core.filters.start()); 
+            tableux.pick(mapFilterCycle.start()); 
 
             /*
              * audio dev whateves
@@ -122,11 +124,3 @@ function(util, gMap, core, mapFilter, tableux, audio, audioElements, audioActors
     };
 return sequencer; });
 
-/*
- * dev stupidness
- */
-/*
-var af = wctank.core.filters.apply;
-var loc = wctank.gMap.tool;
-var gt = wctank.gMap.goTo
-wctank.sequencer.goTo(0);*/

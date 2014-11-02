@@ -3,18 +3,26 @@ define(
         'util',
         'div',
         'gMap',
-        'core',
+        'visCore',
         'markers',
-        'mapFilter',
-        'jquery',
-        'froogaloop2',
+        'mapFilterCycle',
+        'text!filterXML.xml',
         'text!VHSglsl.glsl',
-        'require'
+        'jquery',
+        'froogaloop2'
     ],
 
-function(util, div, gMap, core, markers, mapFilter, $, $f, VHSglsl, require) { var defs = {};
-    defs.Troller = function Troller() {
-        var u = mapFilter.usageFlags;
+function(util, div, gMap, visCore, markers, mapFilterCycle, filterXML, VHSglsl, $, $f) { var defs = {};
+    
+    var cont = document.createElement("svg_filters");
+    cont.style.position = "fixed";
+    cont.style.bottom = 0;
+    cont.style.zIndex = -99999999;
+    document.body.appendChild(cont);
+    cont.innerHTML = filterXML; 
+
+    function Troller() {
+        var u = mapFilterCycle.usageFlags;
         this.usage = u.GENERAL | u.ZOOMED;
         this.css_class = 'troller'; 
 
@@ -92,15 +100,11 @@ function(util, div, gMap, core, markers, mapFilter, $, $f, VHSglsl, require) { v
             troller_back.play();
             transform("rotate(360deg)");
             if (cntr === 0) {
-                require(['core'], function(core) {
-                    to_id = window.setTimeout(core.filters.forceApply, util.smudgeNumber(7000, 5));
-                    window.setTimeout(function() { 
-                        core.filterTypeOp('teardown', parent);
-                        core.filterTypeOp('init', parent, function() {
-                            div.$map.addClass(parent.css_class);
-                        });
-                    }, 50);
-                });
+                to_id = window.setTimeout(mapFilterCycle.forceApply, util.smudgeNumber(7000, 5));
+                window.setTimeout(function() { 
+                    parent.operate('teardown');
+                    parent.operate('init');                
+                }, 50);
             }
             cntr++;
         };
@@ -122,21 +126,26 @@ function(util, div, gMap, core, markers, mapFilter, $, $f, VHSglsl, require) { v
             }
         };
     };
-    defs.Troller.prototype = new mapFilter.FilterType(); 
-    
-    defs.Print_Analog = function Print_Analog() {
-        this.usage = mapFilter.usageFlags.GENERAL |
-                     mapFilter.usageFlags.ZOOMED | 
-                     mapFilter.usageFlags.TAKEOVER_DOWN | 
-                     mapFilter.usageFlags.START;
+    Troller.prototype = new mapFilterCycle.CycledFilter(); 
+    defs.Troller = new Troller();
+    mapFilterCycle.parse(defs.Troller);
+
+
+    function Print_Analog() {
+        this.usage = mapFilterCycle.usageFlags.GENERAL |
+                     mapFilterCycle.usageFlags.ZOOMED | 
+                     mapFilterCycle.usageFlags.TAKEOVER_DOWN | 
+                     mapFilterCycle.usageFlags.START;
         this.css_class = 'print_analog';
         this.denoise = document.getElementById("pa-denoise");
         this.bypass = document.getElementById("pa-bypass");
     };
-    defs.Troller.prototype = new mapFilter.FilterType();
-    
-    defs.Caustic_Glow = function Caustic_Glow() {
-        var u = mapFilter.usageFlags;
+    Print_Analog.prototype = new mapFilterCycle.CycledFilter();
+    defs.Print_Analog = new Print_Analog();
+    mapFilterCycle.parse(defs.Print_Analog);
+
+    function Caustic_Glow() {
+        var u = mapFilterCycle.usageFlags;
         this.usage = u.GENERAL | u.TAKEOVER_DOWN | u.TAKEOVER_UP | 
                      u.ZOOMED | u.START;
         this.css_class = 'caustic_glow';
@@ -160,7 +169,7 @@ function(util, div, gMap, core, markers, mapFilter, $, $f, VHSglsl, require) { v
         player.addEvent('ready', function() {
             player_ready = true;
             player.api("setVolume", 0);
-            player.api("pause");
+            player.api('pause');
         });
         var blink_id = null;
         var blink_map = function() {
@@ -178,6 +187,7 @@ function(util, div, gMap, core, markers, mapFilter, $, $f, VHSglsl, require) { v
         var parent = this;
         this.init = function() {
             if (player_ready) {
+                console.log('playcall');
                 player.api("play");
             } else {
                 window.setTimeout(function() {
@@ -194,10 +204,12 @@ function(util, div, gMap, core, markers, mapFilter, $, $f, VHSglsl, require) { v
             blink_id = null;    
         };
     };
-    defs.Caustic_Glow.prototype = new mapFilter.FilterType(); 
+    Caustic_Glow.prototype = new mapFilterCycle.CycledFilter();
+    defs.Caustic_Glow = new Caustic_Glow();
+    mapFilterCycle.parse(defs.Caustic_Glow); 
     
-    defs.Cmgyk = function Cmgyk() {
-        var u = mapFilter.usageFlags;
+    function Cmgyk() {
+        var u = mapFilterCycle.usageFlags;
         this.usage = u.GENERAL | u.ZOOMED | u.START;
         this.css_class = 'cmgyk';
 
@@ -342,17 +354,21 @@ function(util, div, gMap, core, markers, mapFilter, $, $f, VHSglsl, require) { v
         };
         gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom); 
     };
-    defs.Cmgyk.prototype = new mapFilter.FilterType();
+    Cmgyk.prototype = new mapFilterCycle.CycledFilter();
+    defs.Cmgyk = new Cmgyk();
+    mapFilterCycle.parse(defs.Cmgyk);
 
-    defs.Fauvist = function Fauvist() {
-        var u = mapFilter.usageFlags;
+    function Fauvist() {
+        var u = mapFilterCycle.usageFlags;
         this.usage = u.ZOOMED | u.START | u.GENERAL;
         this.css_class = 'fauvist';
     };
-    defs.Fauvist.prototype = new mapFilter.FilterType();
+    Fauvist.prototype = new mapFilterCycle.CycledFilter();
+    defs.Fauvist = new Fauvist();
+    mapFilterCycle.parse(defs.Fauvist);
 
-    defs.Vhs = function Vhs() {
-        var u = mapFilter.usageFlags;
+    function Vhs() {
+        var u = mapFilterCycle.usageFlags;
         this.usage = u.GENERAL | u.ZOOMED | u.START;
         this.offset = document.getElementById("vhs-offset");
         this.css_class = 'vhs';
@@ -411,32 +427,43 @@ function(util, div, gMap, core, markers, mapFilter, $, $f, VHSglsl, require) { v
                 vhs_canv.width = window.innerWidth * 0.75;
                 vhs_canv.height = window.innerHeight * 0.75;
             });
-            require(['core'], function(core) {
-                var z = core.webgl.setup(vhs_canv, VHSglsl);
-                var start_time = Date.now();    
-                var time;
-                var js_random;
-                var idle;
-                webgl.update = function() {
-                    z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-                    time = z.gl.getUniformLocation(z.program, "time");
-                    z.gl.uniform1f(time, Date.now() - start_time);
-                    js_random = z.gl.getUniformLocation(z.program, "js_random");
-                    z.gl.uniform1f(js_random, Math.random());
-                    idle = z.gl.getUniformLocation(z.program, "idle");
-                    z.gl.uniform1i(idle, jit ? 1 : 0);
-                    z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
-                };
-                webgl.init = function() {
-                    document.body.appendChild(vhs_canv);
-                }
-                webgl.teardown = function() {
-                    document.body.removeChild(vhs_canv);
-                }
-            });
+            var z = visCore.webgl.setup(vhs_canv, VHSglsl);
+            var start_time = Date.now();    
+            var time;
+            var js_random;
+            var idle;
+            webgl.update = function() {
+                z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+                time = z.gl.getUniformLocation(z.program, "time");
+                z.gl.uniform1f(time, Date.now() - start_time);
+                js_random = z.gl.getUniformLocation(z.program, "js_random");
+                z.gl.uniform1f(js_random, Math.random());
+                idle = z.gl.getUniformLocation(z.program, "idle");
+                z.gl.uniform1i(idle, jit ? 1 : 0);
+                z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
+            };
+            webgl.init = function() {
+                document.body.appendChild(vhs_canv);
+            }
+            webgl.teardown = function() {
+                document.body.removeChild(vhs_canv);
+            }
             return webgl;
         }({}))
     };
-    defs.Vhs.prototype = new mapFilter.FilterType();
+    Vhs.prototype = new mapFilterCycle.CycledFilter();
+    defs.Vhs = new Vhs();
+    mapFilterCycle.parse(defs.Vhs);
+    
+    (function() {
+        var dppx1dot2 = window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
+                            "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
+        if (dppx1dot2.matches) {
+            defs.Print_Analog.denoise.setAttribute("stdDeviation", "1.16");
+            defs.Print_Analog.bypass.setAttribute("in2", "flip");
+            defs.Caustic_Glow.glow_radius.setAttribute("stdDeviation", "10.6");
+            defs.Cmgyk.denoise.setAttribute("stdDeviation", "1");
+        }
+    }())
 
 return defs; });
