@@ -25,14 +25,16 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
             return can;
         };
         
-        disp.markCanv = document.getElementById("markers-a");
+        disp.markCanv = document.getElementById("markers");
         disp.markCanv.width = window.innerWidth;
         disp.markCanv.height = window.innerHeight; 
        
         //optimize this - only do matrix math when necssary
         // - do not clear ARRAY_BUFFER on every frame, 
         // only translate until vertices are changed
-
+        // array comparaison at a few points from $'d locs to current locs
+        // if identical, only translate
+        // if different, dump buffer and replace
         // a square
         var m_marker = 
             [ -1.0, -1.0,

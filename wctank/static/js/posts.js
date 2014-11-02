@@ -91,7 +91,7 @@ function(div, $) {
     $.get("static/assets/loading_cur.svg", function(data) {
         loading = new XMLSerializer().serializeToString(data);
     });
-    
+    //TODO: highlight new posts, timeout loading svg 
     var marker_clicked = false;
     posts.display = function(post) {
         posts.displayedPostType = post.type;

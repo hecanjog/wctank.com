@@ -249,20 +249,17 @@ button {
     width: 100%;
     height: 100%;
 }
-// The width and height of both these canvases is set in markers.js
+// The width and height of #markers is set in markers.js
 // so we can use pixel measurements in drawImage calls.
-#markers-b {
+#markers {
     display: block;
     position: absolute;
     top: 0;
     left: 0;
     pointer-events: none;
-    z-index: 9;
-}
-#markers-a {
-    #markers-b;
     z-index: 10;
 }
+
 #overlay {
     display: none;
     overflow: auto;
