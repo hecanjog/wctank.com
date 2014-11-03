@@ -22,6 +22,9 @@ function(div) { var visCore = {};
                 stk[i]();
             }
         }; 
+        window.dbug = function() {
+            console.log(stk);
+        };
         render.go = function() {
             render.rendering = true;
             id = window.requestAnimationFrame(render.go);

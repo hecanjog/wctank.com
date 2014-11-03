@@ -6,7 +6,6 @@ define(
         'text!MarkerShaders.glsl',
         'sylvester'
     ],
-
 function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
     /*
      * rendering map markers in webgl      
@@ -29,13 +28,7 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
         disp.markCanv.width = window.innerWidth;
         disp.markCanv.height = window.innerHeight; 
        
-        //optimize this - only do matrix math when necssary
-        // - do not clear ARRAY_BUFFER on every frame, 
-        // only translate until vertices are changed
-        // array comparaison at a few points from $'d locs to current locs
-        // if identical, only translate
-        // if different, dump buffer and replace
-        // a square
+        // verticies representing a square or rectangle 
         var m_marker = 
             [ -1.0, -1.0,
                1.0, -1.0,
@@ -44,6 +37,7 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
                1.0, -1.0,
                1.0,  1.0  ];
         
+        // convert window x, y to WebGL coordinates 
         var window2Viewport = function(point) {
             var x, y;
             var off_x = 25;
@@ -52,9 +46,9 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
             y = ( (point.y + off_y) / disp.markCanv.height * -2) + 1;
             return new google.maps.Point(x, y);   
         };
-        // called on window resize
+        // returns array of vertices scaled to current window size
         var getScaledMarkerMat = function() {
-            // dimen of marker images in pixels
+            // dimen of markers in pixels
             var mark_x = 50;
             var mark_y = 50;
 
@@ -68,14 +62,15 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
             }
             return $M(m_sc);
         };
-        var getTranslatedVertices = function($mat, px) {
+        // translate $M matrix obj by vec2 (in GL coords) 
+        var getTranslatedVertices = function($mat, v_glCoord) {
             var arr = [];
             for (var i = 0; i < (m_marker.length / 2); i++) {
-                arr.push([px.x, px.y]);
+                arr.push([v_glCoord.x, v_glCoord.y]);
             }
             return $mat.add( $M(arr) );
         };
-        
+        // given a $M matrix, return a flat array of its values
         var flatten$M = function($mat) {
             var r = [];
             for (var i = 0; i < $mat.elements.length; i++) {
@@ -85,7 +80,6 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
             }
             return r;
         }
-
         var vertices = [];
         var addMarker = function(mark_obj) { //{type: , px: {x: y:}
             vertices = vertices.concat( flatten$M(getTranslatedVertices(
@@ -94,47 +88,46 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
             )));
         };    
 
-        var z = visCore.webgl.setup(disp.markCanv, MarkerShaders, true);
-        
-        //var markPos = z.gl.getUniformLocation(z.program, 'markPos');
-        //z.gl.uniform2f(markPos, 0.0, 0.0);
-        
-        z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices.length / 2); 
-
-        (function resizeC() {
+        (function resizeCanv() {
             disp.markCanv.width = window.innerWidth;
             disp.markCanv.height =  window.innerHeight;
              window.addEventListener('resize', function() {
-                resizeC();
+                resizeCanv();
             });
         }())
+        
         var imgs = {
             video: getImageCanv('static/assets/colorbars.png'),
             stumble: getImageCanv('static/assets/rap.png'),
             random: getImageCanv('static/assets/rand.png')
         };
-        var markerLoc;
-        var a_position;
-        disp.drawCycle = function(px_arr) {
-            if (px_arr) {
-                vertices = []; 
+        
+        var z = visCore.webgl.setup(disp.markCanv, MarkerShaders, true);
+        var markerLoc = z.gl.createBuffer();
+        z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(vertices), z.gl.DYNAMIC_DRAW);
+        var a_position;        
+        
+        /*
+         * this *needs* to be optimized to a fine powder
+         */
+        disp.drawCycle = function(arrMarkObjs, forceBufferRedraw) {
+            if (arrMarkObjs && arrMarkObjs.length > 0) {
                 z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-                for (var i = 0; i < px_arr.length; i++) {
-                    addMarker(px_arr[i]);
-                    markerLoc = z.gl.createBuffer();
-                    z.gl.bindBuffer(z.gl.ARRAY_BUFFER, markerLoc);
-                    z.gl.bufferData(z.gl.ARRAY_BUFFER, 
-                        new Float32Array(vertices), z.gl.STATIC_DRAW);
+                vertices = [];
+                
+                for (var i = 0; i < arrMarkObjs.length; i++) {
+                    addMarker(arrMarkObjs[i]);
                 }
-
+                
                 a_position = z.gl.getAttribLocation(z.program, 'a_position');
                 z.gl.enableVertexAttribArray(a_position);
                 z.gl.vertexAttribPointer(a_position, 2, z.gl.FLOAT, false, 0, 0);
-                z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices.length / 2);
 
-                z.gl.deleteBuffer(markerLoc);
+                z.gl.bindBuffer(z.gl.ARRAY_BUFFER, markerLoc);
+                z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(vertices), z.gl.DYNAMIC_DRAW); 
+                z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices.length / 2); 
             }
-        };
+        }
         return disp;
     }({}))          
     
@@ -178,25 +171,39 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
             px.y -= 35;
             return px;
         };
-        marks.getDrawingInfo = function() { //returns [ ['type', px: {x: y:}],  ]
+        var MarkerDataObj = function(type, goog_pt_obj) {
+            this.type = type;
+            this.px = goog_pt_obj;
+        };
+        marks.getDrawingInfo = function() { 
             if (stk.length > 0) {   
                 var r = [];
                 var pjkt = gMap.pxOverlay.getProjection();
                 for (var i = 0; i < stk.length; i++) {
                     var px = getMarkXY(stk[i], pjkt);
-                    if (px) r.push({type: stk[i].markerType, px: px});   
+                    if (px) r.push( new MarkerDataObj(stk[i].markerType, px) );   
                 }
                 return r;
             }
         };  
         return marks;
     }({}))
-    //animate in main render loop instead, but only while dragging
+   
+    // update is leaking in render stack 
     var update = function() {
         disp.drawCycle( marks.getDrawingInfo() );
     };
-    gMap.events.push(gMap.events.MAP, 'bounds_changed', update);
-    
+    var startUpdate = function() {
+        visCore.render.push(update);
+        if (!visCore.render.rendering) visCore.render.go();
+    };
+    var stopUpdate = function() {
+        visCore.render.rm(update);
+        if (!visCore.render.has()) visCore.render.stop();
+    };
+    gMap.events.push(gMap.events.MAP, 'mousedown', startUpdate);
+    gMap.events.push(gMap.events.MAP, 'idle', stopUpdate);
+   
     markers.addMarker = function(m) {
         if ( !marks.isDuplicate(m) ) {
             marks.pushMark(m);
@@ -221,7 +228,9 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
                 m.markerType = post.markerType;
                 markers.addMarker(m);
                 gMap.events.addHeapEvents(gMap.events.MARKER, m);
-                google.maps.event.addListener(m, 'click', function() { posts.display(post); });
+                google.maps.event.addListener(m, 'click', function() { 
+                    posts.display(post); 
+                });
             });
         });
     });
