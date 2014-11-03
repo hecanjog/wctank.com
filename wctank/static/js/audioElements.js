@@ -133,6 +133,7 @@ function(audio, util) { var elements = {};
         
         this.accent = function() {
             if (!accenting) {        
+                accenting = true;
                 var accent_time = util.smudgeNumber(100, 10);
                 var repeats = util.smudgeNumber(8, 50) | 0;
                 var recovery_time = util.smudgeNumber(500, 20);
@@ -166,7 +167,6 @@ function(audio, util) { var elements = {};
                             .repeat(util.smudgeNumber(8, 50) | 0)
                             .yoyo(true)
                             .onStart(function() {
-                                accenting = true;
                                 QIn.start();
                                 gainIn.start();
                             })
@@ -194,21 +194,20 @@ function(audio, util) { var elements = {};
         var prior_amp = 0;
         var fading = false;
         this.fadeInOut = function(time) {
+            var stopSequence = function() {
+                fading = false;
+                audio.tweenUtil.stopTweens();
+            };
             if (!fading) {
+                fading = true;
                 var on  = (gain.gain.value > 0) ? true : false;
                 if (on) prior_amp = gain.gain.value;
                 target_amp = on ? 0 : prior_amp;
                 envelope = new TWEEN.Tween(params)
-                    .to({amplitude: target_amp}, time)
-                    .onUpdate(updateGain)
-                    .onStart(function() {
-                        fading = true;
-                    })
-                    .onComplete(function() {
-                        fading = false;
-                        audio.tweenUtil.stopTweens();
-                    })
-                    .start();
+                        .to({amplitude: target_amp}, time)
+                        .onUpdate(updateGain)
+                        .onComplete(stopSequence)
+                        .start();
                     audio.tweenUtil.startTweens();
             } else {
                 envelope.stop();
@@ -217,7 +216,7 @@ function(audio, util) { var elements = {};
                     envelope.to({amplitude: prior_amp}, time).start();
                 } else { 
                     target_amp = 0;
-                    envelope.to({amplitude: 0}, time).start();
+                    envelope.to({amplitude: 0}, time).start()
                 }
             }
         };

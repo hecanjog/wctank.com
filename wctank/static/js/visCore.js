@@ -17,12 +17,15 @@ function(div) { var visCore = {};
             var idx = stk.indexOf(funct);
             if (idx !== -1) stk.splice(idx, 1);
         };
-        render.go = function() {
-            render.rendering = true;
-            id = window.requestAnimationFrame(render.go);
+        var exStk = function() {
             for (var i = 0; i < stk.length; i++) {
                 stk[i]();
             }
+        }; 
+        render.go = function() {
+            render.rendering = true;
+            id = window.requestAnimationFrame(render.go);
+            exStk();
         };
         render.has = function(fn) {
             if (typeof fn === 'function') {
@@ -31,7 +34,11 @@ function(div) { var visCore = {};
             } else {
                 return (stk.length > 0) ? true : false;
             }
-        }
+        };
+        render.tick = function() {
+            if ( render.has() ) exStk();
+        };
+
         render.stop = function() {
             render.rendering = false;
             cancelAnimationFrame(id);

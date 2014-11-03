@@ -37,11 +37,18 @@ function(util, visCore, TWEEN) { var audio = {};
     // TWEEN utils
     audio.tweenUtil = (function(tweenUtil) {
         tweenUtil.startTweens = function() {
-            if ( !visCore.render.has(TWEEN.update) ) visCore.render.push(TWEEN.update);
+            if ( visCore.render.has(TWEEN.update) === false ) 
+                visCore.render.push(TWEEN.update);
             if (!visCore.render.rendering) visCore.render.go();  
         };
+        // holy butts this is ugly. .length <= 2? I need to figure out why this works and
+        // clean it up. But, in the meantime, it plugs a leak where unnecessary TWEEN.update
+        // fns were being abandoned in the stack to percolate tons of numbers forever and ever.
         tweenUtil.stopTweens = function() {
-            if ( (TWEEN.getAll().length === 0) ) visCore.render.rm(TWEEN.update);
+            if ( (TWEEN.getAll().length <= 2) 
+                    && (typeof visCore.render.has(TWEEN.update) ==='number') ) {
+                visCore.render.rm(TWEEN.update);
+             }
             if ( !visCore.render.has() ) visCore.render.stop();
         };
         var easing_list = Object.keys(TWEEN.Easing); 
