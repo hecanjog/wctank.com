@@ -37,9 +37,8 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
                1.0, -1.0,
                1.0,  1.0  ];
         
-        // states of all markers 
-        var types = [];
-        var vertices = [];
+        // states of all living markers
+        var markers = [];
 
         // scales normal rect to square 50x50px in gl coords @ size of current window;
         // only need to do this once before first marker add;
@@ -51,30 +50,46 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
                 v_sc_x = mark_x / disp.markCanv.width, 
                 v_sc_y = mark_y / disp.markCanv.height,
                 m_sc = [];
-            for (var i = 0; i < norm_rect.length / 2; i++) {
+            for (var i = 0; i < 6; i++) {
                 scaled_rect[i * 2] = norm_rect[i * 2] * v_sc_x;
                 scaled_rect[i * 2 + 1] = norm_rect[i * 2 + 1] * v_sc_y;
             }
         }
+        var RANDOM = 0.0,
+            VIDEO = 1.0,
+            STUMBLE = 2.0;
         var addMarker = function(markObj) { //{type: , px: {x: y:}
-            types.push(markObj.type); 
-           
-            var x = markObj.px.x,
-                y = markObj.px.y,
-                gl_x, gl_y;           
+            
+            // parse marker type to a float
+            var type;
+            switch (markObj.type) {
+                case 'stumble':
+                    type = STUMBLE;
+                    break;
+                case 'video':
+                    type = VIDEO;
+                    break;
+                case 'random':
+                    type = RANDOM;
+                    break;
+            } 
+
             // convert from window to WebGl coordinates with an offset to account for
             // pxOverlay returning a point sort of in the center of the marker placeholder
-            var off_x = 25,
-                off_y = 10; 
-            gl_x = ( (x + off_x) / disp.markCanv.width) * 2 - 1;
+            var x = markObj.px.x,
+                y = markObj.px.y,
+                off_y = -25, 
+                gl_x, gl_y;           
+            
+            gl_x = (x / disp.markCanv.width) * 2 - 1;
             gl_y = ( (y + off_y) / disp.markCanv.height * -2) + 1;
 
-            // translate scaled vertices to position of marker and concat
-            var rarr = [];
-            var v_l = vertices.length;
-            for (var i = 0; i < norm_rect.length / 2; i++) {
-                vertices.push(gl_x + scaled_rect[i * 2]);
-                vertices.push(gl_y + scaled_rect[i * 2 + 1]);
+            // translate scaled vertices to position of marker and push to markers
+            // TODO: unroll this 
+            for (var i = 0; i < 6; i++) {
+                markers.push(type);
+                markers.push(gl_x + scaled_rect[i * 2]);
+                markers.push(gl_y + scaled_rect[i * 2 + 1]);
             }
         };    
 
@@ -92,10 +107,9 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
             random: getImageCanv('static/assets/rand.png')
         };
         
-        var z = visCore.webgl.setup(disp.markCanv, MarkerShaders, true);
-        var markerLoc = z.gl.createBuffer();
-        z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(vertices), z.gl.DYNAMIC_DRAW);
-        var a_position;        
+        var z = visCore.webgl.setup(disp.markCanv, MarkerShaders, true),
+            a_marker_buffer = z.gl.createBuffer(),
+            a_type, a_position;        
         
         /*
          * this *needs* to be optimized to a fine powder
@@ -103,20 +117,67 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
         disp.drawCycle = function(arrMarkObjs, forceBufferRedraw) {
             if (arrMarkObjs && arrMarkObjs.length > 0) {
                 z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-                vertices = [];
-                
-                calculateScaledRect();        
-                for (var i = 0; i < arrMarkObjs.length; i++) {
-                    addMarker(arrMarkObjs[i]);
+                 
+                while (markers.length > 0) {
+                    markers.pop(); // type
+                    markers.pop(); // vertex 1
+                    markers.pop(); // vertex 2 
+                    markers.pop(); // type
+                    markers.pop(); // vertex 3
+                    markers.pop(); // vertex 4
+                    markers.pop(); // type
+                    markers.pop(); // vertex 5
+                    markers.pop(); // vertex 6
+                    markers.pop(); // type
+                    markers.pop(); // vertex 7
+                    markers.pop(); // vertex 8
+                    markers.pop(); // type
+                    markers.pop(); // vertex 9
+                    markers.pop(); // vertex 10
+                    markers.pop(); // type
+                    markers.pop(); // vertex 11
+                    markers.pop(); // vertex 12
                 }
+                calculateScaledRect();        
                 
-                a_position = z.gl.getAttribLocation(z.program, 'a_position');
-                z.gl.enableVertexAttribArray(a_position);
-                z.gl.vertexAttribPointer(a_position, 2, z.gl.FLOAT, false, 0, 0);
+                var numObjs = arrMarkObjs.length;
+                if (numObjs < 8) {
+                    for (var i = 0; i < arrMarkObjs.length; i++) {
+                        addMarker(arrMarkObjs[i]);
+                    }
+                } else {
+                    var iter = numObjs / 8 | 0,
+                        rem = numObjs % 8,
+                        i = 0;
+                    if (rem > 0) {
+                        do {
+                            addMarker(arrMarkObjs[i++]);
+                        } while (--rem > 0);    
+                    }    
+                    do {
+                        addMarker(arrMarkObjs[i++]);
+                        addMarker(arrMarkObjs[i++]);
+                        addMarker(arrMarkObjs[i++]);
+                        addMarker(arrMarkObjs[i++]);
+                        addMarker(arrMarkObjs[i++]);
+                        addMarker(arrMarkObjs[i++]);
+                        addMarker(arrMarkObjs[i++]);
+                        addMarker(arrMarkObjs[i++]);
+                    } while (--iter > 0);
+                }
+              
+                z.gl.bindBuffer(z.gl.ARRAY_BUFFER, a_marker_buffer);
+                z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(markers), z.gl.DYNAMIC_DRAW); 
 
-                z.gl.bindBuffer(z.gl.ARRAY_BUFFER, markerLoc);
-                z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(vertices), z.gl.DYNAMIC_DRAW); 
-                z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices.length / 2); 
+                a_position = z.gl.getAttribLocation(z.program, 'a_position');
+                z.gl.vertexAttribPointer(a_position, 2, z.gl.FLOAT, false, 12, 4);
+                z.gl.enableVertexAttribArray(a_position);
+               
+                a_type = z.gl.getAttribLocation(z.program, 'a_type');
+                z.gl.vertexAttribPointer(a_type, 1, z.gl.FLOAT, false, 12, 0); 
+                z.gl.enableVertexAttribArray(a_type);
+
+                z.gl.drawArrays(z.gl.TRIANGLES, 0, markers.length / 3); 
             }
         }
         return disp;
@@ -153,28 +214,27 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
         var getMarkXY = function(m, pjkt) { 
             var pos = m.getPosition();
             var px = pjkt.fromLatLngToContainerPixel(pos); 
-            for (var dim in px) {
-                if (px.hasOwnProperty(dim) ) {
-                    if ( px[dim] < (overflow * -1) ) return false;
-                }
-            }
-            px.x -= 27;
-            px.y -= 35;
+            if ( px.x < (overflow * -1) ) return false;
+            if ( px.y < (overflow * -1) ) return false;
             return px;
         };
         var MarkerDataObj = function(type, goog_pt_obj) {
             this.type = type;
             this.px = goog_pt_obj;
         };
-        marks.getDrawingInfo = function() { 
+        var d_dat = [];
+        marks.getDrawingData = function() { 
             if (stk.length > 0) {   
-                var r = [];
+                while (d_dat.length > 0) {
+                    d_dat.pop();
+                }
                 var pjkt = gMap.pxOverlay.getProjection();
+                
                 for (var i = 0; i < stk.length; i++) {
                     var px = getMarkXY(stk[i], pjkt);
-                    if (px) r.push( new MarkerDataObj(stk[i].markerType, px) );   
+                    if (px) d_dat.push( new MarkerDataObj(stk[i].markerType, px) );   
                 }
-                return r;
+                return d_dat;
             }
         };  
         return marks;
@@ -182,7 +242,7 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
    
     // update is leaking in render stack 
     var update = function() {
-        disp.drawCycle( marks.getDrawingInfo() );
+        disp.drawCycle( marks.getDrawingData() );
     };
     var startUpdate = function() {
         visCore.render.push(update);
@@ -194,7 +254,6 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
     };
     gMap.events.push(gMap.events.MAP, 'mousedown', startUpdate);
     gMap.events.push(gMap.events.MAP, 'idle', stopUpdate);
-    //gMap.events.push(gMap.events.MAP, 'tilesloaded', update);
     gMap.events.push(gMap.events.MAP, 'zoom_changed', update);  
 
     markers.addMarker = function(m) {
