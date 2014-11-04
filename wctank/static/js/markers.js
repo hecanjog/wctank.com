@@ -3,10 +3,10 @@ define(
         'gMap',
         'posts',
         'visCore',
-        'text!MarkerShaders.glsl',
-        'sylvester'
+        'text!MarkerShaders.glsl'
     ],
-function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
+
+function(gMap, posts, visCore, MarkerShaders) { var markers = {};
     /*
      * rendering map markers in webgl      
      */
@@ -29,7 +29,7 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
         disp.markCanv.height = window.innerHeight; 
        
         // verticies representing a square or rectangle 
-        var m_marker = 
+        var norm_rect = 
             [ -1.0, -1.0,
                1.0, -1.0,
               -1.0,  1.0,
@@ -37,55 +37,45 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
                1.0, -1.0,
                1.0,  1.0  ];
         
-        // convert window x, y to WebGL coordinates 
-        var window2Viewport = function(point) {
-            var x, y;
-            var off_x = 25;
-            var off_y = 10;
-            x = ( (point.x + off_x) / disp.markCanv.width) * 2 - 1;
-            y = ( (point.y + off_y) / disp.markCanv.height * -2) + 1;
-            return new google.maps.Point(x, y);   
-        };
-        // returns array of vertices scaled to current window size
-        var getScaledMarkerMat = function() {
-            // dimen of markers in pixels
-            var mark_x = 50;
-            var mark_y = 50;
-
-            var v_sc = [mark_x / disp.markCanv.width, mark_y / disp.markCanv.height],
-                m_sc = [];
-            for (var j = 0; j < (m_marker.length / 2); j++) {
-                var row = [];
-                row[0] = m_marker[j * 2] * v_sc[0];
-                row[1] = m_marker[j * 2 + 1] * v_sc[1];
-                m_sc.push(row);
-            }
-            return $M(m_sc);
-        };
-        // translate $M matrix obj by vec2 (in GL coords) 
-        var getTranslatedVertices = function($mat, v_glCoord) {
-            var arr = [];
-            for (var i = 0; i < (m_marker.length / 2); i++) {
-                arr.push([v_glCoord.x, v_glCoord.y]);
-            }
-            return $mat.add( $M(arr) );
-        };
-        // given a $M matrix, return a flat array of its values
-        var flatten$M = function($mat) {
-            var r = [];
-            for (var i = 0; i < $mat.elements.length; i++) {
-                for (var j = 0; j < $mat.elements[i].length; j++) {
-                    r.push($mat.elements[i][j]);
-                }
-            }
-            return r;
-        }
+        // states of all markers 
+        var types = [];
         var vertices = [];
-        var addMarker = function(mark_obj) { //{type: , px: {x: y:}
-            vertices = vertices.concat( flatten$M(getTranslatedVertices(
-                getScaledMarkerMat(disp.markCanv.width, disp.markCanv.height),
-                window2Viewport(mark_obj.px)
-            )));
+
+        // scales normal rect to square 50x50px in gl coords @ size of current window;
+        // only need to do this once before first marker add;
+        // abstracted out to avoid if in critical loop
+        var scaled_rect = [];
+        var calculateScaledRect = function() {
+            var mark_x = 50,
+                mark_y = 50,
+                v_sc_x = mark_x / disp.markCanv.width, 
+                v_sc_y = mark_y / disp.markCanv.height,
+                m_sc = [];
+            for (var i = 0; i < norm_rect.length / 2; i++) {
+                scaled_rect[i * 2] = norm_rect[i * 2] * v_sc_x;
+                scaled_rect[i * 2 + 1] = norm_rect[i * 2 + 1] * v_sc_y;
+            }
+        }
+        var addMarker = function(markObj) { //{type: , px: {x: y:}
+            types.push(markObj.type); 
+           
+            var x = markObj.px.x,
+                y = markObj.px.y,
+                gl_x, gl_y;           
+            // convert from window to WebGl coordinates with an offset to account for
+            // pxOverlay returning a point sort of in the center of the marker placeholder
+            var off_x = 25,
+                off_y = 10; 
+            gl_x = ( (x + off_x) / disp.markCanv.width) * 2 - 1;
+            gl_y = ( (y + off_y) / disp.markCanv.height * -2) + 1;
+
+            // translate scaled vertices to position of marker and concat
+            var rarr = [];
+            var v_l = vertices.length;
+            for (var i = 0; i < norm_rect.length / 2; i++) {
+                vertices.push(gl_x + scaled_rect[i * 2]);
+                vertices.push(gl_y + scaled_rect[i * 2 + 1]);
+            }
         };    
 
         (function resizeCanv() {
@@ -115,6 +105,7 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
                 z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
                 vertices = [];
                 
+                calculateScaledRect();        
                 for (var i = 0; i < arrMarkObjs.length; i++) {
                     addMarker(arrMarkObjs[i]);
                 }
@@ -203,7 +194,9 @@ function(gMap, posts, visCore, MarkerShaders, sylvester) { var markers = {};
     };
     gMap.events.push(gMap.events.MAP, 'mousedown', startUpdate);
     gMap.events.push(gMap.events.MAP, 'idle', stopUpdate);
-   
+    //gMap.events.push(gMap.events.MAP, 'tilesloaded', update);
+    gMap.events.push(gMap.events.MAP, 'zoom_changed', update);  
+
     markers.addMarker = function(m) {
         if ( !marks.isDuplicate(m) ) {
             marks.pushMark(m);
