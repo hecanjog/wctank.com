@@ -85,7 +85,6 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
             gl_y = ( (y + off_y) / disp.markCanv.height * -2) + 1;
 
             // translate scaled vertices to position of marker and push to markers
-            // TODO: unroll this 
             for (var i = 0; i < 6; i++) {
                 markers.push(type);
                 markers.push(gl_x + scaled_rect[i * 2]);
@@ -255,6 +254,8 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
     gMap.events.push(gMap.events.MAP, 'mousedown', startUpdate);
     gMap.events.push(gMap.events.MAP, 'idle', stopUpdate);
     gMap.events.push(gMap.events.MAP, 'zoom_changed', update);  
+
+    window.addEventListener('resize', update);
 
     markers.addMarker = function(m) {
         if ( !marks.isDuplicate(m) ) {
