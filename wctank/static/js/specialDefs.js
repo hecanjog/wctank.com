@@ -137,12 +137,11 @@ function(div, gMap, core, $) { var specialDefs = {};
                 texCoordAttr = z.gl.getAttribLocation(z.program, "texCoord");
                 z.gl.enableVertexAttribArray(texCoordAttr);
                 
-                z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
-                z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, vid);
-                
+
                 z.gl.activeTexture(z.gl.TEXTURE0);
                 z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
                 z.gl.pixelStorei(z.gl.UNPACK_FLIP_Y_WEBGL, true);
+                z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, vid);
                 z.gl.uniform1i( z.gl.getUniformLocation(z.program, "vidTexels"), 0 );
                 
                 z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
