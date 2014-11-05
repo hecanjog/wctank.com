@@ -102,7 +102,8 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
         (function resizeCanv() {
             disp.markCanv.width = window.innerWidth;
             disp.markCanv.height =  window.innerHeight;
-             window.addEventListener('resize', function() {
+            calculateScaledRect();        
+            window.addEventListener('resize', function() {
                 resizeCanv();
             });
         }())
@@ -167,7 +168,6 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
                 while (markers.length > 0) {
                     markers.pop(); markers.pop(); markers.pop(); markers.pop(); markers.pop();
                 }
-                calculateScaledRect();        
                 
                 var numObjs = arrMarkObjs.length;
                 if (numObjs < 8) {

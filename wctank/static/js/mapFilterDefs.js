@@ -1,3 +1,6 @@
+// specials, and integrated specials, e.g., modify vhs
+// tweak fauvist hue at certain zoom levels
+
 define(
     [
         'util',
