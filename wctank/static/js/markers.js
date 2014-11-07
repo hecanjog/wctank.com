@@ -1,12 +1,13 @@
 define(
     [
+        'div',
         'gMap',
         'posts',
         'visCore',
         'text!MarkerShaders.glsl'
     ],
 
-function(gMap, posts, visCore, MarkerShaders) { var markers = {};
+function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
     /*
      * rendering map markers in webgl      
      */
@@ -153,14 +154,15 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
                 z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, can);
             };
         };
-        
+
         /*
          *  create mouseover events
          */
         var u_mouseover = 0;
         var u_mouseoverIdx = 0;  
         // bounds = x, y - 25 -> x+50, y-25, x, y+ 25 x+50, y+25 
-        window.addEventListener('mousemove', function(e) {
+        
+        div.$map.get(0).addEventListener('mousemove', function(e) {
             var x = e.x;
             var y = e.y;
             // obviously optimize this with at least a btree or something...
@@ -202,10 +204,14 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
         /*
          * these drawing functions *need* to be optimized to a fine powder
          */
+
+        var u_clock = 0;
+
         disp.draw = function() {
             z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_mouseover'), u_mouseover);
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_mouseoverIdx'), u_mouseoverIdx);
+            z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_clock'), u_clock++);
             z.gl.drawArrays(z.gl.TRIANGLES, 0, markers.length / 6); 
         };
 
@@ -218,10 +224,7 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
                 while (markers.length > 0) {
                     markers.pop(); markers.pop(); markers.pop(); markers.pop(); markers.pop();
                 }
-               //on mousemove, track coords
-                //if win bounds of marker, get index of those vertices and 
-                //pass as uniform to shader, along with uniform indicating mouseover event
-                // pass smaller update function to render loop  
+                
                 var numObjs = arrMarkObjs.length;
                 if (numObjs < 8) {
                     for (var i = 0; i < arrMarkObjs.length; i++) {
