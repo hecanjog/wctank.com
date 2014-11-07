@@ -86,11 +86,7 @@ body, html {
         font-size:   @font-base * @med-mul;
     }
 }
-@words_front_path: 'assets/words.png';
-body:after {
-    display: none;
-    content: url(@words_front_path);
-}
+
 button {
     background: none;
     border: none;
@@ -220,7 +216,6 @@ button {
     .linear-gradient(@lgval);
 }
 
-
 /*
  * special elements
  */
@@ -229,11 +224,15 @@ button {
     z-index: 20;
     pointer-events: none;
 }
-
 #words_front {
     .fullsize;
+    z-index: 21;
     pointer-events: none;
-    background-image: url(@words_front_path);
+}
+#squares_front {
+    .fullsize;
+    pointer-events: none;
+    z-index: 20;
 }
 
 /*
@@ -242,8 +241,7 @@ button {
 #fail-through {
     .fullsize;
     z-index: -9999;
-    background-image: url("/static/assets/preg.jpg");
-    background-size: cover;
+    background-image: url("assets/words.png");
 }
 #map-canvas {
     width: 100%;

@@ -12,7 +12,9 @@ require.config({
         sylvester: '/static/lib/sylvester',
         filterXML: '/static/map_filters',
         VHSShaders: '/static/glsl/white_noise',
-        MarkerShaders: '/static/glsl/markers'
+        MarkerShaders: '/static/glsl/markers',
+        AlphaStrutShaders: '/static/glsl/alphaStrut',
+        SquaresShaders: '/static/glsl/squares'
     },
 
     shim: {
@@ -33,6 +35,7 @@ define(
     [
         'sequencer',
         'tableuxList',
+        'specialDefs'
     ],
 function(sequencer) {
     sequencer.goTo(0);

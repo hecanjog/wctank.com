@@ -2,14 +2,18 @@ define(
     [
         'div',
         'gMap',
-        'core',
-        'jquery'
+        'visCore',
+        'specialCoord',
+        'text!AlphaStrutShaders.glsl',
+        'text!SquaresShaders.glsl',
+        'jquery',
     ],
 
-function(div, gMap, core, $) { var specialDefs = {};
-    
+function(div, gMap, visCore, specialCoord, 
+         AlphaStrutShaders, SquareShaders, $, paper) { var specialDefs = {};
     //TODO: remove non-transparent parts in image
     // do something else besides just show and hide the image?
+    /*
     specialDefs.words = (function(words) {
         var back_z = "-999";
         var front_z = "19";
@@ -25,7 +29,7 @@ function(div, gMap, core, $) { var specialDefs = {};
             words_front.style.zIndex = back_z;
         };
         return words;
-    }({}));
+    }({}));*/
    
     /*
      * trying to special.remove this glitches a bit, but I like it
@@ -72,7 +76,7 @@ function(div, gMap, core, $) { var specialDefs = {};
     /*
      * alphaStrut is a special filter event that runs simultaneously with the filters
      */
-    specialDefs.alphaStrut = (function(alphaStrut) {
+    function AlphaStrut() {
         
         // occasionally cover map with flashing screen  
         // instead of opaque being black, sky gif
@@ -99,8 +103,8 @@ function(div, gMap, core, $) { var specialDefs = {};
         var alphaStrut_front = document.createElement("canvas");
         alphaStrut_front.setAttribute("id", "alphaStrut_front");
             
-        alphaStrut.webgl = (function(webgl) {
-            var z = core.webgl.setup(alphaStrut_front, "/static/glsl/alphaStrut.glsl", true); 
+        this.webgl = (function(webgl) {
+            var z = visCore.webgl.setup(alphaStrut_front, AlphaStrutShaders, true); 
             var vid_tex;
             var texCoordBuffer;
             var texCoordAttr;
@@ -129,6 +133,7 @@ function(div, gMap, core, $) { var specialDefs = {};
                 z.gl.enableVertexAttribArray(texCoordAttr);
                 z.gl.vertexAttribPointer(texCoordAttr, 2, z.gl.FLOAT, false, 0, 0);
             }, true);
+            
             webgl.update = function() {
                 z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
                 
@@ -137,7 +142,6 @@ function(div, gMap, core, $) { var specialDefs = {};
                 texCoordAttr = z.gl.getAttribLocation(z.program, "texCoord");
                 z.gl.enableVertexAttribArray(texCoordAttr);
                 
-
                 z.gl.activeTexture(z.gl.TEXTURE0);
                 z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
                 z.gl.pixelStorei(z.gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -148,19 +152,117 @@ function(div, gMap, core, $) { var specialDefs = {};
             };
             return webgl; 
         }({}));
-        alphaStrut.init = function() {
+        this.init = function() {
             document.body.appendChild(alphaStrut_front);
             vid.play();
         };
-        alphaStrut.teardown = function() {
+        this.teardown = function() {
             document.body.removeChild(alphaStrut_front);
             vid.pause();
         };
-        alphaStrut.animate = function() {
+        this.animate = function() {
             alphaStrut.webgl.update();
         };
+    };
+    AlphaStrut.prototype = new visCore.MapFilter();
+    specialDefs.alphaStrut = new AlphaStrut();
         
-        return alphaStrut;
-    }({}))
+    function Squares() {
+        // only allow with edge or sky movies
+        var squares_over = document.createElement('canvas');
+        squares_over.setAttribute("id", "squares_front");
+        
+        // r, g, b (a to be assigned in shader)
+        var colors = new Float32Array([
+            1.0, 0.0, 0.0,
+            1.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 1.0,
+            0.0, 0.0, 1.0,
+            1.0, 0.0, 1.0 
+        ]); 
+        
+        var rect = 
+            [ -1.0, -1.0,
+               1.0, -1.0,
+              -1.0,  1.0,
+              -1.0,  1.0,
+               1.0, -1.0,
+               1.0,  1.0  ];
+        
+        var vertices = []; 
+
+        var nesting = 50,
+            diff = 1 / nesting,
+            id = 0;
+        for (var i = nesting; i > 0; i--) {  
+            for (var j = 0; j < 6; j++) {
+                vertices.push( id );
+                vertices.push( rect[j * 2] * diff * i);
+                vertices.push( rect[j * 2 + 1] * diff * i);
+            }
+            id++;  
+        }
+
+        // squares over my hammy
+        var z = visCore.webgl.setup(squares_over, SquareShaders, true),
+            a_vertex_buffer = z.gl.createBuffer(),
+            a_id, a_position;
+
+        // set up 
+        z.gl.bindBuffer(z.gl.ARRAY_BUFFER, a_vertex_buffer);
+        z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(vertices), z.gl.STATIC_DRAW);  
+        
+        a_id = z.gl.getAttribLocation(z.program, 'a_id');
+        z.gl.vertexAttribPointer(a_id, 1, z.gl.FLOAT, false, 12, 0);
+        z.gl.enableVertexAttribArray(a_id);
+
+        a_position = z.gl.getAttribLocation(z.program, 'a_position');
+        z.gl.vertexAttribPointer(a_position, 2, z.gl.FLOAT, false, 12, 4);
+        z.gl.enableVertexAttribArray(a_position);
+
+        this.init = function() {
+            document.body.appendChild(squares_over);
+        };
+        var cntr = 0;
+        var getClock = function() {
+            return cntr++ % colors.length;
+        };
+        this.animate = function() {
+            z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+            z.gl.uniform1i(z.gl.getUniformLocation(z.program, "u_time"), getClock())
+            z.gl.uniform3fv(z.gl.getUniformLocation(z.program, "u_colors"), colors);
+            z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices.length / 3);
+        };
+        this.teardown = function() {
+            document.body.removeChild(squares_over);
+        };
+    }
+    Squares.prototype = new visCore.MapFilter();
+    specialDefs.squares = new Squares();
+
+    function Words() {
+        var words_front = document.createElement('canvas');
+        words_front.setAttribute('id', 'words_front');
+        
+        // diaplay as paragraph, display as banner
+        // pool of words and phrases
+        // accent individual words with shader
+        var mess;
+        this.display = function(string) {
+        };
+
+        this.init = function() {
+            document.body.appendChild(words_front);
+        };
+        this.animate = function() {
+
+        };
+        this.teardown = function() {
+            document.body.removeChild(words_front);
+        }; 
+    }
+    Words.prototype = new visCore.MapFilter();
+    specialDefs.words = new Words();
 
 return specialDefs; });

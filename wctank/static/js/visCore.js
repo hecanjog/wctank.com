@@ -67,13 +67,11 @@ function(div) { var visCore = {};
             }())
             if (gl) {
                 visCore.webgl.success = true;
-                
                 gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
                 gl.clearColor(0.0, 0.0, 0.0, 0.0);
                 window.addEventListener("resize", function() {
                     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
                 });
-                
                 var matches = shaders.match(/\n(\d|[a-zA-Z])(\s|.)*?(?=END|^@@.*?$)/gm),
                     vert_src = matches[0],
                     frag_src = matches[1],
@@ -156,27 +154,4 @@ function(div) { var visCore = {};
             }
         };
     };
-
-    /*
-     * special visual events are morphologically similar to filters, 
-     * except that they can be applied simultaneously and are 
-     * triggered by user interaction rather than setInterval 
-     */ 
-    visCore.special = (function(special) {
-        special.current = [];
-        var currentRm = function(special) {
-            var idx = visCore.special.current.indexOf(special);
-            if (idx !== -1) visCore.special.current.splice(idx, 1);
-        };
-        special.apply = function(special) {
-            visCore.special.current.push(special);
-            visCore.filterTypeOp('init', wctank.specialDefs[special]);
-        };
-        special.remove = function(special) {
-            currentRm(special);
-            visCore.filterTypeOp('teardown', wctank.specialDefs[special]);
-        };
-        return special;
-    }({})); 
-
 return visCore; });

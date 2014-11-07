@@ -36,7 +36,8 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
 
 
         // states of all living markers
-        var markers = [];
+        var markers = []; // for webGl consumption
+        var collection = []; // frendlier for js processing
 
         // scales normal rect to square 50x50px in gl coords @ size of current window;
         // only need to do this once before first marker add;
@@ -57,7 +58,8 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
         var RANDOM = 0.0,
             VIDEO = 1.0,
             STUMBLE = 2.0;
-        
+       
+        var vertexID = 0; 
         var addMarker = function(markObj) { 
             
             // parse marker type to a float
@@ -75,7 +77,7 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
             } 
             
             // convert from window to WebGl coordinates with an offset to account for
-            // pxOverlay returning a point sort of in the center of the marker placeholder
+            // pxOverlay returning a point @ 1/2x & 0y
             var x = markObj.px.x,
                 y = markObj.px.y,
                 off_y = -25, 
@@ -86,10 +88,11 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
             
             // assemble block and push to markers
             // each is structured: 
-            //      type    norm tex coord      coord
-            //              u       v           x       y
-            //      bbbb    bbbb    bbbb        bbbb    bbbb
+            //  id     type    norm tex coord      coord
+            //                 u       v           x       y
+            //  bbbb   bbbb    bbbb    bbbb        bbbb    bbbb
             for (var i = 0; i < 6; i++) {
+                markers.push((vertexID++ / 6) | 0);
                 markers.push(type);
                 markers.push(tex_rect[i * 2]);
                 markers.push(tex_rect[i * 2 + 1]);
@@ -150,25 +153,75 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
                 z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, can);
             };
         };
+        
+        /*
+         *  create mouseover events
+         */
+        var u_mouseover = 0;
+        var u_mouseoverIdx = 0;  
+        // bounds = x, y - 25 -> x+50, y-25, x, y+ 25 x+50, y+25 
+        window.addEventListener('mousemove', function(e) {
+            var x = e.x;
+            var y = e.y;
+            // obviously optimize this with at least a btree or something...
+            if (collection) {
+                for (var i = 0; i < collection.length; i++) {
+                    var x_bound = collection[i].px.x;
+                    var y_bound = collection[i].px.y;
+                    if ( (x > x_bound - 25) && (x < x_bound + 25) 
+                            && (y > y_bound - 50) && (y < y_bound) ) {
+                        u_mouseover = 1.1;
+                        u_mouseoverIdx = i;
+                        break;    
+                    } else {
+                        u_mouseover = 0;
+                    }
+                }
+            } 
+            if (u_mouseover) {
+                if ( (typeof visCore.render.has(update) !== 'number') ) {
+                    visCore.render.push(disp.draw);
+                    if (!visCore.render.rendering) visCore.render.go();
+                }
+            } else {
+                if (typeof visCore.render.has(disp.draw) == 'number') {
+                    visCore.render.rm(disp.draw);
+                    if ( !visCore.render.has() ) visCore.render.stop();
+                } 
+            }
+            
+        });
+        
 
         var markerImages = {
             u_stumble: new imgTexObj('static/assets/rap.png'),
             u_video: new imgTexObj('static/assets/colorbars.png'),
             u_random: new imgTexObj('static/assets/rand.png')
         };
-        
+      
         /*
-         * this *needs* to be optimized to a fine powder
+         * these drawing functions *need* to be optimized to a fine powder
          */
-        disp.drawCycle = function(arrMarkObjs, forceBufferRedraw) {
+        disp.draw = function() {
+            z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+            z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_mouseover'), u_mouseover);
+            z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_mouseoverIdx'), u_mouseoverIdx);
+            z.gl.drawArrays(z.gl.TRIANGLES, 0, markers.length / 6); 
+        };
+
+        disp.drawWithDataUpdate = function(arrMarkObjs) {
+            vertexID = 0; 
+            collection = arrMarkObjs;
+
             if (arrMarkObjs && arrMarkObjs.length > 0) {
-                z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-                
                 // pop a block at a time 
                 while (markers.length > 0) {
                     markers.pop(); markers.pop(); markers.pop(); markers.pop(); markers.pop();
                 }
-                
+               //on mousemove, track coords
+                //if win bounds of marker, get index of those vertices and 
+                //pass as uniform to shader, along with uniform indicating mouseover event
+                // pass smaller update function to render loop  
                 var numObjs = arrMarkObjs.length;
                 if (numObjs < 8) {
                     for (var i = 0; i < arrMarkObjs.length; i++) {
@@ -211,21 +264,26 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
                 z.gl.bindBuffer(z.gl.ARRAY_BUFFER, a_marker_buffer);
                 z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(markers), z.gl.DYNAMIC_DRAW); 
 
+                a_vertexID = z.gl.getUniformLocation(z.program, 'a_vertexID');
+                z.gl.vertexAttribPointer(a_vertexID, 1, z.gl.FLOAT, false, 24, 0)
+                z.gl.enableVertexAttribArray(a_vertexID);
+
                 a_type = z.gl.getAttribLocation(z.program, 'a_type');
-                z.gl.vertexAttribPointer(a_type, 1, z.gl.FLOAT, false, 20, 0); 
+                z.gl.vertexAttribPointer(a_type, 1, z.gl.FLOAT, false, 24, 4); 
                 z.gl.enableVertexAttribArray(a_type);
                 
                 a_normCoords = z.gl.getAttribLocation(z.program, 'a_normCoords');
-                z.gl.vertexAttribPointer(a_normCoords, 2, z.gl.FLOAT, false, 20, 4);
+                z.gl.vertexAttribPointer(a_normCoords, 2, z.gl.FLOAT, false, 24, 8);
                 z.gl.enableVertexAttribArray(a_normCoords);
                 
                 a_position = z.gl.getAttribLocation(z.program, 'a_position');
-                z.gl.vertexAttribPointer(a_position, 2, z.gl.FLOAT, false, 20, 12);
+                z.gl.vertexAttribPointer(a_position, 2, z.gl.FLOAT, false, 24, 16);
                 z.gl.enableVertexAttribArray(a_position);
-
-                z.gl.drawArrays(z.gl.TRIANGLES, 0, markers.length / 5); 
+                
+                disp.draw();
             }
         }
+
         return disp;
     }({}))          
     
@@ -260,9 +318,7 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
         var getMarkXY = function(m, pjkt) { 
             var pos = m.getPosition();
             var px = pjkt.fromLatLngToContainerPixel(pos); 
-            if ( px.x < (overflow * -1) ) return false;
-            if ( px.y < (overflow * -1) ) return false;
-            return px;
+            return ( (px.x < (overflow * -1)) || (px.y < (overflow * -1)) ) ? false : px;
         };
         var MarkerDataObj = function(type, goog_pt_obj) {
             this.type = type;
@@ -288,7 +344,7 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
    
     // update is leaking in render stack 
     var update = function() {
-        disp.drawCycle( marks.getDrawingData() );
+        disp.drawWithDataUpdate( marks.getDrawingData() );
     };
     var startUpdate = function() {
         visCore.render.push(update);
@@ -314,7 +370,10 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
         var vis = bool ? 'visible' : 'hidden';
         disp.markCanv.style.visibility = vis;
     };
-
+    
+    /*
+     *  display placeholders on map
+     */
     gMap.events.push(gMap.events.MAP, 'tilesloaded', function() {
         posts.get(gMap.map.getBounds(), function(data) {
             $.each(data, function(i, post) {
@@ -334,5 +393,5 @@ function(gMap, posts, visCore, MarkerShaders) { var markers = {};
             });
         });
     });
-     
+
 return markers; });
