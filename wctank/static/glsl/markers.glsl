@@ -31,30 +31,45 @@ uniform sampler2D u_stumble;
 uniform sampler2D u_video;
 uniform sampler2D u_random;
 uniform int u_clock;
+uniform int u_blackout;
 
 varying vec2 v_texCoord;
 varying float v_this_type;
 varying float v_mouseover;
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
 void main()
 {
-    float clock = float(u_clock);
     highp vec4 color;
-    if (v_this_type < 0.1) {
-        color = texture2D(u_random, v_texCoord);
-    } else if ((v_this_type > 0.9) && (v_this_type < 1.1)) {
-        color = texture2D(u_video, v_texCoord);
-    } else if ((v_this_type > 1.9) && (v_this_type < 2.1)) {
-        color = texture2D(u_stumble, v_texCoord);
-    }
-    if (v_mouseover > 1.0) {
-        if ( mod(clock, 3.0) == 1.0 )  { // will only be true occasionally
-            color.a = 0.0;         
-        } 
-        if ( mod(gl_FragCoord.y + clock, 3.0) < mod(clock / 10.0, 3.0) ) {
-            if (color.a > 0.01) {
-                color = vec4(color.rgb, 0.5);
+    float clock = float(u_clock);
+    vec3 white = vec3(1.0, 1.0, 1.0);
+    vec3 black = vec3(0.0, 0.0, 0.0);
+    if (u_blackout == 0) {
+        if (v_this_type < 0.1) {
+            color = texture2D(u_random, v_texCoord);
+        } else if ((v_this_type > 0.9) && (v_this_type < 1.1)) {
+            color = texture2D(u_video, v_texCoord);
+        } else if ((v_this_type > 1.9) && (v_this_type < 2.1)) {
+            color = texture2D(u_stumble, v_texCoord);
+        }
+        if (v_mouseover > 1.0) {
+            if ( mod(clock, 3.0) == 1.0 )  { // will only be true occasionally
+                color.a = 0.0;         
+            } 
+            if ( mod(gl_FragCoord.y + clock, 3.0) < mod(clock / rand(vec2(clock, clock)), 3.0) ) {
+                if (color.a > 0.01) {
+                    color = vec4(white, 0.5);
+                }
             }
+        }
+    } else {
+        if (v_mouseover < 1.0) {
+            color = vec4(black, 1.0);
+        } else {
+            color = vec4(white, mod(clock / 5000.0, 1.0));
         }
     }
     gl_FragColor = color;

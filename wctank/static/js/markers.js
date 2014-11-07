@@ -206,12 +206,13 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
          */
 
         var u_clock = 0;
-
+        disp.blackout = 0;
         disp.draw = function() {
             z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_mouseover'), u_mouseover);
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_mouseoverIdx'), u_mouseoverIdx);
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_clock'), u_clock++);
+            z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_blackout'), disp.blackout);
             z.gl.drawArrays(z.gl.TRIANGLES, 0, markers.length / 6); 
         };
 
@@ -373,7 +374,12 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
         var vis = bool ? 'visible' : 'hidden';
         disp.markCanv.style.visibility = vis;
     };
-    
+    markers.blackout = function(bool) {
+        disp.blackout = bool ? 1 : 0;
+        disp.draw();
+    };
+    window.blackout = markers.blackout;
+
     /*
      *  display placeholders on map
      */
