@@ -57,6 +57,10 @@ function(div) { var visCore = {};
                 if ( !gl.getShaderParameter(gl_shader_obj, gl.COMPILE_STATUS) ) 
                     console.log( gl.getShaderInfoLog(gl_shader_obj) );
             };
+            var getProgramLog = function(gl_program_obj) {
+                if ( !gl.getProgramParameter(gl_program_obj, gl.LINK_STATUS) )
+                    console.log( gl.getProgramInfoLog(gl_program_obj) );
+            };
             var gl = (function() {
                 try {
                     return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -87,6 +91,7 @@ function(div) { var visCore = {};
                 gl.attachShader(prgm, vert_shader);
                 gl.attachShader(prgm, frag_shader);
                 gl.linkProgram(prgm);
+            if (DEBUG) getProgramLog(prgm);
                 gl.useProgram(prgm);
                 
                 r.program = prgm;

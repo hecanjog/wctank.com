@@ -1,3 +1,5 @@
+// before we fix the translation, fix mouseover
+
 define(
     [
         'div',
@@ -16,7 +18,8 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
         disp.markCanv = document.getElementById("markers");
         disp.markCanv.width = window.innerWidth;
         disp.markCanv.height = window.innerHeight; 
-       
+     
+
         // verticies representing a square or rectangle 
         var norm_rect = 
             [ -1.0, -1.0,
@@ -39,32 +42,33 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
         // states of all living markers
         var markers = []; // for webGl consumption
         var collection = []; // frendlier for js processing
-
+        
         // scales normal rect to square 50x50px in gl coords @ size of current window;
         // only need to do this once before first marker add;
         // abstracted out to avoid if in critical loop
-        var scaled_rect = [];
-        var calculateScaledRect = function() {
-            var mark_x = 50,
-                mark_y = 50,
-                v_sc_x = mark_x / disp.markCanv.width, 
-                v_sc_y = mark_y / disp.markCanv.height,
-                m_sc = [];
+        var marker_rect = [];
+        var cloud_rect = [];
+        var calculateScaledRect = function(x, y, arr) {
+            var v_sc_x = x / disp.markCanv.width, 
+                v_sc_y = y / disp.markCanv.height;
             for (var i = 0; i < 6; i++) {
-                scaled_rect[i * 2] = norm_rect[i * 2] * v_sc_x;
-                scaled_rect[i * 2 + 1] = norm_rect[i * 2 + 1] * v_sc_y;
+                arr[i * 2] = norm_rect[i * 2] * v_sc_x;
+                arr[i * 2 + 1] = norm_rect[i * 2 + 1] * v_sc_y;
             }
         }
-        
-        var RANDOM = 0.0,
-            VIDEO = 1.0,
-            STUMBLE = 2.0;
        
         var vertexID = 0; 
+        
         var addMarker = function(markObj) { 
+            // consts used in fragment shader to determine
+            // what texture to use 
+            var RANDOM = 0.0,
+                VIDEO = 1.0,
+                STUMBLE = 2.0,
+                CLOUD = 3.0,
+                type;
             
-            // parse marker type to a float
-            var type;
+            // parse marker type to const
             switch (markObj.type) {
                 case 'stumble':
                     type = STUMBLE;
@@ -86,44 +90,157 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
             
             gl_x = (x / disp.markCanv.width) * 2 - 1;
             gl_y = ( (y + off_y) / disp.markCanv.height * -2) + 1;
+           
+            var numOfCloudParticles = 30;
             
-            // assemble block and push to markers
-            // each is structured: 
-            //  id     type    norm tex coord      coord
-            //                 u       v           x       y
-            //  bbbb   bbbb    bbbb    bbbb        bbbb    bbbb
-            for (var i = 0; i < 6; i++) {
-                markers.push((vertexID++ / 6) | 0);
-                markers.push(type);
-                markers.push(tex_rect[i * 2]);
-                markers.push(tex_rect[i * 2 + 1]);
-                // translated scaled rect coords
-                markers.push(gl_x + scaled_rect[i * 2]);
-                markers.push(gl_y + scaled_rect[i * 2 + 1]);
-            }
-        };    
+window.dbgmark = function(idx) {
+    console.log(collection.length, (markers.length / 9) / (numOfCloudParticles * 6 + 6) );
+};
+            // returns object containing gl_coordinates for cloud particle;
+            // sort of random about gl x, y, weighted toward lower x values
+            var cloudCoord = function() {
+                var c_offset = 0.025;
+                
+                // coords x, y, z; velocity x, y
+                function cloudVec(x, y, z, u, v) {
+                    this.x = x;
+                    this.y = y;
+                    this.z = z;
+                    this.u = u;
+                    this.v = v;
+                }
 
+                // find absolute bounds of cloud
+                var dx = marker_rect[2],
+                    dy = marker_rect[5], 
+                    x_max = 2 * dx,
+                    y_max = 1.25 * dy;
+                
+                // equal distribution x
+                var x = (Math.random() * 2 * x_max) - x_max;
+                
+                // 6 y bins
+                var dy_bin = (y_max + 0.25 * y_max) / 6,
+                    y_bins = [ y_max - dy_bin,
+                               y_max - (dy_bin * 2),
+                               y_max - (dy_bin * 3),
+                               y_max - (dy_bin * 4),
+                               y_max - (dy_bin * 5),
+                               y_max - (dy_bin * 6) ];
+                
+                var y_bin = (function() {
+                    var s = Math.random() * 100;
+                    if (s <= 33) return y_bins[5];
+                    if ( (s > 33) && (s <= 54) ) return y_bins[4];
+                    if ( (s > 54) && (s <= 70) ) return y_bins[3];
+                    if ( (s > 70) && (s <= 82) ) return y_bins[2];
+                    if ( (s > 82) && (s <= 92) ) return y_bins[1];
+                    if ( (s > 92) && (s <= 100) ) return y_bins[0];
+                }())
+               
+                var y_jitter = dy_bin / 2;
+                var y = y_bin + (Math.random() * y_jitter) - c_offset;
+
+                // 4 z bins, 2 in front of the marker, and 2 behind,
+                // biased heavily toward the back
+                var z_bins = [ -2, -1, 1, 2];
+                var z = (function() {
+                    var s = Math.random() * 100;
+                    if (s <= 50) return z_bins[0];
+                    if ( (s > 50) && (s <= 70) ) return z_bins[1];
+                    if ( (s > 70) && (s <= 90) ) return z_bins[2];
+                    if ( (s > 90) && (s <= 100) ) return z_bins[3];
+                }())
+                
+                var calcVelocity = function() {
+                    return Math.random() * Math.PI * 2 * 
+                        ( (Math.random() < 0.5) ? -1 : 1 );
+                };
+
+                // set velocity (in radians) for each 
+                // individual cloud particle in x, y dimensions
+                var u = calcVelocity(); 
+                var v = calcVelocity();  
+                
+                return new cloudVec(x, y, z, u, v);
+            };
+            
+            // generate an ID unique to each marker and surrounding cloud particles
+            var getID = function() {
+                var id = (vertexID / (numOfCloudParticles * 6 + 6)) | 0;
+                vertexID++;
+                return id;
+            };
+
+            // assemble per vertex data blocks and push to markers
+            // each is structured: 
+            //  id     type    norm tex coord   coord                speed 
+            //                 u       v        x       y     z      x     y
+            //  bbbb   bbbb    bbbb    bbbb     bbbb    bbbb  bbbb   bbbb  bbbb
+
+            var makeCloud = function(cloudVec) {
+                for (var k = 0; k < 6; k++) {
+                    markers.push(
+                        getID(), // id
+                        CLOUD, //type enum
+                        tex_rect[k * 2], // norm u
+                        tex_rect[k * 2 + 1], //norm v
+                        gl_x + cloudVec.x + cloud_rect[k * 2], // world space x
+                        gl_y + cloudVec.y + cloud_rect[k * 2 + 1], //world y
+                        cloudVec.z, //world z
+                        cloudVec.u, //velocity x
+                        cloudVec.v); // velocity y
+                }
+            }
+            // first the marker
+            for (var i = 0; i < 6; i++) {
+                markers.push(
+                    getID(),
+                    type,
+                    tex_rect[i * 2],
+                    tex_rect[i * 2 + 1],
+                    gl_x + marker_rect[i * 2],
+                    gl_y + marker_rect[i * 2 + 1],
+                    0,
+                    0,
+                    0);
+            }
+            // then the cloud
+            for (var j = 0; j < numOfCloudParticles; j++) {
+                makeCloud( cloudCoord() );
+            };
+        };    
+        
+        // on window resize, explicitly resize canvas in pixels
+        // and recalculate rects in world coords
         (function resizeCanv() {
             disp.markCanv.width = window.innerWidth;
             disp.markCanv.height =  window.innerHeight;
-            calculateScaledRect();        
+            calculateScaledRect(50, 50, marker_rect);
+            calculateScaledRect(25, 25, cloud_rect);        
             window.addEventListener('resize', function() {
                 resizeCanv();
             });
         }())
-
+        
+        // webGl context setup
         var z = visCore.webgl.setup(disp.markCanv, MarkerShaders, true),
             a_marker_buffer = z.gl.createBuffer(),
             a_type, a_normCoords, a_position;        
-      
+     
+        //z.gl.enable(z.gl.DEPTH_TEST); 
+        //z.gl.depthMask(false);
         z.gl.blendFunc(z.gl.SRC_ALPHA, z.gl.ONE);
         z.gl.enable(z.gl.BLEND);
-        z.gl.disable(z.gl.DEPTH_TEST);
 
+        //z.gl.disable(z.gl.DEPTH_TEST);
+        
+        // setup textures
         var units = {
             u_stumble: z.gl.TEXTURE0,
             u_video: z.gl.TEXTURE1,
-            u_random: z.gl.TEXTURE2    
+            u_random: z.gl.TEXTURE2,
+            u_cloud: z.gl.TEXTURE3    
         };
         
         var cntr = z.gl.TEXTURE0;
@@ -155,12 +272,18 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
             };
         };
 
+        var markerImages = {
+            u_stumble: new imgTexObj('static/assets/rap.png'),
+            u_video: new imgTexObj('static/assets/colorbars.png'),
+            u_random: new imgTexObj('static/assets/rand.png'),
+            u_cloud: new imgTexObj('static/assets/cloud.png')
+        };
+
         /*
          *  create mouseover events
          */
         var u_mouseover = 0;
         var u_mouseoverIdx = 0;  
-        // bounds = x, y - 25 -> x+50, y-25, x, y+ 25 x+50, y+25 
         
         div.$map.get(0).addEventListener('mousemove', function(e) {
             var x = e.x;
@@ -179,32 +302,13 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
                         u_mouseover = 0;
                     }
                 }
-            } 
-            if (u_mouseover) {
-                if ( (typeof visCore.render.has(update) !== 'number') ) {
-                    visCore.render.push(disp.draw);
-                    if (!visCore.render.rendering) visCore.render.go();
-                }
-            } else {
-                if (typeof visCore.render.has(disp.draw) == 'number') {
-                    visCore.render.rm(disp.draw);
-                    if ( !visCore.render.has() ) visCore.render.stop();
-                } 
             }
-            
+            console.log(u_mouseover, u_mouseoverIdx);
         });
         
-
-        var markerImages = {
-            u_stumble: new imgTexObj('static/assets/rap.png'),
-            u_video: new imgTexObj('static/assets/colorbars.png'),
-            u_random: new imgTexObj('static/assets/rand.png')
-        };
-      
         /*
          * these drawing functions *need* to be optimized to a fine powder
          */
-
         var u_clock = 0;
         disp.blackout = 0;
         disp.draw = function() {
@@ -213,17 +317,18 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_mouseoverIdx'), u_mouseoverIdx);
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_clock'), u_clock++);
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, 'u_blackout'), disp.blackout);
-            z.gl.drawArrays(z.gl.TRIANGLES, 0, markers.length / 6); 
+            z.gl.drawArrays(z.gl.TRIANGLES, 0, markers.length / 9); 
         };
+        // switch in middle to only translate, not draw new clouds
 
         disp.drawWithDataUpdate = function(arrMarkObjs) {
-            vertexID = 0; 
             collection = arrMarkObjs;
-
+            vertexID = 0;
             if (arrMarkObjs && arrMarkObjs.length > 0) {
                 // pop a block at a time 
                 while (markers.length > 0) {
-                    markers.pop(); markers.pop(); markers.pop(); markers.pop(); markers.pop();
+                    markers.pop(); markers.pop(); markers.pop(); markers.pop(); 
+                    markers.pop(); markers.pop(); markers.pop(); markers.pop(); markers.pop(); 
                 }
                 
                 var numObjs = arrMarkObjs.length;
@@ -269,21 +374,25 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
                 z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(markers), z.gl.DYNAMIC_DRAW); 
 
                 a_vertexID = z.gl.getUniformLocation(z.program, 'a_vertexID');
-                z.gl.vertexAttribPointer(a_vertexID, 1, z.gl.FLOAT, false, 24, 0)
+                z.gl.vertexAttribPointer(a_vertexID, 1, z.gl.FLOAT, false, 36, 0)
                 z.gl.enableVertexAttribArray(a_vertexID);
 
                 a_type = z.gl.getAttribLocation(z.program, 'a_type');
-                z.gl.vertexAttribPointer(a_type, 1, z.gl.FLOAT, false, 24, 4); 
+                z.gl.vertexAttribPointer(a_type, 1, z.gl.FLOAT, false, 36, 4); 
                 z.gl.enableVertexAttribArray(a_type);
                 
                 a_normCoords = z.gl.getAttribLocation(z.program, 'a_normCoords');
-                z.gl.vertexAttribPointer(a_normCoords, 2, z.gl.FLOAT, false, 24, 8);
+                z.gl.vertexAttribPointer(a_normCoords, 2, z.gl.FLOAT, false, 36, 8);
                 z.gl.enableVertexAttribArray(a_normCoords);
                 
                 a_position = z.gl.getAttribLocation(z.program, 'a_position');
-                z.gl.vertexAttribPointer(a_position, 2, z.gl.FLOAT, false, 24, 16);
+                z.gl.vertexAttribPointer(a_position, 3, z.gl.FLOAT, false, 36, 16);
                 z.gl.enableVertexAttribArray(a_position);
                 
+                a_velocity = z.gl.getAttribLocation(z.program, 'a_velocity');
+                z.gl.vertexAttribPointer(a_velocity, 2, z.gl.FLOAT, false, 36, 28);
+                z.gl.enableVertexAttribArray(a_velocity);
+
                 disp.draw();
             }
         }
@@ -345,7 +454,13 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
         };  
         return marks;
     }({}))
-   
+    
+    visCore.render.push(disp.draw);
+    if (!visCore.render.rendering) visCore.render.go(); 
+    window.draw = function() {
+        visCore.render.push(disp.draw);
+        visCore.render.go();
+    };
     // update is leaking in render stack 
     var update = function() {
         disp.drawWithDataUpdate( marks.getDrawingData() );
@@ -359,6 +474,7 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
         if (!visCore.render.has()) visCore.render.stop();
     };
     gMap.events.push(gMap.events.MAP, 'mousedown', startUpdate);
+    gMap.events.push(gMap.events.MAP, 'mouseup', stopUpdate);
     gMap.events.push(gMap.events.MAP, 'idle', stopUpdate);
     gMap.events.push(gMap.events.MAP, 'zoom_changed', update);  
 
@@ -379,7 +495,7 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
         disp.draw();
     };
     window.blackout = markers.blackout;
-
+    // glow on markers.
     /*
      *  display placeholders on map
      */
