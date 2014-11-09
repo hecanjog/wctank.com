@@ -7,6 +7,7 @@ attribute vec2 a_normCoords;
 attribute vec3 a_position;
 attribute vec2 a_velocity;
 
+uniform vec4 u_translate;
 uniform int u_mouseover;
 uniform int u_mouseoverIdx;
 uniform int u_clock;
@@ -39,7 +40,7 @@ void main()
         position.y += 0.01 * angle(a_velocity.y, u_clock);
     }
 
-    gl_Position = vec4(position.xy, 0, 1);
+    gl_Position = vec4(position.xyz, 1) + u_translate;
 }
 END
 
