@@ -26,7 +26,7 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
         var markers = [], //for webgl consumption
             clouds = [],
             markerObj$ = [], // frendlier for js processing
-            numOfCloudParticles = 30;
+            numOfCloudParticles = 35;
 
         // clear a block at a time
         var clearBlockArray = function(arr) {
@@ -119,7 +119,7 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
             disp.markCanv.width = window.innerWidth;
             disp.markCanv.height =  window.innerHeight;
             calculateScaledRect(50, 50, marker_rect);
-            calculateScaledRect(25, 25, cloud_rect);        
+            calculateScaledRect(35, 35, cloud_rect);        
             window.addEventListener('resize', function() {
                 resizeCanv();
             });
@@ -252,7 +252,7 @@ function(div, gMap, posts, visCore, MarkerShaders) { var markers = {};
         var addMarker = function(markObj) { 
             var type = parseType(markObj);
             var worldCoord = window2World(markObj.px.x, markObj.px.y - 25);
-            var cloudWorldCoord = window2World(markObj.px.x, markObj.px.y);
+            var cloudWorldCoord = window2World(markObj.px.x, markObj.px.y - 10);
 
             var back = (numOfCloudParticles * 0.75) | 0;
             var front = numOfCloudParticles - back;
