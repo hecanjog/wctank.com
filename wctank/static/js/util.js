@@ -37,5 +37,13 @@ define(
             var keys = Object.keys(set);
             return set[ util.getRndItem(keys) ];
         }
+    },
+    
+    // a nice implementation of java's hashCode I ripped from
+    // stack overflow: 
+    // http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+    hashCode: function(s){
+        return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);         
     }
+
 });

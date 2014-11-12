@@ -6,11 +6,12 @@ define(
         'specialCoord',
         'text!AlphaStrutShaders.glsl',
         'text!SquaresShaders.glsl',
+        'text!AngularShaders.glsl',
         'jquery',
     ],
 
 function(div, gMap, visCore, specialCoord, 
-         AlphaStrutShaders, SquareShaders, $, paper) { var specialDefs = {};
+         AlphaStrutShaders, SquareShaders, AngularShaders, $) { var specialDefs = {};
     //TODO: remove non-transparent parts in image
     // do something else besides just show and hide the image?
     /*
@@ -264,5 +265,25 @@ function(div, gMap, visCore, specialCoord,
     }
     Words.prototype = new visCore.MapFilter();
     specialDefs.words = new Words();
+
+    function Angular() {
+        var angular_front = document.createElement('canvas');
+        angular_front.setAttribute("id", "angular_front");
+
+        this.init = function() {
+            document.body.appendChild(angular_front);
+        };
+
+        var z = visCore.webgl.setup(angular_front, AngularShaders, true);         
+
+        this.animate = function() {
+
+        };
+        this.teardown = function() {
+            document.body.removeChild(angular_front);
+        };
+    }
+    Angular.prototype = new visCore.MapFilter();
+    specialDefs.angular = new Angular();
 
 return specialDefs; });

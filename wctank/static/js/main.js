@@ -10,11 +10,13 @@ require.config({
         froogaloop2: '/static/lib/froogaloop2.min',
         tween: '/static/lib/tween.min',
         sylvester: '/static/lib/sylvester',
+        jStat: '/static/lib/jStat',
         filterXML: '/static/map_filters',
         VHSShaders: '/static/glsl/white_noise',
         MarkerShaders: '/static/glsl/markers',
         AlphaStrutShaders: '/static/glsl/alphaStrut',
-        SquaresShaders: '/static/glsl/squares'
+        SquaresShaders: '/static/glsl/squares',
+        AngularShaders: '/static/glsl/angular'
     },
 
     shim: {
@@ -27,6 +29,9 @@ require.config({
         },
         'sylvester': {
             exports: 'sylvester'
+        },
+        'jStat': {
+            exports: 'jStat'
         }
     }
 });
@@ -35,7 +40,8 @@ define(
     [
         'sequencer',
         'tableuxList',
-        'specialDefs'
+        'specialDefs',
+        //'markerEvents'
     ],
 function(sequencer) {
     sequencer.goTo(0);
