@@ -5,11 +5,9 @@ define(
     ],
 
 function(markerMapPosition, jStat) { var markerData = {};
-    var data = [],
-        last_data_length = 0,
-        additions = [];
-        diffs = [];
-        obj_cache = {},
+    var vertices = 0,
+        last_length = 0,
+        last_alive = [],
         numberOfCloudParticles = 20;
 
     var rect_vertices = 
@@ -57,16 +55,34 @@ function(markerMapPosition, jStat) { var markerData = {};
                     ( (Math.random() < 0.5) ? -1 : 1 );
             };
            
-            return {x: angle(), y: angle()); 
+            return {x: angle(), y: angle()}; 
     }; 
 
-    var pushBlock = function(hash, type, modelX, modelY, contX, contY, 
-                             vUvX, vUvY, radX, radY) {
-        data.push(hash, type, modelX, modelY, contX, contY, 
-                    vUvX, vUvYi, radX, radY);
-        additions.push(hash, type, modelX, modelY, contX, contY,
-                       vUvX, vUvY, radX, radY);
+    var pushNewMarkerData = function(MarkerData, targetArr) {
+        // push marker block
+        for (var j = 0; j < marker_sq.length / 2; j++) {
+            targetArr.push(MarkerData.hash, markerTypes[MarkerData.type.toUpperCase()], 
+                           marker_sq[j * 2], marker_sq[j * 2 + 1],
+                           MarkerData.x, MarkerData.y, 
+                           uv[j * 2], uv[j * 2 + 1],
+                           0, 0);
+        }
+        // push cloud blocks
+        for (var k = 0; k < numberOfCloudParticles; k++) {
+            (function() {
+                var vec = generateParticleVector(); 
+                var angle = generateParticleAngles();
+                for (var l = 0; l < cloud_sq.length / 2; l++) {
+                    targetArr.push(MarkerData.hash, markerTypes.CLOUD,
+                                   cloud_sq[l * 2] + vec.x, cloud_sq[l * 2 + 1] + vec.y,
+                                   MarkerData.x, MarkerData.y,
+                                   uv[l * 2], uv[l * 2 + 1],
+                                   angle.x, angle.y); 
+                }
+            }())
+        }
     };
+    
     var clearArray = function(arr) {
         while (arr.length > 0) {
             // pop a block at a time
@@ -75,8 +91,8 @@ function(markerMapPosition, jStat) { var markerData = {};
         }
     };
 
-    function Diff(idx, signal, location_x, location_y) {
-        this.idx = idx;
+    function Diff(hash, signal, location_x, location_y) {
+        this.hash = hash;
         this.signal = signal;
         this.location_x = location_x;
         this.location_y = location_y;
@@ -102,6 +118,7 @@ function(markerMapPosition, jStat) { var markerData = {};
      * vUv: vertex texture coordinates
      * velocity: x, y in radians (for cloud particles)
      */
+    markerData.NUMBER_OF_PARTICLES = numberOfCloudParticles;
     markerData.BLOCK_ITEMS = 10;
     markerData.BLOCK_SIZE = 40;
     markerData.HASH_ITEMS = 1;
@@ -116,83 +133,45 @@ function(markerMapPosition, jStat) { var markerData = {};
     markerData.TYPE_OFFSET = 4    
     markerData.MODEL_VER_OFFSET = 8;
     markerData.LOCATION_VEC_OFFSET = 16;
-    markerData.VUV_OFFSET = 24);
+    markerData.VUV_OFFSET = 24;
     markerData.VELOCITY_OFFSET = 32;
-    
+
     // get current marker state, compare to cache, push data blocks
     markerData.getData = function() {
         //clear last
-        clearArray(additions);
-        clearArray(diff);
-        
+        var additions = [],
+            diffs = [];
+
         var state = markerMapPosition.getCurrentState();
-     
-        // copy last data to data_cache ??
-        last_data_length = data.length; 
+        
+        last_length = vertices;
+        vertices = state.length * 12; 
 
-        for (var i = 0; i < state.length; i++) {
-            if ( !(state[i].hash in obj_cache) ) {
-                //marker is new
-
-                // push marker data to cache
-                obj_cache[state[i].hash] = state[i];
-                
-                // push marker blocks
-                for (var j = 0; j < marker_sq.length / 2; j++) {
-                    pushBlock(state[i].hash, markerTypes[state[i].type.toUpperCase()], 
-                              marker_sq[j * 2], marker_sq[j * 2 + 1],
-                              state[i].x, state[i].y, 
-                              uv[j * 2], uv[j * 2 + 1],
-                              0, 0);
-                }
-                
-                // push cloud blocks
-                for (var k = 0; k < numberOfCloudParticles; k++) {
-                    (function() {
-                        var vec = generateParticleVector(); 
-                        var angle = generateParticleAngles();
-                        for (var l = 0; l < cloud_sq.length / 2; l++) {
-                            pushBlock(state[i].hash, markerTypes.CLOUD,
-                                    cloud_sq[l * 2] + vec.x, cloud_sq[l * 2 + 1] + vec.y,
-                                    state[i].x, state[i].y,
-                                    uv[l * 2], uv[l * 2 + 1],
-                                    angle.x, angle.y); 
-                        }
-                    }())
-                }
-
-            } else if (state[i].hash in obj_cache) {
-                //marker is alive, so just needs to be translated
-
-                //update obj_cache
-                obj_cache[state[i].hash].x = state[i].x; 
-                obj_cache[state[i].hash].y = state[i].y; 
-               
-                // update new, location in data 
-                var idx = data.indexOf(state[i].hash);
-                //data[idx + 1] = 0;
-                data[idx + 4] = state[i].x;
-                data[idx + 5] = state[i].y;  
-
-                // add change to diff [idx, 0, x, y] or [idx, 9, 0, 0]
-                diffs.push(new Diff(idx, 0, state[i].x, state[i].y));
-                // dynamically update with bufferSubData  - array w instructions
+        var living = [];
+        state.forEach(function(val) {
+            living.push(val.hash);
+            if ( last_alive.indexOf(val.hash) > -1 ) {
+                diffs.push( new Diff(val.hash, 0, val.x, val.y) );
             } else {
-                // marker is dead
-                delete obj_cache[state[i].hash];
-                var dead = data.indexOf(state[i].hash);
-                data.splice(dead, markerData.BLOCK_ITEMS);
-                diffs.push(new Diff(idx, 9, 0, 0)); 
+                pushNewMarkerData(val, additions);
             }
-        }
-        return { vertices: data.length / 11, last_length: last_length,
+        });
+
+        last_alive.forEach(function(val) {
+            if ( living.indexOf(val) === -1 )
+                diffs.push( new Diff(val, 9, 0, 0) );
+        });
+        
+        last_alive = living.splice(0);
+        
+        return { vertices: vertices, last_length: last_length,
                  additions: additions, diffs: diffs };
     }; 
 
     // projective transformation for window x, y to gl coords 
     markerData.getProjection = function() {
-        var sx = (1 / window.innerWidth) * 2 - 1,
-            sy = (1 / window.innerHeight) * -2 + 1;
+        var sx = (1 / window.innerWidth) * 2,
+            sy = (1 / window.innerHeight) * -2;
         return [ sx, 0,  0, 0,
                  0,  sy, 0, 0,
                  0,  0,  1, 0, 

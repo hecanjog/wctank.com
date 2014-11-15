@@ -1,6 +1,6 @@
 define(
     [
-        'util'
+        'util',
         'gMap'
     ],
 
@@ -60,7 +60,7 @@ function(util, gMap) { markerMapPosition = {};
         for (var m in markers) {
             if ( markers.hasOwnProperty(m) ) {
                 markers[m].update();
-                if ( markers[m].isAlive() ) {
+                if ( markers[m].isAlive ) {
                     r.push( markers[m].getDrawingData() );
                 }
             }
@@ -68,4 +68,4 @@ function(util, gMap) { markerMapPosition = {};
         return r;
     };
 
-return markerMapPosition; }};
+return markerMapPosition; });

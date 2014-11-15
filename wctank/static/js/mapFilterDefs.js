@@ -7,7 +7,7 @@ define(
         'div',
         'gMap',
         'visCore',
-        'markers',
+        'markerCore',
         'mapFilterCycle',
         'text!filterXML.xml',
         'text!VHSShaders.glsl',
@@ -15,7 +15,7 @@ define(
         'froogaloop2'
     ],
 
-function(util, div, gMap, visCore, markers, mapFilterCycle, 
+function(util, div, gMap, visCore, markerCore, mapFilterCycle, 
          filterXML, VHSShaders, $, $f) { var defs = {};
     
     var cont = document.createElement("svg_filters");
@@ -99,7 +99,7 @@ function(util, div, gMap, visCore, markers, mapFilterCycle,
             window.addEventListener('resize', $mapOnResize);
             set$mapCss(false);
             gMap.zoomControlsVisible(false);
-            markers.setVisibility(false);
+            markerCore.setVisibility(false);
             document.body.appendChild(troller_back);
             troller_back.play();
             transform("rotate(360deg)");
@@ -120,7 +120,7 @@ function(util, div, gMap, visCore, markers, mapFilterCycle,
                 window.removeEventListener('resize', $mapOnResize);
                 set$mapCss(true);
                 gMap.zoomControlsVisible(true);
-                markers.setVisibility(true);
+                markerCore.setVisibility(true);
                 troller_back.pause();
                 troller_back.currentTime = 0;
                 transform(ident);
@@ -181,9 +181,9 @@ function(util, div, gMap, visCore, markers, mapFilterCycle,
             var del = Math.random() * 20000 + 10000,
                 dur = Math.random() * 2000 + 1000;
             blink_id = window.setTimeout(function() {
-                div.$map_U_markers.css("display", "none");
+                markerCore.setVisibility(false);
                 window.setTimeout(function() {
-                    div.$map_U_markers.css("display", "block");
+                    markerCore.setVisibility(true);
                 }, dur);
             }, del);
         }; 

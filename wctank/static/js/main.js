@@ -10,7 +10,7 @@ require.config({
         froogaloop2: '/static/lib/froogaloop2.min',
         tween: '/static/lib/tween.min',
         sylvester: '/static/lib/sylvester',
-        jStat: '/static/lib/jStat',
+        jStat: '/static/lib/jstat.min',
         filterXML: '/static/map_filters',
         VHSShaders: '/static/glsl/white_noise',
         MarkerShaders: '/static/glsl/markers',
@@ -41,7 +41,7 @@ define(
         'sequencer',
         'tableuxList',
         'specialDefs',
-        //'markerEvents'
+        'markerEvents'
     ],
 function(sequencer) {
     sequencer.goTo(0);
