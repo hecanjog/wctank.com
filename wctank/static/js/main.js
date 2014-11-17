@@ -9,10 +9,6 @@ require.config({
                 '/static/lib/jquery-2.1.1.min'],
         froogaloop2: '/static/lib/froogaloop2.min',
         tween: '/static/lib/tween.min',
-        three: ['//cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min',
-               '/static/lib/three.min'], 
-        sylvester: '/static/lib/sylvester',
-        jStat: '/static/lib/jstat.min',
         filterXML: '/static/map_filters',
         VHSShaders: '/static/glsl/white_noise',
         MarkerShaders: '/static/glsl/markers',
@@ -28,15 +24,6 @@ require.config({
         },
         'tween': {
             exports: 'TWEEN'
-        },
-        'sylvester': {
-            exports: 'sylvester'
-        },
-        'jStat': {
-            exports: 'jStat'
-        },
-        'three': {
-            exports: 'THREE'  
         }
     }
 });
@@ -44,11 +31,24 @@ require.config({
 define(
     [
         'sequencer',
-        'tableuxList',
+        'specialCoord',
         'specialDefs',
+        'tableuxList',
         'markerEvents'
     ],
-function(sequencer) {
+function(sequencer, specialCoord, specialDefs) {
     sequencer.goTo(0);
+    window.applySquares = function() {
+        specialCoord.apply(specialDefs.squares);
+    };
+    window.rmSquares = function() {
+        specialCoord.rm(specialDefs.squares);
+    };
+    window.applyAlphaStrut = function() {
+        specialCoord.apply(specialDefs.alphaStrut);
+    };
+    window.rmAlphaStrut = function() {
+        specialCoord.rm(specialDefs.alphaStrut);
+    };
 });
 

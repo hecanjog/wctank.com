@@ -62,8 +62,6 @@ function(util, markerData, visCore, MarkerShaders) { var markerCore = {};
                              markerData.BLOCK_SIZE, markerData.VELOCITY_OFFSET );
     z.gl.enableVertexAttribArray(a_angularVelocity);
 
-
-
     // setup textures
     function Texture(name, path, TEXTUREID, index) {
         this.image;

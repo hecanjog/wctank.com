@@ -103,7 +103,8 @@ function(div, gMap, visCore, specialCoord,
 
         var alphaStrut_front = document.createElement("canvas");
         alphaStrut_front.setAttribute("id", "alphaStrut_front");
-            
+        
+        var that = this; 
         this.webgl = (function(webgl) {
             var z = visCore.webgl.setup(alphaStrut_front, AlphaStrutShaders, true); 
             var vid_tex;
@@ -112,6 +113,9 @@ function(div, gMap, visCore, specialCoord,
             var threshold = 50;
             vid.addEventListener("canplaythrough", function() {
                 
+                vid.volume = 0; 
+                vid.currentTime = 60;
+
                 //TODO: fix cross-origin in Firefox (prob via proxy stream) 
                 vid_tex = z.gl.createTexture();
                 z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
@@ -134,12 +138,14 @@ function(div, gMap, visCore, specialCoord,
                 z.gl.enableVertexAttribArray(texCoordAttr);
                 z.gl.vertexAttribPointer(texCoordAttr, 2, z.gl.FLOAT, false, 0, 0);
             }, true);
-            
+           
+            //var clock = 0;
             webgl.update = function() {
                 z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
                 
                 z.gl.uniform1f( z.gl.getUniformLocation(z.program, "threshold"), threshold );
-                
+                //z.gl.uniform1i( z.gl.getUniformLocation(z.program, "u_clock"), clock++ );    
+
                 texCoordAttr = z.gl.getAttribLocation(z.program, "texCoord");
                 z.gl.enableVertexAttribArray(texCoordAttr);
                 
@@ -162,7 +168,7 @@ function(div, gMap, visCore, specialCoord,
             vid.pause();
         };
         this.animate = function() {
-            alphaStrut.webgl.update();
+            that.webgl.update();
         };
     };
     AlphaStrut.prototype = new visCore.MapFilter();
