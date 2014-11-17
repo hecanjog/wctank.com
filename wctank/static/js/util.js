@@ -44,6 +44,10 @@ define(
     // http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
     hashCode: function(s){
         return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);         
+    },
+
+    log: function(n, base) {
+        return Math,log(n) / Math.log(base);
     }
 
 });

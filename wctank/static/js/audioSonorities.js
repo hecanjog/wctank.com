@@ -1,21 +1,79 @@
 define(
+    [
+        'audioUnitConversions'
+    ],    
 
-{
-    VoiceTuple: function VoiceTuple(frequency, amplitude) {
+function(audioUnitConversions) { var audioSonorities = {};
+
+    audioSonorities.units = {
+        HZ: 'hz',
+        HERTZ: 'hz',
+        MEL: 'mel',
+        SCI: 'scientific'
+        SCIENTIFIC: 'scientific',
+        MIDI: 'midi'
+    };
+
+    audioSonorities.VoiceTuple = function VoiceTuple(frequency, amplitude, unitEnum) {
         this.frequency = frequency;
-        this.amplitude = amplitude;
-    },
+        
+        if (typeof amplitude === 'undefined') {
+            this.amplitude = 1.0;
+        } else {
+            this.amplitude = amplitude;
+        }
+        
+        if (typeof unitEnum === 'undefined') {
+            this.unit = 'hz';
+        } else {
+            this.unit = unitEnum;
+        }
+    };
 
-    Sonority: function Sonority() {
-        this.values = {};
+    audioSonorities.Sonority = function Sonority() {
+        this.voices = [];
+
         var args = arguments;
         for (var i = 0; i < args.length; i++) {
             if ( Array.isArray(args[i]) ) {
-                this.values[i] = new sonorities.VoiceTuple(args[i][0], args[i][1]);
-            } else if ( args[i].constructor.name === 'VoiceTuple'  ) {
-                this.values[i] = args[i]; 
+                var cntr = 0;
+                while (cntr < args[i].length) {
+                    if (args[i][cntr].constructor.name === 'VoiceTuple') {
+                        this.voices.push(args[i][cntr++]);
+                    } else {
+                        var f, a, u,
+                            b = 0;
+                        f = args[i][cntr + b++];
+                        if (args[i][cntr + b] > 1.0) {
+                            a = args[i][cntr + b++];
+                            if (typeof args[i][cntr + b] === 'string') 
+                                u = args[i][cntr + b++]; 
+                        }
+                        this.voices.push(new audioSonorities.VoiceTuple(f, a, u);
+                        cntr += b;
+                    }
+                }
+            } else if (args[i].constructor.name === 'VoiceTuple') {
+                this.voices.push(args[i]);
             }
         }
+   
+        // uniform detune
+        // detune map
+        // the uniform detune is trivial,
+        // but what about a detune map? 
+        // or set functions
+        // also detune odds, evens
+        // same operations for amplitude
+        this.detune = function(cents) {
+            this.voices.forEach(function(voice) {
+                voice.frequency = audioUnitConversions.cents2Hz(cents, voice.frequency);   
+            });
+        }; 
+        
+
+        //this.transpose
+
         /* TODO:
         this.detune // in cents
         this.deform 
@@ -24,8 +82,8 @@ define(
         this.addVoice 
         this.removeVoice
         */
-    }
+    };
    
     //TODO: a pool of neat chords
 
-return sonorities; });
+return audioSonorities; });

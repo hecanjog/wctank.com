@@ -101,35 +101,35 @@ function(audio, util) { var elements = {};
         
         var accenting = false;
         var gen = (function(gen) {
-                var _$ = {
-                    Q: 0,
-                    amplitude: 0
-                };
-                var ret = function(p, pos, diff_base, smdg_pcnt) {
-                    if (pos) {
-                        _$[p] = params[p];
-                        return params[p] + util.smudgeNumber(diff_base, smdg_pcnt);
-                    } else {
-                        return _$[p];
-                    }
-                };
-                var freqTarget = function(prop, base, range) {
-                    var diff = (Math.random() < 0.5) ? base * -1 : base;
-                    return prop + util.smudgeNumber(diff, range);
-                };
-                gen.Q = function(pos) {
-                    var rq = ret('Q', pos, 70, 20);
-                    return rq;
-                };
-                gen.amp = function(pos) {
-                    return ret('amplitude', pos, 1, 50);
-                };
-                gen.freq = function(pos) {
-                    var freq = params.frequency;
-                    return pos ? freqTarget(freq, 8, 10) : freqTarget(freq, 1, 10);
-                };
-                return gen;
-            }({}))
+            var _$ = {
+                Q: 0,
+                amplitude: 0
+            };
+            var ret = function(p, pos, diff_base, smdg_pcnt) {
+                if (pos) {
+                    _$[p] = params[p];
+                    return params[p] + util.smudgeNumber(diff_base, smdg_pcnt);
+                } else {
+                    return _$[p];
+                }
+            };
+            var freqTarget = function(prop, base, range) {
+                var diff = (Math.random() < 0.5) ? base * -1 : base;
+                return prop + util.smudgeNumber(diff, range);
+            };
+            gen.Q = function(pos) {
+                var rq = ret('Q', pos, 70, 20);
+                return rq;
+            };
+            gen.amp = function(pos) {
+                return ret('amplitude', pos, 1, 50);
+            };
+            gen.freq = function(pos) {
+                var freq = params.frequency;
+                return pos ? freqTarget(freq, 8, 10) : freqTarget(freq, 1, 10);
+            };
+            return gen;
+        }({}))
         
         this.accent = function() {
             if (!accenting) {        
