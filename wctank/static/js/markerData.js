@@ -1,10 +1,9 @@
 define(
     [
         'markerMapPosition',
-        'jStat'
     ],
 
-function(markerMapPosition, jStat) { var markerData = {};
+function(markerMapPosition) { var markerData = {};
     var vertices = 0,
         last_length = 0,
         last_alive = [],
@@ -43,19 +42,29 @@ function(markerMapPosition, jStat) { var markerData = {};
         // dimensions of cloud
         var x_dimen = 2 * marker_side,
             y_dimen = 1.25 * marker_side;
-        
+  
+        var y_bin = y_dimen / 10;
+
         var x = (Math.random() * x_dimen) - marker_side,
-            y = jStat.lognormal.sample( 0.2 * y_dimen, 0.3 ) - marker_side; 
-       
+            y = (function() {
+                var s = Math.random() * 100;
+                if (s < 7) return y_dimen - (y_bin * 5);
+                if ( (s >= 7) && (s < 14) ) return y_dimen - (y_bin * 4);
+                if ( (s >= 14) && (s < 30) ) return y_dimen - (y_bin * 3);
+                if ( (s >= 30) && (s < 50) ) return y_dimen - (y_bin * 2);
+                if ( (s >= 50) && (s < 75) ) return y_dimen - (y_bin * 1); 
+                if ( (s >= 75) && (s < 100) ) return y_dimen; 
+            }())
+
         return {x: x, y: y};
     };
     var generateParticleAngles = function() {
         var angle = function() {
-                return Math.random() * Math.PI * 2 * 
-                    ( (Math.random() < 0.5) ? -1 : 1 );
-            };
-           
-            return {x: angle(), y: angle()}; 
+            return Math.random() * Math.PI * 2 * 
+                ( (Math.random() < 0.5) ? -1 : 1 );
+        };
+       
+        return {x: angle(), y: angle()}; 
     }; 
 
     var pushNewMarkerData = function(MarkerData, targetArr) {
@@ -74,7 +83,7 @@ function(markerMapPosition, jStat) { var markerData = {};
                 var angle = generateParticleAngles();
                 for (var l = 0; l < cloud_sq.length / 2; l++) {
                     targetArr.push(MarkerData.hash, markerTypes.CLOUD,
-                                   cloud_sq[l * 2] + vec.x, cloud_sq[l * 2 + 1] + vec.y,
+                                   cloud_sq[l * 2] + vec.x, cloud_sq[l * 2 + 1] + vec.y - 25,
                                    MarkerData.x, MarkerData.y,
                                    uv[l * 2], uv[l * 2 + 1],
                                    angle.x, angle.y); 
@@ -83,21 +92,6 @@ function(markerMapPosition, jStat) { var markerData = {};
         }
     };
     
-    var clearArray = function(arr) {
-        while (arr.length > 0) {
-            // pop a block at a time
-            arr.pop(); arr.pop(); arr.pop(); arr.pop(); arr.pop();
-            arr.pop(); arr.pop(); arr.pop(); arr.pop(); arr.pop(); arr.pop();
-        }
-    };
-
-    function Diff(hash, signal, location_x, location_y) {
-        this.hash = hash;
-        this.signal = signal;
-        this.location_x = location_x;
-        this.location_y = location_y;
-    }
-
     // parse type
     var markerTypes = {
         RANDOM: 0,
@@ -122,60 +116,32 @@ function(markerMapPosition, jStat) { var markerData = {};
     markerData.BLOCK_ITEMS = 10;
     markerData.BLOCK_SIZE = 40;
     markerData.HASH_ITEMS = 1;
-    //markerData.NEW_MARKER_ITEMS = 1;
-    markerData.TYPE_ITEMS = 1;
-    markerData.MODEL_VER_ITEMS = 2;
-    markerData.LOCATION_VEC_ITEMS = 2;
-    markerData.VUV_ITEMS = 2;
-    markerData.VELOCITY_ITEMS = 2;
     markerData.HASH_OFFSET = 0;
-    //markerData.NEW_MARKER_OFFSET = 4;
+    markerData.TYPE_ITEMS = 1;
     markerData.TYPE_OFFSET = 4    
+    markerData.MODEL_VER_ITEMS = 2;
     markerData.MODEL_VER_OFFSET = 8;
+    markerData.LOCATION_VEC_ITEMS = 2;
     markerData.LOCATION_VEC_OFFSET = 16;
+    markerData.VUV_ITEMS = 2;
     markerData.VUV_OFFSET = 24;
+    markerData.VELOCITY_ITEMS = 2;
     markerData.VELOCITY_OFFSET = 32;
 
     // get current marker state, compare to cache, push data blocks
     markerData.getData = function() {
         //clear last
-        var additions = [],
-            diffs = [];
+        var data = [];
 
         var state = markerMapPosition.getCurrentState();
         
         last_length = vertices;
         vertices = state.length * 12; 
 
-        var living = [];
         state.forEach(function(val) {
-            living.push(val.hash);
-            if ( last_alive.indexOf(val.hash) > -1 ) {
-                diffs.push( new Diff(val.hash, 0, val.x, val.y) );
-            } else {
-                pushNewMarkerData(val, additions);
-            }
+            pushNewMarkerData(val, data);
         });
-
-        last_alive.forEach(function(val) {
-            if ( living.indexOf(val) === -1 )
-                diffs.push( new Diff(val, 9, 0, 0) );
-        });
-        
-        last_alive = living.splice(0);
-        
-        return { vertices: vertices, last_length: last_length,
-                 additions: additions, diffs: diffs };
+        return data;
     }; 
-
-    // projective transformation for window x, y to gl coords 
-    markerData.getProjection = function() {
-        var sx = (1 / window.innerWidth) * 2,
-            sy = (1 / window.innerHeight) * -2;
-        return [ sx, 0,  0, 0,
-                 0,  sy, 0, 0,
-                 0,  0,  1, 0, 
-                 0,  0,  0, 1 ];
-    };
 
 return markerData; });

@@ -8,18 +8,17 @@ attribute vec2 a_containerPosition;
 attribute vec2 a_vUv;
 attribute vec2 a_angularVelocity;
 
+uniform vec2 u_viewport;
 uniform int u_clock;
-uniform mat4 u_projectionMatrix;
 
 varying float v_hash;
 varying float v_type;
 varying vec2 v_vUv;
-varying vec2 v_angularVelocity;
 
 float angle(float velocity, int clock) 
 {
     float pi = 3.1415927;
-    return sin( (mod( float(clock), 2500.0) / 2500.0) * (2.0 * pi) * velocity ) ; 
+    return sin( (mod( float(clock), 4200.0) / 4200.0) * (2.0 * pi) * velocity ); 
 }
 
 void main() 
@@ -28,8 +27,10 @@ void main()
     v_hash = a_hash;
     v_type = a_type;
     v_vUv = a_vUv;
-    vec4 position = u_projectionMatrix * vec4(a_modelCoord + a_containerPosition, 0, 1);
-    //vec4 position = vec4(1.0/(a_modelCoord + a_containerPosition), 0, 1);
+    vec4 position = vec4(a_modelCoord + a_containerPosition, 0, 1);
+    position.x = ((position.x / u_viewport.x) * 2.0) - 1.0;
+    position.y = (((position.y - 25.0) / u_viewport.y) * -2.0) + 1.0;
+    
     // if this vertex is part of a cloud, translate depending on u_clock
     if ( (a_type > 2.9) && (a_type < 3.1) ) {
         position.x += 0.02 * angle(a_angularVelocity.x, u_clock); 
@@ -37,8 +38,6 @@ void main()
     }
 
     gl_Position = position;
-    
-    //gl_Position = vec4(a_vUv, 0, 1);
 }
 END
 
@@ -50,13 +49,10 @@ uniform sampler2D u_stumble;
 uniform sampler2D u_video;
 uniform sampler2D u_random;
 uniform sampler2D u_cloud;
-//uniform int u_clock;
-//uniform int u_blackout;
 
 varying float v_hash;
 varying float v_type;
 varying vec2 v_vUv;
-varying vec2 v_angularVelocity;
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
@@ -76,9 +72,6 @@ void main()
     } else if ((v_type > 2.9 && v_type < 3.1)) {
         color = texture2D(u_cloud, v_vUv);
     }
-    gl_FragColor = vec4(0, 0, 0, 1);//color;
-    if ( (v_hash > -0.1) && (v_hash < 0.1) ) 
-        discard;
-
+    gl_FragColor = color;
 }
 END

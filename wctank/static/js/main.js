@@ -9,6 +9,8 @@ require.config({
                 '/static/lib/jquery-2.1.1.min'],
         froogaloop2: '/static/lib/froogaloop2.min',
         tween: '/static/lib/tween.min',
+        three: ['//cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min',
+               '/static/lib/three.min'], 
         sylvester: '/static/lib/sylvester',
         jStat: '/static/lib/jstat.min',
         filterXML: '/static/map_filters',
@@ -32,6 +34,9 @@ require.config({
         },
         'jStat': {
             exports: 'jStat'
+        },
+        'three': {
+            exports: 'THREE'  
         }
     }
 });

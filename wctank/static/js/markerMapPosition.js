@@ -4,7 +4,7 @@ define(
         'gMap'
     ],
 
-function(util, gMap) { markerMapPosition = {};
+function(util, gMap) { var markerMapPosition = {};
     // all markers on the map are (lazily) wrapped in a MarkerData object 
     // and appended to markers under a unique hash key
     var markers = {};
@@ -19,7 +19,7 @@ function(util, gMap) { markerMapPosition = {};
         this.isAlive;
 
         this.hash = util.hashCode(this.type + 
-            this.worldPosition.lat().toString() + this.worldPosition.lng().toString());
+            this.worldPosition.lat().toString() + this.worldPosition.lng().toString()).toString();
 
         this.update = function() {
             var overflow = 20,

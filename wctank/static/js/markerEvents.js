@@ -38,8 +38,6 @@ function(gMap, posts, visCore, markerMapPosition, markerCore) { var markerEvents
         });
     });
 
-    // render update function continuously
-    // flag updateData on special events
     var updateData = false;
     var update = function() {
         if (updateData) {
@@ -54,8 +52,8 @@ function(gMap, posts, visCore, markerMapPosition, markerCore) { var markerEvents
         visCore.render.go();
 
     gMap.events.push(gMap.events.MAP, 'bounds_changed', function() {
-        updateData = true;   
-    }); 
+        updateData = true;
+    });
 
 return markerEvents; });
 // if hash < 1, discard to avoid drawing zeros... for now
