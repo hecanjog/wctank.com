@@ -97,8 +97,7 @@ function(div) { var visCore = {};
                 r.program = prgm;
 
                 //draw two big triangles
-                var buffer = gl.createBuffer(),
-                    pos_loc = gl.getAttribLocation(prgm, 'position');
+                var buffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
                     -1.0, -1.0,
@@ -107,8 +106,10 @@ function(div) { var visCore = {};
                     -1.0,  1.0,
                      1.0, -1.0,
                      1.0,  1.0]), gl.STATIC_DRAW);
-                gl.enableVertexAttribArray(pos_loc); 
-                gl.vertexAttribPointer(pos_loc, 2, gl.FLOAT, false, 0, 0);
+                
+                var a_position = gl.getAttribLocation(prgm, 'position');
+                gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(a_position); 
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
                 
                 r.gl = gl;

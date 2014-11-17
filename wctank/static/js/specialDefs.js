@@ -106,11 +106,10 @@ function(div, gMap, visCore, specialCoord,
         
         var that = this; 
         this.webgl = (function(webgl) {
-            var z = visCore.webgl.setup(alphaStrut_front, AlphaStrutShaders, true); 
-            var vid_tex;
-            var texCoordBuffer;
-            var texCoordAttr;
-            var threshold = 50;
+            var z = visCore.webgl.setup(alphaStrut_front, AlphaStrutShaders, true),
+                vid_tex, vUv_buffer, a_vUv, u_vid,
+                threshold = 50;
+            
             vid.addEventListener("canplaythrough", function() {
                 
                 vid.volume = 0; 
@@ -124,9 +123,8 @@ function(div, gMap, visCore, specialCoord,
                 z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MIN_FILTER, z.gl.NEAREST);
                 z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MAG_FILTER, z.gl.NEAREST);
                
-                texCoordBuffer = z.gl.createBuffer();
-                texCoordAttr = z.gl.getAttribLocation(z.program, 'texCoord');
-                z.gl.bindBuffer(z.gl.ARRAY_BUFFER, texCoordBuffer);
+                vUv_buffer = z.gl.createBuffer();
+                z.gl.bindBuffer(z.gl.ARRAY_BUFFER, vUv_buffer);
                 z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array([
                      0.0,  0.0,
                      1.0,  0.0,
@@ -135,25 +133,25 @@ function(div, gMap, visCore, specialCoord,
                      1.0,  0.0,
                      1.0,  1.0        
                     ]), z.gl.STATIC_DRAW); 
-                z.gl.enableVertexAttribArray(texCoordAttr);
-                z.gl.vertexAttribPointer(texCoordAttr, 2, z.gl.FLOAT, false, 0, 0);
+               
+                a_vUv = z.gl.getAttribLocation(z.program, 'a_vUv');
+                z.gl.vertexAttribPointer(a_vUv, 2, z.gl.FLOAT, false, 0, 0);
+                z.gl.enableVertexAttribArray(a_vUv);
+           
+                u_vid = z.gl.getUniformLocation(z.program, "u_vid");
+
+                z.gl.uniform1f( z.gl.getUniformLocation(z.program, "u_threshold"), threshold );
             }, true);
            
             //var clock = 0;
             webgl.update = function() {
                 z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
                 
-                z.gl.uniform1f( z.gl.getUniformLocation(z.program, "threshold"), threshold );
-                //z.gl.uniform1i( z.gl.getUniformLocation(z.program, "u_clock"), clock++ );    
-
-                texCoordAttr = z.gl.getAttribLocation(z.program, "texCoord");
-                z.gl.enableVertexAttribArray(texCoordAttr);
-                
                 z.gl.activeTexture(z.gl.TEXTURE0);
                 z.gl.bindTexture(z.gl.TEXTURE_2D, vid_tex);
                 z.gl.pixelStorei(z.gl.UNPACK_FLIP_Y_WEBGL, true);
                 z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, vid);
-                z.gl.uniform1i( z.gl.getUniformLocation(z.program, "vidTexels"), 0 );
+                z.gl.uniform1i(u_vid, 0);
                 
                 z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
             };
@@ -214,7 +212,7 @@ function(div, gMap, visCore, specialCoord,
         // squares over my hammy
         var z = visCore.webgl.setup(squares_over, SquareShaders, true),
             a_vertex_buffer = z.gl.createBuffer(),
-            a_id, a_position;
+            a_id, a_position, u_time;
 
         // set up 
         z.gl.bindBuffer(z.gl.ARRAY_BUFFER, a_vertex_buffer);
@@ -228,6 +226,10 @@ function(div, gMap, visCore, specialCoord,
         z.gl.vertexAttribPointer(a_position, 2, z.gl.FLOAT, false, 12, 4);
         z.gl.enableVertexAttribArray(a_position);
 
+        z.gl.uniform3fv(z.gl.getUniformLocation(z.program, "u_colors"), colors);
+
+        u_time = z.gl.getUniformLocation(z.program, "u_time");
+
         this.init = function() {
             document.body.appendChild(squares_over);
         };
@@ -237,8 +239,7 @@ function(div, gMap, visCore, specialCoord,
         };
         this.animate = function() {
             z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-            z.gl.uniform1i(z.gl.getUniformLocation(z.program, "u_time"), getClock())
-            z.gl.uniform3fv(z.gl.getUniformLocation(z.program, "u_colors"), colors);
+            z.gl.uniform1i(u_time, getClock())
             z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices.length / 3);
         };
         this.teardown = function() {
