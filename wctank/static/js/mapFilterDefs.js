@@ -181,8 +181,10 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             var del = Math.random() * 20000 + 10000,
                 dur = Math.random() * 2000 + 1000;
             blink_id = window.setTimeout(function() {
+                div.$map.hide();
                 markerCore.setVisibility(false);
                 window.setTimeout(function() {
+                    div.$map.show();
                     markerCore.setVisibility(true);
                 }, dur);
             }, del);
