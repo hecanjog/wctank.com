@@ -19,7 +19,7 @@ define(
 function(util, visCore, TWEEN) { var audio = {};
     
     audio.ctx = new ( window.AudioContext || window.webkitAudioContext )();  
-    
+   window.audioctx = audio.ctx; 
     //alias out for suga
     audio.out = audio.ctx.destination;
     
@@ -134,21 +134,79 @@ function(util, visCore, TWEEN) { var audio = {};
 
         // this is gross, but needs to be this verbose b/c of Web Audio API internals...
         this.link = function(out) {        
-                if (this._link_alias_out) {
-                    if (out._link_alias_in) {
-                        this._link_alias_out.connect(out._link_alias_in);
-                    } else {
-                        this._link_alias_out.connect(out);
-                    }
+            if (this._link_alias_out) {
+                if (out._link_alias_in) {
+                    this._link_alias_out.connect(out._link_alias_in);
                 } else {
-                    // for the cases where an AudioModule has one AudioNode
-                    // and we have chosen to mixin AudioModule instead of inheriting 
-                    if (out._link_alias_in) {
-                        this.connect(out._link_alias_in);
-                    } else {
-                        this.connect(out);
-                    }
+                    this._link_alias_out.connect(out);
                 }
+            } else {
+                // for the cases where an AudioModule has one AudioNode
+                // and we have chosen to mixin AudioModule instead of inheriting 
+                if (out._link_alias_in) {
+                    this.connect(out._link_alias_in);
+                } else {
+                    this.connect(out);
+                }
+            }
+        };
+        
+        /*
+         * microtime scheduling used in conjunction with audio.Clock
+         */
+        // call AudioParam value change with subdivision
+        //  
+        //this.
+    };
+    
+    /* 
+     * gross clock to synchrionize macrotime actions between modules
+     */
+    audio.Clock = function() {
+        var parent = this;
+
+        var queue = [];
+        this.push = function(fn) {
+            queue.push(fn);   
+        };
+        this.rm = function(fn) {
+            var idx = queue.indexOf(fn);
+            queue.splice(idx, 1);
+        };
+        
+        Object.defineProperty(this, 'bpm', {
+            enumerable: true,
+            get: function() { return b; }
+        });
+
+        var interval, b, started;
+        this.start = function(bpm) {
+            started = true;
+            if (typeof bpm === number)
+                b = bpm;
+            var msec = 60000 / this.bpm;
+            interval = window.setInterval(function() {
+                for (var i = 0; i < queue.length; i++) {
+                    queue[i]();
+                }    
+            }, msec);
+        };
+        this.stop = function() {
+            started = false;
+            clearInterval(interval);
+        };
+        this.changeTempo = function(bpm) {
+            if (started) {
+                var cancelReset = function() {
+                    clearInterval(interval);
+                    parent.start(bpm);
+                };
+                queue.push(cancelReset);    
+            } else {
+                console.warn('audio.Clock.changeTempo called without prior start()' +
+                            ' - no actions performed'); 
+            }
         };
     };
+
 return audio; });
