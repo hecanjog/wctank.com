@@ -1,18 +1,9 @@
 define(
     [
-        'audioUnitConversions'
+        'audioUtil'
     ],    
 
-function(audioUnitConversions) { var audioSonorities = {};
-
-    audioSonorities.units = {
-        HZ: 'hz',
-        HERTZ: 'hz',
-        MEL: 'mel',
-        SCI: 'scientific'
-        SCIENTIFIC: 'scientific',
-        MIDI: 'midi'
-    };
+function(audioUtil) { var audioSonorities = {};
 
     audioSonorities.VoiceTuple = function VoiceTuple(frequency, amplitude, unitEnum) {
         this.frequency = frequency;
@@ -55,6 +46,8 @@ function(audioUnitConversions) { var audioSonorities = {};
                 }
             } else if (args[i].constructor.name === 'VoiceTuple') {
                 this.voices.push(args[i]);
+            } else {
+                // if passing numbers   
             }
         }
    
@@ -64,10 +57,9 @@ function(audioUnitConversions) { var audioSonorities = {};
         // but what about a detune map? 
         // or set functions
         // also detune odds, evens
-        // same operations for amplitude
         this.detune = function(cents) {
             this.voices.forEach(function(voice) {
-                voice.frequency = audioUnitConversions.cents2Hz(cents, voice.frequency);   
+                voice.frequency = audioUtil.units.cents2Hz(cents, voice.frequency);   
             });
         }; 
         

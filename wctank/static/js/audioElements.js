@@ -1,10 +1,11 @@
 define(
     [
         'audio',
+        'audioUtil',
         'util'
     ],
 
-function(audio, util) { var elements = {};
+function(audio, audioUtil, util) { var elements = {};
     var ctx = audio.ctx;
 
     // make a buffer for white noise
@@ -180,12 +181,12 @@ function(audio, util) { var elements = {};
                             })
                             .onComplete(function() {
                                 accenting = false;
-                                audio.tweenUtil.stopTweens();
+                                audioUtil.tween.stopTweens();
                             });
                 freqIn.chain(freqOut);
                 
                 freqIn.start();
-                audio.tweenUtil.startTweens();
+                audioUtil.tween.startTweens();
             }
         };
 
@@ -196,7 +197,7 @@ function(audio, util) { var elements = {};
         this.fadeInOut = function(time) {
             var stopSequence = function() {
                 fading = false;
-                audio.tweenUtil.stopTweens();
+                audioUtil.tween.stopTweens();
             };
             if (!fading) {
                 fading = true;
@@ -208,7 +209,7 @@ function(audio, util) { var elements = {};
                         .onUpdate(updateGain)
                         .onComplete(stopSequence)
                         .start();
-                    audio.tweenUtil.startTweens();
+                    audioUtil.tween.startTweens();
             } else {
                 envelope.stop();
                 if (target_amp < gain.gain.value) {

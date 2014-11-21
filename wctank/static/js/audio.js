@@ -11,15 +11,14 @@
 
 define(
     [
-        'util',
-        'visCore', 
+        'audioUtil',
         'tween'
     ],
 
-function(util, visCore, TWEEN) { var audio = {};
+function(audioUtil, TWEEN) { var audio = {};
     
     audio.ctx = new ( window.AudioContext || window.webkitAudioContext )();  
-   window.audioctx = audio.ctx; 
+    
     //alias out for suga
     audio.out = audio.ctx.destination;
     
@@ -33,41 +32,6 @@ function(util, visCore, TWEEN) { var audio = {};
         TRIANGLE: 'triangle',
         CUSTOM: 'custom'
     };
-
-    // TWEEN utils
-    audio.tweenUtil = (function(tweenUtil) {
-        tweenUtil.startTweens = function() {
-            if ( visCore.render.has(TWEEN.update) === false ) 
-                visCore.render.push(TWEEN.update);
-            if (!visCore.render.rendering) visCore.render.go();  
-        };
-        // holy butts this is ugly. .length <= 2? I need to figure out why this works and
-        // clean it up. But, in the meantime, it plugs a leak where unnecessary TWEEN.update
-        // fns were being abandoned in the stack to percolate tons of numbers forever and ever.
-        tweenUtil.stopTweens = function() {
-            if ( (TWEEN.getAll().length <= 2) 
-                    && (typeof visCore.render.has(TWEEN.update) ==='number') ) {
-                visCore.render.rm(TWEEN.update);
-             }
-            if ( !visCore.render.has() ) visCore.render.stop();
-        };
-        var easing_list = Object.keys(TWEEN.Easing); 
-        tweenUtil.getRandomEasingFn = function() {
-            var type = TWEEN.Easing[ util.getRndItem(easing_list) ];
-            var keys = Object.keys(type);
-            return type[ util.getRndItem(keys) ];
-        };
-        var interpolation_list = (function() {
-            var list = Object.keys(TWEEN.Interpolation);
-            var idx = list.indexOf('Utils');
-            list.splice(idx, 1);
-            return list;
-        }()) 
-        tweenUtil.getRandomInterpolationFn = function() {
-            return TWEEN.Interpolation[ util.getRndItem(interpolation_list) ]; 
-        };
-        return tweenUtil;
-    }({})) 
     
     /*
      * audio.AudioModule is the base class for all sound making components
@@ -76,7 +40,7 @@ function(util, visCore, TWEEN) { var audio = {};
      */
     audio.AudioModule = function AudioModule() {
             
-        //creates .start and .stop functions, if needed 
+        // creates AudioModule level .start and .stop functions, if needed
         this._startStopThese = function() {
             var nodes = arguments;
             this.start = function() {
@@ -107,20 +71,20 @@ function(util, visCore, TWEEN) { var audio = {};
                     if (!glissing) {
                         glissing = true;
                         gliss.to({frequency: freq}, time)
-                            .easing( audio.tweenUtil.getRandomEasingFn() )
-                            .interpolation( audio.tweenUtil.getRandomInterpolationFn() )
+                            .easing( audio.audioUtil.tween.getRandomEasingFn() )
+                            .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
                             .onUpdate(updateFrequency)
                             .onComplete(function() {
                                 glissing = false;
-                                tweenUtil.stopTweens();
+                                audioUtil.tween.stopTweens();
                             })
                             .start();
-                            tweenUtil.startTweens();
+                            audioUtil.tween.startTweens();
                     } else {
                         gliss.stop();
                         gliss.to({frequency: freq}, time)
-                            .easing( audio.tweenUtil.getRandomEasingFn() )
-                            .interpolation( audio.tweenUtil.getRandomInterpolationFn() )
+                            .easing( audio.audioUtil.tween.getRandomEasingFn() )
+                            .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
                             .start();
                     }
                 } else {
@@ -128,7 +92,9 @@ function(util, visCore, TWEEN) { var audio = {};
                 }            
             };
         };
-
+        
+        // AudioModules inheriting AudioModule as a prototype 
+        // MUST override these properties
         this._link_alias_in = null;
         this._link_alias_out = null;
 
@@ -150,15 +116,8 @@ function(util, visCore, TWEEN) { var audio = {};
                 }
             }
         };
-        
-        /*
-         * microtime scheduling used in conjunction with audio.Clock
-         */
-        // call AudioParam value change with subdivision
-        //  
-        //this.
     };
-    
+
     /* 
      * gross clock to synchrionize macrotime actions between modules
      */
