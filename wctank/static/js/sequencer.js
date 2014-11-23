@@ -7,6 +7,7 @@ define(
         'audio',
         'audioElements',
         'audioActors',
+        'text!SpriteIntervals.TextGridIntervals',
         ['font!custom,families:',
             '[',
                 'timeless',
@@ -20,7 +21,7 @@ define(
     ],
 
 function(util, gMap, mapFilterCycle, tableux, 
-         audio, audioElements, audioActors) { var sequencer = {};
+         audio, audioElements, audioActors, SpriteIntervals) { var sequencer = {};
     
     var current_stage = null;
     var stages = {
@@ -51,6 +52,8 @@ function(util, gMap, mapFilterCycle, tableux,
              * audio dev whateves
              */
             var noise = audioElements.Noise(); 
+            var vox = audioElements.SpritePlayer('/static/assets/wes.mp3', SpriteIntervals); 
+            vox.link(audio.out);
             var bank = [
                 audioElements.Bandpass(262, 140),
                 audioElements.Bandpass(327.5, 140),
@@ -90,7 +93,9 @@ function(util, gMap, mapFilterCycle, tableux,
                google.maps.event.addListener(gMap.map, 'zoom_changed', turnOff);
             }); 
             google.maps.event.addListener(gMap.map, 'drag', vibEve);
-             
+            google.maps.event.addListener(gMap.map, 'dragstart', function() {
+                vox.playRandomSprite();
+            }); 
         },
     };
     util.objectLength.call(stages);

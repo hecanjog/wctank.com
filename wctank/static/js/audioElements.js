@@ -224,4 +224,62 @@ function(audio, audioUtil, util) { var elements = {};
     };
     elements.Bandpass.prototype = new audio.AudioModule();      
 
+    elements.SpritePlayer = function SpritePlayer(mp3Path, TextGridIntervals) {
+        if (this.constructor !== audio.AudioModule) 
+            return new elements.SpritePlayer(mp3Path, TextGridIntervals);
+        
+        var parent = this;
+              
+        var media = document.createElement('audio');
+       
+        var req = new XMLHttpRequest();
+        req.responseType = "blob";
+        req.onload = function() {
+            var reader = new FileReader;
+            reader.readAsDataURL(req.response);
+            reader.onloadend = function() {
+                media.src = reader.result;
+            };
+        };
+        req.open("GET", mp3Path, true);
+        req.send();
+
+        //AudioNodes 
+        this.mediaSource = audio.ctx.createMediaElementSource(media);
+        this.gain = audio.ctx.createGain();
+
+        this.mediaSource.connect(this.gain);
+        
+        // parse TextGridIntervals and shove into object
+        var sprites = {}; 
+        function SpriteInterval(start, end) {
+            this.start = start;
+            this.end = end;
+        }
+        var arr = TextGridIntervals.match(/((\d|\.)+\s)/g);
+        for (var i = 0; i < arr.length / 2; i++) {
+            sprites[i] = new SpriteInterval(Number(arr[i * 2]), Number(arr[i * 2 + 1]));    
+        } 
+        util.objectLength.call(sprites); 
+        
+        var playing = false;
+        this.playRandomSprite = function() {
+            if (!playing) {        
+                var sprite = sprites[(Math.random() * sprites.length) | 0],
+                    dur = sprite.end - sprite.start;
+                media.currentTime = sprite.start;
+                media.play();    
+                playing = true;
+                window.setTimeout(function() {
+                    media.pause(); 
+                    playing = false;
+                }, dur * 1000);
+            }
+        };
+        
+        this._link_alias_in = this.mediaSource;
+        this._link_alias_out = this.gain;
+    };
+    elements.SpritePlayer.prototype = new audio.AudioModule();
+
 return elements; });

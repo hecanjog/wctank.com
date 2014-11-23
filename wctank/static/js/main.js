@@ -14,7 +14,8 @@ require.config({
         MarkerShaders: '/static/glsl/markers',
         AlphaStrutShaders: '/static/glsl/alphaStrut',
         SquaresShaders: '/static/glsl/squares',
-        AngularShaders: '/static/glsl/angular'
+        AngularShaders: '/static/glsl/angular',
+        SpriteIntervals: '/static/assets/wes'
     },
 
     shim: {
