@@ -34,7 +34,7 @@ void main(void)
 	if (idle == 1) {
 		if ( rand(gl_FragCoord.xy * varient) < 0.01 ) color = vec4(clr, clr, clr, 0.40);
 	} else if (num < 0.5) { 
-		color = vec4(0, 0, 0, 0.15);	
+		color = vec4(0, 0, 0, 0.25);	
 	}
 	gl_FragColor = color;
 }

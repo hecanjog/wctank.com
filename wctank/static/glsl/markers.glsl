@@ -18,7 +18,7 @@ varying vec2 v_vUv;
 float angle(float velocity, int clock) 
 {
     float pi = 3.1415927;
-    return sin( (mod( float(clock), 4200.0) / 4200.0) * (2.0 * pi) * velocity ); 
+    return sin( (mod( float(clock), 2500.0) / 2500.0) * (2.0 * pi) * velocity ); // 4200
 }
 
 void main() 
