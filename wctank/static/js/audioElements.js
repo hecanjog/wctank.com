@@ -57,7 +57,7 @@ function(audio, audioUtil, util) { var elements = {};
         this._link_alias_out = this.gain;
 
         this._startStopThese(this.osc);
-        this._makeSetValue(this.osc, 'frequency', 'setFrequency');
+        this._makeSetValue(this.osc, 'frequency', 'setFrequency', true);
     };
     elements.Osc.prototype = new audio.AudioModule();
    
@@ -98,7 +98,7 @@ function(audio, audioUtil, util) { var elements = {};
         this._link_alias_out = this.gain;
 
         // behaviors 
-        this._makeSetValue(this.biquad, 'frequency', 'setFrequency');
+        this._makeSetValue(this.biquad, 'frequency', 'setFrequency', true);
         
         var accenting = false;
         var gen = (function(gen) {
@@ -292,6 +292,8 @@ function(audio, audioUtil, util) { var elements = {};
         if (this.constructor !== audio.AudioModule) 
             return new elements.SchroederReverb();
 
+        var parent = this;
+
         function AllPass(delay) {
             var nop = audio.ctx.createGain();
             this.delay = audio.ctx.createDelay(delay);
@@ -328,7 +330,7 @@ function(audio, audioUtil, util) { var elements = {};
         };
         FeedbackCombFilter.prototype = new audio.AudioModule();
        
-        var base_time = 0.01,
+        var base_time = 0.011,
             series_B_div = 3,
             series_C_div = 9.1,
             par_A_mult = 4.86167,
@@ -398,10 +400,9 @@ function(audio, audioUtil, util) { var elements = {};
         /*
          * cool stuff to do!
          */
-
         // it's really easy to break audio playback with this
         this.setFeedbackCoeffMultiplier = function(n, time) {
-            var t = time ? 0 : time;
+            var t = time ? time : 0;
             comb1.feedbackGain.gain
                 .linearRampToValueAtTime(par_A_gain * n, audio.ctx.currentTime + t);
             comb2.feedbackGain.gain
@@ -411,6 +412,17 @@ function(audio, audioUtil, util) { var elements = {};
             comb4.feedbackGain.gain
                 .linearRampToValueAtTime(par_D_gain * n, audio.ctx.currentTime + t);
         };
+
+        this.wetDry = function(wet, time) {
+            var w = wet / 100,
+                d = 1 - w,
+                t = time ? time : 0;
+            parent.wetGain.gain.linearRampToValueAtTime(w, t);
+            parent.dryGain.gain.linearRampToValueAtTime(d, t);  
+        };
+        this.wetDry(50, 0);
+
+        this._makeSetValue(this.outGain, 'gain', 'setGain');
     };
     elements.SchroederReverb.prototype = new audio.AudioModule;
 

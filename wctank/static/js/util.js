@@ -37,6 +37,7 @@ define(
             var keys = Object.keys(set);
             return set[ util.getRndItem(keys) ];
         }
+        
     },
     
     // a nice implementation of java's hashCode I ripped from

@@ -54,14 +54,19 @@ function(util, gMap, mapFilterCycle, tableux,
             var noise = audioElements.Noise(); 
             var vox = audioElements.SpritePlayer('/static/assets/wes.mp3', SpriteIntervals); 
             var verb = audioElements.SchroederReverb();
+            
+            var verb2 = audioElements.SchroederReverb();
+            window.verbamp = verb2.setGain;
+            window.verbwet = verb2.wetDry;
             //vox.link(audio.out);
+            //noise.link(verb2);
             var bank = [
                 audioElements.Bandpass(262, 140),
                 audioElements.Bandpass(327.5, 140),
                 audioElements.Bandpass(393, 140),
                 audioElements.Bandpass(500, 140),
             ];
-            var censor_out_that_thanks = audioElements.Osc('triangle', 440, 0.6);
+            var censor_out_that_thanks = audioElements.Osc('triangle', 440, 0.8);
             censor_out_that_thanks.start();
             for (var i = 0; i < bank.length; i++) {
                 noise.link(bank[i]);
@@ -69,13 +74,16 @@ function(util, gMap, mapFilterCycle, tableux,
             }
             vox.link(verb);
             verb.link(audio.out);
-            window.coeffi = verb.setFeedbackCoeffMultiplier;
+            //verb2.link(audio.out);
+            window.coeffi = verb2.setFeedbackCoeffMultiplier;
             noise.start();
             
             
             for (var i = 0; i < bank.length; i++) {
-                bank[i].link(audio.out);
+                //bank[i].link(audio.out);
+                bank[i].link(verb2);
             }             
+            verb2.link(audio.out);
             var vibEve = function() {
                 for (var i = 0; i < bank.length; i++) {
                     bank[i].accent();

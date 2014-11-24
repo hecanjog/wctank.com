@@ -54,43 +54,49 @@ function(audioUtil, TWEEN) { var audio = {};
                 }
             };
         };
-        
+
         // make a glissing function/frequency setter, if needed
-        this._makeSetValue = function(node, param, fnname) {
-            var params = {value: node[param].value};
-            var gliss = new TWEEN.Tween(params);
-            var updateValue = function() {
-                node[param].value = params.value;
-            };
-            var glissing = false;
-            
-            this[fnname] = function(val, time) {
-                if (time > 0) {
-                    if (!glissing) {
-                        glissing = true;
-                        gliss.to({value: val}, time)
-                            .easing( audio.audioUtil.tween.getRandomEasingFn() )
-                            .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
-                            .onUpdate(updateValue)
-                            .onComplete(function() {
-                                glissing = false;
-                                audioUtil.tween.stopTweens();
-                            })
-                            .start();
-                            audioUtil.tween.startTweens();
+        this._makeSetValue = function(node, param, fnname, irregular) {
+            if (!irregular) {
+                this[fnname] = function(val, time) {
+                    var t = time ? time : 0;
+                    node[param].linearRampToValueAtTime(val, t);    
+                };
+            } else {
+                var params = {value: node[param].value};
+                var gliss = new TWEEN.Tween(params);
+                var updateValue = function() {
+                    node[param].value = params.value;
+                };
+                var glissing = false;
+                
+                this[fnname] = function(val, time) {
+                    if (time > 0) {
+                        if (!glissing) {
+                            glissing = true;
+                            gliss.to({value: val}, time)
+                                .easing( audio.audioUtil.tween.getRandomEasingFn() )
+                                .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
+                                .onUpdate(updateValue)
+                                .onComplete(function() {
+                                    glissing = false;
+                                    audioUtil.tween.stopTweens();
+                                })
+                                .start();
+                                audioUtil.tween.startTweens();
+                        } else {
+                            gliss.stop();
+                            gliss.to({value: val}, time)
+                                .easing( audio.audioUtil.tween.getRandomEasingFn() )
+                                .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
+                                .start();
+                        }
                     } else {
-                        gliss.stop();
-                        gliss.to({value: val}, time)
-                            .easing( audio.audioUtil.tween.getRandomEasingFn() )
-                            .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
-                            .start();
-                    }
-                } else {
-                    node[param].value = freq;    
-                }            
-            };
+                        node[param].value = freq;    
+                    }            
+                };
+            }
         };
-        
         // AudioModules inheriting AudioModule as a prototype 
         // MUST override these properties
         this._link_alias_in = null;
