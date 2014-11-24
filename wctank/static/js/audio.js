@@ -56,24 +56,22 @@ function(audioUtil, TWEEN) { var audio = {};
         };
         
         // make a glissing function/frequency setter, if needed
-        this._makeSetFrequency = function(node) {
-            if ( !(node.hasOwnProperty('frequency')) )
-                throw 'AudioNode has no property frequency garblegarble';
-            var params = {frequency: node.frequency.value};
+        this._makeSetValue = function(node, param, fnname) {
+            var params = {value: node[param].value};
             var gliss = new TWEEN.Tween(params);
-            var updateFrequency = function() {
-                node.frequency.value = params.frequency;
+            var updateValue = function() {
+                node[param].value = params.value;
             };
             var glissing = false;
             
-            this.setFrequency = function(freq, time) {
+            this[fnname] = function(val, time) {
                 if (time > 0) {
                     if (!glissing) {
                         glissing = true;
-                        gliss.to({frequency: freq}, time)
+                        gliss.to({value: val}, time)
                             .easing( audio.audioUtil.tween.getRandomEasingFn() )
                             .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
-                            .onUpdate(updateFrequency)
+                            .onUpdate(updateValue)
                             .onComplete(function() {
                                 glissing = false;
                                 audioUtil.tween.stopTweens();
@@ -82,13 +80,13 @@ function(audioUtil, TWEEN) { var audio = {};
                             audioUtil.tween.startTweens();
                     } else {
                         gliss.stop();
-                        gliss.to({frequency: freq}, time)
+                        gliss.to({value: val}, time)
                             .easing( audio.audioUtil.tween.getRandomEasingFn() )
                             .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
                             .start();
                     }
                 } else {
-                    node.frequency.value = freq;    
+                    node[param].value = freq;    
                 }            
             };
         };

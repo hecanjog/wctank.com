@@ -7,7 +7,7 @@ endform
 
 Read from file: path$ + file_name$ + "." + extension$
 To Intensity... 20 0.0
-To TextGrid (silences)... -10.0 0.1 0.05 silent sounding
+To TextGrid (silences)... -25.0 0.1 0.05 silent sounding
 
 file$ = output_path$ + file_name$ + ".TextGridIntervals"
 

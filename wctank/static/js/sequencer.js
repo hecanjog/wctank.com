@@ -53,7 +53,8 @@ function(util, gMap, mapFilterCycle, tableux,
              */
             var noise = audioElements.Noise(); 
             var vox = audioElements.SpritePlayer('/static/assets/wes.mp3', SpriteIntervals); 
-            vox.link(audio.out);
+            var verb = audioElements.SchroederReverb();
+            //vox.link(audio.out);
             var bank = [
                 audioElements.Bandpass(262, 140),
                 audioElements.Bandpass(327.5, 140),
@@ -66,7 +67,12 @@ function(util, gMap, mapFilterCycle, tableux,
                 noise.link(bank[i]);
                 censor_out_that_thanks.link(bank[i]);
             }
+            vox.link(verb);
+            verb.link(audio.out);
+            window.coeffi = verb.setFeedbackCoeffMultiplier;
             noise.start();
+            
+            
             for (var i = 0; i < bank.length; i++) {
                 bank[i].link(audio.out);
             }             
