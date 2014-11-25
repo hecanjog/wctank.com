@@ -39,7 +39,8 @@ function(audioUtil, TWEEN) { var audio = {};
      * that inherit AudioModule or use it as a mixin together
      */
     audio.AudioModule = function AudioModule() {
-            
+        var parent = this;     
+
         // creates AudioModule level .start and .stop functions, if needed
         this._startStopThese = function() {
             var nodes = arguments;
@@ -55,7 +56,16 @@ function(audioUtil, TWEEN) { var audio = {};
             };
         };
 
-        // make a glissing function/frequency setter, if needed
+        this._makeWetDry = function(dryGainNode, wetGainNode) {
+            this.wetDry = function(percent_wet, time) {
+                var w = percent_wet / 100,
+                d = 1 - w,
+                t = audio.ctx.currentTime + (time ? time : 0);
+                wetGainNode.gain.linearRampToValueAtTime(w, t);
+                dryGainNode.gain.linearRampToValueAtTime(d, t);  
+            };  
+        };        
+
         this._makeSetValue = function(node, param, fnname, irregular) {
             if (!irregular) {
                 this[fnname] = function(val, time) {

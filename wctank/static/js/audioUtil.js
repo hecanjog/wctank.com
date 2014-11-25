@@ -66,4 +66,17 @@ function(util, visCore, TWEEN) { var audioUtil = {};
         return units;
     }({}))
 
+    audioUtil.parseSpriteIntervals = function(spriteIntervals) {
+        var sprites = {};
+        function SpriteInterval(start, end) {
+            this.start = start;
+            this.end = end;
+        }
+        var arr = spriteIntervals.match(/((\d|\.)+\s)/g);
+        for (var i = 0; i < arr.length / 2; i++) {
+            sprites[i] = new SpriteInterval(Number(arr[i * 2]), Number(arr[i * 2 + 1]));    
+        }
+        return sprites; 
+    };
+
 return audioUtil; });

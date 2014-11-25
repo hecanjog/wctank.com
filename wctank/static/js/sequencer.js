@@ -54,7 +54,8 @@ function(util, gMap, mapFilterCycle, tableux,
             //var noise = audioElements.Noise(); 
             var vox = audioElements.SpritePlayer('/static/assets/wes.mp3', SpriteIntervals); 
             //var verb = audioElements.SchroederReverb();
-            var conv = audioElements.Convolution('/static/assets/falkland_tennis_court_ortf.wav');
+            var conv = audioElements.Convolution('/static/assets/jla.mp3');
+            window.convwet = conv.wetDry;
             //var verb2 = audioElements.SchroederReverb();
             //var verb3 = audioElements.SchroederReverb();
             //verb3.wetDry(80);

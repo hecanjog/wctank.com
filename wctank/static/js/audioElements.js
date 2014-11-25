@@ -240,7 +240,6 @@ function(audio, audioUtil, util) { var elements = {};
             reader.onloadend = function() {
                 media.src = reader.result;
             };
-            console.log(req);
         };
         req.open("GET", mp3Path, true);
         req.send();
@@ -254,21 +253,13 @@ function(audio, audioUtil, util) { var elements = {};
 
         this.mediaSource.connect(this.gain);
         
-        // parse TextGridIntervals and shove into object
-        var sprites = {}; 
-        function SpriteInterval(start, end) {
-            this.start = start;
-            this.end = end;
-        }
-        var arr = TextGridIntervals.match(/((\d|\.)+\s)/g);
-        for (var i = 0; i < arr.length / 2; i++) {
-            sprites[i] = new SpriteInterval(Number(arr[i * 2]), Number(arr[i * 2 + 1]));    
-        } 
+        var sprites = audioUtil.parseSpriteIntervals(TextGridIntervals); 
         util.objectLength.call(sprites); 
         
         var playing = false;
         this.playRandomSprite = function() {
             if (!playing) {        
+                console.log('play');
                 var sprite = sprites[(Math.random() * sprites.length) | 0],
                     dur = sprite.end - sprite.start;
                 media.currentTime = sprite.start;
@@ -414,15 +405,9 @@ function(audio, audioUtil, util) { var elements = {};
                 .linearRampToValueAtTime(par_D_gain * n, audio.ctx.currentTime + t);
         };
 
-        this.wetDry = function(wet, time) {
-            var w = wet / 100,
-                d = 1 - w,
-                t = time ? time : 0;
-            parent.wetGain.gain.linearRampToValueAtTime(w, t);
-            parent.dryGain.gain.linearRampToValueAtTime(d, t);  
-        };
-        this.wetDry(50, 0);
-
+        this._makeWetDry(this.dryGain, this.wetGain);
+        this.wetDry(50);
+        
         this._makeSetValue(this.outGain, 'gain', 'setGain');
     };
     elements.SchroederReverb.prototype = new audio.AudioModule();
@@ -433,10 +418,17 @@ function(audio, audioUtil, util) { var elements = {};
 
         // TODO: parse audio sprites into multiple buffers for the convolver
 
-        var conv = audio.ctx.createConvolver();
+        var nop = audio.ctx.createGain(),
+            conv = audio.ctx.createConvolver(),
+            dryGain = audio.ctx.createGain(),
+            wetGain = audio.ctx.createGain();
         this.gain = audio.ctx.createGain();
         
-        conv.connect(this.gain);
+        nop.connect(dryGain);
+        dryGain.connect(this.gain);
+        nop.connect(conv);
+        conv.connect(wetGain);
+        wetGain.connect(this.gain);
 
         conv.normalize = true;
 
@@ -450,9 +442,17 @@ function(audio, audioUtil, util) { var elements = {};
         };
         req.send();
 
-        this._link_alias_in = conv;
+        this._link_alias_in = nop;
         this._link_alias_out = this.gain;
+    
+        this._makeWetDry(dryGain, wetGain);
+        this.wetDry(50);
     };
     elements.Convolution.prototype = new audio.AudioModule();
+
+    elements.Analysis = function() {
+
+    };
+    elements.Analysis.prototype = new audio.AudioModule();
 
 return elements; });
