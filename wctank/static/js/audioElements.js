@@ -231,15 +231,16 @@ function(audio, audioUtil, util) { var elements = {};
         var parent = this;
               
         var media = document.createElement('audio');
-       
+
         var req = new XMLHttpRequest();
-        req.responseType = "blob";
+        req.responseType = 'blob';
         req.onload = function() {
             var reader = new FileReader;
             reader.readAsDataURL(req.response);
             reader.onloadend = function() {
                 media.src = reader.result;
             };
+            console.log(req);
         };
         req.open("GET", mp3Path, true);
         req.send();
@@ -424,6 +425,34 @@ function(audio, audioUtil, util) { var elements = {};
 
         this._makeSetValue(this.outGain, 'gain', 'setGain');
     };
-    elements.SchroederReverb.prototype = new audio.AudioModule;
+    elements.SchroederReverb.prototype = new audio.AudioModule();
+
+    elements.Convolution = function(path_to_audio) {
+        if (this.constructor !== audio.AudioModule) 
+            return new elements.Convolution(path_to_audio);
+
+        // TODO: parse audio sprites into multiple buffers for the convolver
+
+        var conv = audio.ctx.createConvolver();
+        this.gain = audio.ctx.createGain();
+        
+        conv.connect(this.gain);
+
+        conv.normalize = true;
+
+        var req = new XMLHttpRequest();
+        req.responseType = "arraybuffer";
+        req.open("GET", path_to_audio, true);
+        req.onload = function() {
+            audio.ctx.decodeAudioData(req.response, function(audioBuffer) {
+                conv.buffer = audioBuffer;
+            });
+        };
+        req.send();
+
+        this._link_alias_in = conv;
+        this._link_alias_out = this.gain;
+    };
+    elements.Convolution.prototype = new audio.AudioModule();
 
 return elements; });

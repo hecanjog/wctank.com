@@ -51,39 +51,39 @@ function(util, gMap, mapFilterCycle, tableux,
             /*
              * audio dev whateves
              */
-            var noise = audioElements.Noise(); 
+            //var noise = audioElements.Noise(); 
             var vox = audioElements.SpritePlayer('/static/assets/wes.mp3', SpriteIntervals); 
-            var verb = audioElements.SchroederReverb();
-            
-            var verb2 = audioElements.SchroederReverb();
-            window.verbamp = verb2.setGain;
-            window.verbwet = verb2.wetDry;
-            //vox.link(audio.out);
-            //noise.link(verb2);
+            //var verb = audioElements.SchroederReverb();
+            var conv = audioElements.Convolution('/static/assets/falkland_tennis_court_ortf.wav');
+            //var verb2 = audioElements.SchroederReverb();
+            //var verb3 = audioElements.SchroederReverb();
+            //verb3.wetDry(80);
+            //verb3.setFeedbackCoeffMultiplier(1.15);
             var bank = [
                 audioElements.Bandpass(262, 140),
                 audioElements.Bandpass(327.5, 140),
                 audioElements.Bandpass(393, 140),
                 audioElements.Bandpass(500, 140),
             ];
-            var censor_out_that_thanks = audioElements.Osc('triangle', 440, 0.8);
-            censor_out_that_thanks.start();
+            //var tri = audioElements.Osc('triangle', 440, 0.8);
+            //tri.start();
+            //noise.start();
             for (var i = 0; i < bank.length; i++) {
-                noise.link(bank[i]);
-                censor_out_that_thanks.link(bank[i]);
+           //     noise.link(bank[i]);
             }
-            vox.link(verb);
-            verb.link(audio.out);
-            //verb2.link(audio.out);
-            window.coeffi = verb2.setFeedbackCoeffMultiplier;
-            noise.start();
-            
-            
+            //vox.link(verb);
+            //verb.link(audio.out);
+            vox.link(conv);
+            conv.link(audio.out);
+            //noise.start();
             for (var i = 0; i < bank.length; i++) {
-                //bank[i].link(audio.out);
-                bank[i].link(verb2);
-            }             
-            verb2.link(audio.out);
+             //   bank[i].link(conv);
+                //bank[i].link(verb2);
+            } 
+            //tri.link(conv);
+            //conv.link(audio.out);
+            //noise.start();
+
             var vibEve = function() {
                 for (var i = 0; i < bank.length; i++) {
                     bank[i].accent();
@@ -101,7 +101,7 @@ function(util, gMap, mapFilterCycle, tableux,
                     bank[i].setFrequency(whatever, time);
                     whatever *= 1.10;
                 }
-                censor_out_that_thanks.setFrequency(freq, time);
+                //censor_out_that_thanks.setFrequency(freq, time);
             };
             google.maps.event.addListenerOnce(gMap.map, 'zoom_changed', function() {
                google.maps.event.addListener(gMap.map, 'zoom_changed', turnOff);
