@@ -1,5 +1,3 @@
-// TODO: convolve bps with violins perhaps four convolvenodes panned archlike
-// combine sines with noise driver
 // try feedback!@
 // add clipping distortion to bps
 // sampler
@@ -41,34 +39,60 @@ function(audioUtil, TWEEN) { var audio = {};
     audio.AudioModule = function AudioModule() {
         var parent = this;     
 
-        // creates AudioModule level .start and .stop functions, if needed
-        this._startStopThese = function() {
+        // AudioModules inheriting AudioModule as a prototype 
+        // MUST override these properties
+        this._link_alias_in = null;
+        this._link_alias_out = null;
+
+        // this is gross, but needs to be this verbose b/c of Web Audio API internals...
+        this.link = function(out) {        
+            if (this._link_alias_out) {
+                if (out._link_alias_in) {
+                    this._link_alias_out.connect(out._link_alias_in);
+                } else {
+                    this._link_alias_out.connect(out);
+                }
+            } else {
+                // for the cases where an AudioModule has one AudioNode
+                // and we have chosen to mixin AudioModule instead of inheriting 
+                if (out._link_alias_in) {
+                    this.connect(out._link_alias_in);
+                } else {
+                    this.connect(out);
+                }
+            }
+        };
+    };
+
+    audio.moduleMixins = (function(moduleMixins) {
+        
+        moduleMixins.startStopThese = function(scope) {
             var nodes = arguments;
-            this.start = function() {
-                for (var i = 0; i < nodes.length; i++) {
+            scope.start = function() {
+                for (var i = 1; i < nodes.length; i++) {
                     nodes[i].start();
                 }
             };
-            this.stop = function() {
-                for (var i = 0; i < nodes.length; i++) {
+            scope.stop = function() {
+                for (var i = 1; i < nodes.length; i++) {
                     nodes[i].stop();
                 }
             };
         };
 
-        this._makeWetDry = function(dryGainNode, wetGainNode) {
-            this.wetDry = function(percent_wet, time) {
+        moduleMixins.wetDry = function(scope, dryGainNode, wetGainNode) {
+            scope.wetDry = function(percent_wet, time) {
                 var w = percent_wet / 100,
                 d = 1 - w,
                 t = audio.ctx.currentTime + (time ? time : 0);
                 wetGainNode.gain.linearRampToValueAtTime(w, t);
                 dryGainNode.gain.linearRampToValueAtTime(d, t);  
-            };  
-        };        
-
-        this._makeSetValue = function(node, param, fnname, irregular) {
+            }; 
+        };
+        
+        moduleMixins.setValue = function(scope, node, param, fnname, irregular) {
             if (!irregular) {
-                this[fnname] = function(val, time) {
+                scope[fnname] = function(val, time) {
                     var t = time ? time : 0;
                     node[param].linearRampToValueAtTime(val, t);    
                 };
@@ -80,7 +104,7 @@ function(audioUtil, TWEEN) { var audio = {};
                 };
                 var glissing = false;
                 
-                this[fnname] = function(val, time) {
+                scope[fnname] = function(val, time) {
                     if (time > 0) {
                         if (!glissing) {
                             glissing = true;
@@ -107,30 +131,9 @@ function(audioUtil, TWEEN) { var audio = {};
                 };
             }
         };
-        // AudioModules inheriting AudioModule as a prototype 
-        // MUST override these properties
-        this._link_alias_in = null;
-        this._link_alias_out = null;
 
-        // this is gross, but needs to be this verbose b/c of Web Audio API internals...
-        this.link = function(out) {        
-            if (this._link_alias_out) {
-                if (out._link_alias_in) {
-                    this._link_alias_out.connect(out._link_alias_in);
-                } else {
-                    this._link_alias_out.connect(out);
-                }
-            } else {
-                // for the cases where an AudioModule has one AudioNode
-                // and we have chosen to mixin AudioModule instead of inheriting 
-                if (out._link_alias_in) {
-                    this.connect(out._link_alias_in);
-                } else {
-                    this.connect(out);
-                }
-            }
-        };
-    };
+        return moduleMixins;
+    }({}))
 
     /* 
      * gross clock to synchrionize macrotime actions between modules

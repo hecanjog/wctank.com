@@ -54,10 +54,11 @@ function(audio, audioUtil, util) { var elements = {};
         this.gain.gain.value = amplitude;
 
         this.osc.connect(this.gain);
+        
         this._link_alias_out = this.gain;
 
-        this._startStopThese(this.osc);
-        this._makeSetValue(this.osc, 'frequency', 'setFrequency', true);
+        audio.moduleMixins.startStopThese(this, this.osc);
+        audio.moduleMixins.setValue(this, this.osc, 'frequency', 'setFrequency', true);
     };
     elements.Osc.prototype = new audio.AudioModule();
    
@@ -98,7 +99,7 @@ function(audio, audioUtil, util) { var elements = {};
         this._link_alias_out = this.gain;
 
         // behaviors 
-        this._makeSetValue(this.biquad, 'frequency', 'setFrequency', true);
+        audio.moduleMixins.setValue(this, this.biquad, 'frequency', 'setFrequency', true);
         
         var accenting = false;
         var gen = (function(gen) {
@@ -404,11 +405,11 @@ function(audio, audioUtil, util) { var elements = {};
             comb4.feedbackGain.gain
                 .linearRampToValueAtTime(par_D_gain * n, audio.ctx.currentTime + t);
         };
-
-        this._makeWetDry(this.dryGain, this.wetGain);
-        this.wetDry(50);
         
-        this._makeSetValue(this.outGain, 'gain', 'setGain');
+        audio.moduleMixins.wetDry(this, this.dryGain, this.wetGain);
+        this.wetDry(50);
+       
+        audio.moduleMixins.setValue(this, this.outGain, 'gain', 'setGain');
     };
     elements.SchroederReverb.prototype = new audio.AudioModule();
 
@@ -445,13 +446,22 @@ function(audio, audioUtil, util) { var elements = {};
         this._link_alias_in = nop;
         this._link_alias_out = this.gain;
     
-        this._makeWetDry(dryGain, wetGain);
+        audio.moduleMixins.wetDry(this, dryGain, wetGain);
         this.wetDry(50);
     };
     elements.Convolution.prototype = new audio.AudioModule();
 
+    // mostly here until audioworkers are implemented
     elements.Analysis = function() {
+        var analyser = audio.ctx.createAnalyser(),
+            data = new Float32Array(analyser.frequencyBinCount);
 
+        this.getData = function() {
+            analyser.getFloatFrequencyData(data);
+            return data; 
+        };
+
+        this._link_alias_in = analyser;
     };
     elements.Analysis.prototype = new audio.AudioModule();
 
