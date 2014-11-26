@@ -45,22 +45,29 @@ function(audioUtil, TWEEN) { var audio = {};
         this._link_alias_out = null;
 
         // this is gross, but needs to be this verbose b/c of Web Audio API internals...
-        this.link = function(out) {        
+        this.link = function(out, output, input) {        
             if (this._link_alias_out) {
-                if (out._link_alias_in) {
-                    this._link_alias_out.connect(out._link_alias_in);
+                if (out._link_alias_in) { 
+                    if (out._link_alias_in.constructor === audio.audioModule) {
+                        // if the link alias itself is an AudioModule, 
+                        // recurse until we hit an AudioNode to connect to
+                        this.link(out._link_alias_in, output, input); 
+                    } else {
+                        this._link_alias_out.connect(out._link_alias_in, output, input);
+                    }
                 } else {
-                    this._link_alias_out.connect(out);
+                    this._link_alias_out.connect(out, output, input);
                 }
             } else {
                 // for the cases where an AudioModule has one AudioNode
                 // and we have chosen to mixin AudioModule instead of inheriting 
                 if (out._link_alias_in) {
-                    this.connect(out._link_alias_in);
+                    this.connect(out._link_alias_in, output, input);
                 } else {
-                    this.connect(out);
+                    this.connect(out, output, input);
                 }
             }
+            return out;
         };
     };
 
@@ -131,6 +138,11 @@ function(audioUtil, TWEEN) { var audio = {};
                 };
             }
         }
+    };
+
+    audio.wrapNode = function(node) {
+        audio.AudioModule.call(node);
+        return node;
     };
 
     /* 

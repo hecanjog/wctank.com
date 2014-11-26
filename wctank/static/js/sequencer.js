@@ -53,7 +53,7 @@ function(util, gMap, mapFilterCycle, tableux,
              */
             //var noise = audioElements.Noise(); 
             var vox = audioElements.SpritePlayer('/static/assets/wes.mp3', SpriteIntervals); 
-            //var verb = audioElements.SchroederReverb();
+            var verb = audioElements.SchroederReverb();
             var conv = audioElements.Convolution('/static/assets/jla.mp3');
             window.convwet = conv.wetDry;
             //var verb2 = audioElements.SchroederReverb();
@@ -74,8 +74,8 @@ function(util, gMap, mapFilterCycle, tableux,
             }
             //vox.link(verb);
             //verb.link(audio.out);
-            vox.link(conv);
-            conv.link(audio.out);
+            vox.link(conv).link(verb).link(audio.out);
+            
             //noise.start();
             for (var i = 0; i < bank.length; i++) {
              //   bank[i].link(conv);

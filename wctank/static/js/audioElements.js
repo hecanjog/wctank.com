@@ -8,6 +8,16 @@ define(
 function(audio, audioUtil, util) { var elements = {};
     var ctx = audio.ctx;
 
+    elements.Gain = function() {
+        return audio.wrapNode(audio.ctx.createGain());
+    };
+    elements.Split = function(channels) {
+        return audio.wrapNode(audio.ctx.createChannelSplitter(channels));
+    };
+    elements.Merge = function(channels) {
+        return audio.wrapNode(audio.ctx.createChannelMerger(channels));
+    };
+
     // make a buffer for white noise
     var sr = ctx.sampleRate;
     var samples = sr * 2.5;
@@ -334,54 +344,37 @@ function(audio, audioUtil, util) { var elements = {};
             par_D_mult = 6.48703,
             par_D_gain = 0.733;
 
-        var dry = audio.ctx.createChannelSplitter(2);    
-        
+        var dry = elements.Split(2);
+
         var all1 = new AllPass(base_time),
             all2 = new AllPass(base_time / series_B_div),
             all3 = new AllPass(base_time / series_C_div);
 
-        var split = audio.ctx.createChannelSplitter(4);
+        var split = elements.Split(4);
 
         var comb1 = new FeedbackCombFilter(base_time * par_A_mult, par_A_gain),
             comb2 = new FeedbackCombFilter(base_time * par_B_mult, par_B_gain),
             comb3 = new FeedbackCombFilter(base_time * par_C_mult, par_C_gain),
             comb4 = new FeedbackCombFilter(base_time * par_D_mult, par_D_gain);
 
-        var mergeL = audio.ctx.createChannelMerger(2),
-            mergeR = audio.ctx.createChannelMerger(2);
-
-        this.wetGain = audio.ctx.createGain(),
-        this.dryGain = audio.ctx.createGain();
-
-        this.outGain = audio.ctx.createGain();
+        var mergeL = elements.Merge(2),
+            mergeR = elements.Merge(2);
+        
+        this.wetGain = elements.Gain();
+        this.dryGain = elements.Gain();
+        this.outGain = elements.Gain();
 
         /*
          * connections
          */
-        dry.connect(all1._link_alias_in, 0);
+        dry.link(all1).link(all2).link(all3).link(split); 
 
-        all1.link(all2);
-        all2.link(all3);
-        
-        all3._link_alias_out.connect(split);
+            split.link(comb1, 0).link(mergeL, 0, 0);
+            split.link(comb2, 1).link(mergeR, 0, 0);
+            split.link(comb3, 0).link(mergeL, 0, 1).link(this.wetGain);
+            split.link(comb4, 1).link(mergeR, 0, 1).link(this.wetGain).link(this.outGain);
 
-        split.connect(comb1._link_alias_in, 0);
-        split.connect(comb2._link_alias_in, 0);
-        split.connect(comb3._link_alias_in, 0);
-        split.connect(comb4._link_alias_in, 0);
-
-        comb1._link_alias_out.connect(mergeL, 0, 0);
-        comb2._link_alias_out.connect(mergeR, 0, 0);
-        comb3._link_alias_out.connect(mergeL, 0, 1);
-        comb4._link_alias_out.connect(mergeR, 0, 1);
-            
-        mergeL.connect(this.wetGain);
-        mergeR.connect(this.wetGain);
-
-        dry.connect(this.dryGain, 1);
-
-        this.wetGain.connect(this.outGain);
-        this.dryGain.connect(this.outGain);
+        dry.link(this.dryGain).link(this.outGain);
 
         /*
          * aliases
@@ -452,6 +445,9 @@ function(audio, audioUtil, util) { var elements = {};
 
     // mostly here until audioworkers are implemented
     elements.Analysis = function() {
+        if (this.constructor !== audio.AudioModule) 
+            return new elements.Analysis();
+        
         var analyser = audio.ctx.createAnalyser(),
             data = new Float32Array(analyser.frequencyBinCount);
 
