@@ -2,26 +2,16 @@ define(
     [
         'audio',
         'audioUtil',
+        'audioNodes',
         'util'
     ],
 
-function(audio, audioUtil, util) { var elements = {};
-    var ctx = audio.ctx;
-
-    elements.Gain = function() {
-        return audio.wrapNode(audio.ctx.createGain());
-    };
-    elements.Split = function(channels) {
-        return audio.wrapNode(audio.ctx.createChannelSplitter(channels));
-    };
-    elements.Merge = function(channels) {
-        return audio.wrapNode(audio.ctx.createChannelMerger(channels));
-    };
+function(audio, audioUtil, audioNodes, util) { var elements = {};
 
     // make a buffer for white noise
-    var sr = ctx.sampleRate;
+    var sr = audio.ctx.sampleRate;
     var samples = sr * 2.5;
-    var noise_buf = ctx.createBuffer(2, samples, sr);
+    var noise_buf = audio.ctx.createBuffer(2, samples, sr);
     for (var channel = 0; channel < 2; channel++) {
         var channelData = noise_buf.getChannelData(channel);
         for (var i = 0; i < samples; i++) {
@@ -32,12 +22,12 @@ function(audio, audioUtil, util) { var elements = {};
     elements.Noise = function Noise(amplitude) {
         if (this.constructor !== audio.AudioModule) 
             return new elements.Noise(amplitude);
-        this.source = ctx.createBufferSource();
+        this.source = audio.ctx.createBufferSource();
         this.source.buffer = noise_buf;
         this.source.loop = true;
         this._startStopThese(this.source);
         
-        this.gain = ctx.createGain();
+        this.gain = audio.ctx.createGain();
         
         var val;
         if (amplitude) {
@@ -56,11 +46,11 @@ function(audio, audioUtil, util) { var elements = {};
         if (this.constructor !== audio.AudioModule) 
             return new elements.Osc(oscType, frequency, amplitude);
 
-        this.osc = ctx.createOscillator();
+        this.osc = audio.ctx.createOscillator();
         this.osc.frequency.value = frequency;
         this.osc.type = oscType;
 
-        this.gain = ctx.createGain();
+        this.gain = audio.ctx.createGain();
         this.gain.gain.value = amplitude;
 
         this.osc.connect(this.gain);
@@ -78,14 +68,14 @@ function(audio, audioUtil, util) { var elements = {};
             return new elements.Bandpass(frequency, Q);
         
         // bp filter
-        this.biquad = ctx.createBiquadFilter();
+        this.biquad = audio.ctx.createBiquadFilter();
         this.biquad.type = "bandpass";
         this.biquad.frequency.value = frequency;
         this.biquad.Q.value = Q;
         var biquad = this.biquad;
                    
         // gain node
-        this.gain = ctx.createGain();
+        this.gain = audio.ctx.createGain();
         this.gain.gain.value = 1;
         var gain = this.gain;
         
@@ -344,25 +334,25 @@ function(audio, audioUtil, util) { var elements = {};
             par_D_mult = 6.48703,
             par_D_gain = 0.733;
 
-        var dry = elements.Split(2);
+        var dry = audioNodes.Split(2);
 
         var all1 = new AllPass(base_time),
             all2 = new AllPass(base_time / series_B_div),
             all3 = new AllPass(base_time / series_C_div);
 
-        var split = elements.Split(4);
+        var split = audioNodes.Split(4);
 
         var comb1 = new FeedbackCombFilter(base_time * par_A_mult, par_A_gain),
             comb2 = new FeedbackCombFilter(base_time * par_B_mult, par_B_gain),
             comb3 = new FeedbackCombFilter(base_time * par_C_mult, par_C_gain),
             comb4 = new FeedbackCombFilter(base_time * par_D_mult, par_D_gain);
 
-        var mergeL = elements.Merge(2),
-            mergeR = elements.Merge(2);
+        var mergeL = audioNodes.Merge(2),
+            mergeR = audioNodes.Merge(2);
         
-        this.wetGain = elements.Gain();
-        this.dryGain = elements.Gain();
-        this.outGain = elements.Gain();
+        this.wetGain = audioNodes.Gain();
+        this.dryGain = audioNodes.Gain();
+        this.outGain = audioNodes.Gain();
 
         /*
          * connections
