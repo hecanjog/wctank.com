@@ -260,7 +260,6 @@ function(audio, audioUtil, util) { var elements = {};
         var playing = false;
         this.playRandomSprite = function() {
             if (!playing) {        
-                console.log('play');
                 var sprite = sprites[(Math.random() * sprites.length) | 0],
                     dur = sprite.end - sprite.start;
                 media.currentTime = sprite.start;

@@ -64,9 +64,9 @@ function(audioUtil, TWEEN) { var audio = {};
         };
     };
 
-    audio.moduleMixins = (function(moduleMixins) {
+    audio.moduleMixins = {
         
-        moduleMixins.startStopThese = function(scope) {
+        startStopThese: function(scope) {
             var nodes = arguments;
             scope.start = function() {
                 for (var i = 1; i < nodes.length; i++) {
@@ -78,9 +78,9 @@ function(audioUtil, TWEEN) { var audio = {};
                     nodes[i].stop();
                 }
             };
-        };
+        },
 
-        moduleMixins.wetDry = function(scope, dryGainNode, wetGainNode) {
+        wetDry: function(scope, dryGainNode, wetGainNode) {
             scope.wetDry = function(percent_wet, time) {
                 var w = percent_wet / 100,
                 d = 1 - w,
@@ -88,9 +88,9 @@ function(audioUtil, TWEEN) { var audio = {};
                 wetGainNode.gain.linearRampToValueAtTime(w, t);
                 dryGainNode.gain.linearRampToValueAtTime(d, t);  
             }; 
-        };
+        },
         
-        moduleMixins.setValue = function(scope, node, param, fnname, irregular) {
+        setValue: function(scope, node, param, fnname, irregular) {
             if (!irregular) {
                 scope[fnname] = function(val, time) {
                     var t = time ? time : 0;
@@ -130,10 +130,8 @@ function(audioUtil, TWEEN) { var audio = {};
                     }            
                 };
             }
-        };
-
-        return moduleMixins;
-    }({}))
+        }
+    };
 
     /* 
      * gross clock to synchrionize macrotime actions between modules
