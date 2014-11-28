@@ -48,17 +48,6 @@ define(
     },
 
     log: function(n, base) {
-        return Math,log(n) / Math.log(base);
-    },
-
-    // a small XMLHttpRequest abstraction that can handle 
-    // binary data response types
-    getRequest: function(path, responseType, onloadCallback) {
-        var req = new XMLHttpRequest();
-        req.responseType = responseType;
-        req.open("GET", path, true);
-        req.onload = onloadCallback(req);
-        req.send();
+        return Math.log(n) / Math.log(base);
     }
-
 });

@@ -25,7 +25,8 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         this.source = audio.ctx.createBufferSource();
         this.source.buffer = noise_buf;
         this.source.loop = true;
-        this._startStopThese(this.source);
+        
+        audio.moduleMixins.startStopThese(this, this.source);
         
         this.gain = audio.ctx.createGain();
         
@@ -62,7 +63,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
     };
     elements.Osc.prototype = new audio.AudioModule();
    
-    elements.Bandpass = function Bandpass(frequency, Q) {
+    elements.Bandpass = function Bandpass(frequency, Q, initGain) {
         // construct sans new
         if (this.constructor !== audio.AudioModule) 
             return new elements.Bandpass(frequency, Q);
@@ -76,7 +77,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
                    
         // gain node
         this.gain = audio.ctx.createGain();
-        this.gain.gain.value = 1;
+        this.gain.gain.value = initGain;
         var gain = this.gain;
         
         // for TWEENS 
@@ -287,17 +288,15 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         var parent = this;
 
         function AllPass(delay) {
-            var nop = audio.ctx.createGain();
-            this.delay = audio.ctx.createDelay(delay);
+            var nop = audioNodes.Gain();
+            this.delay = audioNodes.Delay(delay);
             this.delay.delayTime.value = delay * audio.ctx.sampleRate;
-            this.feedforwardGain = audio.ctx.createGain();
+            this.feedforwardGain = audioNodes.Gain();
             this.feedforwardGain.gain.value = 0.7;
-            var nopOut = audio.ctx.createGain();
+            var nopOut = audioNodes.Gain();
 
-            nop.connect(this.delay);
-            this.delay.connect(this.feedforwardGain);
-            nop.connect(nopOut);
-            this.feedforwardGain.connect(nopOut);
+            nop.link(this.delay).link(this.feedforwardGain).link(nopOut);
+            nop.link(nopOut);
 
             this._link_alias_in = nop;
             this._link_alias_out = nopOut;
@@ -305,17 +304,15 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         AllPass.prototype = new audio.AudioModule();
 
         function FeedbackCombFilter(delay, feedback) {
-            var nop = audio.ctx.createGain();
-            this.delay = audio.ctx.createDelay(delay);
+            var nop = audioNodes.Gain();
+            this.delay = audioNodes.Delay(delay);
             this.delay.delayTime.value = delay * audio.ctx.sampleRate;
-            this.feedbackGain = audio.ctx.createGain();
+            this.feedbackGain = audioNodes.Gain();
             this.feedbackGain.gain.value = feedback;
-            var nopOut = audio.ctx.createGain();
+            var nopOut = audioNodes.Gain();
             
-            nop.connect(this.delay);
-            this.delay.connect(this.feedbackGain);
-            this.feedbackGain.connect(nop);
-            nop.connect(nopOut);
+            nop.link(this.delay).link(this.feedbackGain).link(nop);
+            nop.link(nopOut);
 
             this._link_alias_in = nop;
             this._link_alias_out = nopOut;
@@ -400,20 +397,16 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
             return new elements.Convolution(path_to_audio);
 
         // TODO: parse audio sprites into multiple buffers for the convolver
-
-        var nop = audio.ctx.createGain(),
-            conv = audio.ctx.createConvolver(),
-            dryGain = audio.ctx.createGain(),
-            wetGain = audio.ctx.createGain();
-        this.gain = audio.ctx.createGain();
-        
-        nop.connect(dryGain);
-        dryGain.connect(this.gain);
-        nop.connect(conv);
-        conv.connect(wetGain);
-        wetGain.connect(this.gain);
-
+        var nop = audioNodes.Gain(),
+            conv = audioNodes.Convolve();
         conv.normalize = true;
+        
+        var dryGain = audioNodes.Gain(),
+            wetGain = audioNodes.Gain();
+        this.gain = audioNodes.Gain();
+
+        nop.link(dryGain).link(this.gain);
+        nop.link(conv).link(wetGain).link(this.gain);
 
         var req = new XMLHttpRequest();
         req.responseType = "arraybuffer";
@@ -437,13 +430,32 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
     elements.Analysis = function() {
         if (this.constructor !== audio.AudioModule) 
             return new elements.Analysis();
-        
+         
         var analyser = audio.ctx.createAnalyser(),
-            data = new Float32Array(analyser.frequencyBinCount);
+            data = new Uint8Array(analyser.frequencyBinCount);
+
+        analyser.fftSize = 2048;
+
+        var bin_size = audio.ctx.sampleRate / analyser.fftSize,
+            mag_scalar = 1 / 145; 
 
         this.getData = function() {
-            analyser.getFloatFrequencyData(data);
-            return data; 
+            var r = [];
+            
+            analyser.getByteFrequencyData(data);
+
+            function Bin(frequency, amplitude) {
+                this.frequency = frequency;
+                this.amplitude = amplitude;
+            }
+           
+
+            for (var i = 0; i < analyser.frequencyBinCount; i++) {
+                if (data[i] > 0) {
+                    r.push( new Bin(bin_size * i, data[i] * mag_scalar) );
+                }
+            }
+            return r; 
         };
 
         this._link_alias_in = analyser;

@@ -44,29 +44,60 @@ function(audioUtil, TWEEN) { var audio = {};
         this._link_alias_in = null;
         this._link_alias_out = null;
 
+        var throwLinkException = function(text) {
+            throw "Invalid link parameters: " + text;
+        };
+        var checkLink = function(isOut, address, alias) {
+            var location = isOut ? 'output' : 'input';
+            if ( (typeof address !== 'number') 
+                    || (typeof alias[address] === 'undefined') ) { 
+                throwLinkException("If AudioModule has multiple "+location+
+                    " aliases, the "+location+" must be explicitly addressed.");
+            }
+        };
+
         // this is gross, but needs to be this verbose b/c of Web Audio API internals...
         this.link = function(out, output, input) {        
-            if (this._link_alias_out) {
-                if (out._link_alias_in) { 
-                    if (out._link_alias_in.constructor === audio.audioModule) {
-                        // if the link alias itself is an AudioModule, 
-                        // recurse until we hit an AudioNode to connect to
-                        this.link(out._link_alias_in, output, input); 
+            if (typeof out !== 'undefined') {
+                // if this is a normal audio module with an out alias
+                if (this._link_alias_out) {
+                    // multiple outs?
+                    if ( Array.isArray(this._link_alias_out) ) {
+                        // throw exception if out is not addressesd properly
+                        checkLink(true, output, this._link_alias_out);
+                        // recurse and link on addressed alias
+                        this._link_alias_out[output].link(out, 0, input);    
+                    } else if (out._link_alias_in) { 
+                        // multiple inputs?
+                        if ( Array.isArray(out._link_alias_in) ) {
+                            checkLink(false, input, out._link_alias_in);
+                            this.link(out._link_alias_in[input]);
+                        } else if ( audio.hasLink(out._link_alias_in) ) {
+                            // if the link alias is an AudioModule,
+                            // recurse until we hit an WAAPI AudioNode to connect to
+                            this.link(out._link_alias_in, output, input); 
+                        } else {
+                            // otherwise, out is a WAAPI audionode more or less, 
+                            // so call .connect
+                            this._link_alias_out.connect(out._link_alias_in, output, input);
+                        }
                     } else {
-                        this._link_alias_out.connect(out._link_alias_in, output, input);
+                        // if no input alias is implemented, then 
+                        // hopefully we've hit an audio node
+                        this._link_alias_out.connect(out, output, input);
                     }
                 } else {
-                    this._link_alias_out.connect(out, output, input);
+                    // for the cases where an AudioModule has one AudioNode
+                    // and we have chosen to mixin AudioModule instead of inheriting 
+                    if (out._link_alias_in) {
+                        this.connect(out._link_alias_in, output, input);
+                    } else {
+                        this.connect(out, output, input);
+                    }
                 }
             } else {
-                // for the cases where an AudioModule has one AudioNode
-                // and we have chosen to mixin AudioModule instead of inheriting 
-                if (out._link_alias_in) {
-                    this.connect(out._link_alias_in, output, input);
-                } else {
-                    this.connect(out, output, input);
-                }
-            }
+                throwLinkException("Input node is not defined");
+            } 
             return out;
         };
     };
@@ -144,6 +175,15 @@ function(audioUtil, TWEEN) { var audio = {};
         audio.AudioModule.call(node);
         return node;
     };
+    
+    audio.hasLink = function(obj) {
+        return obj.link ? true : false;
+    };
+
+    audio.isAudioModule = function(obj) {
+        return (obj.constructor === audio.AudioModule) ? true : false;
+    };
+
 
     /* 
      * gross clock to synchrionize macrotime actions between modules

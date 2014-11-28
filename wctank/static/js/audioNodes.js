@@ -3,7 +3,7 @@ define(
         'audio'
     ],
 /*
- *  AudioNodes with mixin'd AudioModule - mostly for syntactic sugar.
+ *  AudioNodes with mixin'd AudioModule mostly for syntactic sugar.
  */
 function(audio) { var nodes = {};
     nodes.Gain = function() { 
@@ -17,5 +17,8 @@ function(audio) { var nodes = {};
     };
     nodes.Convolve = function() {
         return audio.wrapNode(audio.ctx.createConvolver()); 
+    };
+    nodes.Delay = function(delay) {
+        return audio.wrapNode(audio.ctx.createDelay(delay));
     };
 return nodes; });

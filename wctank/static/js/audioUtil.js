@@ -62,6 +62,7 @@ function(util, visCore, TWEEN) { var audioUtil = {};
         units.cents2Hz = function(cents, basehz) {
            return basehz * Math.pow(2, cents / 1200);   
         };
+    
 
         return units;
     }({}))

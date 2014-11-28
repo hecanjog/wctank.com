@@ -1,36 +1,54 @@
 define( 
     [
         'audio',
+        'audioNodes',
         'audioElements'
     ],
 
-function(audio, audioElements) { var actors = {};
+function(audio, audioNodes, audioElements) { var actors = {};
 
-    actors.SubtractiveResynthesis = function() {
+    actors.SubtractiveSynthesis = function(withNoise) {
         // in -> analysis -> 
         //     noise -> bp bank
-        var nop = audio.ctx.createGain(),
+        var dryIn = audioNodes.Gain(),
+            anaIn = audioNodes.Gain(),
             analyser = audioElements.Analysis(),
             noise = audioElements.Noise(),
-            outGain = audio.ctx.createGain();
+            dryGain = audioNodes.Gain(),
+            wetGain = audioNodes.Gain(),
+            outGain = audioNodes.Gain();
 
-        audio.AudioModule.call(nop);
-        audio.AudioModule.call(outGain);
+        anaIn.link(analyser);
+        dryIn.link(dryGain).link(outGain);
+        wetGain.link(outGain);
 
-        nop.link(analyser);
-        nop.link(outGain);
+        var driver = withNoise ? noise : dryIn;
+
+        this._link_alias_in = [dryIn, anaIn];
+        this._link_alias_out = outGain;    
+
+        audio.moduleMixins.startStopThese(this, noise); 
+        audio.moduleMixins.wetDry(this, dryGain, wetGain);
 
         var bp_bank = [];
+        this.updateFromSound = function() {
+            var dat = analyser.getData();
+            bp_bank.forEach(function(bp) {
+                bp = null;
+            });
+            bp_bank = [];
+           console.log(dat); 
 
-        this.update = function() {
-            // grab frequencies, spawn bandpasses at frequency
+            dat.forEach(function(val) {
+                var bp = audioElements.Bandpass(val.frequency, 1000, val.amplitude);
+                driver.link(bp).link(wetGain);
+            });
         };
         this.setQ = function(q) {
             // set all bandpass q values 
         };
-               
     };
-    actors.SubtractiveResynthesis.prototype = new audio.AudioModule();
+    actors.SubtractiveSynthesis.prototype = new audio.AudioModule();
 
 return actors; });
 

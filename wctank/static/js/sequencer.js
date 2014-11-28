@@ -55,45 +55,27 @@ function(util, gMap, mapFilterCycle, tableux,
             var vox = audioElements.SpritePlayer('/static/assets/wes.mp3', SpriteIntervals); 
             var verb = audioElements.SchroederReverb();
             var conv = audioElements.Convolution('/static/assets/jla.mp3');
-            window.convwet = conv.wetDry;
-            //var verb2 = audioElements.SchroederReverb();
-            //var verb3 = audioElements.SchroederReverb();
-            //verb3.wetDry(80);
-            //verb3.setFeedbackCoeffMultiplier(1.15);
-            var bank = [
-                audioElements.Bandpass(262, 140),
-                audioElements.Bandpass(327.5, 140),
-                audioElements.Bandpass(393, 140),
-                audioElements.Bandpass(500, 140),
-            ];
-            //var tri = audioElements.Osc('triangle', 440, 0.8);
-            //tri.start();
-            //noise.start();
-            for (var i = 0; i < bank.length; i++) {
-           //     noise.link(bank[i]);
-            }
-            //vox.link(verb);
-            //verb.link(audio.out);
-            vox.link(conv).link(verb).link(audio.out);
+            conv.wetDry(100);
+            var sub = new audioActors.SubtractiveSynthesis(false);
+            //sub.start();
             
-            //noise.start();
-            for (var i = 0; i < bank.length; i++) {
-             //   bank[i].link(conv);
-                //bank[i].link(verb2);
-            } 
-            //tri.link(conv);
-            //conv.link(audio.out);
-            //noise.start();
+            vox.link(sub, null, 0).link(verb).link(audio.out);
+            vox.link(conv).link(sub, 0, 1);
+            
+            conv.link(audio.out);
+            conv.gain.value = 0.1;
+            window.supdate = sub.updateFromSound;
+            sub.wetDry(100);
 
             var vibEve = function() {
-                for (var i = 0; i < bank.length; i++) {
-                    bank[i].accent();
-                }
+                //for (var i = 0; i < bank.length; i++) {
+              //      bank[i].accent();
+                //}
             };
             var turnOff = function() {
-                for (var i = 0; i < bank.length; i++) {
-                    bank[i].fadeInOut(2000);//util.smudgeNumber(10000, 50));
-                }
+                //for (var i = 0; i < bank.length; i++) {
+                //    bank[i].fadeInOut(2000);//util.smudgeNumber(10000, 50));
+                //}
             };
             var whatever = 0;
             window.glissDbg = function(freq, time) {
