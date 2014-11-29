@@ -15,7 +15,7 @@ function(util) { var core = {};
         
         var exQueue = function() {
             for (var i = 0; i < queue.length; i++) {
-                stk[i]();
+                queue[i]();
             }
         }; 
 
@@ -65,12 +65,11 @@ function(util) { var core = {};
      * Slow clock that can be used to synchronize 
      * actions between objects and / or trigger events
      */
-    core.Clock = function(BPM, smudgeFactor) {
+    core.Clock = function(tempo, smudgeFactor) {
         var parent = this;
 
         var queue = [],
-            smudge = smudgeFactor, 
-            bpm = BPM,
+            smudge, bpm,
             isOn = false, 
             id, wasPaused, beat_start, beat_remaining;
 
@@ -81,24 +80,26 @@ function(util) { var core = {};
         var checkAndSetSmudge = function(n) {
             if ( (typeof n === 'undefined') || (n < 0) ) {
                 throwClockParamException("smudgeFactor must be "+
-                    "a Number greater than or equal to zero, not " + n); 
+                    "a Number greater than or equal to zero, not " + n + "."); 
             } else {
                 smudge = n;
             }
         };
-        if (smudgeFactor) checkAndSetSmudge(smudgeFactor);
         
         var bpm2msec = function(n) {
             return 60000 / n;
         };
         var checkAndSetBpm = function(n) {
             if ( (typeof n !== 'number') || (n <= 0) ) {
-                throwClockParamException("BPM must be a Number greater than zero, "+
-                                         "not " + n + ".");
+                throwClockParamException("bpm must be a Number "+
+                    "greater than zero, not " + n + ".");
             } else {
                 bpm = n;
             }                
         };
+
+        if (typeof BPM !== 'undefined') checkAndSetBpm(BPM);
+        if (typeof smudgeFactor !== 'undefined') checkAndSetSmudge(smudgeFactor);
 
         var machine = function() {
             var loop = function() {
@@ -116,12 +117,10 @@ function(util) { var core = {};
         };
        
         Object.defineProperty(this, 'isEngaged', {
-            enumerable: true,
             get: function() { return isOn; }
         });
 
         Object.defineProperty(this, 'bpm', {
-            enumerable: true,
             get: function() { return bpm; },
             set: function(val) { 
                 console.log(val);
@@ -130,7 +129,6 @@ function(util) { var core = {};
         });
 
         Object.defineProperty(this, 'smudgeFactor', {
-            enumberable: true,
             get: function() { return smudge; },
             set: function(val) { checkAndSetSmudge(val); }
         });

@@ -36,7 +36,9 @@ define(
         'specialDefs',
         'tableuxList',
         'markerEvents',
-        'sceneGraphCore'
+        'sceneGraphCore',
+        'mapFilterCore',
+        'mapFilterDef'
     ],
 function(sequencer, specialCoord, specialDefs) {
     sequencer.goTo(0);

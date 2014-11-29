@@ -15,7 +15,7 @@ define(
 function(posts, util, $) { gMap = {}; 
 
     // On init, provides ref to google.maps.Map obj
-    //gMap.map;
+    gMap.map;
     
     /*
      * the event heap is used to init events associated with google map objects;
@@ -34,21 +34,33 @@ function(posts, util, $) { gMap = {};
             marker_events: {}
         }; 
         
+        var heap_added = false;
+
         evHeap.push = function(loc, event, fn, once) {
-            var makeEvObj = function(once, fn) {
-                return { once: once, fn: fn } 
-            };
-            var add1 = once ? once : false;
-            if ( heap[loc].hasOwnProperty(event) ) {
-                var len = Object.keys(heap[loc][event]).length;
-                heap[loc][event][len] = makeEvObj(add1, fn); 
+            if ( (heap_added && (loc === gMap.events.MARKER)) 
+                || !heap_added ) {
+                var makeEvObj = function(once, fn) {
+                    return { once: once, fn: fn } 
+                };
+                var add1 = once ? once : false;
+                if ( heap[loc].hasOwnProperty(event) ) {
+                    var len = Object.keys(heap[loc][event]).length;
+                    heap[loc][event][len] = makeEvObj(add1, fn); 
+                } else {
+                    heap[loc][event] = {};
+                    heap[loc][event][0] = makeEvObj(add1, fn);  
+                }
             } else {
-                heap[loc][event] = {};
-                heap[loc][event][0] = makeEvObj(add1, fn);  
+                if (once) {
+                    google.maps.event.addListenerOnce(gMap.map, event, fn);
+                } else {
+                    google.maps.event.addListener(gMap.map, event, fn);
+                }
             }
         };
         
         evHeap.addHeapEvents = function(set, marker) {
+            heap_added = true; 
             var ev_set = set ? heap[set] : heap.map_events;
             util.objectLength.call(ev_set);
             var addSingleEvent = function(event, fn, once, marker) {
