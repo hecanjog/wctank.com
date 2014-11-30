@@ -1,23 +1,24 @@
-// specials, and integrated specials, e.g., modify vhs
-// tweak fauvist hue at certain zoom levels
-
 define(
     [
         'util',
         'div',
         'gMap',
-        'visCore',
+        'visualCore',
         'markerCore',
-        'mapFilterCycle',
+        'mapFilterCore',
         'text!filterXML.xml',
         'text!VHSShaders.glsl',
         'jquery',
         'froogaloop2'
     ],
 
-function(util, div, gMap, visCore, markerCore, mapFilterCycle, 
-         filterXML, VHSShaders, $, $f) { var defs = {};
-    
+function(util, div, gMap, visualCore, markerCore, mapFilterCore,
+         filterXML, VHSShaders, $, $f) { var mapFilters = {};
+
+    Object.defineProperty(this, 'css_class', {
+        value: 'troller' 
+    });
+
     var cont = document.createElement("svg_filters");
     cont.style.position = "fixed";
     cont.style.bottom = 0;
@@ -25,23 +26,21 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
     document.body.appendChild(cont);
     cont.innerHTML = filterXML; 
 
-    function Troller() {
-        var u = mapFilterCycle.usageFlags;
-        this.usage = u.GENERAL | u.ZOOMED;
-        this.css_class = 'troller'; 
-
+    mapFilters.Troller = function() {
         var troller_back = document.createElement('video');
         troller_back.src = "https://archive.org/download/C.E.PriceSunClouds/SunClouds_512kb.mp4";
         troller_back.setAttribute("id", "troller_back");
-         
-        var rot = 0,
-            ident = "rotate(0deg)";
-        
+    
+        var parent = this,
+            rot = 0,
+            ident = "rotate(0deg)",
+            to_id;
+
         var transform = function(val) {
             div.$map.css("transform", val);
             div.$map.css("webkitTransform", val);
         };
-        var to_id;
+
         var getCurrentRotation = function() {
             // basically ripped from: http://css-tricks.com/get-
             // value-of-css-rotation-through-javascript/
@@ -54,6 +53,7 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             var b = Number(values[1]);
             return Math.round(Math.asin(b) * (180/Math.PI));
         };
+
         this.preInit = function() {
             var str = "rotate("+rot.toString()+"deg)";
             transform(str); 
@@ -61,7 +61,7 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             // the rotate in troller.init was obliterating the preInit rotate
             getCurrentRotation();
         };
-         
+        
         //TODO: Figure out why troller needs to be applied twice; 
         //some weird interaction with the rotate transform?
         var cntr = 0;
@@ -93,8 +93,7 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
         var $mapOnResize = function() {
             set$mapCss(false);
         };
-        
-        var parent = this;
+
         this.init = function() {
             window.addEventListener('resize', $mapOnResize);
             set$mapCss(false);
@@ -104,7 +103,6 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             troller_back.play();
             transform("rotate(360deg)");
             if (cntr === 0) {
-                to_id = window.setTimeout(mapFilterCycle.forceApply, util.smudgeNumber(7000, 5));
                 window.setTimeout(function() { 
                     parent.operate('teardown');
                     parent.operate('init');                
@@ -112,9 +110,11 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             }
             cntr++;
         };
+
         this.preTeardown = function() {
             rot += getCurrentRotation();
         };
+
         this.teardown = function() {
             if (cntr === 2) {
                 window.removeEventListener('resize', $mapOnResize);
@@ -130,34 +130,56 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             }
         };
     };
-    Troller.prototype = new mapFilterCycle.CycledFilter(); 
-    defs.Troller = new Troller();
-    mapFilterCycle.parse(defs.Troller);
+    mapFilters.Troller.prototype = new mapFilterCore.MapFilter();
 
-
-    function Print_Analog() {
-        this.usage = mapFilterCycle.usageFlags.GENERAL |
-                     mapFilterCycle.usageFlags.ZOOMED | 
-                     mapFilterCycle.usageFlags.TAKEOVER_DOWN | 
-                     mapFilterCycle.usageFlags.START;
-        this.css_class = 'print_analog';
-        this.denoise = document.getElementById("pa-denoise");
-        this.bypass = document.getElementById("pa-bypass");
-    };
-    Print_Analog.prototype = new mapFilterCycle.CycledFilter();
-    defs.Print_Analog = new Print_Analog();
-    mapFilterCycle.parse(defs.Print_Analog);
-
-    function Caustic_Glow() {
-        var u = mapFilterCycle.usageFlags;
-        this.usage = u.GENERAL | u.TAKEOVER_DOWN | u.TAKEOVER_UP | 
-                     u.ZOOMED | u.START;
-        this.css_class = 'caustic_glow';
-        this.glow_radius = document.getElementById("cg-glow-radius");
+    mapFilters.PrintAnalog = function() {
+        Object.defineProperty(this, 'css_class', {
+            value: 'print_analog'
+        });
         
+        var stdDeviation = 1.16,
+            paDenoise = document.getElementById("pa-denoise");
+        Object.defineProperty(this, 'denoiseStdDeviation', {
+            get: function() { return stdDeviation; },
+            set: function(val) {
+                stdDeviation = val;
+                paDenoise.setAttribute("stdDeviation", stdDeviation.toString());
+            }
+        });
+
+        var thicken = false,
+            paThicken = document.getElementById("pa-bypass");
+        Object.defineProperty(this, 'thicken', {
+            get: function() { return thicken; },
+            set: function(val) {
+                thicken = val;
+                var nodeAddr = val ? "thick" : "flip",
+                    radius = val.toString();
+                paThicken.setAttribute("in2", nodeAddr);
+                paThicken.setAttribute("radius", radius);
+            }
+        });
+    }; 
+    mapFilters.PrintAnalog.prototype = new mapFilterCore.MapFilter();
+
+    mapFilters.CausticGlow = function() {
+        Object.defineProperty(this, 'css_class', {
+            value: 'caustic_glow'
+        });
+
+        var stdDeviation = 10.6,
+            cgGlow = document.getElementById("cg-glow-radius");
+        Object.defineProperty(this, 'glow_radius', {
+            get: function() { return stdDeviation; },
+            set: function(val) { 
+                stdDeviation = val;
+                cgGlow.setAttribute('stdDeviation', stdDeviation.toString());
+            }
+        });
+
         var caustic_glow_back = document.createElement("div");
         caustic_glow_back.setAttribute("id", "caustic_glow_back");  
-        
+    
         var vid_id = "107871876",
             vimeo_player = document.createElement("iframe");
         vimeo_player.setAttribute("id", "vimeo_player");
@@ -165,9 +187,9 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             "//player.vimeo.com/video/"+vid_id+
             "?api=1&player_id=vimeo_player&autopause=0&loop=1";
         caustic_glow_back.appendChild(vimeo_player);
-        
-        document.body.appendChild(caustic_glow_back);
          
+        document.body.appendChild(caustic_glow_back);
+
         var player = $f( $('#vimeo_player')[0] ),
             player_ready = false;
         player.addEvent('ready', function() {
@@ -189,7 +211,7 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
                 }, dur);
             }, del);
         }; 
-        
+    
         // sigh...
         var parent = this;
         this.init = function() {
@@ -210,17 +232,23 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             blink_id = null;    
         };
     };
-    Caustic_Glow.prototype = new mapFilterCycle.CycledFilter();
-    defs.Caustic_Glow = new Caustic_Glow();
-    mapFilterCycle.parse(defs.Caustic_Glow); 
-    
-    function Cmgyk() {
-        var u = mapFilterCycle.usageFlags;
-        this.usage = u.GENERAL | u.ZOOMED | u.START;
-        this.css_class = 'cmgyk';
+    mapFilters.CausticGlow.prototype = new mapFilterCore.MapFilter();
 
-        this.denoise = document.getElementById("cmgyk-denoise"); 
+    mapFilters.Cmgyk = function() {
+        Object.defineProperty(this, 'css_class', {
+            value: 'cmgyk'
+        });
 
+        var denoiseStdDeviation = 1,
+            cmgykDenoise = document.getElementById("cmgyk-denoise");
+        Object.defineProperty(this, 'denoise_radius', {
+            get: function() { return denoiseStdDeviation; },
+            set: function(val) {
+                denoiseStdDeviation = val;
+                cmgykDenoise.setAttribute('stdDeviation', denoiseStdDeviation.toString());
+            }
+        });
+        
         var cmgyk_back = document.createElement("div");
         cmgyk_back.setAttribute("id", "cmgyk_back");
         
@@ -230,11 +258,12 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
         
         var cmgyk_steady_back = document.createElement("div");
         cmgyk_steady_back.setAttribute("id", "cmgyk_steady_back");
-        
+
         var engaged = false,
             times_engaged = 0,
             ko_num = 2,
             blink_num = 3;
+
         var should_ko = function() {
             if (times_engaged > ko_num) return true;
             return false;
@@ -246,12 +275,12 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             }
             return false;
         };
-        
+
         this.setImmediateBlink = function() {
             ko_num = 0 ;
             blink_num = 0;
         };
-        
+
         var $kos = $();
         this.init = function() {
             engaged = true;
@@ -260,13 +289,14 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             document.body.appendChild(cmgyk_back);
             $kos = $();
         };
+
         this.teardown = function() {
             engaged = false;
             document.body.removeChild(cmgyk_steady_back);
             document.body.removeChild(cmgyk_back);
             $kos.css("display", "block");
         };
-        
+
         // snippet from http://memory.psych.mun.ca/tech/snippets/random_normal/
         var gaussDist = function() {
             var x1, x2, rad;
@@ -323,8 +353,6 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
                 $kos.css("display", "none");
             }
         };
-        gMap.events.push(gMap.events.MAP, 'tilesloaded', koAndBlink);
-        gMap.events.push(gMap.events.MAP, 'bounds_changed', koAndBlink);
        
         //TODO: cmgyk webgl starscape?           
         this.animate = function() {
@@ -350,8 +378,7 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
         var onTilesLoaded = function(map_obj) {
             lzoom = map_obj.zoom;
         };
-        gMap.events.push(gMap.events.MAP, 'tilesloaded', onTilesLoaded, true); 
-        
+
         var onZoom = function(map_obj) {
             var zoom = map_obj.zoom;
             rot = rot + ( (zoom - lzoom) * rot_interval );
@@ -360,58 +387,81 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
             cmgyk_back.style.webkitTransform = str;
             lzoom = zoom;           
         };
+        gMap.events.push(gMap.events.MAP, 'tilesloaded', onTilesLoaded, true); 
+        gMap.events.push(gMap.events.MAP, 'tilesloaded', koAndBlink);
+        gMap.events.push(gMap.events.MAP, 'bounds_changed', koAndBlink);
         gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom); 
     };
-    Cmgyk.prototype = new mapFilterCycle.CycledFilter();
-    defs.Cmgyk = new Cmgyk();
-    mapFilterCycle.parse(defs.Cmgyk);
+    mapFilters.Cmgyk.prototype = new mapFilterCore.MapFilter();
 
-    function Fauvist() {
-        var u = mapFilterCycle.usageFlags;
-        this.usage = u.ZOOMED | u.START | u.GENERAL;
-        this.css_class = 'fauvist';
+    mapFilters.Fauvist = function() {
+        Object.defineProperty(this, 'css_class', {
+            value: 'fauvist'
+        });
     };
-    Fauvist.prototype = new mapFilterCycle.CycledFilter();
-    defs.Fauvist = new Fauvist();
-    mapFilterCycle.parse(defs.Fauvist);
+    mapFilters.Fauvist.prototype = new mapFilterCore.MapFilter();
 
-    function Vhs() {
-        var u = mapFilterCycle.usageFlags;
-        this.usage = u.GENERAL | u.ZOOMED | u.START;
-        this.offset = document.getElementById("vhs-offset");
-        this.css_class = 'vhs';
+    mapFilters.Vhs = function() {
+        Object.defineProperty(this, 'css_class', {
+            value: 'vhs'
+        });
+    
+        var offset = document.getElementById("vhs-offset");
 
-        var vhs_back = document.createElement('div');   
+        var vhs_back = document.createElement('div');
         vhs_back.setAttribute("id", "vhs_back");
+
+        var vhs_canv = document.createElement('canvas');
+        vhs_canv.width = window.innerWidth * 0.75;
+        vhs_canv.height = window.innerHeight * 0.75;
+        vhs_canv.setAttribute("id", "vhs_canv");
+        window.addEventListener('resize', function(e) {
+            vhs_canv.width = window.innerWidth * 0.75;
+            vhs_canv.height = window.innerHeight * 0.75;
+        });
+        
+        var z = visualCore.webgl.setup(vhs_canv, VHSShaders),
+            start_time = Date.now(),
+            time, js_random, idle;
         
         this.init = function() {
             document.body.appendChild(vhs_back);
-            this.webgl.init();
-        }
-        this.teardown = function() {
-            document.body.removeChild(vhs_back);
-            this.webgl.teardown();
-        }
-       
-        var parent = this,
-            jit,
+            document.body.appendChild(vhs_canv);
+        };
+
+        var jit = true,
             jit_offset = 3,
             jit_delay = 150,
             jit_frame_div = 2,
             frct = 0,
             os = 0;
+        
         this.animate = function() {
             if ( jit && ( (frct % jit_frame_div) === 0 ) ) {
-                parent.offset.setAttribute("dy", os); 
+                offset.setAttribute("dy", os); 
                 os = (os === jit_offset) ? 0 : jit_offset;
             }
             frct++;
-            parent.webgl.update();
+            
+            z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+            time = z.gl.getUniformLocation(z.program, "time");
+            z.gl.uniform1f(time, Date.now() - start_time);
+            js_random = z.gl.getUniformLocation(z.program, "js_random");
+            z.gl.uniform1f(js_random, Math.random());
+            idle = z.gl.getUniformLocation(z.program, "idle");
+            z.gl.uniform1i(idle, jit ? 1 : 0);
+            z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
         };
+
+        this.teardown = function() {
+            document.body.removeChild(vhs_back);
+            document.body.removeChild(vhs_canv);
+        };
+
         var jit_tmp;
         var jitter = function(idle) {
             jit_tmp = idle;
-            if (!jit_tmp) parent.offset.setAttribute("dy", 0);
+            if (!jit_tmp) offset.setAttribute("dy", 0);
             window.setTimeout(function() {
                 jit = jit_tmp;
             }, jit_delay);
@@ -425,54 +475,7 @@ function(util, div, gMap, visCore, markerCore, mapFilterCycle,
         gMap.events.push(gMap.events.MAP, 'idle', function() {
             jitter(true);
         });
-
-        this.webgl = (function(webgl) {
-            var vhs_canv = document.createElement('canvas');
-            vhs_canv.width = window.innerWidth * 0.75;
-            vhs_canv.height = window.innerHeight * 0.75;
-            vhs_canv.setAttribute("id", "vhs_canv");
-            window.addEventListener('resize', function(e) {
-                vhs_canv.width = window.innerWidth * 0.75;
-                vhs_canv.height = window.innerHeight * 0.75;
-            });
-            
-            var z = visCore.webgl.setup(vhs_canv, VHSShaders),
-                start_time = Date.now(),
-                time,
-                js_random,
-                idle;
-            webgl.update = function() {
-                z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-                time = z.gl.getUniformLocation(z.program, "time");
-                z.gl.uniform1f(time, Date.now() - start_time);
-                js_random = z.gl.getUniformLocation(z.program, "js_random");
-                z.gl.uniform1f(js_random, Math.random());
-                idle = z.gl.getUniformLocation(z.program, "idle");
-                z.gl.uniform1i(idle, jit ? 1 : 0);
-                z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
-            };
-            webgl.init = function() {
-                document.body.appendChild(vhs_canv);
-            }
-            webgl.teardown = function() {
-                document.body.removeChild(vhs_canv);
-            }
-            return webgl;
-        }({}))
     };
-    Vhs.prototype = new mapFilterCycle.CycledFilter();
-    defs.Vhs = new Vhs();
-    mapFilterCycle.parse(defs.Vhs);
-    
-    (function() {
-        var dppx1dot2 = window.matchMedia("only screen and (min-resolution: 1.0dppx),"+
-                            "only screen and (-webkit-min-device-pixel-ratio: 1.0)");
-        if (dppx1dot2.matches) {
-            defs.Print_Analog.denoise.setAttribute("stdDeviation", "1.16");
-            defs.Print_Analog.bypass.setAttribute("in2", "flip");
-            defs.Caustic_Glow.glow_radius.setAttribute("stdDeviation", "10.6");
-            defs.Cmgyk.denoise.setAttribute("stdDeviation", "1");
-        }
-    }())
+    mapFilters.Vhs.prototype = new mapFilterCore.MapFilter();
 
-return defs; });
+return mapFilters; });

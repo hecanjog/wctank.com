@@ -4,62 +4,46 @@ define(
     ],
 
 function(util) { var core = {};
+    
+    core.SceneGraph = function() {
+        this.mapFilters = {};
+        this.happenings = {};
+        this.audio = {};
+        this.start = null;
+        this.stop = null;
+    };
 
-    /*
-     *  the render loop
-     *  only one exists.
-     */
-    core.render = (function(render) {
+    core.Sequencer = function() {
         var queue = [],
-            id;
+            current = 0;
         
-        var exQueue = function() {
-            for (var i = 0; i < queue.length; i++) {
-                queue[i]();
+        this.push = function(fn) {
+            queue.push(fn);
+        };
+
+        this.step = function(back) {
+            var c = current,
+                back ? c-- : c;
+            if ( (c >= 0) && (c < queue.length) ) {
+                queue[c]();
+                current = c;
             }
-        }; 
-
-        render.rendering = false;
-        
-        render.push = function(funct) {
-            queue.push(funct);
-            if (!render.rendering) render.go();
         };
 
-        render.rm = function(funct) {
-            var idx = queue.indexOf(funct);
-            if (idx !== -1) queue.splice(idx, 1);
-            if (queue.length === 0) render.stop(); 
+        this.getNumberOfSteps = function() {
+            return queue.length;
         };
 
-        // TODO: should be 'start'
-        render.go = function() {
-            render.rendering = true;
-            id = window.requestAnimationFrame(render.go);
-            exQueue();
-        };
-
-        // TODO: remove else clause
-        render.has = function(fn) {
-            if (typeof fn === 'function') {
-                var idx = queue.indexOf(fn);
-                return (idx !== -1) ? idx : false;
+        this.goTo = function(n) {
+            if ( (n < queue.length) && (n >= 0) ) {
+                queue[n]();
             } else {
-                return (queue.length > 0) ? true : false;
+                console.warn(
+                    "Invalid Sequencer.goTo param: step "+n+" does not exist."
+                );
             }
         };
-
-        render.tick = function() {
-            if (queue.length > 0) exQueue();
-        };
-
-        render.stop = function() {
-            render.rendering = false;
-            cancelAnimationFrame(id);
-        };
-
-        return render;
-    }({}))
+    };
 
     /*
      * Slow clock that can be used to synchronize 
@@ -176,5 +160,5 @@ function(util) { var core = {};
             beat_remaining = paused_at - beat_start;
         };
     };
-
+ 
 return core; });

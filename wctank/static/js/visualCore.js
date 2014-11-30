@@ -1,9 +1,9 @@
 define(
     [
-        'sceneGraphCore'
+        'render'
     ],
 
-function(sceneGraphCore) { var visualCore = {};
+function(render) { var visualCore = {};
 
     visualCore.webgl = {
         success: false,
@@ -112,7 +112,7 @@ function(sceneGraphCore) { var visualCore = {};
                 if (fnName !== 'animate') {
                     parent[fnName]();
                 } else if (fnName === 'animate') {
-                    sceneGraphCore.render[r_op](parent[fnName]);
+                    render[r_op](parent[fnName]);
                 }
             };
             if (typeof hooks[0] === 'function') hooks[0]();
@@ -122,12 +122,6 @@ function(sceneGraphCore) { var visualCore = {};
             if (typeof hooks[2] === 'function') hooks[2]();
             if ( parent[ ops[2] ] ) callFunct(ops[2]);
             if (typeof hooks[3] === 'function') hooks[3]();
-            
-            if ( sceneGraphCore.render.has() && (!sceneGraphCore.render.rendering) ) {
-                sceneGraphCore.render.go();
-            } else if ( !sceneGraphCore.render.has() ) {
-                sceneGraphCore.render.stop();
-            }
         };
     };
 

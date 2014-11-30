@@ -38,21 +38,33 @@ define(
         'markerEvents',
         'sceneGraphCore',
         'mapFilterCore',
-        'mapFilterDef'
+        'mapFilters',
+        'happenings'
     ],
 function(sequencer, specialCoord, specialDefs) {
-    sequencer.goTo(0);
-    window.applySquares = function() {
-        specialCoord.apply(specialDefs.squares);
-    };
-    window.rmSquares = function() {
-        specialCoord.rm(specialDefs.squares);
-    };
-    window.applyAlphaStrut = function() {
-        specialCoord.apply(specialDefs.alphaStrut);
-    };
-    window.rmAlphaStrut = function() {
-        specialCoord.rm(specialDefs.alphaStrut);
-    };
+            
+    gMap.init();
+    var bounds = new google.maps.LatLngBounds(
+        new google.maps.LatLng(42.96, -87.3159),
+        new google.maps.LatLng(43.25, -86.9059)
+    );
+
+    // TODO: Change to animated version?
+    var overlay = new google.maps.GroundOverlay(
+        'static/assets/virgo-logo.png',
+        bounds
+    );
+    overlay.setMap(gMap.map);
+    var clouds = new google.maps.weather.CloudLayer();
+    clouds.setMap(gMap.map);
+    
+    //TODO: Do something special?
+    google.maps.event.addListener(overlay, 'click', function() {
+        gMap.map.setZoom(9);
+    });
+    gMap.events.initHeapEvents(gMap.events.MAP);
+    tableux.pick(mapFilterCycle.start()); 
+
+
 });
 

@@ -1,28 +1,26 @@
 define(
     [
         'util',
-        'visCore',
+        'render',
         'tween'
     ],
 
-function(util, visCore, TWEEN) { var audioUtil = {};
+function(util, render, TWEEN) { var audioUtil = {};
     
     // TWEEN utils
     audioUtil.tween = (function(tween) {
         tween.startTweens = function() {
-            if ( visCore.render.has(TWEEN.update) === false ) 
-                visCore.render.push(TWEEN.update);
-            if (!visCore.render.rendering) visCore.render.go();  
+            if ( render.has(TWEEN.update) === false ) 
+                render.push(TWEEN.update);
         };
         // holy butts this is ugly. .length <= 2? I need to figure out why this works and
         // clean it up. But, in the meantime, it plugs a leak where unnecessary TWEEN.update
         // fns were being abandoned in the render loop to percolate tons of numbers forever and ever.
         tween.stopTweens = function() {
             if ( (TWEEN.getAll().length <= 2) 
-                    && (typeof visCore.render.has(TWEEN.update) ==='number') ) {
-                visCore.render.rm(TWEEN.update);
+                    && (typeof render.has(TWEEN.update) === 'number') ) {
+                render.rm(TWEEN.update);
              }
-            if ( !visCore.render.has() ) visCore.render.stop();
         };
         var easing_list = Object.keys(TWEEN.Easing); 
         tween.getRandomEasingFn = function() {

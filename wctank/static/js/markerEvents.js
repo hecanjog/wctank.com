@@ -2,12 +2,12 @@ define(
     [
         'gMap',
         'posts',
-        'visCore',
+        'render',
         'markerMapPosition',
         'markerCore'
     ],
 
-function(gMap, posts, visCore, markerMapPosition, markerCore) { var markerEvents = {};
+function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents = {};
 
     
     // when a marker is added to the map, update data and draw immediately
@@ -47,9 +47,7 @@ function(gMap, posts, visCore, markerMapPosition, markerCore) { var markerEvents
             markerCore.draw();
         }
     };
-    visCore.render.push(update);
-    if (visCore.render.has() && !visCore.render.rendering)
-        visCore.render.go();
+    render.push(update);
 
     gMap.events.push(gMap.events.MAP, 'bounds_changed', function() {
         updateData = true;
