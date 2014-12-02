@@ -76,7 +76,7 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         // over lake michigan somewhere
         new tdt(33.62344395619926, -118.12228629350284, 13, f.CAUSTIC_GLOW | f.VHS | f.CMGYK | f.FAUVIST, 
             [function(filterObj) {
-                if (filterObj.css_class === 'cmgyk') filterObj.setImmediateBlink();
+                if (filterObj.hasOwnProperty(setImmediateBlink)) filterObj.setImmediateBlink();
             }]
         ),
         /*
@@ -97,7 +97,7 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         new tdt(-76.25189561591111, 165.7761947222007, 6, f.PRINT_ANALOG | f.VHS),
         new tdt(-82.06481558476122, -180.5787857465493, 5, f.VHS | f.CMGYK | f.PRINT_ANALOG | f.VHS, 
             [function(filterObj) {
-                if (filterObj.css_class === 'cmgyk') filterObj.setImmediateBlink();
+                if (filterObj.hasOwnProperty(setImmediateBlink)) filterObj.setImmediateBlink();
             }]
         ),
         // industrial agriculture - these are nice 

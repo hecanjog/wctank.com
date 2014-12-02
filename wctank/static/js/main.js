@@ -44,7 +44,10 @@ define(
         ].join('/n')
     ],
 function(gMap) {
-            
+    
+    /*
+     * map init work
+     */    
     gMap.init();
     var bounds = new google.maps.LatLngBounds(
         new google.maps.LatLng(42.96, -87.3159),
@@ -65,6 +68,8 @@ function(gMap) {
         gMap.map.setZoom(9);
     });
     gMap.events.initHeapEvents(gMap.events.MAP);
+
+
 
 });
 
