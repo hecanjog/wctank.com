@@ -17,8 +17,8 @@ function(util, render, TWEEN) { var audioUtil = {};
         // clean it up. But, in the meantime, it plugs a leak where unnecessary TWEEN.update
         // fns were being abandoned in the render loop to percolate tons of numbers forever and ever.
         tween.stopTweens = function() {
-            if ( (TWEEN.getAll().length <= 2) 
-                    && (typeof render.has(TWEEN.update) === 'number') ) {
+            if ( (TWEEN.getAll().length <= 2) && 
+                (typeof render.has(TWEEN.update) === 'number') ) {
                 render.rm(TWEEN.update);
              }
         };
@@ -33,12 +33,12 @@ function(util, render, TWEEN) { var audioUtil = {};
             var idx = list.indexOf('Utils');
             list.splice(idx, 1);
             return list;
-        }()) 
+        }()); 
         tween.getRandomInterpolationFn = function() {
             return TWEEN.Interpolation[ util.getRndItem(interpolation_list) ]; 
         };
         return tween;
-    }({})) 
+    }({})); 
     
     audioUtil.units = (function(units) {
         
@@ -63,7 +63,7 @@ function(util, render, TWEEN) { var audioUtil = {};
     
 
         return units;
-    }({}))
+    }({}));
 
     audioUtil.parseSpriteIntervals = function(spriteIntervals) {
         var sprites = {};

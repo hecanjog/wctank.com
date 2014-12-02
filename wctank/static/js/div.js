@@ -12,7 +12,7 @@ function($) { var div = {};
     // useful css selectors
     div.selectors = {
         $_map_imgs: "#map-canvas :nth-child(1) :nth-child(1)" + 
-            ":nth-child(1) :nth-child(5) :nth-child(1) > div" 
-    }
+            ":nth-child(1) :nth-child(5) :nth-child(1) > div"
+    };
 
 return div; });

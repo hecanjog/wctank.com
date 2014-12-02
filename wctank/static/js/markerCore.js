@@ -87,7 +87,7 @@ function(util, markerData, visCore, MarkerShaders) { var markerCore = {};
             z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, c);
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, name), index );
         };
-    };
+    }
 
     var textures = {
         u_stumble: new Texture('u_stumble', 'static/assets/rap.png', z.gl.TEXTURE0, 0),

@@ -132,7 +132,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
                 return pos ? freqTarget(freq, 8, 10) : freqTarget(freq, 1, 10);
             };
             return gen;
-        }({}))
+        }({}));
         
         this.accent = function() {
             if (!accenting) {        
@@ -219,7 +219,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
                     envelope.to({amplitude: prior_amp}, time).start();
                 } else { 
                     target_amp = 0;
-                    envelope.to({amplitude: 0}, time).start()
+                    envelope.to({amplitude: 0}, time).start();
                 }
             }
         };
@@ -237,7 +237,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         var req = new XMLHttpRequest();
         req.responseType = 'blob';
         req.onload = function() {
-            var reader = new FileReader;
+            var reader = new FileReader();
             reader.readAsDataURL(req.response);
             reader.onloadend = function() {
                 media.src = reader.result;
@@ -316,7 +316,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
 
             this._link_alias_in = nop;
             this._link_alias_out = nopOut;
-        };
+        }
         FeedbackCombFilter.prototype = new audio.AudioModule();
        
         var base_time = 0.011,

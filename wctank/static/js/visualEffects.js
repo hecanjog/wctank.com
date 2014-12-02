@@ -152,7 +152,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
 
         this.animate = function() {
             z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-            z.gl.uniform1i(u_time, getClock())
+            z.gl.uniform1i(u_time, getClock());
             z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices.length / 3);
         };
         
@@ -186,7 +186,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
                 }
                 //TODO: also attach to onZoom listeners
                 google.maps.event.addListenerOnce(gMap.map, 'tilesloaded', cycle);
-            };
+            }
         };
 
         this.init = function() {

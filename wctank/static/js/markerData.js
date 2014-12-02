@@ -88,7 +88,7 @@ function(markerMapPosition) { var markerData = {};
                                    uv[l * 2], uv[l * 2 + 1],
                                    angle.x, angle.y); 
                 }
-            }())
+            }());
         }
     };
     
@@ -118,7 +118,7 @@ function(markerMapPosition) { var markerData = {};
     markerData.HASH_ITEMS = 1;
     markerData.HASH_OFFSET = 0;
     markerData.TYPE_ITEMS = 1;
-    markerData.TYPE_OFFSET = 4    
+    markerData.TYPE_OFFSET = 4;
     markerData.MODEL_VER_ITEMS = 2;
     markerData.MODEL_VER_OFFSET = 8;
     markerData.LOCATION_VEC_ITEMS = 2;

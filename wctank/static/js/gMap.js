@@ -37,10 +37,9 @@ function(posts, util, $) { gMap = {};
         var heap_added = false;
 
         evHeap.push = function(loc, event, fn, once) {
-            if ( (heap_added && (loc === gMap.events.MARKER)) 
-                || !heap_added ) {
+            if ( (heap_added && (loc === gMap.events.MARKER)) || !heap_added ) {
                 var makeEvObj = function(once, fn) {
-                    return { once: once, fn: fn } 
+                    return { once: once, fn: fn }; 
                 };
                 var add1 = once ? once : false;
                 if ( heap[loc].hasOwnProperty(event) ) {
@@ -81,7 +80,7 @@ function(posts, util, $) { gMap = {};
                 } else {
                     throw "err: events could not be added";
                 }
-            }())
+            }());
             for (var ev in ev_set) { 
                 if ( ev_set.hasOwnProperty(ev) ) {
                     util.objectLength.call(ev_set[ev]);
@@ -92,7 +91,7 @@ function(posts, util, $) { gMap = {};
                             if (ev_set[ev][i].once) {
                                 once.push(ev_set[ev][i].fn); 
                             } else {
-                                persist.push(ev_set[ev][i].fn)
+                                persist.push(ev_set[ev][i].fn);
                             }
                         }
                         if (persist.length > 0) {
@@ -109,7 +108,7 @@ function(posts, util, $) { gMap = {};
                                 } 
                             }, true, marker);
                         }
-                    }())
+                    }());
                 }
             }
         };
@@ -161,7 +160,7 @@ function(posts, util, $) { gMap = {};
 
     gMap.zoomControlsVisible = function(b) {
         var $zoomCtl = $(".gmnoprint").not(".gm-style-cc");
-        b ? $zoomCtl.show() : $zoomCtl.hide(); 
+        b ? $zoomCtl.show() : $zoomCtl.hide();
     };
 
 return gMap; });

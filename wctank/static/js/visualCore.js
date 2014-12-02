@@ -21,10 +21,10 @@ function(render) { var visualCore = {};
                 try {
                     return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
                 } catch (err) {
-                    throw "WebGL is good to have? I like to fart";
+                    console.warn("WebGL is good to have? I like to fart");
                     return false;
                 }
-            }())
+            }());
             if (gl) {
                 visualCore.webgl.success = true;
                 gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);

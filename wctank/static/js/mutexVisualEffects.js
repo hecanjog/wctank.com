@@ -248,7 +248,6 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
                 cmgykDenoise.setAttribute('stdDeviation', denoiseStdDeviation.toString());
             }
         });
-        
         var cmgyk_back = document.createElement("div");
         cmgyk_back.setAttribute("id", "cmgyk_back");
         
@@ -304,7 +303,7 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
                 x1 = 2 * Math.random() - 1;
                 x2 = 2 * Math.random() - 1;
                 rad = x1 * x1 + x2 * x2;
-            } while (rad >= 1 || rad == 0);
+            } while (rad >= 1 || rad === 0);
             var c = Math.sqrt(-2 * Math.log(rad) / rad); 
             return x1 * c;
         };
@@ -330,16 +329,16 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
                     }
                     s_idx--;
                     e_idx++;
-                }())
+                }());
                 var b_mod = (function() {
                     var range = [5, 6, 7, 8, 9, 10, 11],
                         r = [],
-                        num = (Math.random() * 4 + 0.5) | 0
+                        num = (Math.random() * 4 + 0.5) | 0;
                     for (var i = 0; i < num; i++) {
                         r.push(range[ (Math.random() * range.length - 1 + 0.5) | 0 ]);
                     }
                     return r;
-                }())
+                }());
                 for (var i = s_idx; i <= e_idx; i++) {
                     var $img = $map_imgs.eq(i);
                     $kos = $kos.add($img);
