@@ -8,7 +8,6 @@ function($) { var div = {};
     
     div.$overlay = $('#overlay'),
     div.$map = $("#map-canvas"),
-    div.$map_U_markers = $("#map-canvas").add("#markers-a").add("#markers-b"),
     
     // useful css selectors
     div.selectors = {

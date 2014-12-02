@@ -26,7 +26,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         this.source.buffer = noise_buf;
         this.source.loop = true;
         
-        audio.moduleMixins.startStopThese(this, this.source);
+        audio.moduleExtensions.startStopThese(this, this.source);
         
         this.gain = audio.ctx.createGain();
         
@@ -58,8 +58,8 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         
         this._link_alias_out = this.gain;
 
-        audio.moduleMixins.startStopThese(this, this.osc);
-        audio.moduleMixins.setValue(this, this.osc, 'frequency', 'setFrequency', true);
+        audio.moduleExtensions.startStopThese(this, this.osc);
+        audio.moduleExtensions.setValue(this, this.osc, 'frequency', 'setFrequency', true);
     };
     elements.Osc.prototype = new audio.AudioModule();
    
@@ -100,7 +100,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         this._link_alias_out = this.gain;
 
         // behaviors 
-        audio.moduleMixins.setValue(this, this.biquad, 'frequency', 'setFrequency', true);
+        audio.moduleExtensions.setValue(this, this.biquad, 'frequency', 'setFrequency', true);
         
         var accenting = false;
         var gen = (function(gen) {
@@ -385,10 +385,10 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
                 .linearRampToValueAtTime(par_D_gain * n, audio.ctx.currentTime + t);
         };
         
-        audio.moduleMixins.wetDry(this, this.dryGain, this.wetGain);
+        audio.moduleExtensions.wetDry(this, this.dryGain, this.wetGain);
         this.wetDry(50);
        
-        audio.moduleMixins.setValue(this, this.outGain, 'gain', 'setGain');
+        audio.moduleExtensions.setValue(this, this.outGain, 'gain', 'setGain');
     };
     elements.SchroederReverb.prototype = new audio.AudioModule();
 
@@ -421,7 +421,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         this._link_alias_in = nop;
         this._link_alias_out = this.gain;
     
-        audio.moduleMixins.wetDry(this, dryGain, wetGain);
+        audio.moduleExtensions.wetDry(this, dryGain, wetGain);
         this.wetDry(50);
     };
     elements.Convolution.prototype = new audio.AudioModule();

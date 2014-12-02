@@ -5,19 +5,15 @@ define(
         'gMap',
         'visualCore',
         'markerCore',
-        'mapFilterCore',
+        'mutexVisualEffectsCore',
         'text!filterXML.xml',
         'text!VHSShaders.glsl',
         'jquery',
         'froogaloop2'
     ],
 
-function(util, div, gMap, visualCore, markerCore, mapFilterCore,
-         filterXML, VHSShaders, $, $f) { var mapFilters = {};
-
-    Object.defineProperty(this, 'css_class', {
-        value: 'troller' 
-    });
+function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
+         filterXML, VHSShaders, $, $f) { var mutexVisualEffects = {};
 
     var cont = document.createElement("svg_filters");
     cont.style.position = "fixed";
@@ -26,7 +22,11 @@ function(util, div, gMap, visualCore, markerCore, mapFilterCore,
     document.body.appendChild(cont);
     cont.innerHTML = filterXML; 
 
-    mapFilters.Troller = function() {
+    mutexVisualEffects.Troller = function() {
+        Object.defineProperty(this, 'css_class', {
+            value: 'troller' 
+        });
+        
         var troller_back = document.createElement('video');
         troller_back.src = "https://archive.org/download/C.E.PriceSunClouds/SunClouds_512kb.mp4";
         troller_back.setAttribute("id", "troller_back");
@@ -130,9 +130,9 @@ function(util, div, gMap, visualCore, markerCore, mapFilterCore,
             }
         };
     };
-    mapFilters.Troller.prototype = new mapFilterCore.MapFilter();
+    mutexVisualEffects.Troller.prototype = new mutexVisualEffectsCore.MutexEffect();
 
-    mapFilters.PrintAnalog = function() {
+    mutexVisualEffects.PrintAnalog = function() {
         Object.defineProperty(this, 'css_class', {
             value: 'print_analog'
         });
@@ -160,9 +160,9 @@ function(util, div, gMap, visualCore, markerCore, mapFilterCore,
             }
         });
     }; 
-    mapFilters.PrintAnalog.prototype = new mapFilterCore.MapFilter();
+    mutexVisualEffects.PrintAnalog.prototype = new mutexVisualEffectsCore.MutexEffect();
 
-    mapFilters.CausticGlow = function() {
+    mutexVisualEffects.CausticGlow = function() {
         Object.defineProperty(this, 'css_class', {
             value: 'caustic_glow'
         });
@@ -232,9 +232,9 @@ function(util, div, gMap, visualCore, markerCore, mapFilterCore,
             blink_id = null;    
         };
     };
-    mapFilters.CausticGlow.prototype = new mapFilterCore.MapFilter();
+    mutexVisualEffects.CausticGlow.prototype = new mutexVisualEffectsCore.MutexEffect();
 
-    mapFilters.Cmgyk = function() {
+    mutexVisualEffects.Cmgyk = function() {
         Object.defineProperty(this, 'css_class', {
             value: 'cmgyk'
         });
@@ -392,16 +392,16 @@ function(util, div, gMap, visualCore, markerCore, mapFilterCore,
         gMap.events.push(gMap.events.MAP, 'bounds_changed', koAndBlink);
         gMap.events.push(gMap.events.MAP, 'zoom_changed', onZoom); 
     };
-    mapFilters.Cmgyk.prototype = new mapFilterCore.MapFilter();
+    mutexVisualEffects.Cmgyk.prototype = new mutexVisualEffectsCore.MutexEffect();
 
-    mapFilters.Fauvist = function() {
+    mutexVisualEffects.Fauvist = function() {
         Object.defineProperty(this, 'css_class', {
             value: 'fauvist'
         });
     };
-    mapFilters.Fauvist.prototype = new mapFilterCore.MapFilter();
+    mutexVisualEffects.Fauvist.prototype = new mutexVisualEffectsCore.MutexEffect();
 
-    mapFilters.Vhs = function() {
+    mutexVisualEffects.Vhs = function() {
         Object.defineProperty(this, 'css_class', {
             value: 'vhs'
         });
@@ -476,6 +476,6 @@ function(util, div, gMap, visualCore, markerCore, mapFilterCore,
             jitter(true);
         });
     };
-    mapFilters.Vhs.prototype = new mapFilterCore.MapFilter();
+    mutexVisualEffects.Vhs.prototype = new mutexVisualEffectsCore.MutexEffect();
 
-return mapFilters; });
+return mutexVisualEffects; });

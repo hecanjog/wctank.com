@@ -31,17 +31,19 @@ require.config({
 
 define(
     [
-        'sequencer',
-        'specialCoord',
-        'specialDefs',
-        'tableuxList',
-        'markerEvents',
-        'sceneGraphCore',
-        'mapFilterCore',
-        'mapFilters',
-        'happenings'
+        'gMap',
+        ['font!custom,families:',
+            '[',
+                'timeless',
+                'timelessbold',
+                'frutigerlight',
+                'timelessitalic',
+                'frutigerlightitalic',
+                'frutigerbold',
+            ']'
+        ].join('/n')
     ],
-function(sequencer, specialCoord, specialDefs) {
+function(gMap) {
             
     gMap.init();
     var bounds = new google.maps.LatLngBounds(
@@ -63,8 +65,6 @@ function(sequencer, specialCoord, specialDefs) {
         gMap.map.setZoom(9);
     });
     gMap.events.initHeapEvents(gMap.events.MAP);
-    tableux.pick(mapFilterCycle.start()); 
-
 
 });
 

@@ -8,9 +8,9 @@ define (
         'jquery'
     ],
  
-function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var happenings = {};
+function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visualEffects = {};
 
-    happenings.Strut = function() {
+    visualEffects.Strut = function() {
         
         var strut_front = document.createElement("canvas");
         strut_front.setAttribute("id", "strut_front");
@@ -81,9 +81,9 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var happ
             z.gl.drawArrays(z.gl.TRIANGLES, 0, 6);
         };
     };
-    happenings.Strut.prototype = new visualCore.Effect();
+    visualEffects.Strut.prototype = new visualCore.Effect();
 
-    happenings.Squares = function() {
+    visualEffects.Squares = function() {
         var squares_front = document.createElement('canvas');
         squares_front.setAttribute("id", "squares_front");
 
@@ -161,6 +161,55 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var happ
         };
 
     };
-    happenings.Squares.prototype = new visualCore.Effect();
+    visualEffects.Squares.prototype = new visualCore.Effect();
 
-return happenings; });
+    visualEffects.ShowBorders = function() {
+        var $imgs,
+            first = true,
+            types = ['dotted', 'solid', 'groove'],
+            bitte = false;
+
+        var rndType = function() {
+            return types[(Math.random() * types.length) | 0];
+        };
+     
+        var cycle = function cycle() {
+            $imgs = null;
+            $imgs = $(div.selectors.$_map_imgs);
+            $imgs.each(function() {
+                $(this).css("border", "4px "+rndType());
+            });
+            if (bitte) {
+                if (first) {
+                    google.maps.event.addListenerOnce(gMap.map, 'idle', cycle);
+                    first = false;
+                }
+                //TODO: also attach to onZoom listeners
+                google.maps.event.addListenerOnce(gMap.map, 'tilesloaded', cycle);
+            };
+        };
+
+        this.init = function() {
+            bitte = true;
+            cycle();
+        };
+        
+        var tear_count = 0;
+        this.teardown = function() {
+            bitte = false; 
+            $(div.selectors.$_map_imgs).css('border', '0'); 
+            $imgs = null;
+            tear_count++;
+            // ugh, there's something going on with the maps cache here
+            if (tear_count < 2) {
+                this.teardown();
+            } else {
+                tear_count = 0;
+            }
+        };
+    };
+    visualEffects.ShowBorders.prototype = new visualCore.Effect(); 
+
+
+
+return visualEffects; });

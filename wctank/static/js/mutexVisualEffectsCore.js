@@ -6,7 +6,7 @@ define(
         'visualCore'
     ],
 
-function(util, div, gMap, visualCore) { var mapFilterCore = {};
+function(util, div, gMap, visualCore) { var mutexVisualEffectsCore = {};
 
     var currentFilter = null,
         last_filter;
@@ -16,11 +16,12 @@ function(util, div, gMap, visualCore) { var mapFilterCore = {};
     });
 
 
-    mapFilterCore.MapFilter = function() {
+    mutexVisualEffectsCore.MutexEffect = function() {
         this.css_class = '';
 
         var dummy = new visualCore.Effect();
-        this.operate = function(stage) {
+        delete this.operate;
+        this._operate = function(stage) {
             var parent = this,
                 op = dummy.operate.bind(this),
                 $op;
@@ -33,14 +34,17 @@ function(util, div, gMap, visualCore) { var mapFilterCore = {};
                 div.$map[$op](parent.css_class);
             }}]);
         };
+        this.apply = function() {
+            mutexVisualEffectsCore.apply(this);
+        };
     };
-    mapFilterCore.MapFilter.prototype = new visualCore.Effect();
+    mutexVisualEffectsCore.MutexEffect.prototype = new visualCore.Effect();
 
-    mapFilterCore.apply = function(filter) {
+    mutexVisualEffectsCore.apply = function(filter) {
         currentFilter = filter;
-        if (last_filter) last_filter.operate('teardown');
-        filter.operate('init');
+        if (last_filter) last_filter._operate('teardown');
+        filter._operate('init');
         last_filter = filter;
     };
 
-return mapFilterCore; });
+return mutexVisualEffectsCore; });

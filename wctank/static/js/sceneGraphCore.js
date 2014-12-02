@@ -6,8 +6,8 @@ define(
 function(util) { var core = {};
     
     core.SceneGraph = function() {
-        this.mapFilters = {};
-        this.happenings = {};
+        this.mutexVisualEffects = {};
+        this.visualEffects = {};
         this.audio = {};
         this.start = null;
         this.stop = null;
