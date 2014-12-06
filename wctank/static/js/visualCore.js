@@ -82,7 +82,7 @@ function(render) { var visualCore = {};
         this.init = null; //function() {};
         this.animate = null; //function() {};
         this.preTeardown = null; //function() {};
-        this.teardown = null //function() {};
+        this.teardown = null; //function() {};
 
         this.operate = function(stage, hookObjArr) {
             var ops = [],

@@ -15,7 +15,7 @@ define(
 
 function(audioUtil, TWEEN) { var audio = {};
     
-    audio.ctx = new ( window.AudioContext || window.webkitAudioContext )();  
+    audio.ctx = new ( window.AudioContext || window.webkitAudioContext )();
     
     //alias out for suga
     audio.out = audio.ctx.destination;
@@ -49,8 +49,8 @@ function(audioUtil, TWEEN) { var audio = {};
         };
         var checkLink = function(isOut, address, alias) {
             var location = isOut ? 'output' : 'input';
-            if ( (typeof address !== 'number') 
-                    || (typeof alias[address] === 'undefined') ) { 
+            if ( (typeof address !== 'number') || 
+                (typeof alias[address] === 'undefined') ) { 
                 throwLinkException("If AudioModule has multiple "+location+
                     " aliases, the "+location+" must be explicitly addressed.");
             }
@@ -103,7 +103,9 @@ function(audioUtil, TWEEN) { var audio = {};
     };
 
     audio.moduleExtensions = {
-        
+       
+        //asdr enveloping (gainnode) - audio param native chain
+
         startStopThese: function(scope) {
             var nodes = arguments;
             scope.start = function() {
