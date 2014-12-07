@@ -37,11 +37,11 @@ function(envelopeCore) { var asdr = {};
             set: function(val) {
                 if (Array.isArray(val)) {
                     val.forEach(function(item) {
-                        checkEnvelopeValue(item);
+                        checkEnvelopeValue(item); //?
                         seq.push(item);
                     });
                 } else {
-                    checkEnvelopeValue(val);
+                    checkEnvelopeValue(val); //?
                     seq.push(val);
                 }
             }
@@ -52,7 +52,7 @@ function(envelopeCore) { var asdr = {};
         this.interpolationArgs = interpolationArgs;
         this.valueSequence = valueSequence;
     };
-    asdr.Component.prototype = new envelopeCore.Envelope();
+    asdr.ComponentEnvelope.prototype = new envelopeCore.Envelope();
     
     asdr.Sustain = function(duration, amplitude, modEnv) {
         var mod;
@@ -88,7 +88,8 @@ function(envelopeCore) { var asdr = {};
     asdr.R = 3;
 
     asdr.Generator = function(attack, sustain, decay, release, amplitudePntr) {
-        var a, s, d, r, pnt; 
+        var a, s, d, r, pnt, env, 
+            priorScalar = -999;
         var asdrGenException = function(text) {
             throw "Invalid asdr.Generator param: " + text;
         };
@@ -155,13 +156,13 @@ function(envelopeCore) { var asdr = {};
         } else {
             this.amplitudePointer = asdf.S; 
         }
-
-        this.getASDR = function() {
-
-        };    
-
-        this.calculate = function() {
-
+    
+        this.getASDR = function(durationScalar) {
+            if (durationScalar !== priorScalar) {
+                env = envelopeCore.concat(durationScalar, a, s, d, r);
+                priorScalar = durationScalar; // cache more than one?
+            }
+            return env;
         };
     };
 

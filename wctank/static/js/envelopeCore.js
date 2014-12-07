@@ -1,6 +1,8 @@
 define(
-{
-    Envelope: function() {
+
+function() { var envelopeCore = {};
+
+    envelopeCore.Envelope = function() {
         var duration, interpolationType, interpolationArgs;       
         
         this.valueSequence = [];
@@ -49,11 +51,11 @@ define(
                 }
             }
         });
-    },
+    };
     
     // value = arbitrary param value
     // time = percentage
-    EnvelopeValue: function(value, time) {
+    envelopeCore.EnvelopeValue = function(value, time) {
         var throwEnvelopeValueException = function(text) {
             throw "Invalid EnvelopeValue param: " + text;
         };
@@ -84,9 +86,9 @@ define(
 
         this.value = value;
         this.time = time;
-    },
+    };
 
-    bake: function(envelope, modEnv, modDurPercent) {
+    envelopeCore.bake = function(envelope, modEnv, modDurPercent) {
       
         var cooked = new envelopeCore.Envelope(),
             values;
@@ -147,47 +149,80 @@ define(
         cooked.interpolationArgs = modEnv.interpolationArgs;
 
         return cooked;
-    },
+    };
 
-    concat: function() {
-        var AbsoluteEnvelopeValue = function(value, time, 
+    envelopeCore.AbsoluteEnvelopeValue = function(value, time, 
                                              interpolationType, interpolationArgs) {
-            Object.defineProperty(this, 'time', {
-                writable: true
-            });
-            
-            this.value = value;
-            this.time = time;
-            this.interpolationType = interpolationType;
-            this.interpolationArgs = interpolationArgs;
-        };
-        AbsoluteEnvelopeValue.prototype = new envelopeCore.EnvelopeValue();
+        Object.defineProperty(this, 'time', {
+            writable: true
+        });
+        
+        this.value = value;
+        this.time = time;
+        this.interpolationType = interpolationType;
+        this.interpolationArgs = interpolationArgs;
+    };
+    envelopeCore.AbsoluteEnvelopeValue.prototype = new envelopeCore.EnvelopeValue();
 
-        var absoluteEnvelope = new envelopeCore.Envelope();
-        delete absoluteEnvelope.interpolationType;
-        delete absoluteEnvelope.interpolationArgs;
-            
-        var duration_sum = 0;
+    envelopeCore.AbsoluteEnvelope = function() {
+        var seq = [];
+        Object.defineProperty(this, 'valueSequence', {
+            get: function() { return seq; },
+            set: function(val) {
+                var checkAbEnvVal = function(abval) {
+                    if ( !(abval instanceof envelopeCore.AbsoluteEnvelopeValue) ) {
+                        throw "Invalid AbsoluteEnvelope param: " +
+                            "valueSequence must be comprised of AbsoluteEnvelopeValue objects"; 
+                    }
+                };
+                if (Array.isArray(val)) {
+                    val.forEach(function(item) {
+                        checkAbEnvVal(item);
+                        seq.push(item);
+                    });
+                } else {
+                    checkAbEnvVal(item);
+                    seq.push(item);
+                }
+            }
+        });
+        
+        delete this.interpolationType;
+        delete this.interpolationArgs;
+    };
+    envelopeCore.AbsoluteEnvelope.prototype = new envelopeCore.Envelope();
+
+
+    envelopeCore.concat = function(durationScalar) {
+        var concatted = new envelopeCore.AbsoluteEnvelope();       
+
+        var duration_sum = 0,
+            scale = 1;
+
         for (var i = 0; i < arguments.length; i++) {
             duration_sum += arguments[i].duration; 
         }
-        absoluteEnvelope.duration = duration_sum;
+        
+        scale = durationScalar * 0.01;
+        concatted.duration = duration_sum * scale;
 
         var last_durations = 0;
-        for (var j = 0; j < arguments.length; j++) {
+        for (var j = 1; j < arguments.length; j++) {
             arguments[j].valueSequence.forEach(function(item) {
-                var part = arguments[j].duration / duration_sum,
-                    t = part * item.time + last_durations,
-                    ev = new AbsoluteEnvelopeValue(item.value, t,
+                var part = (arguments[j].duration / duration_sum) * scale,
+                    t = part * (item.time * 0.01) + last_durations,
+                    ev = new envelopeCore.AbsoluteEnvelopeValue(
+                                item.value, t,
                                 arguments[j].interpolationType,
                                 arguments[j].interpolationArgs);
 
-                absoluteEnvelope.valueSequence.push(ev);
+                concatted.valueSequence = ev;
                 last_durations += arguments[j].duration;
             });
         }
 
-        return absoluteEnvelope;
-    }
-
-});
+        return concatted;
+    };
+// ArbitraryValue envelope
+    // 
+return envelopeCore; });
