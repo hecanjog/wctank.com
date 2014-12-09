@@ -211,7 +211,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
                         .onUpdate(updateGain)
                         .onComplete(stopSequence)
                         .start();
-                    audioUtil.tween.startTweens();
+                audioUtil.tween.startTweens();
             } else {
                 envelope.stop();
                 if (target_amp < gain.gain.value) {

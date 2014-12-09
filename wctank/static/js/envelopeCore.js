@@ -2,7 +2,43 @@ define(
 
 function() { var envelopeCore = {};
 
-    envelopeCore.Envelope = function() {
+    // value = arbitrary param value
+    // time = percentage
+    envelopeCore.EnvelopeValue = function(value, time) {
+        var throwEnvelopeValueException = function(text) {
+            throw "Invalid EnvelopeValue param: " + text;
+        };
+
+        var v, t;
+        Object.defineProperty(this, 'value', {
+            get: function() { return v; },
+            set: function(val) {
+                if (typeof val === 'number') {
+                    v = val;
+                } else {
+                    throwEnvelopeValueException("EnvelopeValue.value must be a number");
+                }
+            }
+        });
+        
+        Object.defineProperty(this, 'time', {
+            get: function() { return t; },
+            set: function(val) {
+                if ( (val >= 0) && (val <= 100) ) {
+                    t = val;
+                } else {
+                    throwEnvelopeValueException("EnvelopeValue.time must be a percentage "+
+                                                "between 0 and 100 inclusive");
+                }
+            }
+        });
+
+        this.value = value;
+        this.time = time;
+    };
+
+
+    envelopeCore.Envelope = function Envelope() {
         var duration, interpolationType, interpolationArgs;       
         
         this.valueSequence = [];
@@ -51,106 +87,106 @@ function() { var envelopeCore = {};
                 }
             }
         });
-    };
-    
-    // value = arbitrary param value
-    // time = percentage
-    envelopeCore.EnvelopeValue = function(value, time) {
-        var throwEnvelopeValueException = function(text) {
-            throw "Invalid EnvelopeValue param: " + text;
+        
+        this.bake = function(modEnv, modDurPercent) {
+     
+            var throwBakeException = function(text) {
+                throw "Invalid envelopeCore.bake args: " + text;
+            };
+            var checkBakeEnv = function(name, env) {
+                if ( !(env instanceof envelopeCore.Envelope) ) {
+                    throwBakeException(name + "must be an instance of envelopeCore.Envelope");
+                }
+            };
+
+            checkBakeEnv("MODENVELOPE", modEnv);
+
+            if ( !((modDurPercent > 0) && (modDurPercent <= 100)) ) {
+                throwBakeException("MODDURPERCENT must be a NUMBER greater than 0 and "+
+                                   "less than or equal to 100, not" + modDurPercent);
+            }
+
+            var cooked = new envelopeCore.Envelope(),
+                values;
+
+            Object.defineProperty(cooked, 'valueSequence', {
+                get: function() { return values; }
+            });
+          
+            // this will have to be good enough for now until 
+            // audioWorkers are fuly implemented across browsers and we can implement
+            // vibrato and similar effects with an LFO or something
+            var interpolate = function(a, b, n) {
+                var dy = a.value - b.value,
+                    dx = a.time - b.time,
+                    slope = dy / dx;
+
+                var scalar = slope * (n.time - a.time);
+        
+                return new envelopeCore.EnvelopeValue(n.value * scalar + a.value, n.time); 
+            };
+           
+            values = this.valueSequence.slice(0);
+
+            values.sort(function(a, b) {
+                return a.time - b.time;
+            }); 
+        
+            // Ideally, I would implement this so that any modifications would be
+            // time invariant across a range of note durations. However, the goal here
+            // is not necessarily to make a general purpose synth, but to make an
+            // instrument that has its own idiosynchratic behaviors. So, as is, the 
+            // modification speed will vary with the duration of the note that the
+            // envelope is applied to, which is kind of neat conceptually. 
+            // Also, it's slightly easier to write, so win? Maybe?
+            var modValues,
+                repeats = (100 / modDurPercent) | 0,
+                cntr = 0;
+            
+            for (var i = 1; i <= repeats; i++) {
+                modEnv.valueSequence.forEach(function(item) {
+                    var ev = new envelopeCore.EnvelopeValue(item.value, 
+                        (item.time / repeats) * i); 
+                    modValues.push(ev);
+                });
+            }
+
+            for (var k = 0; k < modValues.length; k++) {
+                values.reduce(function(previous, current, idx) {
+                    if ( (modValues[k].time >= previous) && (modValues[k].time <= current) ) {
+                        values.splice(idx, 0, modValues[k]);
+                    }
+                    return current;
+                });
+            }
+
+            cooked.duration = envelope.duration;
+            cooked.interpolationType = modEnv.interpolationType;
+            cooked.interpolationArgs = modEnv.interpolationArgs;
+
+            return cooked;
         };
 
-        var v, t;
-        Object.defineProperty(this, 'value', {
-            get: function() { return v; },
-            set: function(val) {
-                if (typeof val === 'number') {
-                    v = val;
-                } else {
-                    throwEnvelopeValueException("EnvelopeValue.value must be a number");
-                }
-            }
-        });
-        
-        Object.defineProperty(this, 'time', {
-            get: function() { return t; },
-            set: function(val) {
-                if ( (val >= 0) && (val <= 100) ) {
-                    t = val;
-                } else {
-                    throwEnvelopeValueException("EnvelopeValue.time must be a percentage "+
-                                                "between 0 and 100 inclusive");
-                }
-            }
-        });
+        this.toAbsolute = function(duration) {
+            var absolute = new envelopeCore.AbsoluteEnvelope(),
+                scale = duration ? duration / this.duration : this.duration;
+            
+            absolute.duration = this.duration * scale;
 
-        this.value = value;
-        this.time = time;
-    };
+            this.valueSequence.forEach(function(item) {
+                var t = absolute.duration * item.time * 0.01,
+                    ev = new envelopeCore.AbsoluteEnvelopeValue(
+                                item.value, 
+                                t,
+                                arguments[j].interpolationType,
+                                arguments[j].interpolationArgs);
+                absolute.valueSequence = ev;
+            });
 
-    envelopeCore.bake = function(envelope, modEnv, modDurPercent) {
-      
-        var cooked = new envelopeCore.Envelope(),
-            values;
-
-        Object.defineProperty(cooked, 'valueSequence', {
-            get: function() { return values; }
-        });
-      
-        // this will have to be good enough for now until 
-        // audioWorkers are fuly implemented across browsers and we can implement
-        // vibrato and similar effects with an LFO or something
-        var interpolate = function(a, b, n) {
-            var dy = a.value - b.value,
-                dx = a.time - b.time,
-                slope = dy / dx;
-
-            var scalar = slope * (n.time - a.time);
-    
-            return new envelopeCore.EnvelopeValue(n.value * scalar + a.value, n.time); 
+            return absolute;
         };
-       
-        values = envelope.valueSequence.slice(0);
-
-        values.sort(function(a, b) {
-            return a.time - b.time;
-        }); 
-    
-        // Ideally, I would implement this so that any modifications would be
-        // time invariant across a range of note durations. However, the goal here
-        // is not necessarily to make a general purpose synth, but to make an
-        // instrument that has its own idiosynchratic behaviors. So, as is, the 
-        // modification speed will vary with the duration of the note that the
-        // envelope is applied to, which is kind of neat conceptually. 
-        // Also, it's slightly easier to write, so win? Maybe?
-        var modValues,
-            repeats = (100 / modDurPercent) | 0,
-            cntr = 0;
-        
-        for (var i = 1; i <= repeats; i++) {
-            modEnv.valueSequence.forEach(function(item) {
-                var ev = new envelopeCore.EnvelopeValue(item.value, 
-                    (item.time / repeats) * i); 
-                modValues.push(ev);
-            });
-        }
-
-        for (var k = 0; k < modValues.length; k++) {
-            values.reduce(function(previous, current, idx) {
-                if ( (modValues[k].time >= previous) && (modValues[k].time <= current) ) {
-                    values.splice(idx, 0, modValues[k]);
-                }
-                return current;
-            });
-        }
-
-        cooked.duration = envelope.duration;
-        cooked.interpolationType = modEnv.interpolationType;
-        cooked.interpolationArgs = modEnv.interpolationArgs;
-
-        return cooked;
     };
-
+    
     envelopeCore.AbsoluteEnvelopeValue = function(value, time, 
                                              interpolationType, interpolationArgs) {
         Object.defineProperty(this, 'time', {
@@ -164,7 +200,7 @@ function() { var envelopeCore = {};
     };
     envelopeCore.AbsoluteEnvelopeValue.prototype = new envelopeCore.EnvelopeValue();
 
-    envelopeCore.AbsoluteEnvelope = function() {
+    envelopeCore.AbsoluteEnvelope = function AbsoluteEnvelope() {
         var seq = [];
         Object.defineProperty(this, 'valueSequence', {
             get: function() { return seq; },
@@ -186,43 +222,72 @@ function() { var envelopeCore = {};
                 }
             }
         });
-        
+
+        delete this.bake; 
+        delete this.toAbsolute;
         delete this.interpolationType;
         delete this.interpolationArgs;
     };
     envelopeCore.AbsoluteEnvelope.prototype = new envelopeCore.Envelope();
-
-
-    envelopeCore.concat = function(durationScalar) {
-        var concatted = new envelopeCore.AbsoluteEnvelope();       
-
-        var duration_sum = 0,
-            scale = 1;
-
-        for (var i = 0; i < arguments.length; i++) {
-            duration_sum += arguments[i].duration; 
+    
+    envelopeCore.concat = function() {
+        var targets = [],
+            isAbsolute = false,
+            isFirst = true,
+            total_duration = 0;
+        for (var k = 0; k < arguments.length; k++) {
+            if (isFirst && (arguments[k].constructor.name === 'AbsoluteEnvelope')) {
+                isAbsolute = true;
+            }
+            // this might not work - may have to use duck typing instead
+            if ( (isAbsolute && (arguments[k].constructor.name === 'AbsoluteEnvelope')) ||
+                (!isAbsolute && (arguments[k].constructor.name !== 'AbsoluteEnvelope')) ) {
+                targets.push(arguments[k]);
+            } else {
+                throw 'envelopeCore.concat error: cannot concat non-absolute and absolute time envelopes together.';
+            }
+            total_duration += arguments[k].duration;
+            isFirst = false;
         }
         
-        scale = durationScalar * 0.01;
-        concatted.duration = duration_sum * scale;
+        var concatted;
+        if (isAbsolute) {
+            concatted = new envelopeCore.AbsoluteEnvelope();
+        } else {
+            concatted = new envelopeCore.Envelope();
+        }
 
-        var last_durations = 0;
-        for (var j = 1; j < arguments.length; j++) {
-            arguments[j].valueSequence.forEach(function(item) {
-                var part = (arguments[j].duration / duration_sum) * scale,
-                    t = part * (item.time * 0.01) + last_durations,
-                    ev = new envelopeCore.AbsoluteEnvelopeValue(
-                                item.value, t,
-                                arguments[j].interpolationType,
-                                arguments[j].interpolationArgs);
+        concatted.duration = total_duration;
 
-                concatted.valueSequence = ev;
-                last_durations += arguments[j].duration;
+        var last_duration = 0,
+            envValues = [],
+            scale = 0,
+            last_scale = 0;
+        targets.forEach(function(env) {
+            if (!isAbsolute) scale = env.duration / total_duration;
+
+            env.valueSequence.forEach(function(item) {
+                if (isAbsolute) {
+                    // AbsoluteEnv valueSequence is set to push on assignment
+                    concatted.valueSequence = new AbsoluteEnvelopeValue(
+                        item.value, item.time * env.duration + last_duration,
+                        item.interpolationType, item.interpolationArgs
+                    );
+                } else {
+                    envValues.push( new EnvelopeValue(item.value, item.time * scale + last_scale) );
+                }
             });
+            last_scale += scale * 100;
+            last_duration += env.duration;
+        });
+
+        if (!isAbsolute) {
+            concatted.valueSequence = envValues;
+            concatted.interpolationType = arguments[0].interpolationType;
+            concatted.interpolationArgs = arguments[0].interpolationArgs;
         }
 
         return concatted;
     };
-// ArbitraryValue envelope
-    // 
+
 return envelopeCore; });

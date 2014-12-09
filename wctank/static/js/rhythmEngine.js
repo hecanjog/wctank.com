@@ -6,7 +6,7 @@ define(
 function() { var rhythmEngine = {};
    
     rhythmEngine.Engine;
-
+// 
     /*
      *  The RhythmicActionInterface is constructed within AudioModules or Visual Effects 
      *  that perform actions that should be rhythmized, and provides a standard interface

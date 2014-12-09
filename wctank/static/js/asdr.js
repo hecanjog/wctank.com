@@ -54,31 +54,51 @@ function(envelopeCore) { var asdr = {};
     };
     asdr.ComponentEnvelope.prototype = new envelopeCore.Envelope();
     
-    asdr.Sustain = function(duration, amplitude, modEnv) {
-        var mod;
-        Object.defineProperty(this, 'modEnv', {
-            get: function() { return mod; },
-            set: function(val) {
-                if (val instanceof envelopeCore.Envelope) {
-                    mod = val;
-                } else {
-                    ASDRComponentException("modEnv must be an instance of envelopeCore.Envelope");
-                }
-            }
-        });
-
+    asdr.Sustain = function(duration, amplitude, modEnv, modEnvDurPercent) {
         this.duration = duration;
-        this.valueSequence = [ 
+        
+        var ownVS, cookedVS;
+        Object.defineProperty(this, 'valueSequence', {
+            get: function() { return cookedVS ? cookedVS : ownVS; }
+        });
+        
+        ownVS = [ 
             new envelopeCore.EnvelopeValue(amplitude, 0),
             new envelopeCore.EnvelopeValue(amplitude, 100)
         ];
-        // alias value sequence into something else,
-        // allow updating against modEnv
-        // modEnv setter re-bakes valueSequence
-        this.modEnv = modEnv; //?
 
         this.interpolationType = 'none';
         this.interpolationArgs = null;
+
+        var reBake = function(env, mev, mevpercent) {
+            cookedVS = null;
+            var cookedEnv = envelopeCore.bake(env, mev, mevpercent);
+            cookedVS = cookedEnv.valueSequence;
+        };
+
+        //TODO: bug - may bake twice on initialization
+        var m, medp,
+            parent = this;
+        Object.defineProperty(this, 'modEnv', {
+            get: function() { return m; },
+            set: function(val) {
+                rebake(parent, val, medp);
+                m = val;
+            }
+        });
+
+        Object.defineProperty(this, 'modEnvDurPercent', {
+            get: function() { return medp; },
+            set: function(val) {
+                rebake(parent, m, val);
+                medp = val;
+            }
+        });
+
+        if (typeof modEnv !== 'undefined') {
+            this.modEnvDurPercent = modEnvDurPercent ? modEnvDurPercent : 100;
+            this.modEnv = modEnv;
+        }
     };
     asdr.Sustain.prototype = new asdr.ComponentEnvelope();
    
@@ -87,9 +107,9 @@ function(envelopeCore) { var asdr = {};
     asdr.D = 2;
     asdr.R = 3;
 
-    asdr.Generator = function(attack, sustain, decay, release, amplitudePntr) {
-        var a, s, d, r, pnt, env, 
-            priorScalar = -999;
+    asdr.Generator = function(attack, sustain, decay, release) {
+        var a, s, d, r, env, 
+            priorDuration = -999;
         var asdrGenException = function(text) {
             throw "Invalid asdr.Generator param: " + text;
         };
@@ -133,34 +153,20 @@ function(envelopeCore) { var asdr = {};
                 r = val;
             }
         });
-
-        Object.defineProperty(this, 'amplitudePointer', {
-            get: function() { return pnt; },
-            set: function(val) {
-                if (val < 4) {
-                   pnt = val | 0;
-                } else {
-                    asdrGenException("AMPLITUDEPOINTER must be a NUMBER less than 4 "+
-                                     "not "+(typeof val));
-                }
-            }
-        });
        
         this.attack = attack;
         this.sustain = sustain;
         this.decay = decay;
         this.release = release;
-        
-        if (typeof amplitudePntr !== 'undefined') {
-            this.amplitudePointer = amplitudePntr;
-        } else {
-            this.amplitudePointer = asdf.S; 
-        }
     
-        this.getASDR = function(durationScalar) {
-            if (durationScalar !== priorScalar) {
-                env = envelopeCore.concat(durationScalar, a, s, d, r);
-                priorScalar = durationScalar; // cache more than one?
+        this.getASDR = function(sustainDuration) {
+            if (!env || (sustainDuration !== priorDuration)) {
+                var absA = this.attack.toAbsolute(),
+                    absS = this.sustain.toAbsolute(sustainDuration),
+                    absD = this.decay.toAbsolute(),
+                    absR = this.release.toAbsolute();
+                
+                env = envelopeCore.concat(absA, absS, absD, absR);
             }
             return env;
         };
