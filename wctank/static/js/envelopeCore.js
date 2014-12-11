@@ -166,7 +166,7 @@ function() { var envelopeCore = {};
 
             return cooked;
         };
-
+        
         this.toAbsolute = function(duration) {
             var absolute = new envelopeCore.AbsoluteEnvelope(),
                 scale = duration ? duration / this.duration : this.duration;
@@ -185,6 +185,7 @@ function() { var envelopeCore = {};
 
             return absolute;
         };
+
     };
     
     envelopeCore.AbsoluteEnvelopeValue = function(value, time, 
@@ -222,6 +223,8 @@ function() { var envelopeCore = {};
                 }
             }
         });
+        
+        // this.scale
 
         delete this.bake; 
         delete this.toAbsolute;

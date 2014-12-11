@@ -129,7 +129,11 @@ function(envelopeCore, audio, audioUtil, TWEEN) { var instrument = {};
     };
 
     instrument.Instrument = function() {
+        // start, duration, value
         this.play;
+        
+        // duration and value set envelopes as necessary, 
+        // passed to actions
     };
 
 return instrument; });
