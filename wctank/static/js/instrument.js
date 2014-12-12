@@ -10,7 +10,8 @@ function(envelopeCore, audio, audioUtil, TWEEN) { var instrument = {};
 
     // action and instrument are husks that receive duration, starttime, and an arbitrary number of 
     // params
-    instrument.Action = function(envelope) {
+        // start, duration, value
+    instrument.ParameterizedAction = function(envelope) {
         var parent = this;
         
         var throwActionException = function(text) {
@@ -129,11 +130,7 @@ function(envelopeCore, audio, audioUtil, TWEEN) { var instrument = {};
     };
 
     instrument.Instrument = function() {
-        // start, duration, value
         this.play;
-        
-        // duration and value set envelopes as necessary, 
-        // passed to actions
     };
 
 return instrument; });

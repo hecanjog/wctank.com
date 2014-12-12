@@ -46,11 +46,11 @@ function(envelopeCore) { var asdr = {};
                 }
             }
         });
-
-        this.duration = duration;
-        this.interpolationType = interpolationType;
-        this.interpolationArgs = interpolationArgs;
-        this.valueSequence = valueSequence;
+        
+        if (duration) this.duration = duration;
+        if (interpolationType) this.interpolationType = interpolationType;
+        if (interpolationArgs) this.interpolationArgs = interpolationArgs;
+        if (valueSequence) this.valueSequence = valueSequence;
     };
     asdr.ComponentEnvelope.prototype = new envelopeCore.Envelope();
     

@@ -2,11 +2,11 @@ define(
     [
         'util',
         'markerData',
-        'visCore',
+        'visualCore',
         'text!MarkerShaders.glsl'
     ],
 
-function(util, markerData, visCore, MarkerShaders) { var markerCore = {};
+function(util, markerData, visualCore, MarkerShaders) { var markerCore = {};
 
     var canv = document.getElementById("markers"),
         projection;
@@ -17,7 +17,7 @@ function(util, markerData, visCore, MarkerShaders) { var markerCore = {};
     }();
     window.addEventListener('resize', updateViewport);
 
-    var z = visCore.webgl.setup(canv, MarkerShaders, true);
+    var z = visualCore.webgl.setup(canv, MarkerShaders, true);
     z.gl.blendFunc(z.gl.SRC_ALPHA, z.gl.ONE);
     z.gl.disable(z.gl.DEPTH_TEST);
     z.gl.enable(z.gl.BLEND);    

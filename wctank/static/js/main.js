@@ -32,6 +32,12 @@ require.config({
 define(
     [
         'gMap',
+        'audioElements',
+        'asdr',
+        'envelopeCore',
+        'instrument',
+        'mutexVisualEffects',
+        'sceneGraphCore',
         ['font!custom,families:',
             '[',
                 'timeless',
@@ -43,7 +49,8 @@ define(
             ']'
         ].join('/n')
     ],
-function(gMap) {
+function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects,
+            sceneGraphCore) {
     
     /*
      * map init work
@@ -69,7 +76,7 @@ function(gMap) {
     });
     gMap.events.initHeapEvents(gMap.events.MAP);
 
-
+    window.envelopeCore = envelopeCore;
 
 });
 

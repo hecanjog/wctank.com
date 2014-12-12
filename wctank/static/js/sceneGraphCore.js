@@ -34,8 +34,8 @@ function(util) { var core = {};
         };
 
         this.step = function(back) {
-            var c = current,
-                back ? c-- : c++;
+            var c = current;
+            back ? c-- : c++;
             if ( (c >= 0) && (c < queue.length) ) {
                 queue[c]();
                 current = c;

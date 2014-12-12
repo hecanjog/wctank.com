@@ -33,8 +33,8 @@ function() { var envelopeCore = {};
             }
         });
 
-        this.value = value;
-        this.time = time;
+        if (typeof value !== 'undefined') this.value = value;
+        if (typeof time !== 'undefined') this.time = time;
     };
 
 
@@ -166,7 +166,7 @@ function() { var envelopeCore = {};
 
             return cooked;
         };
-        
+       // prevent if necessary values are undefined 
         this.toAbsolute = function(duration) {
             var absolute = new envelopeCore.AbsoluteEnvelope(),
                 scale = duration ? duration / this.duration : this.duration;
@@ -174,12 +174,13 @@ function() { var envelopeCore = {};
             absolute.duration = this.duration * scale;
 
             this.valueSequence.forEach(function(item) {
+                console.log(item);
                 var t = absolute.duration * item.time * 0.01,
                     ev = new envelopeCore.AbsoluteEnvelopeValue(
                                 item.value, 
                                 t,
-                                arguments[j].interpolationType,
-                                arguments[j].interpolationArgs);
+                                item.interpolationType,
+                                item.interpolationArgs);
                 absolute.valueSequence = ev;
             });
 
@@ -218,8 +219,8 @@ function() { var envelopeCore = {};
                         seq.push(item);
                     });
                 } else {
-                    checkAbEnvVal(item);
-                    seq.push(item);
+                    checkAbEnvVal(val);
+                    seq.push(val);
                 }
             }
         });
