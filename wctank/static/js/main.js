@@ -38,7 +38,7 @@ define(
         'markerEvents',
         'sceneGraphCore',
         'mapFilterCore',
-        'mapFilterDef'
+        'mapFilterDefs'
     ],
 function(sequencer, specialCoord, specialDefs) {
     sequencer.goTo(0);

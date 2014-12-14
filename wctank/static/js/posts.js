@@ -74,7 +74,8 @@ function(div, $) {
                     }());
                     post.markerType = (function() {
                         if($.inArray('videos', post.tags) !== -1) {
-                            return 'video';    
+                            return 'video';   
+                           // TODO: generic audio tag 
                         } else if ($.inArray('stumblesome', post.tags) !== -1) {
                             return 'stumble';
                         } else {

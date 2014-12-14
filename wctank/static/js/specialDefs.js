@@ -12,26 +12,6 @@ define(
 
 function(div, gMap, visCore, specialCoord, 
          AlphaStrutShaders, SquareShaders, AngularShaders, $) { var specialDefs = {};
-    //TODO: remove non-transparent parts in image
-    // do something else besides just show and hide the image?
-    /*
-    specialDefs.words = (function(words) {
-        var back_z = "-999";
-        var front_z = "19";
-        var words_front = document.createElement('div');
-        words_front.setAttribute("id", "words_front");
-        words_front.style.zIndex = back_z;
-        document.body.appendChild(words_front);
-        
-        words.init = function() {
-            words_front.style.zIndex = front_z;    
-        };
-        words.teardown = function() {
-            words_front.style.zIndex = back_z;
-        };
-        return words;
-    }({}));*/
-   
     /*
      * trying to special.remove this glitches a bit, but I like it
      */
@@ -79,19 +59,6 @@ function(div, gMap, visCore, specialCoord,
      */
     function AlphaStrut() {
         
-        // occasionally cover map with flashing screen  
-        // instead of opaque being black, sky gif
-        // sky with flashing?
-        // virgo logo gif 
-        // limit backgrounds to only the most colorful (and resource cheap) filters:
-        //  caustic glow (the yt vid only), cmgyk, a flashing thing,
-        //  remove some layers from cmgyk
-        //  increased caustic glow video usage
-        // TODO: select portion of video to use
-        // create resource saving filter modes
-        // functions to cull filter sets
-        // picture filter
-        // turn on background video sound during special event
         var vid = document.createElement('video');
         vid.style.display = "none";
         vid.preload = "auto";
@@ -197,7 +164,7 @@ function(div, gMap, visCore, specialCoord,
         
         var vertices = []; 
 
-        var nesting = 50,
+        var nesting = 10,
             diff = 1 / nesting,
             id = 0;
         for (var i = nesting; i > 0; i--) {  

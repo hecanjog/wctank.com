@@ -54,11 +54,13 @@ function(util, gMap, mapFilterCycle, tableux,
             //var noise = audioElements.Noise(); 
             var vox = audioElements.SpritePlayer('/static/assets/wes.mp3', SpriteIntervals); 
             var verb = audioElements.SchroederReverb();
+            var verb2 = audioElements.SchroederReverb();
             var conv = audioElements.Convolution('/static/assets/jla.mp3');
             conv.wetDry(100);
             var sub = new audioActors.SubtractiveSynthesis(false);
             //sub.start();
-            
+           
+            vox.link(verb2).link(audio.out); 
             vox.link(sub, null, 0).link(verb).link(audio.out);
             vox.link(conv).link(sub, 0, 1);
             
