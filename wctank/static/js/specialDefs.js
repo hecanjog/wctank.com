@@ -6,12 +6,11 @@ define(
         'specialCoord',
         'text!AlphaStrutShaders.glsl',
         'text!SquaresShaders.glsl',
-        'text!AngularShaders.glsl',
-        'jquery',
+        'jquery'
     ],
 
 function(div, gMap, visCore, specialCoord, 
-         AlphaStrutShaders, SquareShaders, AngularShaders, $) { var specialDefs = {};
+         AlphaStrutShaders, SquareShaders, $) { var specialDefs = {};
     /*
      * trying to special.remove this glitches a bit, but I like it
      */
@@ -239,25 +238,5 @@ function(div, gMap, visCore, specialCoord,
     }
     Words.prototype = new visCore.MapFilter();
     specialDefs.words = new Words();
-
-    function Angular() {
-        var angular_front = document.createElement('canvas');
-        angular_front.setAttribute("id", "angular_front");
-
-        this.init = function() {
-            document.body.appendChild(angular_front);
-        };
-
-        var z = visCore.webgl.setup(angular_front, AngularShaders, true);         
-
-        this.animate = function() {
-
-        };
-        this.teardown = function() {
-            document.body.removeChild(angular_front);
-        };
-    }
-    Angular.prototype = new visCore.MapFilter();
-    specialDefs.angular = new Angular();
-
+    
 return specialDefs; });
