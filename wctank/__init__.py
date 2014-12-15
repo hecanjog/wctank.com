@@ -4,6 +4,7 @@ import re
 import urllib2
 from cache import post_cache
 import logging
+import os
 
 app = Flask(__name__)
 
