@@ -3,8 +3,13 @@ from flask import render_template
 import re
 import urllib2
 from cache import post_cache
+import logging
 
 app = Flask(__name__)
+
+log_handler = logging.FileHandler(os.path.expanduser('~/wctank.flask.log'))
+log_handler.setLevel(logging.WARNING)
+app.logger.addHandler(log_handler)
 
 # create and fill cache
 cache = post_cache()
