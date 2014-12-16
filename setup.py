@@ -8,7 +8,8 @@ setup(
     install_requires=[
         'flask', 
         'pytumblr',
-        'ZODB',
+        'Flask-SQLAlchemy',
+        'apscheduler'
     ],
     zip_safe=False,
 )
