@@ -24,7 +24,5 @@ def getposts(swk, swa, nek, nea):
     posts = []
     for i in records:
         posts.append(i.json)
-    
-    print posts
 
     return ' '.join(['[', ','.join(posts), ']'])
