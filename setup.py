@@ -8,7 +8,10 @@ setup(
     install_requires=[
         'flask', 
         'pytumblr',
-        'ZODB',
+        'Flask-SQLAlchemy',
+        'apscheduler',
+        'docopt'
     ],
+    scripts=['wct']
     zip_safe=False,
 )
