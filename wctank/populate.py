@@ -2,7 +2,6 @@ from wctank import db, models, utils
 from flask import json
 import pytumblr
 import logging
-from datetime import datetime
 import os
 import re
 
