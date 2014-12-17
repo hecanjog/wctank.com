@@ -3,7 +3,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 scheduler = BackgroundScheduler(timezone="UTC")
 scheduler.add_executor('processpool')
-scheduler.add_jobstore('sqlalchemy', url='sqlite:///jobs.db')
+scheduler.add_jobstore('sqlalchemy', url='sqlite:///wctank/jobs.db')
 
 ids = [x.id for x in scheduler.get_jobs()]
 
