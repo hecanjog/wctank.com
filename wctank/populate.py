@@ -1,6 +1,8 @@
 from wctank import db, models, utils
 from flask import json
 import pytumblr
+import logging
+from datetime import datetime
 import os
 import re
 
@@ -10,6 +12,13 @@ pyClient = pytumblr.TumblrRestClient(
     os.environ['WES_TUMBLR_OAUTH_TOKEN'],
     os.environ['WES_TUMBLR_OAUTH_SECRET']
 )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(os.path.expanduser('~/wctank.scheduled_jobs.log'))
+handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+logger.addHandler(handler)
+logger.addFilter(logging.Filter(name=__name__))
 
 def updateDb():
     all_posts = []
@@ -41,3 +50,4 @@ def updateDb():
 
     db.session.commit()
 
+    logger.info('posts db update')
