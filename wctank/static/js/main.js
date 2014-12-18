@@ -76,6 +76,7 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
     });
     gMap.events.initHeapEvents(gMap.events.MAP);
 
+
     window.envelopeCore = envelopeCore;
 
 });

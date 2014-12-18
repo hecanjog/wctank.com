@@ -48,6 +48,7 @@ function() { var envelopeCore = {};
         };
 
         Object.defineProperty(this, 'duration', {
+            configurable: true,
             get: function() { return duration; },
             set: function(val) {
                 if ( (val >= 0) || (val === null) ) {
@@ -59,6 +60,7 @@ function() { var envelopeCore = {};
         });
 
         Object.defineProperty(this, 'interpolationType', {
+            configurable: true,
             get: function() { return interpolationType; },
             set: function(val) {
                 // interpolation may be "linear", "exponential", "none", or "stairstep"
@@ -75,6 +77,7 @@ function() { var envelopeCore = {};
         });
 
         Object.defineProperty(this, 'interpolationArgs', {
+            configurable: true,
             get: function() { return interpolationArgs; },
             set: function(val) {
                 if (this.interpolationType === "stairstep") {
@@ -168,19 +171,16 @@ function() { var envelopeCore = {};
         };
        // prevent if necessary values are undefined 
         this.toAbsolute = function(duration) {
-            var absolute = new envelopeCore.AbsoluteEnvelope(),
+            var absolute = new envelopeCore.AbsoluteEnvelope(duration),
                 scale = duration ? duration / this.duration : this.duration;
             
-            absolute.duration = this.duration * scale;
-
             this.valueSequence.forEach(function(item) {
-                console.log(item);
                 var t = absolute.duration * item.time * 0.01,
                     ev = new envelopeCore.AbsoluteEnvelopeValue(
                                 item.value, 
                                 t,
-                                item.interpolationType,
-                                item.interpolationArgs);
+                                interpolationType,
+                                interpolationArgs);
                 absolute.valueSequence = ev;
             });
 
@@ -202,8 +202,15 @@ function() { var envelopeCore = {};
     };
     envelopeCore.AbsoluteEnvelopeValue.prototype = new envelopeCore.EnvelopeValue();
 
-    envelopeCore.AbsoluteEnvelope = function AbsoluteEnvelope() {
+    //construct with duration
+    envelopeCore.AbsoluteEnvelope = function AbsoluteEnvelope(duration) {
         var seq = [];
+
+        Object.defineProperty(this, 'duration', {
+            value: duration,
+            writable: false
+        });
+
         Object.defineProperty(this, 'valueSequence', {
             get: function() { return seq; },
             set: function(val) {
@@ -224,28 +231,26 @@ function() { var envelopeCore = {};
                 }
             }
         });
-        
-        // this.scale
 
-        delete this.bake; 
-        delete this.toAbsolute;
-        delete this.interpolationType;
-        delete this.interpolationArgs;
     };
     envelopeCore.AbsoluteEnvelope.prototype = new envelopeCore.Envelope();
-    
+    delete envelopeCore.AbsoluteEnvelope.prototype.interpolationType; 
+    delete envelopeCore.AbsoluteEnvelope.prototype.interpolationArgs;
+    delete envelopeCore.AbsoluteEnvelope.prototype.bake;
+    delete envelopeCore.AbsoluteEnvelope.prototype.toAbsolute;
+
     envelopeCore.concat = function() {
         var targets = [],
             isAbsolute = false,
             isFirst = true,
             total_duration = 0;
         for (var k = 0; k < arguments.length; k++) {
-            if (isFirst && (arguments[k].constructor.name === 'AbsoluteEnvelope')) {
+            if (isFirst && (arguments[k] instanceof envelopeCore.AbsoluteEnvelope) ) {
                 isAbsolute = true;
             }
             // this might not work - may have to use duck typing instead
-            if ( (isAbsolute && (arguments[k].constructor.name === 'AbsoluteEnvelope')) ||
-                (!isAbsolute && (arguments[k].constructor.name !== 'AbsoluteEnvelope')) ) {
+            if ( (isAbsolute && (arguments[k] instanceof envelopeCore.AbsoluteEnvelope)) ||
+                (!isAbsolute && !(arguments[k] instanceof envelopeCore.AbsoluteEnvelope)) ) {
                 targets.push(arguments[k]);
             } else {
                 throw 'envelopeCore.concat error: cannot concat non-absolute and absolute time envelopes together.';
@@ -256,12 +261,11 @@ function() { var envelopeCore = {};
         
         var concatted;
         if (isAbsolute) {
-            concatted = new envelopeCore.AbsoluteEnvelope();
+            concatted = new envelopeCore.AbsoluteEnvelope(total_duration);
         } else {
             concatted = new envelopeCore.Envelope();
+            concatted.duration = total_duration;
         }
-
-        concatted.duration = total_duration;
 
         var last_duration = 0,
             envValues = [],
@@ -273,12 +277,12 @@ function() { var envelopeCore = {};
             env.valueSequence.forEach(function(item) {
                 if (isAbsolute) {
                     // AbsoluteEnv valueSequence is set to push on assignment
-                    concatted.valueSequence = new AbsoluteEnvelopeValue(
-                        item.value, item.time * env.duration + last_duration,
+                    concatted.valueSequence = new envelopeCore.AbsoluteEnvelopeValue(
+                        item.value, item.time,
                         item.interpolationType, item.interpolationArgs
                     );
                 } else {
-                    envValues.push( new EnvelopeValue(item.value, item.time * scale + last_scale) );
+                    envValues.push( new envelopeCore.EnvelopeValue(item.value, item.time * scale + last_scale) );
                 }
             });
             last_scale += scale * 100;
