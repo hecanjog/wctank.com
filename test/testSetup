@@ -1,9 +1,5 @@
 #!/bin/sh
 
-# get current directory
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $DIR
-
 # install karma deps
 npm install -g karma
 npm install -g karma-cli
