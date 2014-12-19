@@ -90,8 +90,11 @@ function() { var envelopeCore = {};
                 }
             }
         });
-        
-        this.bake = function(modEnv, modDurPercent) {
+       
+        // interleaves the values of two Envelopes together,
+        // repeating the modEnv over this.duration at an interval of
+        // modDurPercent * 0.01 * this.duration
+        this.bake = function(modEnv, modDurPercent, refractMag) {
      
             var throwBakeException = function(text) {
                 throw "Invalid envelopeCore.bake args: " + text;
@@ -116,19 +119,7 @@ function() { var envelopeCore = {};
                 get: function() { return values; }
             });
           
-            // this will have to be good enough for now until 
-            // audioWorkers are fuly implemented across browsers and we can implement
-            // vibrato and similar effects with an LFO or something
-            var interpolate = function(a, b, n) {
-                var dy = a.value - b.value,
-                    dx = a.time - b.time,
-                    slope = dy / dx;
-
-                var scalar = slope * (n.time - a.time);
-        
-                return new envelopeCore.EnvelopeValue(n.value * scalar + a.value, n.time); 
-            };
-           
+            window.points = [];
             values = this.valueSequence.slice(0);
 
             values.sort(function(a, b) {
@@ -142,33 +133,52 @@ function() { var envelopeCore = {};
             // modification speed will vary with the duration of the note that the
             // envelope is applied to, which is kind of neat conceptually. 
             // Also, it's slightly easier to write, so win? Maybe?
-            var modValues,
-                repeats = (100 / modDurPercent) | 0,
-                cntr = 0;
+            var modValues = [],
+                repeats = ((100 / modDurPercent + 1)) | 0, // wrap over end 
+                cntr = 0, //?
+                last_time = 0;
             
+            // create array with modEnv repeating to 100%
             for (var i = 1; i <= repeats; i++) {
                 modEnv.valueSequence.forEach(function(item) {
-                    var ev = new envelopeCore.EnvelopeValue(item.value, 
-                        (item.time / repeats) * i); 
-                    modValues.push(ev);
+                    var t = (item.time / repeats) + last_time;
+                    if (t <= 100) {
+                        var ev = new envelopeCore.EnvelopeValue(item.value, 
+                            (item.time / repeats) + last_time); 
+                        modValues.push(ev);
+                    }
                 });
+                last_time += (100 / repeats) | 0;
             }
 
+            // create array with env values spliced into repeating modEnv
             for (var k = 0; k < modValues.length; k++) {
                 values.reduce(function(previous, current, idx) {
-                    if ( (modValues[k].time >= previous) && (modValues[k].time <= current) ) {
-                        values.splice(idx, 0, modValues[k]);
+                    if ( (modValues[k].time >= previous.time) && 
+                        (modValues[k].time <= current.time) ) {
+                        var inter = envelopeCore.interpolation.linearRefraction(
+                            previous, current, modValues[k], refractMag
+                        );
+                        values.splice(idx, 0, inter);
                     }
                     return current;
                 });
             }
 
-            cooked.duration = envelope.duration;
+            values.forEach(function(val) {
+                points.push(val);
+            });
+
+            cooked.valueSequence = modValues;
+            cooked.duration = this.duration;
             cooked.interpolationType = modEnv.interpolationType;
             cooked.interpolationArgs = modEnv.interpolationArgs;
 
+            window.cooked = cooked;
+
             return cooked;
         };
+
        // prevent if necessary values are undefined 
         this.toAbsolute = function(duration) {
             var absolute = new envelopeCore.AbsoluteEnvelope(duration),
@@ -239,6 +249,28 @@ function() { var envelopeCore = {};
     delete envelopeCore.AbsoluteEnvelope.prototype.bake;
     delete envelopeCore.AbsoluteEnvelope.prototype.toAbsolute;
 
+    envelopeCore.interpolation = {
+        // this will have to be good enough for now until 
+        // audioWorkers are fuly implemented across browsers and we can implement
+        // vibrato and similar effects with an LFO or something
+        linearRefraction: function(a, b, n, refractMag) {
+            var dy = b.value - a.value,
+                dx = b.time - a.time,
+                slope = dy / dx;
+
+            var inter_val = slope * (n.time - a.time);
+
+            var point = new envelopeCore.EnvelopeValue(inter_val, n.time); 
+
+            // modify point.value in direction of n.value by reflectMag
+            point.value += n.value * refractMag;
+
+            return point;
+        }
+    };
+    
+    window.interpolation = envelopeCore.interpolation;
+
     envelopeCore.concat = function() {
         var targets = [],
             isAbsolute = false,
@@ -248,7 +280,7 @@ function() { var envelopeCore = {};
             if (isFirst && (arguments[k] instanceof envelopeCore.AbsoluteEnvelope) ) {
                 isAbsolute = true;
             }
-            // this might not work - may have to use duck typing instead
+            
             if ( (isAbsolute && (arguments[k] instanceof envelopeCore.AbsoluteEnvelope)) ||
                 (!isAbsolute && !(arguments[k] instanceof envelopeCore.AbsoluteEnvelope)) ) {
                 targets.push(arguments[k]);

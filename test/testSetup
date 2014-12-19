@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# get current directory
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd $DIR
+
+# install karma deps
+npm install -g karma
+npm install -g karma-cli
+npm install -g karma-jasmine
+npm install -g karma-requirejs
+npm install -g karma-chrome-launcher
+
+# add Chrome -> chromium alias to .bashrc
+cd ~
+echo "export CHROME_BIN='/usr/bin/chromium'" >> .bashrc
+echo "alias google-chrome='chromium'" >> .bashrc
+. .bashrc
