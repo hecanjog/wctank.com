@@ -111,7 +111,7 @@ function() { var envelopeCore = {};
 
             if ( !((refractMag > 0) && (refractMag <= 1)) ) {
                 throwBakeException("REFRACTMAG must be a NUMBER greater than 0 and "+
-                                   "less than equal to 100, not" + refractMag);
+                                   "less than or equal to 1, not" + refractMag);
             }
 
             var cooked = new envelopeCore.Envelope(),
