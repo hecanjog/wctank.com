@@ -1,9 +1,9 @@
 To run tests, you need the following npm packages:
 
-karma,
-karma-jasmine,
-karma-requirejs,
-karma karma-chrome-launcher,
+karma    
+karma-jasmine    
+karma-requirejs    
+karma karma-chrome-launcher
 
 I've found the karma-cli handy too (which needs to be installed globally)
 
