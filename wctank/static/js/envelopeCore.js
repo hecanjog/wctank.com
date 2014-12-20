@@ -99,17 +99,19 @@ function() { var envelopeCore = {};
             var throwBakeException = function(text) {
                 throw "Invalid envelopeCore.bake args: " + text;
             };
-            var checkBakeEnv = function(name, env) {
-                if ( !(env instanceof envelopeCore.Envelope) ) {
-                    throwBakeException(name + "must be an instance of envelopeCore.Envelope");
-                }
-            };
-
-            checkBakeEnv("MODENVELOPE", modEnv);
+            
+            if ( !(modEnv instanceof envelopeCore.Envelope) ) {
+                throwBakeException("MODENV must be an instance of envelopeCore.Envelope");
+            }
 
             if ( !((modDurPercent > 0) && (modDurPercent <= 100)) ) {
                 throwBakeException("MODDURPERCENT must be a NUMBER greater than 0 and "+
                                    "less than or equal to 100, not" + modDurPercent);
+            }
+
+            if ( !((refractMag > 0) && (refractMag <= 1)) ) {
+                throwBakeException("REFRACTMAG must be a NUMBER greater than 0 and "+
+                                   "less than equal to 100, not" + refractMag);
             }
 
             var cooked = new envelopeCore.Envelope(),
@@ -344,7 +346,5 @@ function() { var envelopeCore = {};
 
         return concatted;
     };
-
-
 
 return envelopeCore; });
