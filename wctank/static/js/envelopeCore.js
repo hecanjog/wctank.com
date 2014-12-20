@@ -90,7 +90,7 @@ function() { var envelopeCore = {};
                 }
             }
         });
-       
+
         // interleaves the values of two Envelopes together,
         // repeating the modEnv over this.duration at an interval of
         // modDurPercent * 0.01 * this.duration
@@ -113,19 +113,12 @@ function() { var envelopeCore = {};
             }
 
             var cooked = new envelopeCore.Envelope(),
-                values;
-
-            Object.defineProperty(cooked, 'valueSequence', {
-                get: function() { return values; }
-            });
-          
-            window.points = [];
-            values = this.valueSequence.slice(0);
+                values = this.valueSequence.slice(0);
 
             values.sort(function(a, b) {
                 return a.time - b.time;
             }); 
-        
+      
             // Ideally, I would implement this so that any modifications would be
             // time invariant across a range of note durations. However, the goal here
             // is not necessarily to make a general purpose synth, but to make an
@@ -134,52 +127,70 @@ function() { var envelopeCore = {};
             // envelope is applied to, which is kind of neat conceptually. 
             // Also, it's slightly easier to write, so win? Maybe?
             var modValues = [],
-                repeats = ((100 / modDurPercent + 1)) | 0, // wrap over end 
-                cntr = 0, //?
+                repeats = ((100 / modDurPercent) + 0.5) | 0, 
                 last_time = 0;
             
             // create array with modEnv repeating to 100%
-            for (var i = 1; i <= repeats; i++) {
+                // repeats + 1 jic next iter would include time = 100
+            for (var i = 1; i <= repeats + 1; i++) {
                 modEnv.valueSequence.forEach(function(item) {
                     var t = (item.time / repeats) + last_time;
                     if (t <= 100) {
-                        var ev = new envelopeCore.EnvelopeValue(item.value, 
-                            (item.time / repeats) + last_time); 
+                        var ev = new envelopeCore.EnvelopeValue(item.value, t); 
                         modValues.push(ev);
                     }
                 });
                 last_time += (100 / repeats) | 0;
             }
 
-            // create array with env values spliced into repeating modEnv
-            for (var k = 0; k < modValues.length; k++) {
-                values.reduce(function(previous, current, idx) {
-                    if ( (modValues[k].time >= previous.time) && 
-                        (modValues[k].time <= current.time) ) {
-                        var inter = envelopeCore.interpolation.linearRefraction(
-                            previous, current, modValues[k], refractMag
-                        );
-                        values.splice(idx, 0, inter);
-                    }
-                    return current;
-                });
-            }
+            var inter_values = [],
+                last_val = {value: -999, time: -999};    
 
+            values.reduce(function(previous, current) {
+                for (var l = 0; l < modValues.length; l++) {
+                    // bounds not inclusive on top to avoid dups around boundaries
+                    if ( (modValues[l].time >= previous.time) &&
+                        (modValues[l].time <= current.time) &&
+                        (modValues[l].time !== last_val.time) ) { 
+                        var inter = envelopeCore.interpolation.linearRefraction(
+                            previous, current, modValues[l], refractMag
+                        ); 
+                        inter_values.push(inter);
+                        last_val = inter;
+                    }
+                }
+                return current;
+            }); 
+
+            filtered_values = [];
+            // rm original values if overlapping with time in inter_values
             values.forEach(function(val) {
-                points.push(val);
+                var found = false;
+                for (var j = 0; j < inter_values.length; j++) {
+                    if (val.time === inter_values[j].time) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    filtered_values.push(inter_values[j].time);
+                }
             });
 
-            cooked.valueSequence = modValues;
+            var final_val = filtered_values.concat(inter_values); 
+            final_val.sort(function(a, b) {
+                return a.time - b.time;
+            });
+
+            cooked.valueSequence = final_val;
             cooked.duration = this.duration;
             cooked.interpolationType = modEnv.interpolationType;
             cooked.interpolationArgs = modEnv.interpolationArgs;
-
-            window.cooked = cooked;
-
+            
             return cooked;
         };
 
-       // prevent if necessary values are undefined 
+        // prevent if necessary values are undefined 
         this.toAbsolute = function(duration) {
             var absolute = new envelopeCore.AbsoluteEnvelope(duration),
                 scale = duration ? duration / this.duration : this.duration;
@@ -256,9 +267,10 @@ function() { var envelopeCore = {};
         linearRefraction: function(a, b, n, refractMag) {
             var dy = b.value - a.value,
                 dx = b.time - a.time,
-                slope = dy / dx;
+                slope = dy / dx,
+                intercept = a.value;
 
-            var inter_val = slope * (n.time - a.time);
+            var inter_val = slope * (n.time - a.time) + intercept;
 
             var point = new envelopeCore.EnvelopeValue(inter_val, n.time); 
 
@@ -268,8 +280,6 @@ function() { var envelopeCore = {};
             return point;
         }
     };
-    
-    window.interpolation = envelopeCore.interpolation;
 
     envelopeCore.concat = function() {
         var targets = [],
@@ -285,7 +295,8 @@ function() { var envelopeCore = {};
                 (!isAbsolute && !(arguments[k] instanceof envelopeCore.AbsoluteEnvelope)) ) {
                 targets.push(arguments[k]);
             } else {
-                throw 'envelopeCore.concat error: cannot concat non-absolute and absolute time envelopes together.';
+                throw 'envelopeCore.concat error: cannot concat non-absolute '+ 
+                    'and absolute time envelopes together.';
             }
             total_duration += arguments[k].duration;
             isFirst = false;
@@ -314,7 +325,11 @@ function() { var envelopeCore = {};
                         item.interpolationType, item.interpolationArgs
                     );
                 } else {
-                    envValues.push( new envelopeCore.EnvelopeValue(item.value, item.time * scale + last_scale) );
+                    envValues.push( 
+                        new envelopeCore.EnvelopeValue(
+                            item.value, item.time * scale + last_scale
+                        ) 
+                    );
                 }
             });
             last_scale += scale * 100;
@@ -329,5 +344,7 @@ function() { var envelopeCore = {};
 
         return concatted;
     };
+
+
 
 return envelopeCore; });

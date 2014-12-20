@@ -65,48 +65,94 @@ function(envelopeCore) {
             expect(cat.duration).toEqual(8000); 
         });
     });
-   
-    it("envelopeCore.interpolation.linearRefraction works - simple case", function() {
-        var start = new envelopeCore.EnvelopeValue(0, 0),
-            end = new envelopeCore.EnvelopeValue(10, 100);
-
-        var between = new envelopeCore.EnvelopeValue(5, 50); 
+  
+    var start = new envelopeCore.EnvelopeValue(0, 0),
+        end = new envelopeCore.EnvelopeValue(10, 100);
     
-        var inter = envelopeCore.interpolation.linearRefraction(start, end, between, 1);
+    var negStart = new envelopeCore.EnvelopeValue(10, 0),
+        negEnd = new envelopeCore.EnvelopeValue(0, 100);
+    
+    var between = new envelopeCore.EnvelopeValue(5, 50),
+        negBetween = new envelopeCore.EnvelopeValue(-5, 50); 
+   
+    var linearRefraction = envelopeCore.interpolation.linearRefraction;
+
+    it("envelopeCore.interpolation.linearRefraction - "+
+        "positive slope, positive refract case", function() {
+        var inter = linearRefraction(start, end, between, 1);
 
         expect(inter.time).toEqual(50);
         expect(inter.value).toEqual(10); 
     });
-    it("envelopeCore.interpolation.linearRefraction works - harder case", function() {
-        
+
+    it("envelopeCore.interpolation.linearRefraction - "+
+       "positive slope, negative refract case", function() {
+        var inter = linearRefraction(start, end, negBetween, 1);
+
+        expect(inter.time).toEqual(50);
+        expect(inter.value).toEqual(0);
     });
-    
-    it("envelopeCore.Envelope.Bake correctly sets durations", function() {
-        var values = [
-            new envelopeCore.EnvelopeValue(0, 0),
-            new envelopeCore.EnvelopeValue(10, 20),
-            new envelopeCore.EnvelopeValue(20, 40),
-            new envelopeCore.EnvelopeValue(35, 60),
-            new envelopeCore.EnvelopeValue(40, 80),
-            new envelopeCore.EnvelopeValue(50, 99)
-        ];
+
+    it ("envelope.interpolation.linearRefraction - "+
+        "negative slope, positive refract case", function() {
+        var inter = linearRefraction(negStart, negEnd, between, 1);
+
+        expect(inter.time).toEqual(50);
+        expect(inter.value).toEqual(10);
+    });
+
+    it("envelope.interpolation.linearRefraction - "+
+       "negative slope, negative refract case", function() {
+        var inter = linearRefraction(negStart, negEnd, negBetween, 1);
         
-        var env = new envelopeCore.Envelope();
-        env.duration = 1000;
-        env.valueSequence = values;
-        env.interpolationType = 'linear';
+        expect(inter.time).toEqual(50);
+        expect(inter.value).toEqual(0);
+    });
+   
+    var bakeEnv = new envelopeCore.Envelope();
+    bakeEnv.duration = 1000;
+    bakeEnv.valueSequence = [
+        new envelopeCore.EnvelopeValue(0, 0),
+        new envelopeCore.EnvelopeValue(10, 50),
+        new envelopeCore.EnvelopeValue(0, 100)
+    ];
+    bakeEnv.interpolationType = 'linear';
 
-        var mod = new envelopeCore.Envelope();
-        mod.duration = 100;
-        mod.valueSequence = [
-            new envelopeCore.EnvelopeValue(0.1, 0),
-            new envelopeCore.EnvelopeValue(0.999999, 50),
-            new envelopeCore.EnvelopeValue(0.1, 99)
-        ];
-        mod.interpolationType = 'linear';
+    var bakeMod = new envelopeCore.Envelope();
+    bakeMod.duration = 100;
+    bakeMod.valueSequence = [
+        new envelopeCore.EnvelopeValue(1, 0),
+        new envelopeCore.EnvelopeValue(-1, 50)
+    ];
+    bakeMod.interpolationType = 'linear';
 
-        var cooked = env.bake(mod, 50);
-        window.cooked = cooked;
+    it("envelopeCore.Envelope.Bake makes tasty cakes", function() {
+        var cooked = bakeEnv.bake(bakeMod, 10, 1);
+        var seq = cooked.valueSequence;
+
+        expect(seq[0].value).toEqual(1);
+        expect(seq[1].value).toEqual(0);
+        expect(seq[2].value).toEqual(3);
+        expect(seq[3].value).toEqual(2);
+        expect(seq[4].value).toEqual(5);
+        expect(seq[5].value).toEqual(4);
+        expect(seq[6].value).toEqual(7);
+        expect(seq[7].value).toEqual(6);
+        expect(seq[8].value).toEqual(9);
+        expect(seq[9].value).toEqual(8);
+        expect(seq[10].value).toEqual(11);
+        expect(seq[11].value).toEqual(8);
+        expect(seq[12].value).toEqual(9);
+        expect(seq[13].value).toEqual(6);
+        expect(seq[14].value).toEqual(7);
+        expect(seq[15].value).toEqual(4);
+        expect(seq[16].value).toEqual(5);
+        expect(seq[17].value).toEqual(2);
+        expect(seq[18].value).toEqual(3);
+        expect(seq[19].value).toEqual(0);
+        expect(seq[20].value).toEqual(1); 
+
+        //DONUTZZ!?
     });
 
 });
