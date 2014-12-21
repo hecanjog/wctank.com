@@ -217,13 +217,16 @@ function() { var envelopeCore = {};
         };
 
     };
-    
+   
+    // TODO: Is inheriting from EnvelopeValue here worth it? 
     envelopeCore.AbsoluteEnvelopeValue = function(value, time, 
                                              interpolationType, interpolationArgs) {
         Object.defineProperty(this, 'time', {
             writable: true
         });
-        
+        Object.defineProperty(this, 'value', {
+            writable: true
+        });
         this.value = value;
         this.time = time;
         this.interpolationType = interpolationType;
@@ -329,7 +332,7 @@ function() { var envelopeCore = {};
                 if (isAbsolute) {
                     // AbsoluteEnv valueSequence is set to push on assignment
                     concatted.valueSequence = new envelopeCore.AbsoluteEnvelopeValue(
-                        item.value, item.time,
+                        item.value, item.time + last_duration,
                         item.interpolationType, item.interpolationArgs
                     );
                 } else {

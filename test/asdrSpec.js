@@ -5,9 +5,6 @@ define(
     ],
 
 function(asdr, envelopeCore) {
-   
-    window.envelopeCore = envelopeCore;
-    window.asdr = asdr;
 
     describe("ASDR", function() {
 
@@ -113,11 +110,27 @@ function(asdr, envelopeCore) {
             it("can swap sustain envelopes", function() {
                 var anotherSustain = new asdr.Sustain(1000, 0.5);
                 gen.sustain = anotherSustain;
+                expect(gen.sustain.valueSequence[0].value).toEqual(0.5);
             });
 
-            it("getASDR returns scaled concatted envelopes", function() {
+            it(".getASDR() returns correct times, with scaled sustain component", function() {
                 var abs = gen.getASDR(2000);
-                
+                expect(abs.valueSequence[0].time).toEqual(0);
+                expect(abs.valueSequence[1].time).toEqual(20 * 0.99);
+                expect(abs.valueSequence[2].time).toEqual(20);
+                expect(abs.valueSequence[4].time).toEqual(2020);
+            });
+
+            it(".getADSR() returns correct values", function() {
+                var abs = gen.getASDR(2000);
+                expect(abs.valueSequence[0].value).toEqual(0);
+                expect(abs.valueSequence[1].value).toEqual(1);
+                expect(abs.valueSequence[2].value).toEqual(1);
+                expect(abs.valueSequence[3].value).toEqual(1);
+                expect(abs.valueSequence[4].value).toEqual(1);
+                expect(abs.valueSequence[5].value).toEqual(0.5); 
+                expect(abs.valueSequence[6].value).toEqual(0.5); 
+                expect(abs.valueSequence[7].value).toEqual(0); 
             });
         });
 
