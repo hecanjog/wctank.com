@@ -42,6 +42,9 @@ function() { var envelopeCore = {};
         var duration, interpolationType, interpolationArgs;       
         
         this.valueSequence = [];
+        Object.defineProperty(this, 'valueSequence', {
+            writable: true
+        });
 
         var throwEnvelopeException = function(text) {
             throw "Envelope param error: " + text;
@@ -174,7 +177,10 @@ function() { var envelopeCore = {};
                         break;
                     }
                 }
-                if (!found) {
+                // TODO: the undefined check here patches over some weird behavior in 
+                // asdr.Sustain.bake() where inter_values[j] was sometimes undefined.
+                // THIS IS SUPER STUPID!
+                if (!found && (typeof inter_values[j] !== 'undefined')) {
                     filtered_values.push(inter_values[j].time);
                 }
             });

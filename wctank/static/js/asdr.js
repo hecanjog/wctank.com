@@ -11,7 +11,7 @@ function(envelopeCore) { var asdr = {};
             throw "ASDRComponent param error: " + text;
         };
         var checkAmpComponentParam = function(name, val) {
-            if ( (val < 0) || (val > 1) || (val !== null) ) {
+            if ( (val < 0) || (val > 1) ) {
                 ASDRComponentException(name+" must be a number between " + 
                     "0 and 1 inclusive or null not " + val);
             }
@@ -24,8 +24,8 @@ function(envelopeCore) { var asdr = {};
                                        "envelopeCore.EnvelopeValue");
   
             }
-            checkAmpComponentParam('valueSequenceItem.value item', item.value);
-            if ( (val.time < 0) || (item.time > 100) ) {
+            checkAmpComponentParam('valueSequenceItem.value item', val.value);
+            if ( (val.time < 0) || (val.time > 100) ) {
                 ASDRComponentException("valueSequenceItem.time must be "+
                                        "a percentage between 0 and 100 inclusive");
 
@@ -54,51 +54,80 @@ function(envelopeCore) { var asdr = {};
     };
     asdr.ComponentEnvelope.prototype = new envelopeCore.Envelope();
     
-    asdr.Sustain = function(duration, amplitude, modEnv, modEnvDurPercent) {
+    asdr.Sustain = function(duration, amplitude) {
         this.duration = duration;
-        
-        var ownVS, cookedVS;
-        Object.defineProperty(this, 'valueSequence', {
-            get: function() { return cookedVS ? cookedVS : ownVS; }
-        });
-        
-        ownVS = [ 
-            new envelopeCore.EnvelopeValue(amplitude, 0),
-            new envelopeCore.EnvelopeValue(amplitude, 100)
-        ];
+       
+        var vs, cookedVs,
+            cooked = false;
 
-        this.interpolationType = 'none';
-        this.interpolationArgs = null;
-
-        var reBake = function(env, mev, mevpercent) {
-            cookedVS = null;
-            var cookedEnv = envelopeCore.bake(env, mev, mevpercent);
-            cookedVS = cookedEnv.valueSequence;
+        var checkAmpValue = function(n) {
+            if ( (n < 0) || (n > 1) ) {
+                throw "invalid asdr.Sustain param: amplitude must be a value "+
+                        "between 0 and 1 inclusive";
+            }
+        };
+        var setValSeq = function(n) {
+            vs = [ 
+                new envelopeCore.EnvelopeValue(n, 0),
+                new envelopeCore.EnvelopeValue(n, 99)
+            ];
         };
 
-        //TODO: bug - may bake twice on initialization
-        var m, medp,
-            parent = this;
-        Object.defineProperty(this, 'modEnv', {
-            get: function() { return m; },
+        checkAmpValue(amplitude);
+        setValSeq(amplitude);
+        
+        Object.defineProperty(this, 'amplitude', {
+            get: function() { return amp; },
             set: function(val) {
-                rebake(parent, val, medp);
-                m = val;
+                checkAmpValue(val);
+                amp = val;
+                setValSeq(val);
+                if (cooked) {
+                    rebake();
+                }            
+            }
+        });
+        if (amplitude) this.amplitude = amplitude;
+        
+        Object.defineProperty(this, 'valueSequence', {
+            get: function() { 
+                if (!cooked) {
+                    return vs;
+                } else {
+                    return cookedVs;
+                }
             }
         });
 
-        Object.defineProperty(this, 'modEnvDurPercent', {
-            get: function() { return medp; },
-            set: function(val) {
-                rebake(parent, m, val);
-                medp = val;
-            }
+        var interType = 'none';
+        Object.defineProperty(this, 'interpolationType', {
+            get: function() { return interType; }
         });
+        this.interpolationArgs = null;
+        
+        var dummy = new envelopeCore.Envelope();
+        this.bake = function(modEnv, modDurPercent, refractMag) {
+            if (modEnv instanceof envelopeCore.Envelope) {
+                dummy.valueSequence = vs;
+                interType = dummy.interpolationType = modEnv.interpolationType;
+                this.interpolationArgs = dummy.interpolationArgs = modEnv.interpolationArgs;
+                dummy.duration = modEnv.duration; 
+                cookedVs = dummy.bake(modEnv, modDurPercent, refractMag).valueSequence;
+                cooked = true;
+            } else if ( (typeof dummy.valueSequence[0].value === 'number') && !cooked) {
+                interType = dummy.interpolationType;
+                cooked = true; 
+            } else {
+                console.warn("asdr.Sustain.bake called sans arguments without a prior "+
+                            ".bake and .unBake - no action taken.");
+            }
+        };
+        this.unBake = function() {
+            interType = 'none';
+            this.interpolationArgs = null;
+            cooked = false;
+        };
 
-        if (typeof modEnv !== 'undefined') {
-            this.modEnvDurPercent = modEnvDurPercent ? modEnvDurPercent : 100;
-            this.modEnv = modEnv;
-        }
     };
     asdr.Sustain.prototype = new asdr.ComponentEnvelope();
    
@@ -106,6 +135,8 @@ function(envelopeCore) { var asdr = {};
     asdr.S = 1;
     asdr.D = 2;
     asdr.R = 3;
+
+    var parent = asdr;
 
     asdr.Generator = function(attack, sustain, decay, release) {
         var a, s, d, r, env, 
@@ -116,7 +147,7 @@ function(envelopeCore) { var asdr = {};
         var checkEnvelope = function(name, env) {
             if ( (!env instanceof asdr.ComponentEnvelope) ) {
                 asdrGenException(name+" envelope must be "+
-                    "an instance of asdr.ComponentEnvelope, not "+val.constructor.name);
+                    "an instance of asdr.ComponentEnvelope, not "+val);
             }
         };
         
@@ -131,9 +162,11 @@ function(envelopeCore) { var asdr = {};
         Object.defineProperty(this, 'sustain', {
             get: function() { return s; },
             set: function(val) {
-                if ( !(val instanceof asdr.Sustain) ) {
+                if ( !(val instanceof parent.Sustain) ) {
                     asdrGenException("SUSTAIN envelope must be "+
-                        "an instance of asdr.Sustain, not "+val.constructor.name);
+                        "an instance of asdr.Sustain, not "+val);
+                } else {
+                    s = val;
                 } 
             }
         }); 
@@ -153,12 +186,12 @@ function(envelopeCore) { var asdr = {};
                 r = val;
             }
         });
-       
+   
         this.attack = attack;
         this.sustain = sustain;
         this.decay = decay;
         this.release = release;
-    
+
         this.getASDR = function(sustainDuration) {
             if (!env || (sustainDuration !== priorDuration)) {
                 var absA = this.attack.toAbsolute(),
