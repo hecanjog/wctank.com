@@ -8,7 +8,7 @@ require.config({
         jquery: ['http://code.jquery.com/jquery-2.1.1.min',
                 '/static/lib/jquery-2.1.1.min'],
         froogaloop2: '/static/lib/froogaloop2.min',
-        tween: '/static/lib/tween.min',
+        tween: '/static/lib/tween',
         filterXML: '/static/map_filters',
         VHSShaders: '/static/glsl/vhs',
         MarkerShaders: '/static/glsl/markers',

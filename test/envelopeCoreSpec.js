@@ -4,8 +4,9 @@
  */
 define(
     [
-        'wctank/static/js/envelopeCore'
+        'envelopeCore'
     ],
+
 function(envelopeCore) {
     
     describe("Envelope Core", function() {
@@ -126,7 +127,7 @@ function(envelopeCore) {
         ];
         bakeMod.interpolationType = 'linear';
 
-        it("envelopeCore.Envelope.Bake makes tasty cakes", function() {
+        it("envelopeCore.Envelope.bake makes tasty cakes", function() {
             var cooked = bakeEnv.bake(bakeMod, 10, 1);
             var seq = cooked.valueSequence;
 

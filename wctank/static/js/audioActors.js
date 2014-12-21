@@ -27,8 +27,8 @@ function(audio, audioNodes, audioElements) { var actors = {};
         this._link_alias_in = [dryIn, anaIn];
         this._link_alias_out = outGain;    
 
-        audio.moduleMixins.startStopThese(this, noise); 
-        audio.moduleMixins.wetDry(this, dryGain, wetGain);
+        audio.moduleExtensions.startStopThese(this, noise); 
+        audio.moduleExtensions.wetDry(this, dryGain, wetGain);
 
         var bp_bank = [];
         this.updateFromSound = function() {

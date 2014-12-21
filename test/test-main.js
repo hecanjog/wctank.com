@@ -8,17 +8,27 @@ var pathToModule = function(path) {
 Object.keys(window.__karma__.files).forEach(function(file) {
   if (TEST_REGEXP.test(file)) {
     // Normalize paths to RequireJS module names.
-    allTestFiles.push(pathToModule(file));
+    allTestFiles.push(pathToModule(file) + ".js");
   }
 });
 
 require.config({
-  // Karma serves files under /base, which is the basePath from your config file
-  baseUrl: '/base',
+    // Karma serves files under /base, which is the basePath from your config file
+    baseUrl: '/base',
 
-  // dynamically load all test files
-  deps: allTestFiles,
+    paths: {
+        'tween': '/home/paul/Desktop/dev/wctank.com/wctank/static/lib/tween.min'
+    },
 
-  // we have to kickoff jasmine, as it is asynchronous
-  callback: window.__karma__.start
+    shim: {
+        'tween': {
+            exports: 'TWEEN'
+        }
+    },
+
+    // dynamically load all test files
+    deps: allTestFiles,
+
+    // we have to kickoff jasmine, as it is asynchronous
+    callback: window.__karma__.start
 });

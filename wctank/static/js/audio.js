@@ -57,6 +57,7 @@ function(audioUtil, TWEEN) { var audio = {};
         };
 
         // this is gross, but needs to be this verbose b/c of Web Audio API internals...
+        // TODO: seriously, make this easier to read.
         this.link = function(out, output, input) {        
             if (typeof out !== 'undefined') {
                 // if this is a normal audio module with an out alias
@@ -90,7 +91,12 @@ function(audioUtil, TWEEN) { var audio = {};
                     // for the cases where an AudioModule has one AudioNode
                     // and we have chosen to mixin AudioModule instead of inheriting 
                     if (out._link_alias_in) {
-                        this.connect(out._link_alias_in, output, input);
+                        if ( Array.isArray(out._link_alias_in) ) {
+                            checkLink(false, input, out._link_alias_in);
+                            this.link(out._link_alias_in[input]);
+                        } else {
+                            this.connect(out._link_alias_in, output, input);
+                        }
                     } else {
                         this.connect(out, output, input);
                     }

@@ -5,7 +5,7 @@ module.exports = function(config) {
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '../',
+    basePath: '../wctank/static/js',
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
@@ -14,16 +14,18 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'test/test-main.js',
+      '../../../test/test-main.js',
       //'wctank/static/js/envelopeCore.js',
-      {pattern: 'wctank/static/js/*.js', included: false},
-      {pattern: 'test/*Spec.js', included: false}
+      {pattern: '*.js', included: false},
+      {pattern: '../lib/*.js', included: false},
+      {pattern: '../../../test/*Spec.js', included: false}
     ],
 
 
     // list of files to exclude
     exclude: [
-      'wctank/static/js/main.js'
+      'main.js',
+      '../lib/require.js',
     ],
 
 
