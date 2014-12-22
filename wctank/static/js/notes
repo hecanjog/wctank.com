@@ -1,0 +1,15 @@
+scene graph obj
+    audio           visual
+        Actors          mapFilters   happenings     vignettes   enviornments
+        Elements        core         core           ``          ``
+        Nodes           util         util           ``          ``
+        Core        core
+        util        util
+core
+    clock
+    renderLoop
+util
+
+renderLoop
+
+

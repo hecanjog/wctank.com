@@ -3,59 +3,61 @@ define(
         'envelopeCore',
         'audio',
         'audioUtil',
-        'tween'
+        'tween',
+        'util'
     ],
 
-function(envelopeCore, audio, audioUtil, TWEEN) { var instrument = {};
+function(envelopeCore, audio, audioUtil, TWEEN, util) { var instrument = {};
 
     // action and instrument are husks that receive duration, starttime, and an arbitrary number of 
     // params
         // start, duration, value
-    instrument.ParameterizedAction = function(envelope) {
+    instrument.ParameterizedAction = function(target, envelope) {
         var parent = this;
         
         var throwActionException = function(text) {
             throw "Invalid instrument.Action param: " + text;  
         };
 
-        var target, envelope;
+        var tget, env;
         Object.defineProperty(this, 'target', {
-           get: function() { return target; },
+           get: function() { return tget; },
            set: function(val) {
                 if ( (val instanceof AudioParam) || (typeof val === 'function') ) {
-                    target = val;
+                    tget = val;
                 } else {
                     throwActionException("Action.target must be an AudioParam or "+
                                         "a function.");
                 }
            }
         });
-        
+        if (target) this.target = target; 
+
         Object.defineProperty(this, 'envelope', {
-            get: function() { return envelope; },
+            get: function() { return env; },
             set: function(val) {
                 if (val instanceof envelopeCore.AbsoluteEnvelope) {
-                    envelope = val;
+                    env = val;
                 } else {
                     throwActionException("Action.envelope must be an instance of "+
                                          "envelopeCore.AbsoluteEnvelope.");
                 }
             }
         });
+        if (envelope) this.envelope = envelope;
 
         this.execute = function(offset) {
             // if the target is an AudioParam, this is all pretty easy
             if (this.target instanceof AudioParam) {
                 this.envelope.valueSequence.forEach(function(val) {
+                    var t = audio.ctx.currentTime + util.time.msec2sec(offset) + 
+                        util.time.msec2sec(val.time);
                     if (val.interpolationType === 'linear') {
-                        parent.target.linearRampToValueAtTime(val.value, 
-                            audio.ctx.currentTime + offset + val.time);
+                        parent.target.linearRampToValueAtTime(val.value, t);
                     } else if (val.interpolationType === 'exponential') {
-                        parent.target.exponentialRampToValueAtTime(val.value, 
-                            audio.ctx.currentTime + offset + val.time);
+                        parent.target.exponentialRampToValueAtTime(val.value, t);
                     } else if (val.interpolationType === 'none') {
-                        parent.target.setValueAtTime(val.value,
-                            audio.ctx.currentTime + offset + val.time);
+                        parent.target.setValueAtTime(val.value, t);
                     }
                 });
             } else {
@@ -102,7 +104,7 @@ function(envelopeCore, audio, audioUtil, TWEEN) { var instrument = {};
                         if (fn) machine.onComplete(fn);
                         machine.start();
                     };
-                    if (first) {
+                    if (first) { // offset goes here??
                         cycle(); 
                     } else {
                         onCompleteCache.push(cycle);

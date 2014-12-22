@@ -8,7 +8,7 @@ require.config({
         jquery: ['http://code.jquery.com/jquery-2.1.1.min',
                 '/static/lib/jquery-2.1.1.min'],
         froogaloop2: '/static/lib/froogaloop2.min',
-        tween: '/static/lib/tween',
+        tween: '/static/lib/tween.min',
         filterXML: '/static/map_filters',
         VHSShaders: '/static/glsl/vhs',
         MarkerShaders: '/static/glsl/markers',
@@ -38,6 +38,7 @@ define(
         'instrument',
         'mutexVisualEffects',
         'sceneGraphCore',
+        'audio',
         ['font!custom,families:',
             '[',
                 'timeless',
@@ -50,7 +51,7 @@ define(
         ].join('/n')
     ],
 function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects,
-            sceneGraphCore) {
+            sceneGraphCore, audio) {
     
     /*
      * map init work
@@ -76,8 +77,41 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
     });
     gMap.events.initHeapEvents(gMap.events.MAP);
 
+    var test = function() {
+        var noise = audioElements.Noise();
+        noise.gain.gain.value = 0.0;
+        noise.link(audio.out);
+        noise.start();
+        // asdr.Generator separate gets for first half and second half?
+        // envelope looping mechanism
+        var attack = new asdr.ComponentEnvelope(100, 'linear', null, [
+            0, 0,    1, 50,     0.3, 99 
+        ].envelopeValues);
+        
+        var sustain = new asdr.Sustain(1000, 0.3);
 
-    window.envelopeCore = envelopeCore;
+        var decay = new asdr.ComponentEnvelope(500, 'linear', null, [
+            0.3, 0,     0.8, 20,    0.1, 99
+        ].envelopeValues);
 
+        var release = new asdr.ComponentEnvelope(50, 'linear', null, [
+            0.1, 0,     0, 99
+        ].envelopeValues);
+
+        var asdrGen = new asdr.Generator(attack, sustain, decay, release);
+
+        var trigger = new instrument.ParameterizedAction(noise.gain.gain,
+                                                         asdrGen.getASDR(sustain.duration));
+
+        this.play = function(msec) {
+            trigger.envelope = asdrGen.getASDR(msec);
+            trigger.execute(10); 
+        };
+    };
+    test.prototype = new instrument.Instrument();
+
+    var ohman = new test();
+
+    window.playInstrument = ohman.play;
 });
 

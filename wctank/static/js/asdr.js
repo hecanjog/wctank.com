@@ -194,10 +194,10 @@ function(envelopeCore) { var asdr = {};
 
         this.getASDR = function(sustainDuration) {
             if (!env || (sustainDuration !== priorDuration)) {
-                var absA = this.attack.toAbsolute(this.attack.duration),
+                var absA = this.attack.toAbsolute(),
                     absS = this.sustain.toAbsolute(sustainDuration),
-                    absD = this.decay.toAbsolute(this.decay.duration),
-                    absR = this.release.toAbsolute(this.release.duration);
+                    absD = this.decay.toAbsolute(),
+                    absR = this.release.toAbsolute();
                 
                 env = envelopeCore.concat(absA, absS, absD, absR);
             }

@@ -133,7 +133,5 @@ function(asdr, envelopeCore) {
                 expect(abs.valueSequence[7].value).toEqual(0); 
             });
         });
-
     });
-
 });
