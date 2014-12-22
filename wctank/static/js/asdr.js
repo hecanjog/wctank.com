@@ -187,11 +187,13 @@ function(envelopeCore) { var asdr = {};
             }
         });
    
-        this.attack = attack;
-        this.sustain = sustain;
-        this.decay = decay;
-        this.release = release;
+        if (attack) this.attack = attack;
+        if (sustain) this.sustain = sustain;
+        if (decay) this.decay = decay;
+        if (release) this.release = release;
 
+        // check if all components defined first, error message 
+        // indicates undefined components
         this.getASDR = function(sustainDuration) {
             if (!env || (sustainDuration !== priorDuration)) {
                 var absA = this.attack.toAbsolute(),

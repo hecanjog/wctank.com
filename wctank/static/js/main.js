@@ -84,27 +84,23 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
         noise.start();
         // asdr.Generator separate gets for first half and second half?
         // envelope looping mechanism
-        var attack = new asdr.ComponentEnvelope(100, 'linear', null, [
-            0, 0,    1, 50,     0.3, 99 
-        ].envelopeValues);
+        var noiseAsdr = new asdr.Generator();
         
-        var sustain = new asdr.Sustain(1000, 0.3);
+        noiseAsdr.attack = new asdr.ComponentEnvelope(50, 'linear', null,
+            [ 0, 0,    1, 50,    0.3, 99 ].envelopeValues);
+        
+        noiseAsdr.sustain = new asdr.Sustain(1000, 0.3);
+        
+        noiseAsdr.decay = new asdr.ComponentEnvelope(100, 'linear', null, 
+            [ 0.3, 0,    0.8, 20,    0.1, 99 ].envelopeValues);
+        
+        noiseAsdr.release = new asdr.ComponentEnvelope(50, 'linear', null, 
+            [ 0.1, 0,    0, 99 ].envelopeValues);
 
-        var decay = new asdr.ComponentEnvelope(500, 'linear', null, [
-            0.3, 0,     0.8, 20,    0.1, 99
-        ].envelopeValues);
-
-        var release = new asdr.ComponentEnvelope(50, 'linear', null, [
-            0.1, 0,     0, 99
-        ].envelopeValues);
-
-        var asdrGen = new asdr.Generator(attack, sustain, decay, release);
-
-        var trigger = new instrument.ParameterizedAction(noise.gain.gain,
-                                                         asdrGen.getASDR(sustain.duration));
+        var trigger = new instrument.ParameterizedAction(noise.gain.gain);
 
         this.play = function(msec) {
-            trigger.envelope = asdrGen.getASDR(msec);
+            trigger.envelope = noiseAsdr.getASDR(msec);
             trigger.execute(10); 
         };
     };
