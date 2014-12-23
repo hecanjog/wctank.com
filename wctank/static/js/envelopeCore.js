@@ -37,6 +37,8 @@ function() { var envelopeCore = {};
         if (typeof time !== 'undefined') this.time = time;
     };
 
+   
+
     // let's try this bad thing since we're the only people here.
     Object.defineProperty(Array.prototype, 'envelopeValues', {
         enumerable: false,
@@ -364,6 +366,15 @@ function() { var envelopeCore = {};
         }
 
         return concatted;
+    };
+
+    //given an array of 2 item tuplets, return an array of EnvelopeValue functions
+    envelopeCore.arrayToEnvelopeValues = function(arr) {
+        var r = [];
+        for (var i = 0; i < arr.length; i += 2) {
+            r.push(new envelopeCore.EnvelopeValue(arr[i], arr[i + 1]));
+        }
+        return r;
     };
 
 return envelopeCore; });

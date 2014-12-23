@@ -62,8 +62,8 @@ function(envelopeCore) { var asdr = {};
 
         var checkAmpValue = function(n) {
             if ( (n < 0) || (n > 1) ) {
-                throw "invalid asdr.Sustain param: amplitude must be a value "+
-                        "between 0 and 1 inclusive";
+                throw new RangeError("invalid asdr.Sustain param: amplitude must be a value "+
+                        "between 0 and 1 inclusive");
             }
         };
         var setValSeq = function(n) {
@@ -131,23 +131,18 @@ function(envelopeCore) { var asdr = {};
     };
     asdr.Sustain.prototype = new asdr.ComponentEnvelope();
    
-    asdr.A = 0;
-    asdr.S = 1;
-    asdr.D = 2;
-    asdr.R = 3;
-
     var parent = asdr;
 
     asdr.Generator = function(attack, sustain, decay, release) {
         var a, s, d, r, env, 
             priorDuration = -999;
         var asdrGenException = function(text) {
-            throw "Invalid asdr.Generator param: " + text;
+            return "Invalid asdr.Generator param: " + text;
         };
         var checkEnvelope = function(name, env) {
             if ( (!env instanceof asdr.ComponentEnvelope) ) {
-                asdrGenException(name+" envelope must be "+
-                    "an instance of asdr.ComponentEnvelope, not "+val);
+                throw new TypeError(asdrGenException(name+" envelope must be "+
+                    "an instance of asdr.ComponentEnvelope, not "+val));
             }
         };
         
@@ -163,8 +158,8 @@ function(envelopeCore) { var asdr = {};
             get: function() { return s; },
             set: function(val) {
                 if ( !(val instanceof parent.Sustain) ) {
-                    asdrGenException("SUSTAIN envelope must be "+
-                        "an instance of asdr.Sustain, not "+val);
+                    throw new TypeError(asdrGenException("SUSTAIN envelope must be "+
+                        "an instance of asdr.Sustain, not "+val));
                 } else {
                     s = val;
                 } 
@@ -187,10 +182,35 @@ function(envelopeCore) { var asdr = {};
             }
         });
    
-        if (attack) this.attack = attack;
+        var aIsComponent = attack instanceof asdr.ComponentEnvelope;   
+
+        if (aIsComponent) this.attack = attack;
         if (sustain) this.sustain = sustain;
         if (decay) this.decay = decay;
         if (release) this.release = release;
+
+        var parseStage = function(o) {
+            var inter_type, inter_args;
+            if ('inter' in o) {
+                inter_type = o.inter.type;
+                inter_args = o.inter.args ? o.inter.args : null;
+            } else {
+                inter_type = 'linear';
+                inter_args = null;
+            }
+
+            return new asdr.ComponentEnvelope(o.dur, inter_type, inter_args, 
+                envelopeCore.arrayToEnvelopeValues(o.val));
+        };
+
+        // construct with object
+        if ( !aIsComponent && ('a' in attack) && ('s' in attack) &&
+            ('d' in attack) && ('r' in attack) ) {
+            this.attack = parseStage(attack.a);
+            this.sustain = new asdr.Sustain(attack.s.dur, attack.s.val);
+            this.decay = parseStage(attack.d);
+            this.release = parseStage(attack.r);
+        }
 
         // check if all components defined first, error message 
         // indicates undefined components
