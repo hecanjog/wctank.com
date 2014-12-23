@@ -134,8 +134,10 @@ function(envelopeCore) { var asdr = {};
     var parent = asdr;
 
     asdr.Generator = function(attack, sustain, decay, release) {
-        var a, s, d, r, env, 
+        var a, s, d, r, env, as, dr, 
+            changed = false,
             priorDuration = -999;
+        
         var asdrGenException = function(text) {
             return "Invalid asdr.Generator param: " + text;
         };
@@ -149,8 +151,10 @@ function(envelopeCore) { var asdr = {};
         Object.defineProperty(this, 'attack', {
             get: function() { return a; },
             set: function(val) { 
+                changed = true;
                 checkEnvelope('ATTACK', val);
                 a = val;
+                changed = true;
             }
         }); 
        
@@ -162,6 +166,7 @@ function(envelopeCore) { var asdr = {};
                         "an instance of asdr.Sustain, not "+val));
                 } else {
                     s = val;
+                    changed = true;
                 } 
             }
         }); 
@@ -171,6 +176,7 @@ function(envelopeCore) { var asdr = {};
             set: function(val) { 
                 checkEnvelope('DECAY', val);
                 d = val;
+                changed = true;
             }
         });
 
@@ -179,6 +185,7 @@ function(envelopeCore) { var asdr = {};
             set: function(val) {
                 checkEnvelope('RELEASE', val);
                 r = val;
+                changed = true;
             }
         });
    
@@ -211,18 +218,36 @@ function(envelopeCore) { var asdr = {};
             this.decay = parseStage(attack.d);
             this.release = parseStage(attack.r);
         }
-
+      
+        var generator = this; 
+        var updateEnv = function(dur) {
+            if (!env || ( (typeof dur === 'number') && (dur !== priorDuration) ) || changed) {
+                var absA = generator.attack.toAbsolute(),
+                    absS = generator.sustain.toAbsolute(dur),
+                    absD = generator.decay.toAbsolute(),
+                    absR = generator.release.toAbsolute();
+                
+                as = envelopeCore.concat(absA, absS);
+                dr = envelopeCore.concat(absD, absR);
+                env = envelopeCore.concat(absA, absS, absD, absR);
+                priorDuration = dur;
+                changed = false;
+            }
+        }; 
+        // changed flags
         // check if all components defined first, error message 
         // indicates undefined components
+        this.getAS = function() {
+            updateEnv();
+            return as;
+        };
+        this.getDR = function() {
+            updateEnv();
+            return dr;
+        };
+
         this.getASDR = function(sustainDuration) {
-            if (!env || (sustainDuration !== priorDuration)) {
-                var absA = this.attack.toAbsolute(),
-                    absS = this.sustain.toAbsolute(sustainDuration),
-                    absD = this.decay.toAbsolute(),
-                    absR = this.release.toAbsolute();
-                
-                env = envelopeCore.concat(absA, absS, absD, absR);
-            }
+            updateEnv(sustainDuration);
             return env;
         };
     };

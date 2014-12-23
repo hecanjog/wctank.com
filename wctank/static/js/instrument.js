@@ -48,9 +48,11 @@ function(envelopeCore, audio, audioUtil, TWEEN, util) { var instrument = {};
 
         this.execute = function(offset) {
             // if the target is an AudioParam, this is all pretty easy
+            var off = (typeof offset === 'number') ? offset : 10;
+            
             if (this.target instanceof AudioParam) {
                 this.envelope.valueSequence.forEach(function(val) {
-                    var t = audio.ctx.currentTime + util.time.msec2sec(offset) + 
+                    var t = audio.ctx.currentTime + util.time.msec2sec(off) + 
                         util.time.msec2sec(val.time);
                     if (val.interpolationType === 'linear') {
                         parent.target.linearRampToValueAtTime(val.value, t);
