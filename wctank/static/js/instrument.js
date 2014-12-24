@@ -14,7 +14,7 @@ function(envelopeCore, audio, audioUtil, TWEEN, util) { var instrument = {};
         // start, duration, value
     instrument.ParameterizedAction = function(target, envelope) {
         var parent = this;
-        
+       // read-only prop type 
         var throwActionException = function(text) {
             throw "Invalid instrument.Action param: " + text;  
         };
@@ -135,6 +135,8 @@ function(envelopeCore, audio, audioUtil, TWEEN, util) { var instrument = {};
 
     instrument.Instrument = function() {
         this.play;
+        this.on;
+        this.off;
     };
 
 return instrument; });

@@ -8,7 +8,7 @@ function(envelopeCore) { var asdr = {};
     asdr.ComponentEnvelope = function(duration, interpolationType, 
                                       interpolationArgs, valueSequence) {
         var ASDRComponentException = function(text) {
-            throw "ASDRComponent param error: " + text;
+            throw new Error("ASDRComponent param error: " + text);
         };
         var checkAmpComponentParam = function(name, val) {
             if ( (val < 0) || (val > 1) ) {
@@ -139,12 +139,12 @@ function(envelopeCore) { var asdr = {};
             priorDuration = -999;
         
         var asdrGenException = function(text) {
-            return "Invalid asdr.Generator param: " + text;
+            throw new TypeError("Invalid asdr.Generator param: " + text);
         };
         var checkEnvelope = function(name, env) {
             if ( (!env instanceof asdr.ComponentEnvelope) ) {
-                throw new TypeError(asdrGenException(name+" envelope must be "+
-                    "an instance of asdr.ComponentEnvelope, not "+val));
+                asdrGenException(name+" envelope must be "+
+                    "an instance of asdr.ComponentEnvelope, not "+val);
             }
         };
         
@@ -162,8 +162,8 @@ function(envelopeCore) { var asdr = {};
             get: function() { return s; },
             set: function(val) {
                 if ( !(val instanceof parent.Sustain) ) {
-                    throw new TypeError(asdrGenException("SUSTAIN envelope must be "+
-                        "an instance of asdr.Sustain, not "+val));
+                    asdrGenException("SUSTAIN envelope must be "+
+                        "an instance of asdr.Sustain, not "+val);
                 } else {
                     s = val;
                     changed = true;
@@ -202,7 +202,7 @@ function(envelopeCore) { var asdr = {};
                 inter_type = o.inter.type;
                 inter_args = o.inter.args ? o.inter.args : null;
             } else {
-                inter_type = 'linear';
+                inter_type = 'none';
                 inter_args = null;
             }
 

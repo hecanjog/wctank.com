@@ -84,10 +84,21 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
         noise.start();
         
         // envelope looping mechanism
-        // incl;ude default offset in execute method
+        // bubble changes through envelopes so that asdr can recalc if any properties have changed
+        // calc asdr on set, not get
+        // two breakpoints in Sustain or one?
+        // more generic envelope generator?
+        // nix pushing on absoluteEnvelope.valueSequence set in favor of explicit push
+        // testing for audio things
+        // move tweenUtil into sceneGraph module, not audioUtil
+        // throw error objects, not strings
+        // Generator setter in shorthand syntax
         var noiseAsdr = new asdr.Generator({
             a: {
-                dur: 50,
+                dur: 200,
+                inter: {
+                    type: 'linear'
+                },
                 val: [ 0, 0,  1, 50,  0.3, 99 ]
             },
             s: {
@@ -96,19 +107,25 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
             },
             d: {
                 dur: 100,
+                inter: {
+                    type: 'linear'
+                },
                 val: [ 0.3, 0,  0.8, 20,  0.1, 99 ]  
             },
             r: {
-                dur: 50,
+                dur: 200,
+                inter: {
+                    type: 'linear'
+                },
                 val: [ 0.1, 0,  0, 99 ]
             }
         });
 
         var trigger = new instrument.ParameterizedAction(noise.gain.gain);
-            
+        // trigger.rhythmicSequence = "p0.25{3}    
+        // rhythm should be 
         this.on = function() {
             trigger.envelope = noiseAsdr.getAS();
-            window.AS = trigger.envelope;
             trigger.execute();
         };
         this.off = function() {
