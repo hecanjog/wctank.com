@@ -1,6 +1,7 @@
 define(
     [
-        'util'
+        'util',
+        'instrument'
     ],
 
 function(util) { var rhythm = {};
@@ -130,23 +131,130 @@ function(util) { var rhythm = {};
         };
     };
 
+    // given a ref to a rhythm.Clock, and a group of parameterized actions,
+    // step or exceute each action according to a rhythm rep
+    rhythm.Generator = function(clock, config) {
+        var clk, targ, rseq;
+        
+        var rhythmGeneratorError = function(mess) {
+            return 'Invalid rhythm.Generator param: '+mess;
+        };
 
-// rhythmGenerator(clock, target) 
-    // .start(val)
-    // .stop
-    // .parse
-    //
-    // .rhythm
-    //      - calc length
-    // .loop
-    //      - loop at end of seq, no matter how many beats
-    // .targetVal
-    // .target
-    // .attach
-    // .detach
-    // .clock
-    // .addAction(...)
-    //
-    //
+        var validateConfig = function(v) {
+            if ( !('targets' in v) ) {
+                throw new Error(rhythmGeneratorError("config object must specify a "+
+                    "'targets' property"));
+            }
+            return v;
+        };
+
+        var validateTargets = function(t) {
+            for (var targ in t) {
+                if (t.hasOwnProperty(targ)) {
+                    if ( !(targ[t] instanceof instrument.ParameterizedAction) ) {
+                        throw new TypeError(rhythmGeneratorError("All targets must be "+
+                            "instances of instrument.ParameterizedAction."));
+                    } 
+                }
+            }
+            return t;
+        };
+        
+        var throwRhythmRangeError = function(mess) {
+            throw new RangeError(rhythmGeneratorError(mess));
+        };
+        var throwRhythmPropError = function(name) {
+            throw new Error(rhythmGeneratorError("All rhythmic breakpoints must "+
+                "specify a '"+name+"' property."));
+        };
+        var validateCallbackType = function(f) {
+            if (typeof f !== 'function') {
+                throw new TypeError(rhythmGeneratorError('callback must be a function'));
+            }
+        };
+
+        var validateRhythmicSequence = function(s) {
+            for (var prop in s) {
+                if (s.hasOwnProperty(prop)) {
+                    if ( !('subd' in s[prop]) ) {
+                        throwRhythmPropError('subd');
+                    } else if (s[prop].subd < 0) {
+                        throwRhythmRangeError("{rhythm}."+prop+".subd must be greater than 0");
+                    }
+                    if (prop !== 'off') {
+                        if ( !('val' in s[prop]) ) {
+                            throwRhythmPropError('val');
+                        }
+                    }
+                    if ('call' in s[prop]) {
+                        if (Array.isArray(s[prop].call)) {
+                            s[prop].call.forEach(function(v) {
+                                validateCallbackType(v);
+                            });
+                        } else {
+                            validateCallbackType(s[prop].call);
+                        }
+                    }
+                }
+            }
+            return s;
+        };
+
+        Object.defineProperty(this, 'targets', {
+            get: function() { return targ; },
+            set: function(v) {
+                targ = validateTargets(v);
+            }        
+        });
+
+        Object.defineProperty(this, 'rhythmicSequence', {
+            get: function() { return rseq; },
+            set: function(v) {
+                rseq = validateRhythmicSequence(v);
+            }
+        });
+        
+        Object.defineProperty(this, 'clock', {
+            get: function() { return clk; },
+            set: function(v) {
+                if (v instanceof rhythm.Clock) {
+                    clk = v; 
+                } else {
+                    throw new TypeError(rhythmGeneratorError('rhythm.Generator.clock '+
+                        'must be an instance of rhythm.Clock'));
+                }
+            }
+        });
+        this.clock = clock;
+       
+        if (config) {
+            var c = validateConfig(config);
+            this.targets = c.targets;
+            this.rhythmicSequence = c.seq;
+        } 
+
+        Object.defineProperties(this, {
+            "loop": {
+                value: false,
+                writable: true,
+                configurable: false
+            },
+            "retrograde": {
+                value: false,
+                writable: true,
+                configurable: false
+            }
+        });
+
+        this.execute = function() {
+
+        }; 
+
+        this.shirk = function() {
+
+        }; 
+
+        // helper to scale rhythm at new bpm
+    };
 
 return rhythm; });

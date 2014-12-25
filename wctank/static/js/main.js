@@ -39,6 +39,7 @@ define(
         'mutexVisualEffects',
         'sceneGraphCore',
         'audio',
+        'rhythm',
         ['font!custom,families:',
             '[',
                 'timeless',
@@ -51,7 +52,9 @@ define(
         ].join('/n')
     ],
 function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects,
-            sceneGraphCore, audio) {
+            sceneGraphCore, audio, rhythm) {
+    
+    window.rhythm = rhythm; 
     
     /*
      * map init work

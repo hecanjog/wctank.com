@@ -90,8 +90,8 @@ function(envelopeCore, audio, audioUtil, TWEEN, util) { var instrument = {};
                     c++;
                 };
 
-                var addToMachineQueue = function(val) {
-                    var v = val;
+                // accomodate 'none'
+                var addToMachineQueue = function(v) {
                     var cycle = function() {
                         if (v.interpolationType === 'linear') {
                             machine.easing(TWEEN.Easing.Linear); 
@@ -131,6 +131,8 @@ function(envelopeCore, audio, audioUtil, TWEEN, util) { var instrument = {};
                 machine.start();
             }
         };
+        
+        //this.step; // advance one envelope point.  esp important for rhythm.Generator
     };
 
     instrument.Instrument = function() {
