@@ -11,4 +11,5 @@ log_handler = logging.FileHandler(os.path.expanduser('~/wctank.flask.log'))
 log_handler.setLevel(logging.WARNING)
 app.logger.addHandler(log_handler)
 
-import controller
+from wctank import models
+from wctank import controller
