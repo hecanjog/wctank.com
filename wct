@@ -22,6 +22,7 @@ if __name__ == '__main__':
 
     def bootstrap():
         db.create_all()
+        scheduler.firstPopulate()
         scheduler.scheduler.start()
 
     if args['dev'] == True:
