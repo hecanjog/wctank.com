@@ -1,4 +1,4 @@
-from wctank import app, db, models
+from wctank import app, models
 from flask import render_template
 import urllib2
 import re
