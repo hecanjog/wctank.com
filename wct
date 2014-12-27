@@ -10,7 +10,7 @@ Usage:
 
 Options:
     dev         Bootstrap and run server locally for development.
-    bootstrap   Create and populate posts and jobs db, start scheduler daemon.
+    bootstrap   Create and populate posts and jobs db
     run         Only run server.
 """
 
