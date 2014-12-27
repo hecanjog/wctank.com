@@ -7,5 +7,6 @@ scheduler.add_jobstore('sqlalchemy', url='sqlite:///wctank/jobs.db')
 
 ids = [x.id for x in scheduler.get_jobs()]
 
+populate.updateDb()
 if 'updatePostsDb' not in ids:
     scheduler.add_job(populate.updateDb, 'interval', hours=1, id='updatePostsDb')

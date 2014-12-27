@@ -14,7 +14,7 @@ Options:
     run         Only run server.
 """
 
-from wctank import app, db, populate, scheduler
+from wctank import app, db, scheduler
 from docopt import docopt
 
 if __name__ == '__main__':
@@ -22,7 +22,6 @@ if __name__ == '__main__':
 
     def bootstrap():
         db.create_all()
-        populate.updateDb()
         scheduler.scheduler.start()
 
     if args['dev'] == True:
