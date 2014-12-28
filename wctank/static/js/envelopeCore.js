@@ -1,6 +1,12 @@
 define(
+    [
+        'util',
+        'audio',
+        'audioUtil',
+        'tween'
+    ],
 
-function() { var envelopeCore = {};
+function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
 
     // value = arbitrary param value
     // time = percentage
@@ -368,6 +374,92 @@ function() { var envelopeCore = {};
         return concatted;
     };
 
+    envelopeCore.apply = function(target, envelope, offset) {
+        // if the target is an AudioParam, this is all pretty easy
+        var off = (typeof offset === 'number') ? offset : 10;
+        
+        if (target instanceof AudioParam) {
+            envelope.valueSequence.forEach(function(val) {
+                var t = audio.ctx.currentTime + util.time.msec2sec(off) + 
+                    util.time.msec2sec(val.time);
+                if (val.interpolationType === 'linear') {
+                    target.linearRampToValueAtTime(val.value, t);
+                } else if (val.interpolationType === 'exponential') {
+                    target.exponentialRampToValueAtTime(val.value, t);
+                } else if (val.interpolationType === 'none') {
+                    target.setValueAtTime(val.value, t);
+                }
+            });
+        } else {
+            // ARRGH! It's an arbitrary function!
+            // So, we assume that updating at visual rate is a-ok,
+            // and, I hope you don't expect to do any supa kewl microtiming
+            // involving intervals less than 10-15 msec or so.
+                    // need to initialize this properly
+                    // works assuming that first value is at time 0
+            var params = { value: Number(envelope.valueSequence[0].value) },
+                machine = new TWEEN.Tween(params);
+
+            machine.onUpdate(function() {
+                target(params.value);
+            });
+
+            var first = true,
+                prior_time = 0,
+                onCompleteCache = [],
+                c = 0;
+            
+            var queryCompleteCache = function() {
+                if (onCompleteCache[c]) {
+                    return onCompleteCache[c];
+                } else {
+                    return false;
+                }
+                c++;
+            };
+
+            // accomodate 'none'
+            var addToMachineQueue = function(v) {
+                var cycle = function() {
+                    if (v.interpolationType === 'linear') {
+                        machine.easing(TWEEN.Easing.Linear); 
+                    } else if (v.interpolationType === 'exponential') {
+                        machine.easing(TWEEN.Easing.Exponential);
+                    }
+                    machine.to({value: v.value}, v.time - prior_time);
+                    machine.onUpdate(function() {
+                        target(params.value);
+                    });
+                    var fn = queryCompleteCache();
+                    if (fn) machine.onComplete(fn);
+                    machine.start();
+                };
+                if (first) { // offset goes here??
+                    cycle(); 
+                } else {
+                    onCompleteCache.push(cycle);
+                }
+                prior_time = v.time;
+            };
+
+            envelope.valueSequence.forEach(function(val) {
+                if (val.interpolationType === 'none') {
+                    window.setTimeout( target(val.value), 
+                                       offset + val.time );
+                } else {
+                    addToMachineQueue(val); 
+                }
+            });
+            
+            onCompleteCache.push(function() {
+                audioUtil.stopTweens();
+            });
+
+            audioUtil.tween.startTweens();
+            machine.start();
+        }
+    };
+    
     //given an array of 2 item tuplets, return an array of EnvelopeValue functions
     envelopeCore.arrayToEnvelopeValues = function(arr) {
         var r = [];

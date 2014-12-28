@@ -5,7 +5,8 @@ define(
     ],
 
 function(util) { var rhythm = {};
-
+// stop and pause methods on clock?
+    // clarify Generator expression throwing names
     /*
      * Slow clock that can be used to synchronize 
      * actions between objects and / or trigger events
@@ -145,13 +146,17 @@ function(util) { var rhythm = {};
                 throw new Error(rhythmGeneratorError("config object must specify a "+
                     "'targets' property"));
             }
+            if ( !('seq' in v) ) {
+                throw new Error(rhythmGeneratorError("config object must specify a "+
+                    "'seq' property"));
+            }
             return v;
         };
-
+// can be an audio param, a parameterized action, or a function
         var validateTargets = function(t) {
             for (var targ in t) {
                 if (t.hasOwnProperty(targ)) {
-                    if ( !(targ[t] instanceof instrument.ParameterizedAction) ) {
+                    if ( !(t[targ] instanceof instrument.ParameterizedAction) ) {
                         throw new TypeError(rhythmGeneratorError("All targets must be "+
                             "instances of instrument.ParameterizedAction."));
                     } 
@@ -171,6 +176,7 @@ function(util) { var rhythm = {};
             if (typeof f !== 'function') {
                 throw new TypeError(rhythmGeneratorError('callback must be a function'));
             }
+            return f;
         };
 
         var validateRhythmicSequence = function(s) {
@@ -226,12 +232,6 @@ function(util) { var rhythm = {};
             }
         });
         this.clock = clock;
-       
-        if (config) {
-            var c = validateConfig(config);
-            this.targets = c.targets;
-            this.rhythmicSequence = c.seq;
-        } 
 
         Object.defineProperties(this, {
             "loop": {
@@ -246,12 +246,36 @@ function(util) { var rhythm = {};
             }
         });
 
+        if (config) {
+            var c = validateConfig(config);
+            this.targets = c.targets;
+            this.rhythmicSequence = c.seq;
+            if ('opt' in c) {
+                this.loop = c.opt.loop;
+                this.retrograde = c.opt.retrograde;
+            }
+        }
+        var clock_hashes = []; 
         this.execute = function() {
-
+            for (var t in targ) {
+                if (targ.hasOwnProperty(t)) {
+                    // create anon function and pass to clock queue
+                    // anon function, if looped, calls back to this.execute
+                    if (targ[t].type === 'AudioParam') {
+                        // schedule the beat in advance
+                        // get env of  
+                    } else { // target is anon fn
+                        // schedule beat of timeouts
+                    }
+                    
+                    // loop? this.execute()
+                }
+            }
         }; 
 
         this.shirk = function() {
-
+            // cancel scheduled events if audio param, flag loop off
+            // cancel timeouts if anon 
         }; 
 
         // helper to scale rhythm at new bpm
