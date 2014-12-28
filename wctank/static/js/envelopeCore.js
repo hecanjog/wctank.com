@@ -276,9 +276,6 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
     delete envelopeCore.AbsoluteEnvelope.prototype.toAbsolute;
 
     envelopeCore.interpolation = {
-        // this will have to be good enough for now until 
-        // audioWorkers are fuly implemented across browsers and we can implement
-        // vibrato and similar effects with an LFO or something
         linearRefraction: function(a, b, n, refractMag) {
             var dy = b.value - a.value,
                 dx = b.time - a.time,
@@ -289,7 +286,6 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
 
             var point = new envelopeCore.EnvelopeValue(inter_val, n.time); 
 
-            // modify point.value in direction of n.value by reflectMag
             point.value += n.value * refractMag;
 
             return point;
@@ -360,7 +356,29 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
         return concatted;
     };
 
+    var Cancelable = function(target) {
+        var t = target;
+        if (t instanceof TWEEN.Tween) {
+            this.cancel = function() {
+                t.stop();
+                audioUtil.tween.stopTweens();
+            };
+        } else if (t instanceof AudioParam) {
+            this.cancel = function() {
+                t.cancelScheduledValues();
+            };
+        } else if (Array.isArray(t)) {
+            this.cancel = function() {
+                t.forEach(function(v) {
+                    clearTimeout(v);
+                });
+            };
+        }
+    };
+// cancelables need to expire
     envelopeCore.apply = function(target, envelope, offset) {
+        var r;
+        
         // if the target is an AudioParam, this is all pretty easy
         var off = (typeof offset === 'number') ? offset : 10;
         
@@ -376,6 +394,9 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
                     target.setValueAtTime(val.value, t);
                 }
             });
+
+            r = target;
+
         } else {
             // ARRGH! It's an arbitrary function!
             // So, we assume that updating at visual rate is a-ok,
@@ -391,7 +412,7 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
             });
 
             var first = true,
-                prior_time = 0,
+                prior_time = off,
                 onCompleteCache = [],
                 c = 0;
             
@@ -404,7 +425,6 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
                 c++;
             };
 
-            // accomodate 'none'
             var addToMachineQueue = function(v) {
                 var cycle = function() {
                     if (v.interpolationType === 'linear') {
@@ -425,13 +445,14 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
                 } else {
                     onCompleteCache.push(cycle);
                 }
-                prior_time = v.time;
+                prior_time = v.time + off;
             };
 
+            var timeout_ids = [];
             envelope.valueSequence.forEach(function(val) {
                 if (val.interpolationType === 'none') {
-                    window.setTimeout( target(val.value), 
-                                       offset + val.time );
+                    timeout_ids.push(window.setTimeout(target(val.value), 
+                                       offset + val.time));
                 } else {
                     addToMachineQueue(val); 
                 }
@@ -443,7 +464,15 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
 
             audioUtil.tween.startTweens();
             machine.start();
+            
+            if (timeout_ids.length > 0) {
+                r = timeout_ids;
+            } else {
+                r = machine;
+            }
         }
+        
+        return new Cancelable(r);
     };
     
     //given an array of 2 item tuplets, return an array of EnvelopeValue functions

@@ -1,10 +1,11 @@
 define(
     [
         'util',
-        'instrument'
+        'instrument',
+        'envelopeCore'
     ],
 
-function(util) { var rhythm = {};
+function(util, instrument, envelopeCore) { var rhythm = {};
 // stop and pause methods on clock?
     // clarify Generator expression throwing names
     /*
@@ -67,6 +68,10 @@ function(util) { var rhythm = {};
             loop();    
         };
 
+        this.dbg = function() {
+            return queue;
+        }
+
         Object.defineProperty(this, 'cycleCount', {
             get: function() { return cycles; },
         });
@@ -81,6 +86,7 @@ function(util) { var rhythm = {};
                 checkAndSetBpm(val);
             }
         });
+        if (tempo) this.bpm = tempo;
 
         Object.defineProperty(this, 'smudgeFactor', {
             get: function() { return smudge; },
@@ -88,7 +94,7 @@ function(util) { var rhythm = {};
         });
 
         this.push = function(fn) {
-            var hash = util.hashCode(fn.toString());
+            var hash = util.hashCode((Math.random() * 100000).toString());
             queue[hash] = fn;
             return hash;
         };
@@ -255,29 +261,86 @@ function(util) { var rhythm = {};
                 this.retrograde = c.opt.retrograde;
             }
         }
-        var clock_hashes = []; 
+
+        var clock_fns = [],
+            cancelables = [];
+             
         this.execute = function() {
-            for (var t in targ) {
-                if (targ.hasOwnProperty(t)) {
-                    // create anon function and pass to clock queue
-                    // anon function, if looped, calls back to this.execute
-                    if (targ[t].type === 'AudioParam') {
-                        // schedule the beat in advance
-                        // get env of  
-                    } else { // target is anon fn
-                        // schedule beat of timeouts
+            var subd2time = function(subd) {
+                return (60 / clk.bpm) * 1000 * subd;
+            };
+
+            var q = {},
+                prior_time = 0,
+                i = 0;
+
+            for (var step in rseq) {
+                if (rseq.hasOwnProperty(step)) {
+                    if (step === 'off') {
+                        prior_time = subd2time(rseq[step].subd);
+                    } else {
+                        (function() {
+                            var time = prior_time,
+                                values = {};
+
+                            if (rseq[step].val) {
+                                var stepValues = rseq[step].val;
+                                for (var t in stepValues) {
+                                    if (stepValues.hasOwnProperty(t)) {
+                                        var ce = targ[t].createEnvelope;
+                                        values[t] = ce ? ce(stepValues(t)) : ce;
+                                    }
+                                }
+                            } else {
+                                values = null; 
+                            }
+                            q[i++] = {time: time, values: values};
+                            prior_time = time + subd2time(rseq[step].subd); 
+                        }());
                     }
-                    
-                    // loop? this.execute()
                 }
             }
+
+            var clk_q_id = clk.push(function() {
+                for (var s in q) {
+                    if (q.hasOwnProperty(s)) {
+                        for (var t in q[s].values) {
+                            if (q[s].values.hasOwnProperty(t)) {
+                                cancelables.push(
+                                    envelopeCore.apply(
+                                        targ[t].target, 
+                                        q[s].values[t] ? q[s].values[t] : targ[t].envelope,
+                                        q[s].time
+                                    )
+                                );
+                            }
+                        }
+                    }
+                }
+            });
+            
+            clock_fns.push(clk_q_id);
+
+                    // loop? this.execute() -- calc total length and 
+                    // schedule this.execute against next beat and 
+                    // add to offset
         }; 
 
         this.shirk = function() {
+            clock_fns.forEach(function(v) {
+                clk.rm(v);
+            });
+            cancelables.forEach(function(v) {
+                v.cancel();
+            });
             // cancel scheduled events if audio param, flag loop off
             // cancel timeouts if anon 
         }; 
 
+        this.dbg = function() {
+            console.log(cancelables);
+            console.log(clock_fns);
+        }
         // helper to scale rhythm at new bpm
     };
 

@@ -124,7 +124,40 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
             }
         });
 
+        
+
         var trigger = new instrument.ParameterizedAction(noise.gain.gain);
+        trigger.envelope = noiseAsdr.getASDR(1000);
+
+        var clock = new rhythm.Clock(60);
+        var rhythmGen = new rhythm.Generator(clock, {
+            targets: {
+                noise: trigger
+            },
+            seq: {
+                0: {
+                    subd: 0.11111,
+                    val: {
+                        noise: false
+                    }
+                },
+                1: {
+                    subd: 0.5,
+                    val: {
+                        noise: false
+                    }
+                },
+                2: {
+                    subd: 0.5,
+                    val: {
+                        noise: false
+                    }
+                }
+
+            }
+        });
+
+        window.rhythmGen = rhythmGen;
         // trigger.rhythmicSequence = "p0.25{3}    
         // rhythm should be 
         this.on = function() {

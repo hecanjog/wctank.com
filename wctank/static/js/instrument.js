@@ -52,7 +52,14 @@ function(envelopeCore) { var instrument = {};
         this.execute = function(offset) {
             envelopeCore.apply(parent.target, parent.envelope, offset);
         };
-    
+  
+        /*
+         * Overwrite createEnvelope with a function that can be called to generate a new
+         * envelope for this ParameterizedAction. rhythm.Generator will call this and apply the
+         * envelope returned, unless the value is left falsy, in which case it will use
+         * this.envelope.
+         */ 
+        this.createEnvelope = null;
     };
 
     instrument.Instrument = function() {
