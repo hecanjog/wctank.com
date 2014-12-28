@@ -43,20 +43,6 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
         if (typeof time !== 'undefined') this.time = time;
     };
 
-   
-
-    // let's try this bad thing since we're the only people here.
-    Object.defineProperty(Array.prototype, 'envelopeValues', {
-        enumerable: false,
-        get: function() {
-            var r = [];
-            for (var i = 0; i < this.length; i = i + 2) {
-                r.push(new envelopeCore.EnvelopeValue(this[i], this[i + 1]));
-            }
-            return r;
-        }
-    });
-
     envelopeCore.Envelope = function Envelope() {
         var duration, interpolationType, interpolationArgs;       
         
