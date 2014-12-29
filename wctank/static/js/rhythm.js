@@ -264,7 +264,20 @@ function(util, instrument, envelopeCore) { var rhythm = {};
 
         var clock_fns = [],
             cancelables = [];
-             
+            
+        /*
+         *  Cancelables have an expiry date, so the Cancelables 
+         *  array occasionally needs to be purged
+         */
+        var purgeCancelables = function() {
+            cancelables.forEach(function(v, idx) {
+                if (!v.fresh) cancelables.splice(idx, 1);
+            });
+        };
+        window.setTimeout(function() {
+            purgeCancelables();
+        }, 1000);
+
         this.execute = function() {
             var subd2time = function(subd) {
                 return (60 / clk.bpm) * 1000 * subd;
@@ -330,7 +343,8 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             clock_fns.forEach(function(v) {
                 clk.rm(v);
             });
-            cancelables.forEach(function(v) {
+            purgeCancelables();
+            cancelables.forEach(function(v, idx) {
                 v.cancel();
             });
             // cancel scheduled events if audio param, flag loop off

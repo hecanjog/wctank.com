@@ -356,7 +356,7 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
         return concatted;
     };
 
-    var Cancelable = function(target) {
+    var Cancelable = function(target, expiration) {
         var t = target;
         if (t instanceof TWEEN.Tween) {
             this.cancel = function() {
@@ -374,8 +374,16 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
                 });
             };
         }
+        
+        this.fresh = true;
+
+        var parent = this;
+        window.setTimeout(function() {
+            parent.fresh = false;
+            parent.cancel = function() {};
+        }, expiration);
     };
-// cancelables need to expire
+
     envelopeCore.apply = function(target, envelope, offset) {
         var r;
         
@@ -396,7 +404,7 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
             });
 
             r = target;
-
+            
         } else {
             // ARRGH! It's an arbitrary function!
             // So, we assume that updating at visual rate is a-ok,
@@ -472,7 +480,7 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
             }
         }
         
-        return new Cancelable(r);
+        return new Cancelable(r, envelope.duration + off);
     };
     
     //given an array of 2 item tuplets, return an array of EnvelopeValue functions
