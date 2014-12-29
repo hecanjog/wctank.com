@@ -365,7 +365,7 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
             };
         } else if (t instanceof AudioParam) {
             this.cancel = function() {
-                t.cancelScheduledValues();
+                t.cancelScheduledValues(audio.ctx.currentTime);
             };
         } else if (Array.isArray(t)) {
             this.cancel = function() {
