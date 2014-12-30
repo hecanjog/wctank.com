@@ -9,7 +9,6 @@ setup(
         'flask', 
         'pytumblr',
         'Flask-SQLAlchemy',
-        'apscheduler',
         'docopt'
     ],
     scripts=['wct']

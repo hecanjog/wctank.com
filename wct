@@ -14,18 +14,22 @@ Options:
     run         Only run server.
 """
 
-from wctank import app, db
+from wctank import app, db, populate
 from docopt import docopt
 
 if __name__ == '__main__':
     args = docopt(__doc__)
 
-    if args['dev'] == True:
+    def bootstrap():
         db.create_all()
+        populate.updateDb()
+
+    if args['dev'] == True:
+        bootstrap()
         app.run('0.0.0.0')
 
     if args['bootstrap'] == True:
-        db.create_all()
+        bootstrap()
     
     if args['run'] == True:
         app.run('0.0.0.0')
