@@ -1,0 +1,6 @@
+*.egg-info
+*.swo
+*.swp
+*.swn
+*.pyc
+*.pid

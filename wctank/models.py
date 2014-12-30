@@ -12,4 +12,3 @@ class Post(db.Model):
         self.lat = lat
         self.lng = lng
         self.json = json
-

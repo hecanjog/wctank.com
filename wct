@@ -10,27 +10,22 @@ Usage:
 
 Options:
     dev         Bootstrap and run server locally for development.
-    bootstrap   Create and populate posts and jobs db, start scheduler daemon.
+    bootstrap   Create and populate posts and jobs db
     run         Only run server.
 """
 
-from wctank import app, db, populate, scheduler
+from wctank import app, db
 from docopt import docopt
 
 if __name__ == '__main__':
     args = docopt(__doc__)
 
-    def bootstrap():
-        db.create_all()
-        populate.updateDb()
-        scheduler.scheduler.start()
-
     if args['dev'] == True:
-        bootstrap()
+        db.create_all()
         app.run('0.0.0.0')
 
     if args['bootstrap'] == True:
-        bootstrap()
+        db.create_all()
     
     if args['run'] == True:
         app.run('0.0.0.0')
