@@ -333,24 +333,25 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             }
         });
 
-        if (config) {
-            if ( !('targets' in config) ) {
+        this.parseConfig = function(c) {
+            if ( !('targets' in c) ) {
                 throw new Error(rhythmGeneratorError("config object must specify a "+
                     "'targets' property"));
             }
-            if ( !('seq' in config) ) {
+            if ( !('seq' in c) ) {
                 throw new Error(rhythmGeneratorError("config object must specify a "+
                     "'seq' property"));
             }
 
-            this.targets = config.targets;
-            this.rhythmicSequence = config.seq;
-            if ('opt' in config) {
-                this.loop = config.opt.loop;
-                this.retrograde = config.opt.retrograde;
+            this.targets = c.targets;
+            this.rhythmicSequence = c.seq;
+            if ('opt' in c) {
+                this.loop = c.opt.loop;
+                this.retrograde = c.opt.retrograde;
             }
-        }
-
+        };
+        if (config) this.parseConfig(config);
+            
         var clock_fns = [],
             cancelables = [];
         
