@@ -6,7 +6,9 @@ define(
     ],
 
 function(util, instrument, envelopeCore) { var rhythm = {};
-   
+  
+    // TODO: 'locked' looping mode, 
+
     /*
      * gross clock. NOT ACCURATE ENOUGH FOR MICROTIMING!
      */ 
@@ -14,8 +16,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         //  count param to synchro events
         //  watcher attach
         //  .sync() - sync multiple Clocks
-        var parent = this;
-
         var queue = {},
             smudge, bpm, last, next,
             isOn = false,
@@ -109,7 +109,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                         "param if a bpm was previously defined through assignment or "+
                         "a prior start call.");
                 } else if (typeof n !== 'undefined') {
-                    parent.bpm = n;
+                    this.bpm = n;
                 }
                 if (wasPaused) {
                     window.setTimeout(function() {
@@ -136,14 +136,13 @@ function(util, instrument, envelopeCore) { var rhythm = {};
     };
     
     /*
-     * invoked in .Generator when looping. Adds a function to 
-     * each rhythm.Generator.clock queue that requeues rhythms.
+     * invoked in .Generator when performing floating clock loops. 
+     * Adds a function to each rhythm.Generator.clock queue that requeues rhythms.
      */
-    var rhythmReinitializer = (function(reinit) {
+    var floatingLoopReinitializer = (function(reinit) {
         var rq = {},
             all_clocks = [],
-            ids = [],
-            last;
+            ids = [];
         
         //TODO: destroy functionality (using ids array)
         
@@ -164,7 +163,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                     }
                 }
             }
-            last = now;
         };
 
         var rval = function(duration, fn, clock) {
@@ -175,7 +173,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             this.updateEndTime = function(startTime) {
                 this.endTime = startTime + duration;
             };
-
         };
         
         reinit.push = function(duration, fn, clock) {
@@ -219,7 +216,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         var clk, targ, rseq,
             loop = false, 
             was_loopin = false,
-            parent = this;
+            locked = 0;
 
         // 'locked' flag to loop on each beat or multiples of beats
             //
@@ -235,11 +232,27 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             throw new Error(rhythmGeneratorError("All rhythmic breakpoints must "+
                 "specify a '"+name+"' property."));
         };
+        var throwRhythmTypeError = function(mess) {
+            throw new TypeError(rhythmGeneratorError(mess));
+        };
        
         //TODO: implement retrograde playback
         Object.defineProperty(this, 'retrograde', {
             value: false,
             writable: true
+        });
+
+        Object.defineProperty(this, 'locked', {
+            get: function() { return locked; },
+            set: function(v) {
+                // false, number >= 0
+                if ( (v === false) || (v >= 0) ) {
+                    locked = v;
+                } else {
+                     throw new Error(rhythmGeneratorError(".locked must be "+
+                        "false or a NUMBER >= 0, not "+v));
+                }
+            }
         });
 
         Object.defineProperty(this, 'loop', {
@@ -257,11 +270,14 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         Object.defineProperty(this, 'clock', {
             get: function() { return clk; },
             set: function(v) {
-                if (v instanceof rhythm.Clock) {
+                if (typeof v === 'undefined') {
+                    throwRhythmTypeError('rhythm.Generator must be constructed '+
+                        'with a reference to an instance of rhythm.Clock');
+                } else if (v instanceof rhythm.Clock) {
                     clk = v; 
                 } else {
-                    throw new TypeError(rhythmGeneratorError('rhythm.Generator.clock '+
-                        'must be an instance of rhythm.Clock'));
+                    throwRhythmTypeError('rhythm.Generator.clock must be an '+
+                        'instance of rhythm.Clock');
                 }
             }
         });
@@ -273,8 +289,8 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                 for (var t in targets) {
                     if (targets.hasOwnProperty(t)) {
                         if ( !(targets[t] instanceof instrument.ParameterizedAction) ) {
-                            throw new TypeError(rhythmGeneratorError("All targets must be "+
-                                "instances of instrument.ParameterizedAction."));
+                            throwRhythmTypeError("All targets must be "+
+                                "instances of instrument.ParameterizedAction.");
                         } 
                     }
                 }
@@ -288,7 +304,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             set: function(s) {
                 var validateCallbackType = function(f) {
                     if (typeof f !== 'function') {
-                        throw new TypeError(rhythmGeneratorError('callback must be a function'));
+                        throwRhythmTypeError('callback must be a function');
                     }
                     return f;
                 };
@@ -379,35 +395,41 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                 }
             }
 
-            var reinitId = "I went to Rancho Cucamonga once. Someone I knew milked a goat.";
+            var reinitId = "I went to Santee once. Someone I knew milked a goat.";
 
             var clk_q_id = clk.push(function sounder(offset) {
-                var off = offset ? offset : 0;
-                
-                for (var s in q) {
-                    if (q.hasOwnProperty(s)) {
-                        for (var t in q[s].values) {
-                            if (q[s].values.hasOwnProperty(t)) {
-                                cancelables.push(
-                                    envelopeCore.apply(
-                                        targ[t].target,
-                                        q[s].values[t] ? q[s].values[t] : targ[t].envelope,
-                                        q[s].time + off
-                                    )
-                                );
+                var off = offset ? offset : 0,
+                    bang = false;
+
+                if ( !locked || (clk.cycleCount % locked === 0) ) {
+                    bang = true;
+                    for (var s in q) {
+                        if (q.hasOwnProperty(s)) {
+                            for (var t in q[s].values) {
+                                if (q[s].values.hasOwnProperty(t)) {
+                                    cancelables.push(
+                                        envelopeCore.apply(
+                                            targ[t].target,
+                                            q[s].values[t] ? 
+                                                q[s].values[t] : targ[t].envelope,
+                                            q[s].time + off
+                                        )
+                                    );
+                                }
                             }
                         }
-
                     }
                 }
-                clk.rm(clk_q_id);
                 
-                if (loop && !rhythmReinitializer.inQueue(reinitId)) {
-                    reinitId = 
-                        rhythmReinitializer.push(prior_time, sounder, parent.clock);
-                }
-                if (was_loopin) {
-                    rhythmReinitializer.rm(reinitId);
+                if (!locked || (!loop && bang)) clk.rm(clk_q_id); // rm from clock_fns
+
+                if (!locked) {
+                    if (loop && !floatingLoopReinitializer.inQueue(reinitId)) {
+                        reinitId = floatingLoopReinitializer.push(prior_time, sounder, clk);
+                    }
+                    if (was_loopin) {
+                        floatingLoopReinitializer.rm(reinitId);
+                    }
                 }
             });
             clock_fns.push(clk_q_id);
@@ -437,6 +459,8 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             cancelables.forEach(function(v, idx) {
                 v.cancel();
             });
+            this.loop = false;
+            this.locked = 0;
             // cancel timeouts if anon 
         }; 
         // helper to scale rhythm at new bpm
