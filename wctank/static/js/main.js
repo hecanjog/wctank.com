@@ -96,6 +96,7 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
         // move tweenUtil into sceneGraph module, not audioUtil
         // throw error objects, not strings
         // Generator setter in shorthand syntax
+        // rhythmGen.execute should start ref'd clock.
         var noiseAsdr = new asdr.Generator({
             a: {
                 dur: 200,
@@ -135,22 +136,10 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
                 noise: trigger
             },
             seq: {
-                0: {
-                    subd: 0.11111,
-                    val: {
-                        noise: false
-                    }
-                },
                 1: {
-                    subd: 0.5,
+                    subd: 1.3,
                     val: {
-                        noise: false
-                    }
-                },
-                2: {
-                    subd: 0.5,
-                    val: {
-                        noise: false
+                        noise: ""
                     }
                 }
 
@@ -158,8 +147,7 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
         });
 
         window.rhythmGen = rhythmGen;
-        // trigger.rhythmicSequence = "p0.25{3}    
-        // rhythm should be 
+        
         this.on = function() {
             trigger.envelope = noiseAsdr.getAS();
             trigger.execute();

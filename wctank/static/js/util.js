@@ -11,7 +11,8 @@ define(
        }
        this.length--;
        Object.defineProperty(this, "length", {
-           writable: false
+           writable: false,
+           enumerable: false
        });
     },
 

@@ -6,20 +6,18 @@ define(
     ],
 
 function(util, instrument, envelopeCore) { var rhythm = {};
-// stop and pause methods on clock?
-    // clarify Generator expression throwing names
+   
     /*
-     * Slow clock that can be used to synchronize 
-     * actions between objects and / or trigger events
-     */
+     * gross clock. NOT ACCURATE ENOUGH FOR MICROTIMING!
+     */ 
     rhythm.Clock = function(tempo, smudgeFactor) {
         //  count param to synchro events
         //  watcher attach
-        //  .sync()
+        //  .sync() - sync multiple Clocks
         var parent = this;
 
         var queue = {},
-            smudge, bpm,
+            smudge, bpm, last, next,
             isOn = false,
             cycles = 0, 
             id, wasPaused, beat_start, beat_remaining;
@@ -27,35 +25,15 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         var throwClockParamException = function(mess) {
             throw new RangeError("Invalid Clock param: " + mess);
         };
-
-        var checkAndSetSmudge = function(n) {
-            if ( (typeof n === 'undefined') || (n < 0) ) {
-                throwClockParamException("smudgeFactor must be "+
-                    "a Number greater than or equal to zero, not " + n + "."); 
-            } else {
-                smudge = n;
-            }
-        };
         
-        var bpm2msec = function(n) {
-            return 60000 / n;
-        };
-        var checkAndSetBpm = function(n) {
-            if ( (typeof n !== 'number') || (n <= 0) ) {
-                throwClockParamException("bpm must be a Number "+
-                    "greater than zero, not " + n + ".");
-            } else {
-                bpm = n;
-            }                
-        };
-
-        if (typeof BPM !== 'undefined') checkAndSetBpm(BPM);
-        if (typeof smudgeFactor !== 'undefined') checkAndSetSmudge(smudgeFactor);
-
         var machine = function() {
             var loop = function() {
-                var msec = bpm2msec(bpm),
+                var msec = 60000 / bpm,
                     time = (smudge > 0) ? util.smudgeNumber(msec, smudge) : msec;
+                
+                last = next;
+                next = performance.now() + time;
+                
                 id = window.setTimeout(function() {
                     beat_start = (performance.now() + 0.5) | 0;
                     for (var fn in queue) {
@@ -68,36 +46,53 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             loop();    
         };
 
-        this.dbg = function() {
-            return queue;
-        }
-
-        Object.defineProperty(this, 'cycleCount', {
-            get: function() { return cycles; },
+        Object.defineProperties(this, {
+            'cycleCount': {
+                get: function() { return cycles; }
+            },
+            'isEngaged': {
+                get: function() { return isOn; }
+            },
+            'nextBeat': {
+                get: function() { return next; }
+            },
+            'lastBeat': {
+                get: function() { return last; }
+            }
         });
-
-        Object.defineProperty(this, 'isEngaged', {
-            get: function() { return isOn; }
-        });
-
+                
         Object.defineProperty(this, 'bpm', {
             get: function() { return bpm; },
-            set: function(val) { 
-                checkAndSetBpm(val);
+            set: function(n) {
+                if ( (typeof n !== 'number') || (n <= 0) ) {
+                    throwClockParamException("bpm must be a Number "+
+                    "greater than zero, not " + n + ".");
+                } else {
+                    bpm = n;
+                }                
             }
         });
         if (tempo) this.bpm = tempo;
 
         Object.defineProperty(this, 'smudgeFactor', {
             get: function() { return smudge; },
-            set: function(val) { checkAndSetSmudge(val); }
+            set: function(n) {
+                if ( (typeof n === 'undefined') || (n < 0) ) {
+                    throwClockParamException("smudgeFactor must be "+
+                        "a Number greater than or equal to zero, not " + n + "."); 
+                } else {
+                    smudge = n;
+                }
+            }
         });
+        if (smudgeFactor) this.smudgeFactor = smudgeFactor;
 
         this.push = function(fn) {
             var hash = util.hashCode((Math.random() * 100000).toString());
             queue[hash] = fn;
             return hash;
         };
+
         this.rm = function(hash) {
             delete queue[hash];
         };
@@ -114,7 +109,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                         "param if a bpm was previously defined through assignment or "+
                         "a prior start call.");
                 } else if (typeof n !== 'undefined') {
-                    checkAndSetBpm(n);
+                    parent.bpm = n;
                 }
                 if (wasPaused) {
                     window.setTimeout(function() {
@@ -126,10 +121,12 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                 }
             }
         };
+
         this.stop = function() {
             isOn = false;
             clearTimeout(id);
         };
+
         this.pause = function() {
             this.stop();
             wasPaused = true;
@@ -137,40 +134,100 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             beat_remaining = paused_at - beat_start;
         };
     };
+    
+    /*
+     * invoked in .Generator when looping. Adds a function to 
+     * each rhythm.Generator.clock queue that requeues rhythms.
+     */
+    var rhythmReinitializer = (function(reinit) {
+        var rq = {},
+            all_clocks = [],
+            ids = [],
+            last;
+        
+        //TODO: destroy functionality (using ids array)
+        
+        var comparator = function() {
+            var exists = function(obj) {
+                return typeof obj !== 'undefined';
+            };
+
+            var now = performance.now();
+            for (var r in rq) {
+                // undefined check b/c rval obj may be derefrenced during execution
+                //TODO: why after an .rm does this occur on updateEndTime?
+                if (rq.hasOwnProperty(r)) {
+                    if (rq[r].endTime < rq[r].clock.nextBeat) {
+                        var offset = rq[r].endTime - rq[r].clock.lastBeat;
+                        rq[r].fn(offset);
+                        if (exists(rq[r])) rq[r].updateEndTime(now + offset);
+                    }
+                }
+            }
+            last = now;
+        };
+
+        var rval = function(duration, fn, clock) {
+            this.duration = duration;
+            this.fn = fn;
+            this.clock = clock;
+            this.endTime = 0;
+            this.updateEndTime = function(startTime) {
+                this.endTime = startTime + duration;
+            };
+
+        };
+        
+        reinit.push = function(duration, fn, clock) {
+            last = performance.now();
+            var found = false;
+            for (var i = 0; i < all_clocks.length; i++) {
+                if (all_clocks[i] === clock) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                all_clocks.push(clock);
+                ids.push(clock.push(comparator));
+            }
+
+            var rhy = new rval(duration, fn, clock);
+            // need to be sure that .push is only called on beat
+            rhy.updateEndTime(performance.now());
+
+            var id = util.hashCode((Math.random() * 100000).toString());
+            rq[id] = rhy;
+
+            return id;
+        };
+
+        reinit.rm = function(id) {
+            delete rq[id];
+        };
+
+        reinit.inQueue = function(id) {
+            return (id in rq); 
+        };
+
+        return reinit;
+    }({}));
 
     // given a ref to a rhythm.Clock, and a group of parameterized actions,
     // step or exceute each action according to a rhythm rep
     rhythm.Generator = function(clock, config) {
-        var clk, targ, rseq;
-        
+        var clk, targ, rseq,
+            loop = false, 
+            was_loopin = false,
+            parent = this;
+
+        // 'locked' flag to loop on each beat or multiples of beats
+            //
+
         var rhythmGeneratorError = function(mess) {
             return 'Invalid rhythm.Generator param: '+mess;
         };
-
-        var validateConfig = function(v) {
-            if ( !('targets' in v) ) {
-                throw new Error(rhythmGeneratorError("config object must specify a "+
-                    "'targets' property"));
-            }
-            if ( !('seq' in v) ) {
-                throw new Error(rhythmGeneratorError("config object must specify a "+
-                    "'seq' property"));
-            }
-            return v;
-        };
-// can be an audio param, a parameterized action, or a function
-        var validateTargets = function(t) {
-            for (var targ in t) {
-                if (t.hasOwnProperty(targ)) {
-                    if ( !(t[targ] instanceof instrument.ParameterizedAction) ) {
-                        throw new TypeError(rhythmGeneratorError("All targets must be "+
-                            "instances of instrument.ParameterizedAction."));
-                    } 
-                }
-            }
-            return t;
-        };
-        
+                
         var throwRhythmRangeError = function(mess) {
             throw new RangeError(rhythmGeneratorError(mess));
         };
@@ -178,54 +235,25 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             throw new Error(rhythmGeneratorError("All rhythmic breakpoints must "+
                 "specify a '"+name+"' property."));
         };
-        var validateCallbackType = function(f) {
-            if (typeof f !== 'function') {
-                throw new TypeError(rhythmGeneratorError('callback must be a function'));
-            }
-            return f;
-        };
+       
+        //TODO: implement retrograde playback
+        Object.defineProperty(this, 'retrograde', {
+            value: false,
+            writable: true
+        });
 
-        var validateRhythmicSequence = function(s) {
-            for (var prop in s) {
-                if (s.hasOwnProperty(prop)) {
-                    if ( !('subd' in s[prop]) ) {
-                        throwRhythmPropError('subd');
-                    } else if (s[prop].subd < 0) {
-                        throwRhythmRangeError("{rhythm}."+prop+".subd must be greater than 0");
-                    }
-                    if (prop !== 'off') {
-                        if ( !('val' in s[prop]) ) {
-                            throwRhythmPropError('val');
-                        }
-                    }
-                    if ('call' in s[prop]) {
-                        if (Array.isArray(s[prop].call)) {
-                            s[prop].call.forEach(function(v) {
-                                validateCallbackType(v);
-                            });
-                        } else {
-                            validateCallbackType(s[prop].call);
-                        }
-                    }
+        Object.defineProperty(this, 'loop', {
+            get: function() { return loop; },
+            set: function(v) {
+                if (!v) {
+                    if (loop) was_loopin = true;
+                } else {
+                    was_loopin = false;
                 }
-            }
-            return s;
-        };
-
-        Object.defineProperty(this, 'targets', {
-            get: function() { return targ; },
-            set: function(v) {
-                targ = validateTargets(v);
-            }        
-        });
-
-        Object.defineProperty(this, 'rhythmicSequence', {
-            get: function() { return rseq; },
-            set: function(v) {
-                rseq = validateRhythmicSequence(v);
+                loop = v;
             }
         });
-        
+
         Object.defineProperty(this, 'clock', {
             get: function() { return clk; },
             set: function(v) {
@@ -238,46 +266,83 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             }
         });
         this.clock = clock;
+        
+        Object.defineProperty(this, 'targets', {
+            get: function() { return targ; },
+            set: function(targets) {
+                for (var t in targets) {
+                    if (targets.hasOwnProperty(t)) {
+                        if ( !(targets[t] instanceof instrument.ParameterizedAction) ) {
+                            throw new TypeError(rhythmGeneratorError("All targets must be "+
+                                "instances of instrument.ParameterizedAction."));
+                        } 
+                    }
+                }
+                targ = targets;
+                util.objectLength.call(targ);
+            }
+        });
 
-        Object.defineProperties(this, {
-            "loop": {
-                value: false,
-                writable: true,
-                configurable: false
-            },
-            "retrograde": {
-                value: false,
-                writable: true,
-                configurable: false
+        Object.defineProperty(this, 'rhythmicSequence', {
+            get: function() { return rseq; },
+            set: function(s) {
+                var validateCallbackType = function(f) {
+                    if (typeof f !== 'function') {
+                        throw new TypeError(rhythmGeneratorError('callback must be a function'));
+                    }
+                    return f;
+                };
+                for (var prop in s) {
+                    if (s.hasOwnProperty(prop)) {
+                        if ( !('subd' in s[prop]) ) {
+                            throwRhythmPropError('subd');
+                        } else if (s[prop].subd < 0) {
+                            throwRhythmRangeError("{rhythm}."+prop+".subd must be greater than 0");
+                        }
+                        // TODO: enforce existance of targets
+                        // TODO: allow not defining a val prop if only one target
+                        // and no env recalculation
+                        if (prop !== 'off') {
+                            if ( !('val' in s[prop]) ) {
+                                throwRhythmPropError('val');
+                            }
+                        }
+                        if ('call' in s[prop]) {
+                            if (Array.isArray(s[prop].call)) {
+                                s[prop].call.forEach(function(v) {
+                                    validateCallbackType(v);
+                                });
+                            } else {
+                                validateCallbackType(s[prop].call);
+                            }
+                        }
+                    }
+                }
+                rseq = s;
             }
         });
 
         if (config) {
-            var c = validateConfig(config);
-            this.targets = c.targets;
-            this.rhythmicSequence = c.seq;
-            if ('opt' in c) {
-                this.loop = c.opt.loop;
-                this.retrograde = c.opt.retrograde;
+            if ( !('targets' in config) ) {
+                throw new Error(rhythmGeneratorError("config object must specify a "+
+                    "'targets' property"));
+            }
+            if ( !('seq' in config) ) {
+                throw new Error(rhythmGeneratorError("config object must specify a "+
+                    "'seq' property"));
+            }
+
+            this.targets = config.targets;
+            this.rhythmicSequence = config.seq;
+            if ('opt' in config) {
+                this.loop = config.opt.loop;
+                this.retrograde = config.opt.retrograde;
             }
         }
 
         var clock_fns = [],
             cancelables = [];
-            
-        /*
-         *  Cancelables have an expiry date, so the Cancelables 
-         *  array occasionally needs to be purged
-         */
-        var purgeCancelables = function() {
-            cancelables.forEach(function(v, idx) {
-                if (!v.fresh) cancelables.splice(idx, 1);
-            });
-        };
-        window.setTimeout(function() {
-            purgeCancelables();
-        }, 1000);
-
+        
         this.execute = function() {
             var subd2time = function(subd) {
                 return (60 / clk.bpm) * 1000 * subd;
@@ -314,47 +379,66 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                 }
             }
 
-            var clk_q_id = clk.push(function() {
+            var reinitId = "I went to Rancho Cucamonga once. Someone I knew milked a goat.";
+
+            var clk_q_id = clk.push(function sounder(offset) {
+                var off = offset ? offset : 0;
+                
                 for (var s in q) {
                     if (q.hasOwnProperty(s)) {
                         for (var t in q[s].values) {
                             if (q[s].values.hasOwnProperty(t)) {
                                 cancelables.push(
                                     envelopeCore.apply(
-                                        targ[t].target, 
+                                        targ[t].target,
                                         q[s].values[t] ? q[s].values[t] : targ[t].envelope,
-                                        q[s].time
+                                        q[s].time + off
                                     )
                                 );
                             }
                         }
+
                     }
                 }
+                clk.rm(clk_q_id);
+                
+                if (loop && !rhythmReinitializer.inQueue(reinitId)) {
+                    reinitId = 
+                        rhythmReinitializer.push(prior_time, sounder, parent.clock);
+                }
+                if (was_loopin) {
+                    rhythmReinitializer.rm(reinitId);
+                }
             });
-            
             clock_fns.push(clk_q_id);
-
-                    // loop? this.execute() -- calc total length and 
-                    // schedule this.execute against next beat and 
-                    // add to offset
         }; 
 
+        /*
+         *  Cancelables have an expiry date, so the Cancelables 
+         *  array occasionally needs to be culled
+         *
+         *  the cancelables array is culled both on Generator.shirk calls,
+         *  as well as once per second
+         */
+        var cullCancelables = function() {
+            cancelables.forEach(function(v, idx) {
+                if (!v.fresh) cancelables.splice(idx, 1);
+            });
+        };
+        window.setInterval(function() {
+            cullCancelables();
+        }, 1000);
+        
         this.shirk = function() {
             clock_fns.forEach(function(v) {
                 clk.rm(v);
             });
-            purgeCancelables();
+            cullCancelables();
             cancelables.forEach(function(v, idx) {
                 v.cancel();
             });
-            // cancel scheduled events if audio param, flag loop off
             // cancel timeouts if anon 
         }; 
-
-        this.dbg = function() {
-            console.log(cancelables);
-            console.log(clock_fns);
-        }
         // helper to scale rhythm at new bpm
     };
 
