@@ -7,8 +7,6 @@ define(
 
 function(util, instrument, envelopeCore) { var rhythm = {};
   
-    // TODO: 'locked' looping mode, 
-
     /*
      * gross clock. NOT ACCURATE ENOUGH FOR MICROTIMING!
      */ 
@@ -218,9 +216,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             was_loopin = false,
             locked = 0;
 
-        // 'locked' flag to loop on each beat or multiples of beats
-            //
-
         var rhythmGeneratorError = function(mess) {
             return 'Invalid rhythm.Generator param: '+mess;
         };
@@ -401,7 +396,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                 var off = offset ? offset : 0,
                     bang = false;
 
-                if ( !locked || (clk.cycleCount % locked === 0) ) {
+                if (!locked || (clk.cycleCount % locked === 0)) {
                     bang = true;
                     for (var s in q) {
                         if (q.hasOwnProperty(s)) {
@@ -461,7 +456,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             });
             this.loop = false;
             this.locked = 0;
-            // cancel timeouts if anon 
         }; 
         // helper to scale rhythm at new bpm
     };
