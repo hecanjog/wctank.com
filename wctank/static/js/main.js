@@ -97,22 +97,32 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
     var bass = new instrumentDefs.noiseBass();    
 
     var clock = new rhythm.Clock(60);
-    var rhythmGen = new rhythm.Generator(clock, {
+    
+    var config = {
         targets: {
-            nb: bass.playAction
+            nb: bass
         },
-        seq: {
-            //0: { subd: 0.9, val: {nb: ""} },
-            //1: { subd: 0.207, val: {nb: ""} },
-            //2: { subd: 0.111, val: {nb: ""} },
-            //3: { subd: 0.5, val: {nb: ""} },
-            4: { subd: 0.10, val: {nb: ""} }
+        seq: { 
+            0: { subd: 0.01, val: {nb: ""}, rep: 5 },
+            1: { subd: 0.5, val: {nb: ""}, rep: 1 },
+            2: { subd: 0.25, val: {nb: ""}, rep: 1 },
+            3: { subd: 0.07, val: {nb: ""}},
+            4: { subd: 0.13, val: {nb: ""}}
         }
-    });
+        //TODO: repeats
+        //TODO: facilitate easy bpm changes
+    };
+    
+    var rhythmGen = new rhythm.Generator(clock, config);
     rhythmGen.loop = true;
-    rhythmGen.locked = 0;
-window.it = clock;
-        clock.start();
-        rhythmGen.execute(); 
+    
+    clock.push(function() {
+        console.log("bang!");
+    });     
+
+    clock.start();
+    rhythmGen.execute(); 
+
+    window.clock = clock;
 });
 

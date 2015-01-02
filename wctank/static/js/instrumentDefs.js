@@ -14,10 +14,12 @@ function(audio, audioElements, instrument, asdr, envelopeCore) { var instrumentD
         noise.gain.gain.value = 0.0;
         noise.start();
 
-        var verb = audioElements.SchroederReverb();
-        verb.wetDry(10);
+        var convo = audioElements.Convolution("/static/assets/carpark.mp3");
+        convo.wetDry(100);
+        convo.gain.gain.value = 1.0;
 
-        noise.link(verb).link(audio.out);
+        window.convo = convo;
+        noise.link(convo).link(audio.out);
 
         var noiseAsdrParams = {
             a: {
@@ -28,18 +30,18 @@ function(audio, audioElements, instrument, asdr, envelopeCore) { var instrumentD
                 val: [0, 0,  1, 99]
             },
             s: {
-                dur: 50,
-                val: 0.8
+                dur: 10,
+                val: 1
             },
             d: {
-                dur: 200,
+                dur: 50,
                 inter: {
                     type: 'linear'
                 },
                 val: [0.8, 0,  0.5, 99]
             },
             r: {
-                dur: 50,
+                dur: 10,
                 inter: {
                     type: 'linear'
                 },
@@ -52,12 +54,7 @@ function(audio, audioElements, instrument, asdr, envelopeCore) { var instrumentD
         var noiseAction = new instrument.ParameterizedAction(noise.gain.gain);
         noiseAction.envelope = noiseAsdr.getASDR();
 
-        this.play = function() {
-            noiseAction.execute();
-        };
-       
-        this.actionTarget = this.play;
-
+        this.actionTarget = noiseAction.execute;
     };
     instrumentDefs.noiseBass.prototype = new instrument.Instrument();
 

@@ -398,7 +398,6 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         if (this.constructor !== audio.AudioModule) 
             return new elements.Convolution(path_to_audio);
 
-        // TODO: parse audio sprites into multiple buffers for the convolver
         var nop = audioNodes.Gain(),
             conv = audioNodes.Convolve();
         conv.normalize = true;

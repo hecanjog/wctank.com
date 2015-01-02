@@ -129,10 +129,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             }
         };
 
-        this.dbg = function() {
-            return queue;
-        };
-
         this.stop = function() {
             isOn = false;
             clearTimeout(id);
@@ -295,33 +291,35 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         Object.defineProperty(this, 'targets', {
             get: function() { return targ; },
             set: function(targets) {
-                var r = [];
+                var r = {};
 
-                var checkTarget = function(o) {
-                    if (o instanceof instrument.ParameterizedAction) {
-                        r.push(o);
-                    } else if (typeof o === 'function') {
+                var checkTarget = function(toOperate, name) {
+                    if (toOperate[name] instanceof instrument.ParameterizedAction) {
+                        r[name] = toOperate[name];
+                    } else if (typeof toOperate === 'function') {
                         // a little help so you can just pass rhythm gen arbitrary 
                         // functions to call; if passing any particular values to 
                         // this function is unimportant
-                        var action = new instrument.ParameterizedAction(o);
+                        var action = new instrument.ParameterizedAction(toOperate);
                         var env = new envelopeCore.Envelope();
                         env.duration = 1000;
                         env.interpolationType = 'none';
                         env.valueSequence.push(new envelopeCore.EnvelopeValue(0, 0));
                         action.envelope = env.toAbsolute();
-                        r.push(action);
-                    } else if ('actionTarget' in o) {
-                        checkTarget(o.actionTarget);
+                        r[name] = action;
+                    } else if ('actionTarget' in toOperate) {
+                        checkTarget(toOperate.actionTarget, name);
                     } else {
-                        throwRhythmTypeError("All targets or their .actionTarget property "+
-                            "must be instances of instrument.ParameterizedAction, or functions.");
+                        throwRhythmTypeError("All targets must be instances of "+
+                            "must be instances of instrument.ParameterizedAction, functions, "+
+                            "or an instance of instrument.Instrument that overrides its "+
+                            "actionTarget property with a reference to one of the above.");
                     }
                 };
                
                 for (var t in targets) {
                     if (targets.hasOwnProperty(t)) {
-                        checkTarget(targets[t]);
+                        checkTarget(targets[t], t);
                     }
                 } 
 
@@ -406,21 +404,24 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                     } else {
                         (function() {
                             var time = prior_time,
-                                values = {};
-
-                            if (rseq[step].val) {
-                                var stepValues = rseq[step].val;
-                                for (var t in stepValues) {
-                                    if (stepValues.hasOwnProperty(t)) {
-                                        var ce = targ[t].createEnvelope;
-                                        values[t] = ce ? ce(stepValues(t)) : ce;
+                                values = {},
+                                repeats = rseq[step].rep ? rseq[step].rep : 1;
+                            
+                            while (repeats-- > 0) {
+                                if (rseq[step].val) {
+                                    var stepValues = rseq[step].val;
+                                    for (var t in stepValues) {
+                                        if (stepValues.hasOwnProperty(t)) {
+                                            var ce = targ[t].createEnvelope;
+                                            values[t] = ce ? ce(stepValues(t)) : ce;
+                                        }
                                     }
+                                } else {
+                                    values = null; 
                                 }
-                            } else {
-                                values = null; 
+                                q[i++] = {time: time, values: values};
+                                time = prior_time = time + subd2time(rseq[step].subd); 
                             }
-                            q[i++] = {time: time, values: values};
-                            prior_time = time + subd2time(rseq[step].subd); 
                         }());
                     }
                 }
