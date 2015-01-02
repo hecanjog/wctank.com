@@ -64,10 +64,10 @@ function(envelopeCore) { var instrument = {};
 
     instrument.Instrument = function() {
         /*
-         * Override .getTarget with a method that returns a parameterizedAction target
-         * for rhythm.Generator
+         * Override .actionTarget with a ref to a parameterized action that 
+         * can be called by rhythm.Generator
          */
-        this.getTarget;
+        this.actionTarget;
     };
 
 return instrument; });

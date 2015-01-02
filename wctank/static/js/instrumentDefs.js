@@ -56,14 +56,7 @@ function(audio, audioElements, instrument, asdr, envelopeCore) { var instrumentD
             noiseAction.execute();
         };
        
-        //TODO: create internal helpers for this, 'cause, this is way dumb. 
-        this.playAction = new instrument.ParameterizedAction(this.play);
-        var on = new envelopeCore.Envelope();
-        on.duration = 1000;
-        on.interpolationType = 'none';
-        on.valueSequence.push(new envelopeCore.EnvelopeValue(1, 0));
-        this.playAction.envelope = on.toAbsolute();
-
+        this.actionTarget = this.play;
 
     };
     instrumentDefs.noiseBass.prototype = new instrument.Instrument();

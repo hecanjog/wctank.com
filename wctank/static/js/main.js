@@ -66,6 +66,8 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
     // move tweenUtil into sceneGraph module, not audioUtil
     // throw error objects, not strings
     // rhythmGen.execute should start ref'd clock.?
+    // instrument.Instrument.getTarget helper and rhythm callbacks
+    // instrument.ParameterizedAction helper for value setters
 
     /*
      * map init work
@@ -100,24 +102,9 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
             nb: bass.playAction
         },
         seq: {
-            /*0: {
-                subd: 0.9,
-                val: {
-                    nb: ""
-                }
-            },
-            1: {
-                subd: 0.207,
-                val: {
-                    nb: ""
-                }
-            },
-            2: {
-                subd: 0.111,
-                val: {
-                    nb: ""
-                }
-            },*/
+            //0: { subd: 0.9, val: {nb: ""} },
+            //1: { subd: 0.207, val: {nb: ""} },
+            //2: { subd: 0.111, val: {nb: ""} },
             //3: { subd: 0.5, val: {nb: ""} },
             4: { subd: 0.10, val: {nb: ""} }
         }
@@ -127,6 +114,5 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
 window.it = clock;
         clock.start();
         rhythmGen.execute(); 
-        console.log(bass.playAction);
 });
 

@@ -25,9 +25,8 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         };
         
         var machine = function() {
-            var now = performance.now();
-            last = now - len; 
-            next = now + len;
+            last = performance.now(); 
+            next = last + len;
             
             var loop = function() {
                 var msec = 60000 / bpm,
@@ -293,20 +292,40 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         });
         this.clock = clock;
         
-// todo: incorporate getTarget
         Object.defineProperty(this, 'targets', {
             get: function() { return targ; },
             set: function(targets) {
+                var r = [];
+
+                var checkTarget = function(o) {
+                    if (o instanceof instrument.ParameterizedAction) {
+                        r.push(o);
+                    } else if (typeof o === 'function') {
+                        // a little help so you can just pass rhythm gen arbitrary 
+                        // functions to call; if passing any particular values to 
+                        // this function is unimportant
+                        var action = new instrument.ParameterizedAction(o);
+                        var env = new envelopeCore.Envelope();
+                        env.duration = 1000;
+                        env.interpolationType = 'none';
+                        env.valueSequence.push(new envelopeCore.EnvelopeValue(0, 0));
+                        action.envelope = env.toAbsolute();
+                        r.push(action);
+                    } else if ('actionTarget' in o) {
+                        checkTarget(o.actionTarget);
+                    } else {
+                        throwRhythmTypeError("All targets or their .actionTarget property "+
+                            "must be instances of instrument.ParameterizedAction, or functions.");
+                    }
+                };
+               
                 for (var t in targets) {
                     if (targets.hasOwnProperty(t)) {
-                        if ( !(targets[t] instanceof instrument.ParameterizedAction) &&
-                                (typeof targets[t] !== 'function') ) {
-                            throwRhythmTypeError("All targets must be instances of "+
-                                "instrument.ParameterizedAction or functions.");
-                        } 
+                        checkTarget(targets[t]);
                     }
-                }
-                targ = targets;
+                } 
+
+                targ = r;
                 util.objectLength.call(targ);
             }
         });
