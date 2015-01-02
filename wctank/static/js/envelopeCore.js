@@ -361,6 +361,7 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
         if (t instanceof TWEEN.Tween) {
             this.cancel = function() {
                 t.stop();
+                t = null; //TODO: ?
                 audioUtil.tween.stopTweens();
             };
         } else if (t instanceof AudioParam) {
@@ -456,12 +457,20 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
                 prior_time = v.time + off;
             };
 
-            var timeout_ids = [];
+            var timeout_ids = [],
+                uses_interpolation = false;
+           
+            // need to start and stop machine when interpolation is 'none'
+            // i.e., TODO: account for case where sequence switches between none 
+            // and other types
             envelope.valueSequence.forEach(function(val) {
                 if (val.interpolationType === 'none') {
-                    timeout_ids.push(window.setTimeout(target(val.value), 
-                                       offset + val.time));
+                    var tid = window.setTimeout(function() {
+                        target(val.value);
+                    }, offset + val.time);
+                    timeout_ids.push(tid);
                 } else {
+                    uses_interpolation = true;
                     addToMachineQueue(val); 
                 }
             });
@@ -470,8 +479,10 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
                 audioUtil.stopTweens();
             });
 
-            audioUtil.tween.startTweens();
-            machine.start();
+            if (uses_interpolation) {
+                audioUtil.tween.startTweens();
+                machine.start();
+            }
             
             if (timeout_ids.length > 0) {
                 r = timeout_ids;

@@ -15,7 +15,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         //  watcher attach
         //  .sync() - sync multiple Clocks
         var queue = {},
-            smudge, bpm, last, next,
+            smudge, bpm, last, next, len,
             isOn = false,
             cycles = 0, 
             id, wasPaused, beat_start, beat_remaining;
@@ -25,15 +25,21 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         };
         
         var machine = function() {
+            var now = performance.now();
+            last = now - len; 
+            next = now + len;
+            
             var loop = function() {
                 var msec = 60000 / bpm,
                     time = (smudge > 0) ? util.smudgeNumber(msec, smudge) : msec;
-                
-                last = next;
-                next = performance.now() + time;
-                
+
                 id = window.setTimeout(function() {
-                    beat_start = (performance.now() + 0.5) | 0;
+                    last = next;
+                    next = performance.now() + time;
+
+                    if (smudge) len = next - last;
+
+                    beat_start = performance.now();
                     for (var fn in queue) {
                         if (queue.hasOwnProperty(fn)) queue[fn]();
                     }
@@ -56,7 +62,10 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             },
             'lastBeat': {
                 get: function() { return last; }
-            }
+            },
+            'beatLength': {
+                get: function() { return len; }
+            },
         });
                 
         Object.defineProperty(this, 'bpm', {
@@ -67,6 +76,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                     "greater than zero, not " + n + ".");
                 } else {
                     bpm = n;
+                    len = 60000 / bpm;
                 }                
             }
         });
@@ -120,6 +130,10 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             }
         };
 
+        this.dbg = function() {
+            return queue;
+        };
+
         this.stop = function() {
             isOn = false;
             clearTimeout(id);
@@ -145,20 +159,23 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         //TODO: destroy functionality (using ids array)
         
         var comparator = function() {
-            var exists = function(obj) {
-                return typeof obj !== 'undefined';
+            var scheduleLoop = function(rvalObj) {
+                if (rvalObj.endTime < rvalObj.clock.nextBeat) {
+                    var offset = rvalObj.endTime - rvalObj.clock.lastBeat;
+                    rvalObj.fn(offset);
+
+                    // undefined check b/c rvalObj may be derefrenced during execution
+                    //TODO: why after an .rm does this occur on updateEndTime?
+                    if (typeof rvalObj !== 'undefined') 
+                        rvalObj.updateEndTime(rvalObj.clock.lastBeat + offset);
+                    if (rvalObj.endTime < rvalObj.clock.nextBeat)
+                        scheduleLoop(rvalObj);
+                }
             };
 
-            var now = performance.now();
             for (var r in rq) {
-                // undefined check b/c rval obj may be derefrenced during execution
-                //TODO: why after an .rm does this occur on updateEndTime?
                 if (rq.hasOwnProperty(r)) {
-                    if (rq[r].endTime < rq[r].clock.nextBeat) {
-                        var offset = rq[r].endTime - rq[r].clock.lastBeat;
-                        rq[r].fn(offset);
-                        if (exists(rq[r])) rq[r].updateEndTime(now + offset);
-                    }
+                    scheduleLoop(rq[r]);
                 }
             }
         };
@@ -167,14 +184,13 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             this.duration = duration;
             this.fn = fn;
             this.clock = clock;
-            this.endTime = 0;
+            this.endTime = this.clock.lastBeat + this.duration;
             this.updateEndTime = function(startTime) {
-                this.endTime = startTime + duration;
+                this.endTime = startTime + this.duration;
             };
         };
         
         reinit.push = function(duration, fn, clock) {
-            last = performance.now();
             var found = false;
             for (var i = 0; i < all_clocks.length; i++) {
                 if (all_clocks[i] === clock) {
@@ -189,7 +205,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
 
             var rhy = new rval(duration, fn, clock);
             // need to be sure that .push is only called on beat
-            rhy.updateEndTime(performance.now());
 
             var id = util.hashCode((Math.random() * 100000).toString());
             rq[id] = rhy;
@@ -278,14 +293,16 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         });
         this.clock = clock;
         
+// todo: incorporate getTarget
         Object.defineProperty(this, 'targets', {
             get: function() { return targ; },
             set: function(targets) {
                 for (var t in targets) {
                     if (targets.hasOwnProperty(t)) {
-                        if ( !(targets[t] instanceof instrument.ParameterizedAction) ) {
-                            throwRhythmTypeError("All targets must be "+
-                                "instances of instrument.ParameterizedAction.");
+                        if ( !(targets[t] instanceof instrument.ParameterizedAction) &&
+                                (typeof targets[t] !== 'function') ) {
+                            throwRhythmTypeError("All targets must be instances of "+
+                                "instrument.ParameterizedAction or functions.");
                         } 
                     }
                 }
@@ -333,16 +350,15 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             }
         });
 
-        this.parseConfig = function(c) {
-            if ( !('targets' in c) ) {
-                throw new Error(rhythmGeneratorError("config object must specify a "+
-                    "'targets' property"));
-            }
-            if ( !('seq' in c) ) {
-                throw new Error(rhythmGeneratorError("config object must specify a "+
-                    "'seq' property"));
-            }
+        var throwParseConfigError = function(name) {
+            throw new Error(rhythmGeneratorError("config object must specify a '"+
+                    name+"' property"));
+        };
 
+        this.parseConfig = function(c) {
+            if ( !('targets' in c) ) throwParseConfigError('targets');
+            if ( !('seq' in c) ) throwParseConfigError('seq');
+            
             this.targets = c.targets;
             this.rhythmicSequence = c.seq;
             if ('opt' in c) {
@@ -391,7 +407,8 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                 }
             }
 
-            var reinitId = "I went to Santee once. Someone I knew milked a goat.";
+            var reinit_id = "I went to Santee once. Someone I knew milked a goat.",
+                bootstrap_count = 0;
 
             var clk_q_id = clk.push(function sounder(offset) {
                 var off = offset ? offset : 0,
@@ -416,15 +433,31 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                         }
                     }
                 }
-                
+               
+                /*
+                 * To facilitate the repetition of rhythms shorter than one
+                 * beat when in !locked mode, sounder calls itself enough times to 
+                 * fill the first beat before passing itself to the loop reinitializer,
+                 * which basically does the same thing...
+                 * TODO: consider if the floatingLoop module should exist.
+                 * .. it does make things easier in the case where multiple Generators
+                 * share the same clock?
+                 */ 
+                if (!locked && prior_time < clk.beatLength && 
+                        bootstrap_count <= clk.beatLength) {
+                    var ofend = off + prior_time;
+                    bootstrap_count += prior_time;
+                    sounder(ofend);
+                }
+
                 if (!locked || (!loop && bang)) clk.rm(clk_q_id); // rm from clock_fns
 
                 if (!locked) {
-                    if (loop && !floatingLoopReinitializer.inQueue(reinitId)) {
-                        reinitId = floatingLoopReinitializer.push(prior_time, sounder, clk);
+                    if (loop && !floatingLoopReinitializer.inQueue(reinit_id)) {
+                        reinit_id = floatingLoopReinitializer.push(prior_time, sounder, clk);
                     }
                     if (was_loopin) {
-                        floatingLoopReinitializer.rm(reinitId);
+                        floatingLoopReinitializer.rm(reinit_id);
                     }
                 }
             });

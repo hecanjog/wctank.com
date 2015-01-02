@@ -54,18 +54,20 @@ function(envelopeCore) { var instrument = {};
         };
   
         /*
-         * Overwrite createEnvelope with a function that can be called to generate a new
+         * Override createEnvelope with a function that can be called to generate a new
          * envelope for this ParameterizedAction. rhythm.Generator will call this and apply the
-         * envelope returned, unless the value is left falsy, in which case it will use
+         * envelope returned, unless this value is left falsy, in which case it will use
          * this.envelope.
          */ 
         this.createEnvelope = null;
     };
 
     instrument.Instrument = function() {
-        this.play;
-        this.on;
-        this.off;
+        /*
+         * Override .getTarget with a method that returns a parameterizedAction target
+         * for rhythm.Generator
+         */
+        this.getTarget;
     };
 
 return instrument; });

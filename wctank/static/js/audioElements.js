@@ -373,6 +373,8 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
          * cool stuff to do!
          */
         // it's really easy to break audio playback with this
+        
+        // TODO: just set this with operator
         this.setFeedbackCoeffMultiplier = function(n, time) {
             var t = time ? time : 0;
             comb1.feedbackGain.gain
