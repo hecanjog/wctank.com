@@ -356,8 +356,8 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
         return concatted;
     };
 
-    var Cancelable = function(target, expiration) {
-        var t = target;
+    var Cancelable = function(t, expiration) {
+        var storage_ref;
         if (t instanceof TWEEN.Tween) {
             this.cancel = function() {
                 t.stop();
@@ -371,18 +371,28 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
         } else if (Array.isArray(t)) {
             this.cancel = function() {
                 t.forEach(function(v) {
-                    clearTimeout(v);
+                    window.clearTimeout(v);
                 });
             };
-        }
+        } 
+          
+        this.prep = function(arr) {
+            storage_ref = arr;
+        };
         
         this.fresh = true;
-
-        var parent = this;
-        window.setTimeout(function() {
-            parent.fresh = false;
-            parent.cancel = function() {};
-        }, expiration);
+        
+        var spoil = function() {
+            if (storage_ref) {
+                var idx = storage_ref.indexOf(this);
+                storage_ref.splice(idx, 1); 
+            } else {
+                this.fresh = false;
+                this.cancel = function() {};
+            }
+        };
+        
+        window.setTimeout(spoil, expiration);
     };
 
     envelopeCore.apply = function(target, envelope, offset) {

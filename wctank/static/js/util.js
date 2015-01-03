@@ -3,17 +3,34 @@ define(
 {
    /*
     * .call on obj to define a static read-only length prop
+    * TODO: make dynamic
     */
     objectLength: function() {
-       this.length = 0;
+       var len = 0;
        for (var p in this) {
-           if ( this.hasOwnProperty(p) ) this.length++;
+           if ( this.hasOwnProperty(p) ) len++;
        }
-       this.length--;
        Object.defineProperty(this, "length", {
+           value: len,
            writable: false,
            enumerable: false
        });
+    },
+
+    /*
+     * A small Object.watch that works on configurable
+     * properties with defined accessors
+     */
+    watchProperty: function(obj, prop, callback) {
+        var desc = Object.getOwnPropertyDescriptor(obj, prop);
+        Object.defineProperty(obj, prop, {
+            configurable: true,
+            get: desc.get,
+            set: function(val) {
+                desc.set(val);
+                callback(val);
+            }
+        });
     },
 
     hasBit: function(x, y) {
@@ -38,9 +55,8 @@ define(
             var keys = Object.keys(set);
             return set[ util.getRndItem(keys) ];
         }
-        
     },
-    
+
     // a nice implementation of java's hashCode I ripped from stack overflow: 
     // http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
     hashCode: function(s){

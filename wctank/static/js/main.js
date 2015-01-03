@@ -41,6 +41,7 @@ define(
         'audio',
         'rhythm',
         'instrumentDefs',
+        'util',
         ['font!custom,families:',
             '[',
                 'timeless',
@@ -53,7 +54,7 @@ define(
         ].join('/n')
     ],
 function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects,
-            sceneGraphCore, audio, rhythm, instrumentDefs) {
+            sceneGraphCore, audio, rhythm, instrumentDefs, util) {
    
     // TODO: 
     // envelope looping mechanism
@@ -96,22 +97,22 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
     
     var bass = new instrumentDefs.noiseBass();    
 
-    var clock = new rhythm.Clock(20);
+    var clock = new rhythm.Clock(100);
     
     var config = {
         opt: {
-            loop: false
+            loop: true
         },
         targets: {
             nb: bass
         },
         seq: { 
-            0: { subd: 0.1, val: {nb: ""}, rep: 10, smudge: 0 }, // implement indiv subd smudge
-            1: { subd: 0.5, val: {nb: ""}, rep: 1 },
-            2: { subd: 0.25, val: {nb: ""}, rep: 1 },
-            3: { subd: 0.07, val: {nb: ""}},
-            4: { subd: 0.13, val: {nb: ""}},
-            5: { subd: 0.23, val: {nb: ""}}
+            //0: { subd: 0.1, val: {nb: ""}, rep: 10, smudge: 0 }, // implement indiv subd smudge
+            //1: { subd: 0.5, val: {nb: ""}, rep: 1 },
+            //2: { subd: 0.25, val: {nb: ""}, rep: 1 },
+            //3: { subd: 0.07, val: {nb: ""}},
+            4: { subd: 0.25, val: {nb: ""}},
+            5: { subd: 0.25, val: {nb: ""}}
         },
         callbacks: function() {
             console.log('all done!!!');
@@ -127,22 +128,8 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
 
     var rhythmGen = new rhythm.Generator(clock, config);
     
-    clock.push(function() {
-        console.log("bang!");
-    });     
-
-    clock.smudgeFactor = 5;
-
-    window.setBpm = function(bpm) {
-        clock.bpm = bpm;
-        rhythmGen.shirk();
-        rhythmGen.loop = true;
-        rhythmGen.execute();
-    };
-
+window.clock = clock;
     clock.start();
     rhythmGen.execute(); 
-
-    window.clock = clock;
 });
 

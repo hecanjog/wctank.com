@@ -36,8 +36,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                     last = next;
                     next = performance.now() + time;
 
-                    if (smudge) len = next - last;
-
                     beat_start = performance.now();
                     for (var fn in queue) {
                         if (queue.hasOwnProperty(fn)) queue[fn]();
@@ -68,6 +66,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         });
                 
         Object.defineProperty(this, 'bpm', {
+            configurable: true,
             get: function() { return bpm; },
             set: function(n) {
                 if ( (typeof n !== 'number') || (n <= 0) ) {
@@ -183,6 +182,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             this.updateEndTime = function(startTime) {
                 this.endTime = startTime + this.duration;
             };
+            this._id_ = util.hashCode((Math.random() * 100000).toString());
         };
         
         reinit.push = function(duration, fn, clock) {
@@ -394,6 +394,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             };
            
             q = {};
+            prior_time = 0;
 
             for (var step in rseq) {
                 if (rseq.hasOwnProperty(step)) {
@@ -429,7 +430,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                 }
             }
         };
-        
+
         var throwParseConfigError = function(name) {
             throw new Error(rhythmGeneratorError("config object must specify a '"+
                     name+"' property"));
@@ -462,11 +463,11 @@ function(util, instrument, envelopeCore) { var rhythm = {};
 
         
         var clock_fns = [],
-            cancelables = [];
+            cancelables = [],
+            reinit_id = "I went to Santee once. Someone I knew milked a goat.";
 
         this.execute = function() {
-            var reinit_id = "I went to Santee once. Someone I knew milked a goat.",
-                bootstrap_count = 0,
+            var bootstrap_count = 0,
                 loop_count = (typeof loop === 'number') ? this.loop : -999;
 
             var clk_q_id = clk.push(function sounder(offset) {
@@ -479,14 +480,17 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                         if (q.hasOwnProperty(s)) {
                             for (var t in q[s].values) {
                                 if (q[s].values.hasOwnProperty(t)) {
-                                    cancelables.push(
-                                        envelopeCore.apply(
+                                    (function() {
+                                        var cncl = envelopeCore.apply(
                                             targ[t].target,
                                             q[s].values[t] ? 
                                                 q[s].values[t] : targ[t].envelope,
                                             q[s].time + off
-                                        )
-                                    );
+                                        );
+                                    
+                                        cancelables.push(cncl);
+                                        cncl.prep(cancelables);
+                                    }());
                                 }
                             }
                         }
@@ -494,28 +498,9 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                     if (loop_count) loop_count--; 
                 }
                
-                /*
-                 * To facilitate the repetition of rhythms shorter than one
-                 * beat when in !locked mode, sounder calls itself enough times to 
-                 * fill the first beat before passing itself to the loop reinitializer,
-                 * which basically does the same thing...
-                 * TODO: consider if the floatingLoop module should exist.
-                 * .. it makes things easier in the case where multiple Generators
-                 * share the same clock?
-                 */ 
-                if (!locked && prior_time < clk.beatLength && bootstrap_count <= clk.beatLength) {
-                    var ofend = off + prior_time;
-                    bootstrap_count += prior_time;
-                    sounder(ofend);
-                }
-
-                var done = function() {
-                    floatingLoopReinitializer.rm(reinit_id);
-                    clk.rm(clk_q_id);
-                    clock_fns.splice(clock_fns.indexOf(clk_q_id), 1);
-                    
+                var executeCallbacks = function() {
                     var call_offset = offset ? offset : 0;
-
+                    
                     window.setTimeout(function() {
                         if (cbks) {
                             cbks.forEach(function(v) {
@@ -525,54 +510,64 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                     }, prior_time + call_offset);
                 };
 
-                if (!locked || (!loop && bang)) done();
+                var done = function() {
+                    floatingLoopReinitializer.rm(reinit_id);
+                    clk.rm(clk_q_id);
+                    clock_fns.splice(clock_fns.indexOf(clk_q_id), 1);
+                    
+                    executeCallbacks();
+                };
+
+
+                if (was_loopin) done();
                 
+                /*
+                 * To facilitate the repetition of rhythms shorter than one
+                 * beat when in !locked mode, sounder calls itself enough times to 
+                 * fill the first beat before passing itself to the loop reinitializer,
+                 * which basically does the same thing...
+                 * TODO: consider if the floatingLoop module should exist.
+                 * .. it makes things easier in the case where multiple Generators
+                 * share the same clock?
+                 */ 
+                if (!locked && prior_time < clk.beatLength && bootstrap_count < clk.beatLength) {
+                    var ofend = off + prior_time;
+                    bootstrap_count += prior_time;
+                    sounder(ofend);
+                }
+
+                if (!locked || (!loop && bang)) {
+                    clk.rm(clk_q_id);
+                    clock_fns.splice(clock_fns.indexOf(clk_q_id), 1);
+                }
+
+                if (!loop && bang) executeCallbacks();
+
                 if (!locked && loop && !floatingLoopReinitializer.inQueue(reinit_id)) {
                     reinit_id = floatingLoopReinitializer.push(prior_time, sounder, clk);
                 }
                 
-                if (was_loopin) done();
-
-                if (!loop_count && loop_count !== -999) {
-                    done();
-                    
-                    // this isn't strictly necessary at this point, as the current
-                    // purpose of was_loopin is to flag changes to this.loop.
-                    // However, who knows what could be in the world of tomorrow?
-                    was_loopin = true; 
-                }
+                if (!loop_count && loop_count !== -999) done();
             });
             clock_fns.push(clk_q_id);
         }; 
 
-        /*
-         *  Cancelables have an expiry date, so the Cancelables 
-         *  array occasionally needs to be culled
-         *
-         *  the cancelables array is culled both on Generator.shirk calls,
-         *  as well as once per second
-         */
-        var cullCancelables = function() {
-            cancelables.forEach(function(v, idx) {
-                if (!v.fresh) cancelables.splice(idx, 1);
-            });
-        };
-        window.setInterval(function() {
-            cullCancelables();
-        }, 1000);
-        
         this.shirk = function() {
             clock_fns.forEach(function(v) {
                 clk.rm(v);
             });
-            cullCancelables();
+            floatingLoopReinitializer.rm(reinit_id);
             cancelables.forEach(function(v, idx) {
                 v.cancel();
             });
-            this.loop = false;
-            this.locked = 0;
         }; 
-        // helper to scale rhythm at new bpm
+      
+        var parent = this; 
+        util.watchProperty(clk, 'bpm', function() {
+            parent.shirk();
+            resolveRhythmicSequence();
+            parent.execute();
+        }); 
     };
 
 return rhythm; });
