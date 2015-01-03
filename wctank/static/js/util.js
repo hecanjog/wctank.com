@@ -26,7 +26,7 @@ define(
      */
     smudgeNumber: function(n, f) {
         var s = n * f * 0.01;
-        if (Math.random() < 0.5) s*=-1;
+        if (Math.random() < 0.5) s *= -1;
         return Math.random() * s + n;  
     },
 

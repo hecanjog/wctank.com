@@ -260,6 +260,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             }
         });
 
+        var loop_count = 0;
         Object.defineProperty(this, 'loop', {
             get: function() { return loop; },
             set: function(v) {
@@ -367,35 +368,16 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             }
         });
 
-        var throwParseConfigError = function(name) {
-            throw new Error(rhythmGeneratorError("config object must specify a '"+
-                    name+"' property"));
-        };
-
-        this.parseConfig = function(c) {
-            if ( !('targets' in c) ) throwParseConfigError('targets');
-            if ( !('seq' in c) ) throwParseConfigError('seq');
-            
-            this.targets = c.targets;
-            this.rhythmicSequence = c.seq;
-            if ('opt' in c) {
-                this.loop = c.opt.loop;
-                this.retrograde = c.opt.retrograde;
-            }
-        };
-        if (config) this.parseConfig(config);
-            
-        var clock_fns = [],
-            cancelables = [];
-        
-        this.execute = function() {
+        var q = {},
+            prior_time = 0;
+         
+        var resolveRhythmicSequence = function() {
+            var i = 0;
             var subd2time = function(subd) {
                 return (60 / clk.bpm) * 1000 * subd;
             };
-
-            var q = {},
-                prior_time = 0,
-                i = 0;
+           
+            q = {};
 
             for (var step in rseq) {
                 if (rseq.hasOwnProperty(step)) {
@@ -408,6 +390,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                                 repeats = rseq[step].rep ? rseq[step].rep : 1;
                             
                             while (repeats-- > 0) {
+                                
                                 if (rseq[step].val) {
                                     var stepValues = rseq[step].val;
                                     for (var t in stepValues) {
@@ -421,14 +404,48 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                                 }
                                 q[i++] = {time: time, values: values};
                                 time = prior_time = time + subd2time(rseq[step].subd); 
+
                             }
                         }());
                     }
                 }
             }
+        };
+        
+        
 
+        var throwParseConfigError = function(name) {
+            throw new Error(rhythmGeneratorError("config object must specify a '"+
+                    name+"' property"));
+        };
+
+        // TODO: do not allow setting of targets, options, or 
+        // rhythmicSequence through props
+        this.parseConfig = function(c) {
+            if ( !('targets' in c) ) throwParseConfigError('targets');
+            if ( !('seq' in c) ) throwParseConfigError('seq');
+            
+            this.targets = c.targets;
+            
+            if ('opt' in c) {
+                this.loop = c.opt.loop;
+                this.repeats = c.opt.repeats;
+                this.retrograde = c.opt.retrograde; // not implemented yet
+            }
+
+            this.rhythmicSequence = c.seq;
+            resolveRhythmicSequence();
+        };
+        if (config) this.parseConfig(config);
+
+        
+        var clock_fns = [],
+            cancelables = [];
+
+        this.execute = function() {
             var reinit_id = "I went to Santee once. Someone I knew milked a goat.",
-                bootstrap_count = 0;
+                bootstrap_count = 0,
+                loop_count = (typeof loop === 'number') ? this.loop : -999;
 
             var clk_q_id = clk.push(function sounder(offset) {
                 var off = offset ? offset : 0,
@@ -452,6 +469,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                             }
                         }
                     }
+                    if (loop_count) loop_count--; 
                 }
                
                 /*
@@ -460,11 +478,10 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                  * fill the first beat before passing itself to the loop reinitializer,
                  * which basically does the same thing...
                  * TODO: consider if the floatingLoop module should exist.
-                 * .. it does make things easier in the case where multiple Generators
+                 * .. it makes things easier in the case where multiple Generators
                  * share the same clock?
                  */ 
-                if (!locked && prior_time < clk.beatLength && 
-                        bootstrap_count <= clk.beatLength) {
+                if (!locked && prior_time < clk.beatLength && bootstrap_count <= clk.beatLength) {
                     var ofend = off + prior_time;
                     bootstrap_count += prior_time;
                     sounder(ofend);
@@ -472,14 +489,20 @@ function(util, instrument, envelopeCore) { var rhythm = {};
 
                 if (!locked || (!loop && bang)) clk.rm(clk_q_id); // rm from clock_fns
 
+                var rm = function() {
+                    floatingLoopReinitializer.rm(reinit_id);
+                    clk.rm(clk_q_id);
+                    clock_fns.splice(clock_fns.indexOf(clk_q_id), 1);
+                };
+
                 if (!locked) {
                     if (loop && !floatingLoopReinitializer.inQueue(reinit_id)) {
                         reinit_id = floatingLoopReinitializer.push(prior_time, sounder, clk);
                     }
-                    if (was_loopin) {
-                        floatingLoopReinitializer.rm(reinit_id);
-                    }
+                    if (was_loopin) rm();
                 }
+
+                if (!loop_count && loop_count !== -999) rm();
             });
             clock_fns.push(clk_q_id);
         }; 

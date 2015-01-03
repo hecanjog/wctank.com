@@ -96,29 +96,43 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
     
     var bass = new instrumentDefs.noiseBass();    
 
-    var clock = new rhythm.Clock(60);
+    var clock = new rhythm.Clock(20);
     
     var config = {
         targets: {
             nb: bass
         },
         seq: { 
-            0: { subd: 0.01, val: {nb: ""}, rep: 5 },
+            0: { subd: 0.01, val: {nb: ""}, rep: 10 }, // implement indiv subd smudge
             1: { subd: 0.5, val: {nb: ""}, rep: 1 },
             2: { subd: 0.25, val: {nb: ""}, rep: 1 },
             3: { subd: 0.07, val: {nb: ""}},
-            4: { subd: 0.13, val: {nb: ""}}
+            4: { subd: 0.13, val: {nb: ""}},
+            5: { subd: 0.23, val: {nb: ""}}
         }
-        //TODO: repeats
+        //TODO: sequence repeats
+        // transitioning between rhythmic patterns
+        // indiv subd smudge
         //TODO: facilitate easy bpm changes
     };
-    
+   
+    //TEST: swap config
+
     var rhythmGen = new rhythm.Generator(clock, config);
     rhythmGen.loop = true;
     
     clock.push(function() {
         console.log("bang!");
     });     
+
+    clock.smudgeFactor = 5;
+
+    window.setBpm = function(bpm) {
+        clock.bpm = bpm;
+        rhythmGen.shirk();
+        rhythmGen.loop = true;
+        rhythmGen.execute();
+    };
 
     clock.start();
     rhythmGen.execute(); 
