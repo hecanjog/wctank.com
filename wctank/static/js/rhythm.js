@@ -221,7 +221,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
     // given a ref to a rhythm.Clock, and a group of parameterized actions,
     // step or exceute each action according to a rhythm rep
     rhythm.Generator = function(clock, config) {
-        var clk, targ, rseq,
+        var clk, targ, rseq, cbks,
             loop = false, 
             was_loopin = false,
             locked = 0;
@@ -289,6 +289,28 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         });
         this.clock = clock;
         
+        var validateCallbackType = function(f) {
+            if (typeof f !== 'function') {
+                throwRhythmTypeError('callback must be a function');
+            }
+            return f;
+        };
+
+        Object.defineProperty(this, 'callbacks', {
+            get: function() { return cbks; },
+            set: function(val) {
+                var r = [];
+                if (Array.isArray(val)) {
+                    val.forEach(function(it) {
+                        r.push(validateCallbackType(it)); 
+                    });
+                } else {
+                    r.push(validateCallbackType(val));
+                }
+                cbks = r;
+            }
+        });
+
         Object.defineProperty(this, 'targets', {
             get: function() { return targ; },
             set: function(targets) {
@@ -332,12 +354,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         Object.defineProperty(this, 'rhythmicSequence', {
             get: function() { return rseq; },
             set: function(s) {
-                var validateCallbackType = function(f) {
-                    if (typeof f !== 'function') {
-                        throwRhythmTypeError('callback must be a function');
-                    }
-                    return f;
-                };
                 for (var prop in s) {
                     if (s.hasOwnProperty(prop)) {
                         if ( !('subd' in s[prop]) ) {
@@ -385,12 +401,14 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                         prior_time = subd2time(rseq[step].subd);
                     } else {
                         (function() {
-                            var time = prior_time,
-                                values = {},
+                            var values = {},
+                                smudge = rseq[step].smudge,
                                 repeats = rseq[step].rep ? rseq[step].rep : 1;
-                            
+                           
                             while (repeats-- > 0) {
-                                
+                                var time = smudge ? 
+                                    util.smudgeNumber(prior_time, smudge) : prior_time;
+
                                 if (rseq[step].val) {
                                     var stepValues = rseq[step].val;
                                     for (var t in stepValues) {
@@ -402,9 +420,9 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                                 } else {
                                     values = null; 
                                 }
+                                
                                 q[i++] = {time: time, values: values};
-                                time = prior_time = time + subd2time(rseq[step].subd); 
-
+                                time = prior_time = time + subd2time(rseq[step].subd);
                             }
                         }());
                     }
@@ -412,8 +430,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             }
         };
         
-        
-
         var throwParseConfigError = function(name) {
             throw new Error(rhythmGeneratorError("config object must specify a '"+
                     name+"' property"));
@@ -423,18 +439,26 @@ function(util, instrument, envelopeCore) { var rhythm = {};
         // rhythmicSequence through props
         this.parseConfig = function(c) {
             if ( !('targets' in c) ) throwParseConfigError('targets');
-            if ( !('seq' in c) ) throwParseConfigError('seq');
+            if ( !('seq' in c) && !('sequence' in c) ) throwParseConfigError('seq or sequence');
             
             this.targets = c.targets;
-            
+           
+            var optSettable = ['retrograde', 'locked', 'loop'];
+
             if ('opt' in c) {
-                this.loop = c.opt.loop;
-                this.repeats = c.opt.repeats;
-                this.retrograde = c.opt.retrograde; // not implemented yet
+                for (var prop in c.opt) {
+                    if (c.opt.hasOwnProperty(prop)) {
+                        if (optSettable.indexOf(prop) >= 0) this[prop] = c.opt[prop];
+                    }
+                }
             }
 
-            this.rhythmicSequence = c.seq;
+            if ('callbacks' in c) this.callbacks = c.callbacks;
+
+            this.rhythmicSequence = c.seq || c.sequence;
             resolveRhythmicSequence();
+
+            
         };
         if (config) this.parseConfig(config);
 
@@ -487,22 +511,30 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                     sounder(ofend);
                 }
 
-                if (!locked || (!loop && bang)) clk.rm(clk_q_id); // rm from clock_fns
-
-                var rm = function() {
+                var done = function() {
                     floatingLoopReinitializer.rm(reinit_id);
                     clk.rm(clk_q_id);
                     clock_fns.splice(clock_fns.indexOf(clk_q_id), 1);
+                    
+                    window.setTimeout(function() {
+                        if (cbks) {
+                            cbks.forEach(function(v) {
+                                v();
+                            });
+                        }
+                    }, prior_time + offset);
                 };
+
+                if (!locked || (!loop && bang)) clk.rm(clk_q_id);   
 
                 if (!locked) {
                     if (loop && !floatingLoopReinitializer.inQueue(reinit_id)) {
                         reinit_id = floatingLoopReinitializer.push(prior_time, sounder, clk);
                     }
-                    if (was_loopin) rm();
+                    if (was_loopin) done();
                 }
 
-                if (!loop_count && loop_count !== -999) rm();
+                if (!loop_count && loop_count !== -999) done();
             });
             clock_fns.push(clk_q_id);
         }; 

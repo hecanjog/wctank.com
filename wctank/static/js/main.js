@@ -99,17 +99,24 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
     var clock = new rhythm.Clock(20);
     
     var config = {
+        opt: {
+            loop: true
+        },
         targets: {
             nb: bass
         },
         seq: { 
-            0: { subd: 0.01, val: {nb: ""}, rep: 10 }, // implement indiv subd smudge
+            0: { subd: 0.1, val: {nb: ""}, rep: 100, smudge: 0 }, // implement indiv subd smudge
             1: { subd: 0.5, val: {nb: ""}, rep: 1 },
             2: { subd: 0.25, val: {nb: ""}, rep: 1 },
             3: { subd: 0.07, val: {nb: ""}},
             4: { subd: 0.13, val: {nb: ""}},
             5: { subd: 0.23, val: {nb: ""}}
+        },
+        callbacks: function() {
+            console.log('all done!!!');
         }
+         
         //TODO: sequence repeats
         // transitioning between rhythmic patterns
         // indiv subd smudge
@@ -119,7 +126,6 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
     //TEST: swap config
 
     var rhythmGen = new rhythm.Generator(clock, config);
-    rhythmGen.loop = true;
     
     clock.push(function() {
         console.log("bang!");
