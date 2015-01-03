@@ -457,8 +457,6 @@ function(util, instrument, envelopeCore) { var rhythm = {};
 
             this.rhythmicSequence = c.seq || c.sequence;
             resolveRhythmicSequence();
-
-            
         };
         if (config) this.parseConfig(config);
 
@@ -516,25 +514,33 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                     clk.rm(clk_q_id);
                     clock_fns.splice(clock_fns.indexOf(clk_q_id), 1);
                     
+                    var call_offset = offset ? offset : 0;
+
                     window.setTimeout(function() {
                         if (cbks) {
                             cbks.forEach(function(v) {
                                 v();
                             });
                         }
-                    }, prior_time + offset);
+                    }, prior_time + call_offset);
                 };
 
-                if (!locked || (!loop && bang)) clk.rm(clk_q_id);   
-
-                if (!locked) {
-                    if (loop && !floatingLoopReinitializer.inQueue(reinit_id)) {
-                        reinit_id = floatingLoopReinitializer.push(prior_time, sounder, clk);
-                    }
-                    if (was_loopin) done();
+                if (!locked || (!loop && bang)) done();
+                
+                if (!locked && loop && !floatingLoopReinitializer.inQueue(reinit_id)) {
+                    reinit_id = floatingLoopReinitializer.push(prior_time, sounder, clk);
                 }
+                
+                if (was_loopin) done();
 
-                if (!loop_count && loop_count !== -999) done();
+                if (!loop_count && loop_count !== -999) {
+                    done();
+                    
+                    // this isn't strictly necessary at this point, as the current
+                    // purpose of was_loopin is to flag changes to this.loop.
+                    // However, who knows what could be in the world of tomorrow?
+                    was_loopin = true; 
+                }
             });
             clock_fns.push(clk_q_id);
         }; 

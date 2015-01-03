@@ -100,13 +100,13 @@ function(gMap, audioElements, asdr, envelopeCore, instrument, mutexVisualEffects
     
     var config = {
         opt: {
-            loop: true
+            loop: false
         },
         targets: {
             nb: bass
         },
         seq: { 
-            0: { subd: 0.1, val: {nb: ""}, rep: 100, smudge: 0 }, // implement indiv subd smudge
+            0: { subd: 0.1, val: {nb: ""}, rep: 10, smudge: 0 }, // implement indiv subd smudge
             1: { subd: 0.5, val: {nb: ""}, rep: 1 },
             2: { subd: 0.25, val: {nb: ""}, rep: 1 },
             3: { subd: 0.07, val: {nb: ""}},
