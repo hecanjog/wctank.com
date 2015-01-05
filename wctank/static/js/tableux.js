@@ -44,8 +44,7 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         };
 
         this.select = function(mutexFilterObj) {
-            var s = sets[mutexFilterObj.css_class];
-            console.log(mutexFilterObj.css_class);
+            var s = sets[mutexFilterObj.name];
             var i = (Math.random() * s.length) | 0;
             gMap.goTo(s[i].loc, s[i].zoom);
             if (s[i].exes) {

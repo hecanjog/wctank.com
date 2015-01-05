@@ -18,6 +18,7 @@ function(util, div, gMap, visualCore) { var mutexVisualEffectsCore = {};
 
     mutexVisualEffectsCore.MutexEffect = function() {
         this.css_class = '';
+        this.name = '';
 
         var dummy = new visualCore.Effect();
         delete this.operate;

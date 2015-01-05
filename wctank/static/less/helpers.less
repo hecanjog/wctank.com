@@ -1,0 +1,78 @@
+// helpers with vendor prefixes
+.transform(@arg) {
+    -moz-transform: @arg;
+    -ms-transform: @arg;
+    -o-transform: @arg;
+    -webkit-transform: @arg;
+    transform: @arg;
+}
+.animation(@arg) {
+    -moz-animation: @arg;
+    -ms-animation: @arg;
+    -o-animation: @arg;
+    -webkit-animation: @arg;
+    animation: @arg;
+}
+.keyframes(@name, @animation) {
+    @-moz-keyframes @name { @animation(); }
+    @-o-keyframes @name { @animation(); }
+    @-ms-keyframes @name { @animation(); }
+    @-webkit-keyframes @name { @animation(); }
+    @keyframes @name { @animation(); }
+}
+.transition(@arg) {
+    -moz-transition: @arg;
+    -ms-transition: @arg;
+    -o-transition: @arg;
+    -webkit-transition: @arg;
+    transition: @arg;
+}
+.linear-gradient(@arg) {
+    background-image: -webkit-gradient(@arg);
+    background-image: -webkit-linear-gradient(@arg);
+    background-image: -moz-linear-gradient(@arg);
+    background-image: -o-linear-gradient(@arg);
+    background-image: linear-gradient(@arg);
+}
+.repeating-linear-gradient(@arg) {
+    background-image: -webkit-repeating-gradient(@arg);
+    background-image: -webkit-repeating-linear-gradient(@arg);
+    background-image: -moz-repeating-linear-gradient(@arg);
+    background-image: -o-repeating-linear-gradient(@arg);
+    background-image: repeating-linear-gradient(@arg);
+}
+
+.svg-filter(@name) {
+    -webkit-filter: url('/#@{name}');
+    filter: url('/#@{name}');
+}
+
+// position an element at an arbitrary point vertically
+.vert-pos(@positioning, @from_top) {
+    position: @positioning;
+    top: @from_top;
+    .transform(translateY(-50%););
+}
+
+.fullsize {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+// init webfonts
+@font-path: "../fonts/";
+.apply-webfont(@family, @name) {
+    font-family: @family;
+    src: url('@{font-path}@{name}.eot');
+    src: url('@{font-path}@{name}.eot?#iefix') format('embedded-opentype'),
+         url('@{font-path}@{name}.woff') format('woff'),
+         url('@{font-path}@{name}.ttf') format('truetype'),
+         url('@{font-path}@{name}.svg#timelesstligregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+

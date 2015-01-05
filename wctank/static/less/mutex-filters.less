@@ -1,0 +1,118 @@
+@import "helpers";
+
+.troller {
+    .transition(all 1000s linear);
+}
+#troller-back {
+    .fullsize;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: -1;
+    top: 0;
+    bottom: 0;
+}
+
+.print-analog {
+    .svg-filter(print-analog);
+}
+
+.caustic-glow {
+    .svg-filter(caustic-glow);
+}
+#caustic-glow-back {
+    .fullsize;
+    z-index: -2;
+    overflow: hidden;
+}
+#vimeo-player {
+    .fullsize;
+    width: 250%;
+    height: 250%;
+    .transform(translate(-30%, -30%););
+}
+
+.Fauvist {
+    .svg-filter(fauvist);
+}
+
+.Cmgyk {
+    .svg-filter(cmgyk);
+}
+#cmgyk-back {
+    .fullsize;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    .transition(all 300ms ease-in-out); 
+}
+#cmgyk-grad {
+    width: 200%;
+    height: 75%;
+    top: 200;
+    @lgval: to right, 
+        #FFFF00, 
+        #00FF00 6%, 
+        #00FFFF 12%, 
+        #6F00FF 18%, 
+        #FF00FF 24%, 
+        #FF0000 30%, 
+        #FF7F00 36%,
+        #FFFF00 42%;    
+    .repeating-linear-gradient(@lgval);
+    .animation(slide 6s infinite linear);
+}
+.keyframes(slide, {
+    0% { .transform(translateX(-42%);) }
+    100% { .transform(translateX(0%);) }
+});
+#cmgyk-steady-back {
+    .fullsize;
+    width: 200%;
+    height: 100%;
+    @lgval: to right, 
+        #95004B, 
+        #80FF00 6%, 
+        #8E2600 12%, 
+        #03158D 18%, 
+        #9C4E00 24%, 
+        #E63E2E 30%, 
+        #FF7F00 36%,
+        #FFFF00 42%;    
+    .repeating-linear-gradient(@lgval);
+    .animation(slide-left 10s infinite linear);
+    z-index: -2;
+}
+.keyframes(slide-left, {
+    0% { .transform(translateX(0%);) }
+    100% { .transform(translateX(-42%);) }
+});
+
+.Vhs {
+    .svg-filter(vhs);
+}
+#vhs-canv {
+    display: block;
+    z-index: 20;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    .transform(scale(1.666, 1.666););
+}
+#vhs-back {
+    .fullsize;
+    z-index: -1;
+    @lgval: to right,
+        #FFFF00, 
+        #00FF00 18%, 
+        #00FFFF 36%, 
+        #6F00FF 54%, 
+        #FF00FF 72%, 
+        #FF0000 90%; 
+    .linear-gradient(@lgval);
+}
+
+

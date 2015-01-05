@@ -23,10 +23,11 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
     cont.innerHTML = filterXML; 
 
     mutexVisualEffects.Troller = function() {
-        Object.defineProperty(this, 'css_class', {
-            value: 'Troller' 
+        Object.defineProperties(this, {
+            'name': { value: "Troller" },
+            'css_class': { value: "troller" }
         });
-        
+
         var troller_back = document.createElement('video');
         troller_back.src = "https://archive.org/download/C.E.PriceSunClouds/SunClouds_512kb.mp4";
         troller_back.setAttribute("id", "troller-back");
@@ -133,10 +134,11 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
     mutexVisualEffects.Troller.prototype = new mutexVisualEffectsCore.MutexEffect();
 
     mutexVisualEffects.PrintAnalog = function() {
-        Object.defineProperty(this, 'css_class', {
-            value: 'PrintAnalog'
+        Object.defineProperties(this, {
+            'name': { value: 'PrintAnalog' },
+            'css_class': { value: 'print-analog' }
         });
-        
+
         var stdDeviation = 1.16,
             paDenoise = document.getElementById("pa-denoise");
         Object.defineProperty(this, 'denoiseStdDeviation', {
@@ -163,8 +165,9 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
     mutexVisualEffects.PrintAnalog.prototype = new mutexVisualEffectsCore.MutexEffect();
 
     mutexVisualEffects.CausticGlow = function() {
-        Object.defineProperty(this, 'css_class', {
-            value: 'CausticGlow'
+        Object.defineProperties(this, {
+            'name': { value: 'CausticGlow' },
+            'css_class': { value: 'caustic-glow' }
         });
 
         var stdDeviation = 10.6,
@@ -212,7 +215,6 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
             }, del);
         }; 
     
-        // sigh...
         var parent = this;
         this.init = function() {
             if (player_ready) {
@@ -235,9 +237,11 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
     mutexVisualEffects.CausticGlow.prototype = new mutexVisualEffectsCore.MutexEffect();
 
     mutexVisualEffects.Cmgyk = function() {
-        Object.defineProperty(this, 'css_class', {
-            value: 'Cmgyk'
+        Object.defineProperties(this, {
+            'name': { value: 'Cmgyk' },
+            'css_class': { value: 'cmgyk' }
         });
+
 
         var denoiseStdDeviation = 1,
             cmgykDenoise = document.getElementById("cmgyk-denoise");
@@ -394,17 +398,19 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
     mutexVisualEffects.Cmgyk.prototype = new mutexVisualEffectsCore.MutexEffect();
 
     mutexVisualEffects.Fauvist = function() {
-        Object.defineProperty(this, 'css_class', {
-            value: 'Fauvist'
+        Object.defineProperties(this, {
+            'name': { value: 'Fauvist' },
+            'css_class': { value: 'fauvist' }
         });
     };
     mutexVisualEffects.Fauvist.prototype = new mutexVisualEffectsCore.MutexEffect();
 
     mutexVisualEffects.Vhs = function() {
-        Object.defineProperty(this, 'css_class', {
-            value: 'Vhs'
+        Object.defineProperties(this, {
+            'name': { value: 'Vhs' },
+            'css_class': { value: 'vhs' }
         });
-    
+
         var offset = document.getElementById("vhs-offset");
 
         var vhs_back = document.createElement('div');
