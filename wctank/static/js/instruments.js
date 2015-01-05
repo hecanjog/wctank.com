@@ -1,18 +1,17 @@
 define(
     [
-        'audio',
         'audioElements',
         'audioNodes',
-        'instrument',
+        'instrumentCore',
         'envelopeCore',
-        'asdr',
+        'envelopeAsdr',
         'util'
     ],
 
-function(audio, audioElements, audioNodes, instrument, 
-            envelopeCore, asdr, util) { var instrumentDefs = {};
+function(audioElements, audioNodes, instrumentCore, 
+            envelopeCore, envelopeAsdr, util) { var instruments = {};
 
-    instrumentDefs.raspyCarpark = function() {
+    instruments.raspyCarpark = function() {
         var noise = audioElements.Noise(); 
         noise.gain.gain.value = 0.0;
         noise.start();
@@ -50,9 +49,9 @@ function(audio, audioElements, audioNodes, instrument,
                 val: [0.001, 100] 
             }
         };
-        var noiseAsdr = new asdr.Generator(noiseAsdrParams);
+        var noiseAsdr = new envelopeAsdr.Generator(noiseAsdrParams);
 
-        var noiseAction = new instrument.ParameterizedAction(noise.gain.gain);
+        var noiseAction = new instrumentCore.ParameterizedAction(noise.gain.gain);
         noiseAction.envelope = noiseAsdr.getASDR();
 
         this.actionTarget = function() {
@@ -61,9 +60,9 @@ function(audio, audioElements, audioNodes, instrument,
         
         this._link_alias_out = convo;
     };
-    instrumentDefs.raspyCarpark.prototype = new instrument.Instrument();
+    instruments.raspyCarpark.prototype = new instrumentCore.Instrument();
 
-    instrumentDefs.angularNastay = function() {
+    instruments.angularNastay = function() {
         
         this.osc = audioElements.Osc('square');
         this.osc.start();
@@ -108,9 +107,9 @@ function(audio, audioElements, audioNodes, instrument,
                 val: [0.5, 0,  0.0001, 99]
             }
         };
-        var oscAsdr = new asdr.Generator(oscAsdrParams);
+        var oscAsdr = new envelopeAsdr.Generator(oscAsdrParams);
 
-        this.attack = new instrument.ParameterizedAction(this.osc.gain.gain);
+        this.attack = new instrumentCore.ParameterizedAction(this.osc.gain.gain);
         this.attack.createEnvelope = function(stage) {
             if (stage) {
                 return oscAsdr.getAS();
@@ -123,12 +122,12 @@ function(audio, audioElements, audioNodes, instrument,
         pEnv.interpolationType = 'none';
         pEnv.duration = 100;
 
-        this.pitch = new instrument.ParameterizedAction(this.osc.osc.frequency);
+        this.pitch = new instrumentCore.ParameterizedAction(this.osc.osc.frequency);
         this.pitch.createEnvelope = function(freq) {
             pEnv.valueSequence = [new envelopeCore.EnvelopeValue(freq, 0)];
             return pEnv.toAbsolute();
         };
     };
-    instrumentDefs.angularNastay.prototype = new instrument.Instrument(); 
+    instruments.angularNastay.prototype = new instrumentCore.Instrument(); 
 
-return instrumentDefs; });
+return instruments; });

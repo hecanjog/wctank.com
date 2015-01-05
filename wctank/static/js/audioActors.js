@@ -1,11 +1,11 @@
 define( 
     [
-        'audio',
+        'audioCore',
         'audioNodes',
         'audioElements'
     ],
 
-function(audio, audioNodes, audioElements) { var actors = {};
+function(audioCore, audioNodes, audioElements) { var actors = {};
 
     actors.SubtractiveSynthesis = function(withNoise) {
         // in -> analysis -> 
@@ -27,8 +27,8 @@ function(audio, audioNodes, audioElements) { var actors = {};
         this._link_alias_in = [dryIn, anaIn];
         this._link_alias_out = outGain;    
 
-        audio.moduleExtensions.startStopThese(this, noise); 
-        audio.moduleExtensions.wetDry(this, dryGain, wetGain);
+        audioCore.moduleExtensions.startStopThese(this, noise); 
+        audioCore.moduleExtensions.wetDry(this, dryGain, wetGain);
 
         var bp_bank = [];
         this.updateFromSound = function() {
@@ -48,7 +48,7 @@ function(audio, audioNodes, audioElements) { var actors = {};
             // set all bandpass q values 
         };
     };
-    actors.SubtractiveSynthesis.prototype = new audio.AudioModule();
+    actors.SubtractiveSynthesis.prototype = new audioCore.AudioModule();
 
 return actors; });
 

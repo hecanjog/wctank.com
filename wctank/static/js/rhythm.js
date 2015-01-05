@@ -1,11 +1,11 @@
 define(
     [
         'util',
-        'instrument',
+        'instrumentCore',
         'envelopeCore'
     ],
 
-function(util, instrument, envelopeCore) { var rhythm = {};
+function(util, instrumentCore, envelopeCore) { var rhythm = {};
   
     /*
      * gross clock. NOT ACCURATE ENOUGH FOR MICROTIMING!
@@ -317,13 +317,13 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                 var r = {};
 
                 var checkTarget = function(toOperate, name) {
-                    if (toOperate instanceof instrument.ParameterizedAction) {
+                    if (toOperate instanceof instrumentCore.ParameterizedAction) {
                         r[name] = toOperate;
                     } else if (typeof toOperate === 'function') {
                         // a little help so you can just pass rhythm gen arbitrary 
                         // functions to call; if passing any particular values to 
                         // this function is unimportant
-                        var action = new instrument.ParameterizedAction(toOperate);
+                        var action = new instrumentCore.ParameterizedAction(toOperate);
                         var env = new envelopeCore.Envelope();
                         env.duration = 1000;
                         env.interpolationType = 'none';
@@ -334,8 +334,8 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                         checkTarget(toOperate.actionTarget, name);
                     } else {
                         throwRhythmTypeError("All targets must be instances of "+
-                            "must be instances of instrument.ParameterizedAction, functions, "+
-                            "or an instance of instrument.Instrument that overrides its "+
+                            "must be instances of instrumentCore.ParameterizedAction, functions, "+
+                            "or an instance of instrumentCore.Instrument that overrides its "+
                             "actionTarget property with a reference to one of the above.");
                     }
                 };

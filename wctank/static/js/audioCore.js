@@ -1,11 +1,6 @@
-// try feedback!@
 // add clipping distortion to bps
 // sampler
 // etc.
-// certain elements will be foreground, and not executed when posts are open
-// some elements mirror visual filter changes
-// a layer tied to zoom level 
-// rm virgo logo?
 
 define(
     [
@@ -13,30 +8,19 @@ define(
         'tween'
     ],
 
-function(audioUtil, TWEEN) { var audio = {};
+function(audioUtil, TWEEN) { var audioCore = {};
     
-    audio.ctx = new ( window.AudioContext || window.webkitAudioContext )();
+    audioCore.ctx = new ( window.AudioContext || window.webkitAudioContext )();
     
     //alias out for suga
-    audio.out = audio.ctx.destination;
+    audioCore.out = audioCore.ctx.destination;
     
     /*
-     * enum OscillatorNode types (from Web Audio API spec)
-     */
-    audio.oscTypes = {
-        SINE: 'sine',
-        SQUARE: 'square',
-        SAWTOOTH: 'sawtooth',
-        TRIANGLE: 'triangle',
-        CUSTOM: 'custom'
-    };
-    
-    /*
-     * audio.AudioModule is the base class for all sound making components
+     * audioCore.AudioModule is the base class for all sound making components
      * and includes facilities to create common behaviors and connect objects
      * that inherit AudioModule or use it as a mixin together
      */
-    audio.AudioModule = function AudioModule() {
+    audioCore.AudioModule = function AudioModule() {
         var parent = this;     
 
         // AudioModules inheriting AudioModule as a prototype 
@@ -73,7 +57,7 @@ function(audioUtil, TWEEN) { var audio = {};
                         if ( Array.isArray(out._link_alias_in) ) {
                             checkLink(false, input, out._link_alias_in);
                             this.link(out._link_alias_in[input]);
-                        } else if ( audio.hasLink(out._link_alias_in) ) {
+                        } else if ( audioCore.hasLink(out._link_alias_in) ) {
                             // if the link alias is an AudioModule,
                             // recurse until we hit an WAAPI AudioNode to connect to
                             this.link(out._link_alias_in, output, input); 
@@ -83,7 +67,7 @@ function(audioUtil, TWEEN) { var audio = {};
                             this._link_alias_out.connect(out._link_alias_in, output, input);
                         }
                     } else {
-                        if (this._link_alias_out instanceof audio.AudioModule) {
+                        if (this._link_alias_out instanceof audioCore.AudioModule) {
                             this._link_alias_out.link(out, output, input);
                         } else {
                             this._link_alias_out.connect(out, output, input);
@@ -110,9 +94,7 @@ function(audioUtil, TWEEN) { var audio = {};
         };
     };
 
-    audio.moduleExtensions = {
-       
-        //asdr enveloping (gainnode) - audio param native chain
+    audioCore.moduleExtensions = {
 
         startStopThese: function(scope) {
             var nodes = arguments;
@@ -128,12 +110,11 @@ function(audioUtil, TWEEN) { var audio = {};
             };
         },
 
-// toggle
         wetDry: function(scope, dryGainNode, wetGainNode) {
             scope.wetDry = function(percent_wet, time) {
                 var w = percent_wet / 100,
                 d = 1 - w,
-                t = audio.ctx.currentTime + (time ? time : 0);
+                t = audioCore.ctx.currentTime + (time ? time : 0);
                 wetGainNode.gain.linearRampToValueAtTime(w, t);
                 dryGainNode.gain.linearRampToValueAtTime(d, t);  
             }; 
@@ -182,17 +163,17 @@ function(audioUtil, TWEEN) { var audio = {};
         }
     };
 
-    audio.wrapNode = function(node) {
-        audio.AudioModule.call(node);
+    audioCore.wrapNode = function(node) {
+        audioCore.AudioModule.call(node);
         return node;
     };
     
-    audio.hasLink = function(obj) {
+    audioCore.hasLink = function(obj) {
         return obj.link ? true : false;
     };
 
-    audio.isAudioModule = function(obj) {
-        return (obj.constructor === audio.AudioModule) ? true : false;
+    audioCore.isAudioModule = function(obj) {
+        return (obj.constructor === audioCore.AudioModule) ? true : false;
     };
 
-return audio; });
+return audioCore; });

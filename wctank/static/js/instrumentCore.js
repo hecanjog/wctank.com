@@ -1,18 +1,18 @@
 define(
     [
-        'audio',
+        'audioCore',
         'envelopeCore'
     ],
 
-function(audio, envelopeCore) { var instrument = {};
+function(audioCore, envelopeCore) { var instrumentCore = {};
 
     // fuunction in this that takes a value and constructs a new envelope that can be appplied to 
     // target - env gen fn - if null, then value if offset - refactor
-    instrument.ParameterizedAction = function(target, envelope) {
+    instrumentCore.ParameterizedAction = function(target, envelope) {
         var parent = this;
        // read-only prop type 
         var throwActionTypeError = function(mess) {
-            throw new TypeError("Invalid instrument.ParameterizedAction param: " + mess); 
+            throw new TypeError("Invalid instrumentCore.ParameterizedAction param: " + mess); 
         };
 
         var tget, env, type;
@@ -63,7 +63,7 @@ function(audio, envelopeCore) { var instrument = {};
         this.createEnvelope = null;
     };
 
-    instrument.Instrument = function() {
+    instrumentCore.Instrument = function() {
         /*
          * Optional: override .actionTarget with a ref to a parameterized action that 
          * can be called by rhythm.Generator. Otherwise, target specific nodes in the 
@@ -71,6 +71,6 @@ function(audio, envelopeCore) { var instrument = {};
          */
         this.actionTarget;
     };
-    instrument.Instrument.prototype = new audio.AudioModule();
+    instrumentCore.Instrument.prototype = new audioCore.AudioModule();
 
-return instrument; });
+return instrumentCore; });

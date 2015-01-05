@@ -1,22 +1,22 @@
 define(
     [
         'sceneGraphCore',
-        'audio',
+        'audioCore',
         'rhythm',
-        'instrumentDefs',
+        'instruments',
         'mutexVisualEffects',
         'mutexVisualEffectsCore',
         'tableux'
     ],
 
-function(sceneGraphCore, audio, rhythm, instrumentDefs, 
+function(sceneGraphCore, audioCore, rhythm, instruments, 
          mutexVisualEffects, mutexVisualEffectsCore, tableux) { var sceneGraphs = {};
 
     sceneGraphs.klangMarche = function() {
         
         var clock = new rhythm.Clock(100);
     
-        var rasp = new instrumentDefs.raspyCarpark();    
+        var rasp = new instruments.raspyCarpark();    
        
         // locked loop callback broken...
 
@@ -44,7 +44,7 @@ function(sceneGraphCore, audio, rhythm, instrumentDefs,
         cfig2.seq[4] = { subd: 0.27, val: {rasp: ""} };
         delete cfig2.callbacks;
 
-        var iowa = new instrumentDefs.angularNastay();
+        var iowa = new instruments.angularNastay();
 
         var rubber_count = 0;
 
@@ -69,7 +69,7 @@ function(sceneGraphCore, audio, rhythm, instrumentDefs,
         };
         var rubberRhy = new rhythm.Generator(clock, rubberConfig);
 
-        var iowa2 = new instrumentDefs.angularNastay();
+        var iowa2 = new instruments.angularNastay();
         var rubberConfig2 = rubberConfig;
         rubberConfig.targets = {
             attack: iowa2.attack,
@@ -85,9 +85,9 @@ function(sceneGraphCore, audio, rhythm, instrumentDefs,
         };
         var rubberRhy2 = new rhythm.Generator(clock, rubberConfig2);
 
-        iowa.link(audio.out);
-        iowa2.link(audio.out);
-        rasp.link(audio.out);
+        iowa.link(audioCore.out);
+        iowa2.link(audioCore.out);
+        rasp.link(audioCore.out);
 
         var vidFilt = new mutexVisualEffects.CausticGlow(); 
 

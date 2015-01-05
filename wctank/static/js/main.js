@@ -34,8 +34,6 @@ define(
         'gMap',
         'sceneGraphs',
         'sceneGraphCore',
-        'audioElements',
-        'audioNodes',
         'markerEvents',
         ['font!custom,families:',
             '[',
@@ -48,7 +46,7 @@ define(
             ']'
         ].join('/n')
     ],
-function(gMap, sceneGraphs, sceneGraphCore, audioElements, audioNodes) {
+function(gMap, sceneGraphs, sceneGraphCore) {
    
     // TODO: 
     // envelope looping mechanism

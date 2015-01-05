@@ -1,12 +1,12 @@
 define(
     [
         'util',
-        'audio',
+        'audioCore',
         'audioUtil',
         'tween'
     ],
 
-function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
+function(util, audioCore, audioUtil, TWEEN) { var envelopeCore = {};
 
     // value = arbitrary param value
     // time = percentage
@@ -183,7 +183,7 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
                     }
                 }
                 // TODO: the undefined check here patches over some weird behavior in 
-                // asdr.Sustain.bake() where inter_values[j] was sometimes undefined.
+                // envelopeAsdr.Sustain.bake() where inter_values[j] was sometimes undefined.
                 // THIS IS SUPER STUPID!
                 if (!found && (typeof inter_values[j] !== 'undefined')) {
                     filtered_values.push(inter_values[j].time);
@@ -366,7 +366,7 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
             };
         } else if (t instanceof AudioParam) {
             this.cancel = function() {
-                t.cancelScheduledValues(audio.ctx.currentTime);
+                t.cancelScheduledValues(audioCore.ctx.currentTime);
             };
         } else if (Array.isArray(t)) {
             this.cancel = function() {
@@ -403,7 +403,7 @@ function(util, audio, audioUtil, TWEEN) { var envelopeCore = {};
         
         if (target instanceof AudioParam) {
             envelope.valueSequence.forEach(function(val) {
-                var t = audio.ctx.currentTime + util.time.msec2sec(off) + 
+                var t = audioCore.ctx.currentTime + util.time.msec2sec(off) + 
                     util.time.msec2sec(val.time);
                 if (val.interpolationType === 'linear') {
                     target.linearRampToValueAtTime(val.value, t);
