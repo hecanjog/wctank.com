@@ -15,7 +15,6 @@ function(util, div, gMap, visualCore) { var mutexVisualEffectsCore = {};
         get: function() { return currentFilter; }
     });
 
-
     mutexVisualEffectsCore.MutexEffect = function() {
         this.css_class = '';
         this.name = '';
