@@ -1,12 +1,14 @@
 @import "helpers";
 
-#strut-front {
+.fullsize-on-top {
     .fullsize;
     z-index: 20;
     pointer-events: none;
 }
-#squares-front {
-    #strut-front; 
+
+#strut-front {
+    .fullsize-on-top;
 }
-
-
+#squares-front {
+    .fullsize-on-top;
+}
