@@ -317,8 +317,8 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                 var r = {};
 
                 var checkTarget = function(toOperate, name) {
-                    if (toOperate[name] instanceof instrument.ParameterizedAction) {
-                        r[name] = toOperate[name];
+                    if (toOperate instanceof instrument.ParameterizedAction) {
+                        r[name] = toOperate;
                     } else if (typeof toOperate === 'function') {
                         // a little help so you can just pass rhythm gen arbitrary 
                         // functions to call; if passing any particular values to 
@@ -415,7 +415,7 @@ function(util, instrument, envelopeCore) { var rhythm = {};
                                     for (var t in stepValues) {
                                         if (stepValues.hasOwnProperty(t)) {
                                             var ce = targ[t].createEnvelope;
-                                            values[t] = ce ? ce(stepValues(t)) : ce;
+                                            values[t] = ce ? ce(stepValues[t]) : ce;
                                         }
                                     }
                                 } else {
@@ -449,7 +449,13 @@ function(util, instrument, envelopeCore) { var rhythm = {};
             if ('opt' in c) {
                 for (var prop in c.opt) {
                     if (c.opt.hasOwnProperty(prop)) {
-                        if (optSettable.indexOf(prop) >= 0) this[prop] = c.opt[prop];
+                        if (optSettable.indexOf(prop) >= 0) {
+                            this[prop] = c.opt[prop];
+                        } else {
+                            throw new Error(rhythmGeneratorError(
+                                "config object .opt can only have keys: "+optSettable
+                            ));
+                        }
                     }
                 }
             }

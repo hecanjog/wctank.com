@@ -13,7 +13,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
     visualEffects.Strut = function() {
         
         var strut_front = document.createElement("canvas");
-        strut_front.setAttribute("id", "strut_front");
+        strut_front.setAttribute("id", "strut-front");
 
         var vid = document.createElement('video');
         vid.style.display = "none";
@@ -85,7 +85,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
 
     visualEffects.Squares = function() {
         var squares_front = document.createElement('canvas');
-        squares_front.setAttribute("id", "squares_front");
+        squares_front.setAttribute("id", "squares-front");
 
 
         // r, g, b (a to be assigned in shader)

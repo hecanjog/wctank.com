@@ -57,7 +57,7 @@ function(audioUtil, TWEEN) { var audio = {};
         };
 
         // this is gross, but needs to be this verbose b/c of Web Audio API internals...
-        // TODO: seriously, make this easier to read.
+        // TODO: seriously, stop monkey patching!!!.
         this.link = function(out, output, input) {        
             if (typeof out !== 'undefined') {
                 // if this is a normal audio module with an out alias
@@ -83,9 +83,11 @@ function(audioUtil, TWEEN) { var audio = {};
                             this._link_alias_out.connect(out._link_alias_in, output, input);
                         }
                     } else {
-                        // if no input alias is implemented, then 
-                        // hopefully we've hit an audio node
-                        this._link_alias_out.connect(out, output, input);
+                        if (this._link_alias_out instanceof audio.AudioModule) {
+                            this._link_alias_out.link(out, output, input);
+                        } else {
+                            this._link_alias_out.connect(out, output, input);
+                        }
                     }
                 } else {
                     // for the cases where an AudioModule has one AudioNode
@@ -156,8 +158,8 @@ function(audioUtil, TWEEN) { var audio = {};
                         if (!glissing) {
                             glissing = true;
                             gliss.to({value: val}, time)
-                                .easing( audio.audioUtil.tween.getRandomEasingFn() )
-                                .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
+                                .easing( audioUtil.tween.getRandomEasingFn() )
+                                .interpolation( audioUtil.tween.getRandomInterpolationFn() )
                                 .onUpdate(updateValue)
                                 .onComplete(function() {
                                     glissing = false;
@@ -168,12 +170,12 @@ function(audioUtil, TWEEN) { var audio = {};
                         } else {
                             gliss.stop();
                             gliss.to({value: val}, time)
-                                .easing( audio.audioUtil.tween.getRandomEasingFn() )
-                                .interpolation( audio.audioUtil.tween.getRandomInterpolationFn() )
+                                .easing( audioUtil.tween.getRandomEasingFn() )
+                                .interpolation( audioUtil.tween.getRandomInterpolationFn() )
                                 .start();
                         }
                     } else {
-                        node[param].value = freq;    
+                        node[param].value = val;    
                     }            
                 };
             }

@@ -2,14 +2,17 @@ define(
     [
         'audio',
         'audioElements',
+        'audioNodes',
         'instrument',
+        'envelopeCore',
         'asdr',
-        'envelopeCore'
+        'util'
     ],
 
-function(audio, audioElements, instrument, asdr, envelopeCore) { var instrumentDefs = {};
+function(audio, audioElements, audioNodes, instrument, 
+            envelopeCore, asdr, util) { var instrumentDefs = {};
 
-    instrumentDefs.noiseBass = function() {
+    instrumentDefs.raspyCarpark = function() {
         var noise = audioElements.Noise(); 
         noise.gain.gain.value = 0.0;
         noise.start();
@@ -18,8 +21,7 @@ function(audio, audioElements, instrument, asdr, envelopeCore) { var instrumentD
         convo.wetDry(100);
         convo.gain.gain.value = 1.0;
 
-        window.convo = convo;
-        noise.link(convo).link(audio.out);
+        noise.link(convo);
 
         var noiseAsdrParams = {
             a: {
@@ -48,16 +50,85 @@ function(audio, audioElements, instrument, asdr, envelopeCore) { var instrumentD
                 val: [0.001, 100] 
             }
         };
-
         var noiseAsdr = new asdr.Generator(noiseAsdrParams);
 
         var noiseAction = new instrument.ParameterizedAction(noise.gain.gain);
         noiseAction.envelope = noiseAsdr.getASDR();
 
-        this.actionTarget = noiseAction.execute;
+        this.actionTarget = function() {
+            noiseAction.execute();
+        };
+        
+        this._link_alias_out = convo;
     };
-    instrumentDefs.noiseBass.prototype = new instrument.Instrument();
+    instrumentDefs.raspyCarpark.prototype = new instrument.Instrument();
 
-    // instrument.getTarget method?
+    instrumentDefs.angularNastay = function() {
+        
+        this.osc = audioElements.Osc('square');
+        this.osc.start();
+        this.osc.gain.gain.value = 0;
+        
+        this.gain = audioNodes.Gain();
+        this.gain.gain.value = 0.2;
+
+        this.osc.link(this.gain);
+
+        this._link_alias_out = this.gain;
+
+        var oscAsdrParams = {
+            a: {
+                dur: 100,
+                inter: {
+                    type: 'none'
+                },
+                val: [0.01, 0,      1, 10,
+                      0.2, 20,      0.9, 30,
+                      0.4, 40,      0.8, 50,
+                      0.3, 57,      0.75, 64,
+                      0.45, 73,     0.83, 83,
+                      0.15, 90,     1, 99]
+            },
+            s: {
+                dur: 100,
+                val: 1
+            },
+            d: {
+                dur: 200,
+                inter: {
+                    type: 'linear'
+                },
+                val: [1, 0,  0.5, 99]              
+            },
+            r: {
+                dur: 50,
+                inter: {
+                    type: 'exponential'
+                },
+                val: [0.5, 0,  0.0001, 99]
+            }
+        };
+        var oscAsdr = new asdr.Generator(oscAsdrParams);
+
+        this.attack = new instrument.ParameterizedAction(this.osc.gain.gain);
+        this.attack.createEnvelope = function(stage) {
+            if (stage) {
+                return oscAsdr.getAS();
+            } else {
+                return oscAsdr.getDR();
+            }
+        };
+
+        var pEnv = new envelopeCore.Envelope();
+        pEnv.interpolationType = 'none';
+        pEnv.duration = 100;
+
+        this.pitch = new instrument.ParameterizedAction(this.osc.osc.frequency);
+        this.pitch.createEnvelope = function(freq) {
+            pEnv.valueSequence = [new envelopeCore.EnvelopeValue(freq, 0)];
+            return pEnv.toAbsolute();
+        };
+    };
+    instrumentDefs.angularNastay.prototype = new instrument.Instrument(); 
 
 return instrumentDefs; });

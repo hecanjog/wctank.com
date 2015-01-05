@@ -48,11 +48,11 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
             return new elements.Osc(oscType, frequency, amplitude);
 
         this.osc = audio.ctx.createOscillator();
-        this.osc.frequency.value = frequency;
-        this.osc.type = oscType;
+        this.osc.frequency.value = frequency ? frequency : 440;
+        this.osc.type = oscType ? oscType : 'sine';
 
         this.gain = audio.ctx.createGain();
-        this.gain.gain.value = amplitude;
+        this.gain.gain.value = amplitude ? amplitude : 1.0;
 
         this.osc.connect(this.gain);
         
@@ -62,7 +62,7 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         audio.moduleExtensions.setValue(this, this.osc, 'frequency', 'setFrequency', true);
     };
     elements.Osc.prototype = new audio.AudioModule();
-   
+
     elements.Bandpass = function Bandpass(frequency, Q, initGain) {
         // construct sans new
         if (this.constructor !== audio.AudioModule) 
@@ -71,13 +71,13 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
         // bp filter
         this.biquad = audio.ctx.createBiquadFilter();
         this.biquad.type = "bandpass";
-        this.biquad.frequency.value = frequency;
-        this.biquad.Q.value = Q;
+        this.biquad.frequency.value = frequency ? frequency : 440;
+        this.biquad.Q.value = Q ? Q : this.biquad.Q.value;
         var biquad = this.biquad;
                    
         // gain node
         this.gain = audio.ctx.createGain();
-        this.gain.gain.value = initGain;
+        this.gain.gain.value = initGain ? initGain : 1.0;
         var gain = this.gain;
         
         // for TWEENS 
@@ -226,57 +226,87 @@ function(audio, audioUtil, audioNodes, util) { var elements = {};
     };
     elements.Bandpass.prototype = new audio.AudioModule();      
 
-    elements.SpritePlayer = function SpritePlayer(mp3Path, TextGridIntervals) {
+    elements.Player = function(pathToFile) {
         if (this.constructor !== audio.AudioModule) 
-            return new elements.SpritePlayer(mp3Path, TextGridIntervals);
-        
-        var parent = this;
-              
+            return new elements.Player(pathToFile);
+
         var media = document.createElement('audio');
 
-        var req = new XMLHttpRequest();
-        req.responseType = 'blob';
-        req.onload = function() {
-            var reader = new FileReader();
-            reader.readAsDataURL(req.response);
-            reader.onloadend = function() {
-                media.src = reader.result;
+        // workaround for when server is not configured to
+        // accept range requests
+        this.loadFile = function(path) {
+            var req = new XMLHttpRequest();
+            req.responseType = 'blob';
+            req.onload = function() {
+                var reader = new FileReader();
+                reader.readAsDataURL(req.response);
+                reader.onloadend = function() {
+                    media.src = reader.result;
+                };
             };
+            req.open("GET", path, true);
+            req.send();
         };
-        req.open("GET", mp3Path, true);
-        req.send();
+        if (pathToFile) this.loadFile(pathToFile);
 
-        var def_gain = 0.2;
+        var playing = false;
 
-        //AudioNodes 
+        this.play = function() {
+            playing = true;
+            media.play();
+        };
+        this.pause = function() {
+            playing = false;
+            media.pause();
+        };
+        this.setTime = function(time) {
+            media.currentTime = time;
+        };
+        
+        Object.defineProperties(this, {
+            'currentTime': {
+                get: function() { return media.currentTime; } 
+            },
+            'isPlaying': {
+                get: function() { return playing; }
+            }
+        });
+
         this.mediaSource = audio.ctx.createMediaElementSource(media);
+        this._link_alias_out = this.mediaSource;
+    };
+    elements.Player.prototype = new audio.AudioModule();
+
+    elements.SpritePlayer = function(mp3Path, TextGridIntervals) {
+        if (this.constructor !== audio.AudioModule) 
+            return new elements.SpritePlayer(mp3Path, TextGridIntervals);
+       
+        var player = new elements.Player(mp3Path);
+
         this.gain = audio.ctx.createGain();
         this.gain.gain.value = def_gain;    
 
-        this.mediaSource.connect(this.gain);
+        player.link(this.gain);
         
         var sprites = audioUtil.parseSpriteIntervals(TextGridIntervals); 
         util.objectLength.call(sprites); 
         
-        var playing = false;
+        var parent = this;
         this.playRandomSprite = function() {
-            if (!playing) {        
+            if (!player.isPlaying) {        
                 var sprite = sprites[(Math.random() * sprites.length) | 0],
                     dur = sprite.end - sprite.start;
-                media.currentTime = sprite.start;
+                player.setTime(sprite.start);
                 this.gain.gain.value = 0;
                 this.gain.gain.setValueAtTime(def_gain, audio.ctx.currentTime + 0.01);
-                media.play();    
-                playing = true;
+                player.play();    
                 window.setTimeout(function() {
                     parent.gain.gain.setValueAtTime(0, audio.ctx.currentTime + 0.01);
-                    media.pause(); 
-                    playing = false;
+                    player.pause(); 
                 }, dur * 1000);
             }
         };
         
-        this._link_alias_in = this.mediaSource;
         this._link_alias_out = this.gain;
     };
     elements.SpritePlayer.prototype = new audio.AudioModule();

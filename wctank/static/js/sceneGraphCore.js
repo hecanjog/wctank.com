@@ -6,23 +6,19 @@ define(
 function(util) { var core = {};
     
     core.SceneGraph = function() {
-        this.mutexVisualEffects = {};
-        this.visualEffects = {};
-        this.audio = {};
         this.init = null;
         this.teardown = null;
-        this.apply = function() {
-            core._applySceneGraph(this);
-        };
     };
 
     var last = null;
-    core._applySceneGraph = function(scene) {
+    core.apply = function(sceneGraphObj) {
         if (last) {
-            last.teardown();
+            last.teardown(); 
         }
+        var scene = new sceneGraphObj();
         scene.init();
-        last = scene;
+        last = scene; // watch for mem leaks?
+        // write test that switches a lot
     };
 
     core.GrossSequencer = function() {

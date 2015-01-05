@@ -101,10 +101,10 @@ button {
 }
 .none {}
 
-.troller {
+.Troller {
     .transition(all 1000s linear);
 }
-#troller_back {
+#troller-back {
     .fullsize;
     min-width: 100%;
     min-height: 100%;
@@ -114,34 +114,37 @@ button {
     top: 0;
     bottom: 0;
 }
-
-.print_analog {
+/*
+ *  N.B. it's important that the names of these classes match
+ *  the names of the mutexVisualEffects that call them.
+ */
+.PrintAnalog {
     .callFilter(print-analog);
 }
 
-.caustic_glow {
+.CausticGlow {
     .callFilter(caustic-glow);
 }
-#caustic_glow_back {
+#caustic-glow-back {
     .fullsize;
     z-index: -2;
     overflow: hidden;
 }
-#vimeo_player {
+#vimeo-player {
     .fullsize;
     width: 250%;
     height: 250%;
     .transform(translate(-30%, -30%););
 }
 
-.fauvist {
+.Fauvist {
     .callFilter(fauvist);
 }
 
-.cmgyk {
+.Cmgyk {
     .callFilter(cmgyk);
 }
-#cmgyk_back {
+#cmgyk-back {
     .fullsize;
     width: 100%;
     height: 100%;
@@ -149,7 +152,7 @@ button {
     overflow: hidden;
     .transition(all 300ms ease-in-out); 
 }
-#cmgyk_grad {
+#cmgyk-grad {
     width: 200%;
     height: 75%;
     top: 200;
@@ -169,7 +172,7 @@ button {
     0% { .transform(translateX(-42%);) }
     100% { .transform(translateX(0%);) }
 });
-#cmgyk_steady_back {
+#cmgyk-steady-back {
     .fullsize;
     width: 200%;
     height: 100%;
@@ -191,10 +194,10 @@ button {
     100% { .transform(translateX(-42%);) }
 });
 
-.vhs {
+.Vhs {
     .callFilter(vhs);
 }
-#vhs_canv {
+#vhs-canv {
     display: block;
     z-index: 20;
     position: absolute;
@@ -203,7 +206,7 @@ button {
     pointer-events: none;
     .transform(scale(1.666, 1.666););
 }
-#vhs_back {
+#vhs-back {
     .fullsize;
     z-index: -1;
     @lgval: to right,
@@ -219,25 +222,15 @@ button {
 /*
  * special elements
  */
-#strut_front {
+#strut-front {
     .fullsize;
     z-index: 20;
     pointer-events: none;
 }
-#words_front {
-    .fullsize;
-    z-index: 21;
-    pointer-events: none;
-}
-#squares_front {
+#squares-front {
     .fullsize;
     pointer-events: none;
     z-index: 20;
-}
-#angular_front {
-    .fullsize;
-    pointer-events: none;
-    z-index: 22;
 }
 
 /*

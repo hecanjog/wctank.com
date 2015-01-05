@@ -21,4 +21,7 @@ function(audio) { var nodes = {};
     nodes.Delay = function(delay) {
         return audio.wrapNode(audio.ctx.createDelay(delay));
     };
+    nodes.Biquad = function() {
+        return audio.wrapNode(audio.ctx.createBiquadFilter());
+    };
 return nodes; });

@@ -1,9 +1,10 @@
 define(
     [
+        'audio',
         'envelopeCore'
     ],
 
-function(envelopeCore) { var instrument = {};
+function(audio, envelopeCore) { var instrument = {};
 
     // fuunction in this that takes a value and constructs a new envelope that can be appplied to 
     // target - env gen fn - if null, then value if offset - refactor
@@ -64,10 +65,12 @@ function(envelopeCore) { var instrument = {};
 
     instrument.Instrument = function() {
         /*
-         * Override .actionTarget with a ref to a parameterized action that 
-         * can be called by rhythm.Generator
+         * Optional: override .actionTarget with a ref to a parameterized action that 
+         * can be called by rhythm.Generator. Otherwise, target specific nodes in the 
+         * Generator config.
          */
         this.actionTarget;
     };
+    instrument.Instrument.prototype = new audio.AudioModule();
 
 return instrument; });

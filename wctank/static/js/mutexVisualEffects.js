@@ -24,12 +24,12 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
 
     mutexVisualEffects.Troller = function() {
         Object.defineProperty(this, 'css_class', {
-            value: 'troller' 
+            value: 'Troller' 
         });
         
         var troller_back = document.createElement('video');
         troller_back.src = "https://archive.org/download/C.E.PriceSunClouds/SunClouds_512kb.mp4";
-        troller_back.setAttribute("id", "troller_back");
+        troller_back.setAttribute("id", "troller-back");
     
         var parent = this,
             rot = 0,
@@ -134,7 +134,7 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
 
     mutexVisualEffects.PrintAnalog = function() {
         Object.defineProperty(this, 'css_class', {
-            value: 'print_analog'
+            value: 'PrintAnalog'
         });
         
         var stdDeviation = 1.16,
@@ -164,7 +164,7 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
 
     mutexVisualEffects.CausticGlow = function() {
         Object.defineProperty(this, 'css_class', {
-            value: 'caustic_glow'
+            value: 'CausticGlow'
         });
 
         var stdDeviation = 10.6,
@@ -178,19 +178,19 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
         });
 
         var caustic_glow_back = document.createElement("div");
-        caustic_glow_back.setAttribute("id", "caustic_glow_back");  
+        caustic_glow_back.setAttribute("id", "caustic-glow-back");  
     
         var vid_id = "107871876",
             vimeo_player = document.createElement("iframe");
-        vimeo_player.setAttribute("id", "vimeo_player");
+        vimeo_player.setAttribute("id", "vimeo-player");
         vimeo_player.src = 
             "//player.vimeo.com/video/"+vid_id+
-            "?api=1&player_id=vimeo_player&autopause=0&loop=1";
+            "?api=1&player_id=vimeo-player&autopause=0&loop=1";
         caustic_glow_back.appendChild(vimeo_player);
          
         document.body.appendChild(caustic_glow_back);
 
-        var player = $f( $('#vimeo_player')[0] ),
+        var player = $f( $('#vimeo-player')[0] ),
             player_ready = false;
         player.addEvent('ready', function() {
             player_ready = true;
@@ -236,7 +236,7 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
 
     mutexVisualEffects.Cmgyk = function() {
         Object.defineProperty(this, 'css_class', {
-            value: 'cmgyk'
+            value: 'Cmgyk'
         });
 
         var denoiseStdDeviation = 1,
@@ -249,14 +249,14 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
             }
         });
         var cmgyk_back = document.createElement("div");
-        cmgyk_back.setAttribute("id", "cmgyk_back");
+        cmgyk_back.setAttribute("id", "cmgyk-back");
         
         var cmgyk_grad = document.createElement("div");
-        cmgyk_grad.setAttribute("id", "cmgyk_grad");
+        cmgyk_grad.setAttribute("id", "cmgyk-grad");
         cmgyk_back.appendChild(cmgyk_grad); 
         
         var cmgyk_steady_back = document.createElement("div");
-        cmgyk_steady_back.setAttribute("id", "cmgyk_steady_back");
+        cmgyk_steady_back.setAttribute("id", "cmgyk-steady-back");
 
         var engaged = false,
             times_engaged = 0,
@@ -395,25 +395,25 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
 
     mutexVisualEffects.Fauvist = function() {
         Object.defineProperty(this, 'css_class', {
-            value: 'fauvist'
+            value: 'Fauvist'
         });
     };
     mutexVisualEffects.Fauvist.prototype = new mutexVisualEffectsCore.MutexEffect();
 
     mutexVisualEffects.Vhs = function() {
         Object.defineProperty(this, 'css_class', {
-            value: 'vhs'
+            value: 'Vhs'
         });
     
         var offset = document.getElementById("vhs-offset");
 
         var vhs_back = document.createElement('div');
-        vhs_back.setAttribute("id", "vhs_back");
+        vhs_back.setAttribute("id", "vhs-back");
 
         var vhs_canv = document.createElement('canvas');
         vhs_canv.width = window.innerWidth * 0.75;
         vhs_canv.height = window.innerHeight * 0.75;
-        vhs_canv.setAttribute("id", "vhs_canv");
+        vhs_canv.setAttribute("id", "vhs-canv");
         window.addEventListener('resize', function(e) {
             vhs_canv.width = window.innerWidth * 0.75;
             vhs_canv.height = window.innerHeight * 0.75;
