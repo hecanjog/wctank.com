@@ -1,0 +1,48 @@
+#!/usr/bin/python2
+import subprocess
+
+print "\n * * * Making build directory..." 
+subprocess.call("mkdir ../wctank/static/dist", shell=True)
+
+print " * * * Optimizing js..."
+subprocess.call("r.js -o build.js", shell=True)
+
+print " * * * Move main.js into dist..."
+subprocess.call("cp ../appbuildingspace/js/main.js ../wctank/static/dist/main.js", shell=True)
+
+print " * * * Cleaning up..."
+subprocess.call("rm -r ../appbuildingspace", shell=True)
+
+print " * * * Compiling less..."
+subprocess.call("lessc ../wctank/static/less/styles.less \
+        ../wctank/static/dist/styles.css", shell=True)
+
+print " * * * Minifying CSS..."
+subprocess.call("cleancss -o ../wctank/static/dist/styles-min.css \
+        ../wctank/static/dist/styles.css", shell=True)
+
+print " * * * Cleaning up..."
+subprocess.call("rm ../wctank/static/dist/styles.css", shell=True)
+
+print " * * * Parsing audio sprites..."
+
+# while we're still using praat
+# task: {path/filename: foo, extension: bar}
+praat_tasks = {
+    "wesvoc": {"filename": "wes", "extension": "wav"}
+}
+
+subprocess.call("rm ../wctank/static/assets/*.TextGridIntervals", shell=True)
+
+for key in praat_tasks:
+    f = praat_tasks[key]["filename"]
+    ex = praat_tasks[key]["extension"]
+    subprocess.call("praat ./audioSprites/parseAudioSprite.praat "+ \
+            f+" "+ex+" ./ ../../wctank/static/assets/", shell=True)
+
+    print " * * * Converting "+f+"."+ex+" to mp3..."
+
+    subprocess.call("lame -q0 -b198 ./audioSprites/"+f+"."+ex+ \
+            " ../wctank/static/assets/"+f+".mp3", shell=True)
+
+print "\n * * * Done. Hopefully?"

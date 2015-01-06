@@ -43,6 +43,7 @@ define(
                 'timelessitalic',
                 'frutigerlightitalic',
                 'frutigerbold',
+                'wes-fa-subset',
             ']'
         ].join('/n')
     ],
