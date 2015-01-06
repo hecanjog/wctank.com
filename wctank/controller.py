@@ -3,9 +3,12 @@ from flask import render_template
 import urllib2
 import re
 
+# flip to true to use uncompiled sources
+dev_template = False
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', dev_template=dev_template)
 
 @app.route('/vimeo_data')
 def getvimeodata():

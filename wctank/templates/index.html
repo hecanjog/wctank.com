@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <head>
     <title>WC Tank</title>
-    
-    <!-- DEV
+    {% if dev_template %}
         <link href="/static/less/styles.less" type="text/css" rel="stylesheet/less">
-    -->
-    <link href="/static/dist/styles-min.css" type="text/css" rel="stylesheet">
-    <!-- DEV
-    <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
-    -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
+    {% else %}        
+        <link href="/static/dist/styles-min.css" type="text/css" rel="stylesheet">
+    {% endif %}
 </head>
 
 <body>
@@ -30,10 +28,12 @@
         <div class="~!type">~!content</div>
         <div class="permalink"><a href="~!link" target="_blank"><p>view on tumblr</p></a></div>
     </script>
-   
-    <script src="/static/dist/main.js"></script>
-    <!--DEV 
-    <script data-main="/static/js/main" src="/static/lib/require.js"></script>
-    -->
+  
+    {% if dev_template %} 
+        <script data-main="/static/js/main" src="/static/lib/require.js"></script>
+    {% else %}
+        <script src="/static/dist/main.js"></script>
+    {% endif %}
+    
     </body>
 </html>

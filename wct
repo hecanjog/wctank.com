@@ -14,7 +14,7 @@ Options:
     run         Only run server.
 """
 
-from wctank import app, db, populate
+from wctank import app, db, populate, controller
 from docopt import docopt
 
 if __name__ == '__main__':
@@ -25,6 +25,7 @@ if __name__ == '__main__':
         populate.updateDb()
 
     if args['dev'] == True:
+        controller.dev_template = True
         bootstrap()
         app.run('0.0.0.0')
 
