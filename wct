@@ -9,9 +9,9 @@ Usage:
     wct run 
 
 Options:
-    dev         Bootstrap and run server locally for development.
+    dev         Bootstrap and run server locally, use raw source files.
     bootstrap   Create and populate posts and jobs db
-    run         Only run server.
+    run         Only run server, use compiled sources.
 """
 
 from wctank import app, db, populate, controller

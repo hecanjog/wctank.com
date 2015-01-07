@@ -54,4 +54,6 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
     });
 
 return markerEvents; });
-// if hash < 1, discard to avoid drawing zeros... for now
+// TODO: generate marker data in webworker
+// new icons
+// then maybe mouseover fanciness

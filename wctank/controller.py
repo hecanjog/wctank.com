@@ -3,7 +3,7 @@ from flask import render_template
 import urllib2
 import re
 
-# flip to true to use uncompiled sources
+# flip to true to use raw sources
 dev_template = False
 
 @app.route('/')

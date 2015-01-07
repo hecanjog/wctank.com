@@ -102,14 +102,14 @@ function(markerMapPosition) { var markerData = {};
 
     /*
      * interleaved block structure: (f = 32 bit float)
-     * marker hash, texture, model ver, location vec, vUv   velocity
+     * marker hash, texture, model ver, location vec, UV   velocity
      * f            f        f, f       f, f          f, f  f, f
      *
      * marker hash: unique 32 bit int marker ID
-     * texture: what image to use, 'enum"'d above in markerTypes
+     * texture: what image to use, "enum"'d above in markerTypes
      * model vec: vertex coordinates in container pixels centered around (0, 0)
      * location vec: absolute location of marker in container pixels
-     * vUv: vertex texture coordinates
+     * UV: texture coordinates
      * velocity: x, y in radians (for cloud particles)
      */
     markerData.NUMBER_OF_PARTICLES = numberOfCloudParticles;

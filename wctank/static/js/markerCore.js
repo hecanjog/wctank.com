@@ -10,14 +10,18 @@ function(util, markerData, visualCore, MarkerShaders) { var markerCore = {};
 
     var canv = document.getElementById("markers"),
         projection;
+    
+    var z = visualCore.webgl.setup(canv, MarkerShaders, true);
 
     var updateViewport = function() {
         canv.width = window.innerWidth;
         canv.height = window.innerHeight;
-    }();
+        z.gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+    };
     window.addEventListener('resize', updateViewport);
-
-    var z = visualCore.webgl.setup(canv, MarkerShaders, true);
+    
+    updateViewport();
+    
     z.gl.blendFunc(z.gl.SRC_ALPHA, z.gl.ONE);
     z.gl.disable(z.gl.DEPTH_TEST);
     z.gl.enable(z.gl.BLEND);    
@@ -110,7 +114,7 @@ function(util, markerData, visualCore, MarkerShaders) { var markerCore = {};
 
     markerCore.updateDataAndDraw = function() {
         var data = markerData.getData();
-        vertices = data.length / 10;
+        vertices = data.length / markerData.BLOCK_ITEMS;
         z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
         z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(data), z.gl.DYNAMIC_DRAW);
         markerCore.draw();
