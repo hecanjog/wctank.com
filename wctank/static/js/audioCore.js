@@ -17,19 +17,18 @@ function(audioUtil, TWEEN) { var audioCore = {};
     
     /*
      * audioCore.AudioModule is the base class for all sound making components
-     * and includes facilities to create common behaviors and connect objects
-     * that inherit AudioModule or use it as a mixin together
+     * and includes facilities to connect any objects that inherit from 
+     * AudioModule or use it as a mixin together.
      */
-    audioCore.AudioModule = function AudioModule() {
+    audioCore.AudioModule = function() {
         var parent = this;     
 
-        // AudioModules inheriting AudioModule as a prototype 
-        // MUST override these properties
+        // AudioModules that are not also WAAPI AudioNodes
+        // MUST override these aliases.
         this._link_alias_in = null;
         this._link_alias_out = null;
 
-        // this is gross, but needs to be this verbose b/c of Web Audio API internals...
-        // TODO: seriously, stop monkey patching!!!.
+        // signal omnibus
         this.link = function(in_pt, output, input) {        
             var throwLinkException = function(text) {
                 throw new Error("Invalid link parameters: " + text);
@@ -81,6 +80,7 @@ function(audioUtil, TWEEN) { var audioCore = {};
         };
     };
 
+    // Handy common methods for AudioModules
     audioCore.moduleExtensions = {
 
         startStopThese: function(scope) {
@@ -150,6 +150,7 @@ function(audioUtil, TWEEN) { var audioCore = {};
         }
     };
 
+    // mixin AudioModule
     audioCore.wrapNode = function(node) {
         audioCore.AudioModule.call(node);
         return node;
