@@ -1,35 +1,65 @@
-// add clipping distortion to bps
-// sampler
-// etc.
-
 define(
     [
         'audioUtil',
         'tween'
     ],
 
-function(audioUtil, TWEEN) { var audioCore = {};
+function(audioUtil, TWEEN) { 
     
+    /**
+     * The audioCore module contains components essential to all sound making objects. 
+     * @exports audioCore
+     * @requires audioUtil
+     * @requires tween
+     */
+    var audioCore = {};
+    
+    /** The active audioContext */ 
     audioCore.ctx = new ( window.AudioContext || window.webkitAudioContext )();
     
-    //alias out for suga
+    /** An alias to AudioContext.destination, mostly for syntactic sugar. */
     audioCore.out = audioCore.ctx.destination;
     
-    /*
-     * audioCore.AudioModule is the base class for all sound making components
-     * and includes facilities to connect any objects that inherit from 
-     * AudioModule or use it as a mixin together.
+    /**
+     * audioCore.AudioModule is the base prototype for all sound making components,
+     * and includes facilities to connect any objects that inherit from it together. 
+     * @constructor
      */
     audioCore.AudioModule = function() {
         var parent = this;     
+        
+        /** 
+         * An AudioModule that is not also a Web Audio API AudioNode and does not
+         * inherit from AudioModule as a mixin should override _link_alias_in with
+         * a reference to the first AudioModule or AudioNode in its signal chain
+         * if processing an input signal.
+         *
+         * An array of AudioModules and/or AudioNodes can be supplied instead if
+         * multiple inputs are required.
+         * @type {AudioModule|AudioNode|Array} 
+         */     
+        this._link_alias_in;
+        
+        /** 
+         * An AudioModule that is not also a Web Audio API AudioNode and does not
+         * inherit from AudioModule as a mixin should override _link_alias_out with
+         * a reference to the last AudioModule or AudioNode in its signal chain.
+         *
+         * An array of AudioModules and/or AudioNodes can be supplied instead if
+         * multiple inputs are required.
+         * @type {AudioModule|AudioNode|Array} 
+         */ 
+        this._link_alias_out;
 
-        // AudioModules that are not also WAAPI AudioNodes
-        // MUST override these aliases.
-        this._link_alias_in = null;
-        this._link_alias_out = null;
-
-        // signal omnibus
-        this.link = function(in_pt, output, input) {        
+        /**
+         * .link allows any objects that inherit from AudioModule to pass signal
+         * to one another.
+         * @param {AudioModule|AudioNode} target - target to link to
+         * @param {number} [output=0] - if multiple outputs, index of output
+         * @param {number} [input=0] - if multiple inputs on target, index of target
+         * @returns {AudioModule|AudioNode} target
+         */
+        this.link = function(target, output, input) {        
             var throwLinkException = function(text) {
                 throw new Error("Invalid link parameters: " + text);
             };
@@ -47,10 +77,10 @@ function(audioUtil, TWEEN) { var audioCore = {};
             out_addr = output;
             in_addr = input;
 
-            if (typeof in_pt !== 'undefined') {
+            if (typeof target !== 'undefined') {
                // link alias on both sides, then connect or link on both sides 
                 var out_node = this._link_alias_out ? this._link_alias_out : this,
-                    in_node = in_pt._link_alias_in ? in_pt._link_alias_in : in_pt;
+                    in_node = target._link_alias_in ? target._link_alias_in : target;
 
                 if (Array.isArray(out_node)) {
                     checkLink(true, output, out_node);
@@ -72,7 +102,7 @@ function(audioUtil, TWEEN) { var audioCore = {};
                     out_node.connect(in_node, out_addr, in_addr);
                 }
 
-                return in_pt;
+                return target;
             
             } else {
                 throwLinkException("Input node is not defined");
@@ -80,33 +110,62 @@ function(audioUtil, TWEEN) { var audioCore = {};
         };
     };
 
-    // Handy common methods for AudioModules
-    audioCore.moduleExtensions = {
-
-        startStopThese: function(scope) {
-            var nodes = arguments;
+    /** 
+     * moduleExtensions contains handy extensions for AudioModules 
+     * @namespace
+     */
+    audioCore.moduleExtensions = 
+    /** @lends moduleExtensions */
+    {            
+        /** 
+         * startStopThese extends a provided scope with .start() and .stop() 
+         * methods that, in turn,  call the .start() and .stop() methods of
+         * an indeterminate number of Audio components.
+         * @param {AudioModule} scope - scope to extend
+         * @param {...AudioModule|AudioNode} nodes - nodes on which to call .start() and .stop()
+         */
+        startStopThese: function(scope, nodes) {
+            var n = arguments;
             scope.start = function() {
-                for (var i = 1; i < nodes.length; i++) {
-                    nodes[i].start();
+                for (var i = 1; i < n.length; i++) {
+                    n[i].start();
                 }
             };
             scope.stop = function() {
-                for (var i = 1; i < nodes.length; i++) {
-                    nodes[i].stop();
+                for (var i = 1; i < n.length; i++) {
+                    n[i].stop();
                 }
             };
         },
 
+        //TODO: generalize to crossFade with method name
+
+        /**
+         * wetDry extends a provided scope with a wetDry method that 
+         * facilitates crossfades between gain audioParams.
+         * @param {AudioModule} scope - scope to extend
+         * @param {AudioNode} dryGainNode
+         * @param {AudioNode} wetGainNode
+         */
         wetDry: function(scope, dryGainNode, wetGainNode) {
+            /**
+             * wetDry crossfades between gain AudioParams as constructed
+             * with audioCore.moduleExtensions.wetDry
+             * @param {number} percent_wet - number between 0 and 100
+             * @param {number} [time=0] - duration of crossfade in milliseconds
+             */
             scope.wetDry = function(percent_wet, time) {
                 var w = percent_wet / 100,
                 d = 1 - w,
-                t = audioCore.ctx.currentTime + (time ? time : 0);
+                t = audioCore.ctx.currentTime + (time ? time / 1000 : 0);
                 wetGainNode.gain.linearRampToValueAtTime(w, t);
                 dryGainNode.gain.linearRampToValueAtTime(d, t);  
             }; 
         },
-        
+       
+        /**
+         * 
+         */ 
         setValue: function(scope, node, param, fnname, irregular) {
             if (!irregular) {
                 scope[fnname] = function(val, time) {
@@ -155,5 +214,5 @@ function(audioUtil, TWEEN) { var audioCore = {};
         audioCore.AudioModule.call(node);
         return node;
     };
-    
+
 return audioCore; });
