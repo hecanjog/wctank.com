@@ -155,12 +155,4 @@ function(audioUtil, TWEEN) { var audioCore = {};
         return node;
     };
     
-    audioCore.hasLink = function(obj) {
-        return obj.link ? true : false;
-    };
-
-    audioCore.isAudioModule = function(obj) {
-        return (obj.constructor === audioCore.AudioModule) ? true : false;
-    };
-
 return audioCore; });
