@@ -1,6 +1,6 @@
 define(
     [
-        'audio',
+        'audioCore',
         'audioElements',
         'audioNodes',
         'audioActors'

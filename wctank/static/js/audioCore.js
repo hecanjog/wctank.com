@@ -28,69 +28,56 @@ function(audioUtil, TWEEN) { var audioCore = {};
         this._link_alias_in = null;
         this._link_alias_out = null;
 
-        var throwLinkException = function(text) {
-            throw "Invalid link parameters: " + text;
-        };
-        var checkLink = function(isOut, address, alias) {
-            var location = isOut ? 'output' : 'input';
-            if ( (typeof address !== 'number') || 
-                (typeof alias[address] === 'undefined') ) { 
-                throwLinkException("If AudioModule has multiple "+location+
-                    " aliases, the "+location+" must be explicitly addressed.");
-            }
-        };
-
         // this is gross, but needs to be this verbose b/c of Web Audio API internals...
         // TODO: seriously, stop monkey patching!!!.
-        this.link = function(out, output, input) {        
-            if (typeof out !== 'undefined') {
-                // if this is a normal audio module with an out alias
-                if (this._link_alias_out) {
-                    // multiple outs?
-                    if ( Array.isArray(this._link_alias_out) ) {
-                        // throw exception if out is not addressesd properly
-                        checkLink(true, output, this._link_alias_out);
-                        // recurse and link on addressed alias
-                        this._link_alias_out[output].link(out, 0, input);    
-                    } else if (out._link_alias_in) { 
-                        // multiple inputs?
-                        if ( Array.isArray(out._link_alias_in) ) {
-                            checkLink(false, input, out._link_alias_in);
-                            this.link(out._link_alias_in[input]);
-                        } else if ( audioCore.hasLink(out._link_alias_in) ) {
-                            // if the link alias is an AudioModule,
-                            // recurse until we hit an WAAPI AudioNode to connect to
-                            this.link(out._link_alias_in, output, input); 
-                        } else {
-                            // otherwise, out is a WAAPI audionode more or less, 
-                            // so call .connect
-                            this._link_alias_out.connect(out._link_alias_in, output, input);
-                        }
-                    } else {
-                        if (this._link_alias_out instanceof audioCore.AudioModule) {
-                            this._link_alias_out.link(out, output, input);
-                        } else {
-                            this._link_alias_out.connect(out, output, input);
-                        }
-                    }
-                } else {
-                    // for the cases where an AudioModule has one AudioNode
-                    // and we have chosen to mixin AudioModule instead of inheriting 
-                    if (out._link_alias_in) {
-                        if ( Array.isArray(out._link_alias_in) ) {
-                            checkLink(false, input, out._link_alias_in);
-                            this.link(out._link_alias_in[input]);
-                        } else {
-                            this.connect(out._link_alias_in, output, input);
-                        }
-                    } else {
-                        this.connect(out, output, input);
-                    }
+        this.link = function(in_pt, output, input) {        
+            var throwLinkException = function(text) {
+                throw new Error("Invalid link parameters: " + text);
+            };
+            var checkLink = function(isOut, address, alias) {
+                var location = isOut ? 'output' : 'input';
+                if (typeof address !== 'number') {
+                    throwLinkException("If an AudioModule has multiple "+location+
+                        " aliases, the "+location+" must be explicitly addressed.");
+                } else if (typeof alias[address] === 'undefined') {
+                    throwLinkException("undefined "+location+" alias.");
                 }
+            };
+            
+            var out_addr, in_addr;
+            out_addr = output;
+            in_addr = input;
+
+            if (typeof in_pt !== 'undefined') {
+               // link alias on both sides, then connect or link on both sides 
+                var out_node = this._link_alias_out ? this._link_alias_out : this,
+                    in_node = in_pt._link_alias_in ? in_pt._link_alias_in : in_pt;
+
+                if (Array.isArray(out_node)) {
+                    checkLink(true, output, out_node);
+                    out_node = out_node[output];
+                    out_addr = 0;
+                } 
+                if (Array.isArray(in_node)) {
+                    checkLink(false, input, in_node);
+                    in_node = in_node[input];
+                    in_addr = 0;
+                }
+
+                // recurse until we hit bedrock on both sides
+                if (!in_node.connect) {
+                    out_node.link(in_node._link_alias_in, out_addr, in_addr);
+                } else if (!out_node.connect) {
+                    out_node._link_alias_out.link(in_node, out_addr, in_addr);
+                } else {
+                    out_node.connect(in_node, out_addr, in_addr);
+                }
+
+                return in_pt;
+            
             } else {
                 throwLinkException("Input node is not defined");
-            } 
-            return out;
+            }
         };
     };
 

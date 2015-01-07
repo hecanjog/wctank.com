@@ -1,6 +1,6 @@
 define(
     [
-        'asdr',
+        'envelopeAsdr',
         'envelopeCore'
     ],
 
