@@ -16,38 +16,28 @@ function(posts, util, $) { gMap = {};
 
     // On init, provides ref to google.maps.Map obj
     gMap.map;
-    
-    /*
-     * the event heap is used to init events associated with google map objects;
-     * after initial load, this interface should only be used to hook into marker events
-     * while others should be added dynamically using google.maps.event.addListener 
-     * with the map (gMap.map) object directly
-     */
-    var evHeap = function(evHeap) {
-        
-        // enum event groups
-        evHeap.MAP = 'map_events';
-        evHeap.MARKER = 'marker_events';
-        
-        var heap = {
-            map_events: {},
-            marker_events: {}
+   
+    gMap.events = (function(events) {
+        var event_groups = {
+            map: {},
+            marker: {}
         }; 
-        
-        var heap_added = false;
 
-        evHeap.push = function(loc, event, fn, once) {
-            if ( (heap_added && (loc === gMap.events.MARKER)) || !heap_added ) {
-                var makeEvObj = function(once, fn) {
-                    return { once: once, fn: fn }; 
+        var events_added = false;
+
+        events.push = function(loc, event, fn, once) {
+            if ( (events_added && (loc === "marker")) || !events_added ) {
+                var evObj = function(once, fn) {
+                    this.once = once;
+                    this.fn = fn;
                 };
                 var add1 = once ? once : false;
-                if ( heap[loc].hasOwnProperty(event) ) {
-                    var len = Object.keys(heap[loc][event]).length;
-                    heap[loc][event][len] = makeEvObj(add1, fn); 
+                if ( event_groups[loc].hasOwnProperty(event) ) {
+                    var len = Object.keys(event_groups[loc][event]).length;
+                    event_groups[loc][event][len] = makeEvObj(add1, fn); 
                 } else {
-                    heap[loc][event] = {};
-                    heap[loc][event][0] = makeEvObj(add1, fn);  
+                    event_groups[loc][event] = {};
+                    event_groups[loc][event][0] = new evObj(add1, fn);  
                 }
             } else {
                 if (once) {
@@ -57,11 +47,13 @@ function(posts, util, $) { gMap = {};
                 }
             }
         };
-        
-        evHeap.addHeapEvents = function(set, marker) {
-            heap_added = true; 
-            var ev_set = set ? heap[set] : heap.map_events;
+
+        events.initQueuedEvents = function(set, marker) {
+            events_added = true; 
+            
+            var ev_set = set ? event_groups[set] : event_groups.map;
             util.objectLength.call(ev_set);
+            
             var addSingleEvent = function(event, fn, once, marker) {
                 var caller = marker ? marker : gMap.map;
                 if (once) {
@@ -70,39 +62,40 @@ function(posts, util, $) { gMap = {};
                     google.maps.event.addListener(caller, event, fn);
                 }
             };
+           
             var caller = (function() {
-                if (set === evHeap.MAP) {
+                if (set === 'map') {
                     return gMap.map;
-                } else if ( (set === evHeap.MARKER) && marker) {
+                } else if ( (set === 'marker') && marker) {
                     return marker;
-                } else if (set === evHeap.MARKER) {
-                    throw "for marker events, must provide marker as target!";
-                } else {
-                    throw "err: events could not be added";
-                }
+                } else if (set === 'marker') {
+                    throw new Error("Invalid gMap.events.addQueuedEvents param: "+
+                        "if set === 'marker', a target marker object must be provided.");
+                }             
             }());
-            for (var ev in ev_set) { 
-                if ( ev_set.hasOwnProperty(ev) ) {
-                    util.objectLength.call(ev_set[ev]);
+
+            for (var evnt in ev_set) { 
+                if ( ev_set.hasOwnProperty(evnt) ) {
+                    util.objectLength.call(ev_set[evnt]);
                     (function() { //I'm so ready for let
                         var persist = [];
                         var once = [];
-                        for (var i = 0; i < ev_set[ev].length; i++) {
-                            if (ev_set[ev][i].once) {
-                                once.push(ev_set[ev][i].fn); 
+                        for (var i = 0; i < ev_set[evnt].length; i++) {
+                            if (ev_set[evnt][i].once) {
+                                once.push(ev_set[evnt][i].fn); 
                             } else {
-                                persist.push(ev_set[ev][i].fn);
+                                persist.push(ev_set[evnt][i].fn);
                             }
                         }
                         if (persist.length > 0) {
-                            addSingleEvent(ev, function() {
+                            addSingleEvent(evnt, function() {
                                 for (var i = 0; i < persist.length; i++) {
                                     persist[i](caller);
                                 } 
                             }, false, marker);
                         }
                         if (once.length > 0) {
-                            addSingleEvent(ev, function() {
+                            addSingleEvent(evnt, function() {
                                 for (var i = 0; i < once.length; i++) {
                                     once[i](caller);
                                 } 
@@ -112,18 +105,10 @@ function(posts, util, $) { gMap = {};
                 }
             }
         };
-        return evHeap;
-    }({});
-    
-    // public evHeap members
-    gMap.events = {
-        MAP: evHeap.MAP,
-        MARKER: evHeap.MARKER,
-        initHeapEvents: evHeap.addHeapEvents,
-        push: evHeap.push,
-        addHeapEvents: evHeap.addHeapEvents
-    };
-    
+
+        return events;
+    }({}));
+
     // for tableux dev 
     gMap.tool = function() {
         console.log(gMap.map.center.lat()+" "+gMap.map.center.lng());

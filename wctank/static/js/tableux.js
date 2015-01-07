@@ -30,7 +30,6 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         var sets = {};
        
         this.parseData = function(tableuxDataArray) {
-            console.log(tableux.flags);
             tableuxDataArray.forEach(function(data) {    
                 for (var t in tableux.flags) {
                     if (tableux.flags.hasOwnProperty(t)) {

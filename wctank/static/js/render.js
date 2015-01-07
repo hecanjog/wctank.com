@@ -1,23 +1,31 @@
-define(
 /*
- *  The render loop
+ * The render loop.
  */
+define(
+
 function() { var render = {};
     
     var queue = [],
         id;
-    
-    var exQueue = function() {
-        for (var i = 0; i < queue.length; i++) {
-            queue[i]();
-        }
-    }; 
 
     render.rendering = false;
     
+    render.start = function() {
+        render.rendering = true;
+        queue.forEach(function(fn) { 
+            fn(); 
+        });
+        id = window.requestAnimationFrame(render.start);
+    };
+    
+    render.stop = function() {
+        render.rendering = false;
+        cancelAnimationFrame(id);
+    };
+
     render.push = function(funct) {
         queue.push(funct);
-        if (!render.rendering) render.go();
+        if (!render.rendering) render.start();
     };
 
     render.rm = function(funct) {
@@ -26,14 +34,6 @@ function() { var render = {};
         if (queue.length === 0) render.stop(); 
     };
 
-    // TODO: should be 'start'
-    render.go = function() {
-        render.rendering = true;
-        id = window.requestAnimationFrame(render.go);
-        exQueue();
-    };
-
-    // TODO: remove else clause
     render.has = function(fn) {
         if (typeof fn === 'function') {
             var idx = queue.indexOf(fn);
@@ -41,15 +41,6 @@ function() { var render = {};
         } else {
             return (queue.length > 0) ? true : false;
         }
-    };
-
-    render.tick = function() {
-        if (queue.length > 0) exQueue();
-    };
-
-    render.stop = function() {
-        render.rendering = false;
-        cancelAnimationFrame(id);
     };
 
 return render; });

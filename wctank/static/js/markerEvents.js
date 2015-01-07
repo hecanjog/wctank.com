@@ -18,7 +18,7 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
     
     // instantiate markers and post loading!!
     // (...would this be better somewhere else???...)
-    gMap.events.push(gMap.events.MAP, 'tilesloaded', function() {
+    gMap.events.push('map', 'tilesloaded', function() {
         posts.get(gMap.map.getBounds(), function(data) {
             $.each(data, function(i, post) {
                 var m,
@@ -30,7 +30,7 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
                 });
                 m.markerType = post.markerType;
                 addMarker(m);
-                gMap.events.addHeapEvents(gMap.events.MARKER, m);
+                gMap.events.initQueuedEvents('marker', m);
                 google.maps.event.addListener(m, 'click', function() { 
                     posts.display(post); 
                 });
@@ -49,7 +49,7 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
     };
     render.push(update);
 
-    gMap.events.push(gMap.events.MAP, 'bounds_changed', function() {
+    gMap.events.push('map', 'bounds_changed', function() {
         updateData = true;
     });
 

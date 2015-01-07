@@ -78,7 +78,7 @@ function(gMap, sceneGraphs, sceneGraphCore) {
     google.maps.event.addListener(overlay, 'click', function() {
         gMap.map.setZoom(9);
     });
-    gMap.events.initHeapEvents(gMap.events.MAP);
+    gMap.events.initQueuedEvents('map');
 
     sceneGraphCore.apply(sceneGraphs.klangMarche); 
 });
