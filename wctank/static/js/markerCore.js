@@ -164,17 +164,6 @@ function(util, markerMapPosition, markerData, visualCore,
         }
     };
     
-    gMap.events.push('map', 'dragstart', function() {
-        render.push(updateDelta);
-    });
-
-    gMap.events.push('map', 'dragend', function() {
-        dragging = false;
-        window.setTimeout(function() {
-            render.rm(updateDelta);
-        }, 500); 
-    });
-
     markerCore.draw = function() {
         z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
         z.gl.uniform2f(u_viewport, window.innerWidth, window.innerHeight);
@@ -191,24 +180,37 @@ function(util, markerMapPosition, markerData, visualCore,
         z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
         z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(data), z.gl.DYNAMIC_DRAW);
     };
+    
+    gMap.events.push('map', 'dragstart', function() {
+        render.push(updateDelta);
+        render.push(markerCore.tryDataUpdate);
+    });
+
+    gMap.events.push('map', 'dragend', function() {
+        dragging = false;
+        window.setTimeout(function() {
+            render.rm(updateDelta);
+            render.rm(markerCore.tryDataUpdate);
+        }, 500); 
+    });
 
     // only call update data when histories are different
-    markerCore.updateDataAndDraw = function() {
+    markerCore.tryDataUpdate = function() {
         markerData.makeData(false, function(data) {
             if (data) {
                 glDataUpdate(data);
-            }             
-            markerCore.draw();
+            } 
         });
+        markerCore.draw();
     };
 
-    markerCore.forceUpdateDataAndDraw = function() {
+    markerCore.forceDataUpdate = function() {
         markerData.makeData(true, function(data) {
             glDataUpdate(data);
-            markerCore.draw();
         });
+        markerCore.draw();
     };
-    
+
     markerCore.setVisibility = function(bool) {
         canv.style.visibility = bool ? 'visible' : 'hidden'; 
     };

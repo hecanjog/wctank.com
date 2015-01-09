@@ -35,35 +35,16 @@ function(markerMapPosition) { var markerData = {};
 
     var markerDataWorker = new Worker("/static/js/markerDataWorker.js");
 
-    // get current marker state, compare to cache, push data blocks
-    var timeout = false,
-        cleared = false;
-
-    var makeDataDelay = function() {
-        timeout = window.setTimeout(function() {
-            timeout = false;
-            cleared = false;         
-        }, 150);
-    };
-
+    // no timeout on force, bind to tilesloaded
     markerData.makeData = function(override, callback) {
-        if (!timeout && !cleared) {
-            var state = markerMapPosition.getCurrentState();
-            state.push(markerData.NUMBER_OF_PARTICLES);
-            state.push(override);
-            markerDataWorker.postMessage(state); 
-            markerDataWorker.onmessage = function(e) {
-                callback(e.data);
-            };
-            // TODO: this is just a monkey patch! Come back and fix this!
-            if (!override) {
-                makeDataDelay();
-            } else {
-                window.clearTimeout(timeout);
-                cleared = true;
-                makeDataDelay();                
-            }
-        }
+        var state = markerMapPosition.getCurrentState();
+        var ovr = override ? override : false;
+        state.push(markerData.NUMBER_OF_PARTICLES);
+        state.push(ovr);
+        markerDataWorker.postMessage(state); 
+        markerDataWorker.onmessage = function(e) {
+            callback(e.data);
+        };
     }; 
 
 return markerData; });

@@ -76,7 +76,7 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         // runway 32 
         new tdt(42.75690051169562, -87.80957013350911, 20, f.Vhs),
         // asia, man 
-        new tdt(46.60151342636234, 45.699610515664965, 4, f.PrintAnalog | f.CausticGlow | f.Vhs),
+        //new tdt(46.60151342636234, 45.699610515664965, 4, f.PrintAnalog | f.CausticGlow | f.Vhs),
         // some building? 
         new tdt(41.351808897930226, -89.22587973528789, 16, f.Vhs | f.CausticGlow | f.PrintAnalog),
         // colorful building
@@ -106,7 +106,7 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         new tdt(-38.233798810401765, -213.56086938040062, 18, f.Fauvist),
         new tdt(-38.230836513895284, -213.57230631964012, 15, f.Vhs),
         // antartica
-        new tdt(-76.25189561591111, 165.7761947222007, 6, f.PrintAnalog | f.Vhs),
+        //new tdt(-76.25189561591111, 165.7761947222007, 6, f.PrintAnalog | f.Vhs),
         new tdt(-82.06481558476122, -180.5787857465493, 5, f.Vhs | f.Cmgyk | f.PrintAnalog | f.VHS, 
             [function(filterObj) {
                 if (filterObj.hasOwnProperty('setImmediateBlink')) filterObj.setImmediateBlink();
@@ -119,7 +119,7 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         // a port near so cal
         new tdt(33.74546214254659, -118.22587598936661, 18, f.ALL),
         // a world map
-        new tdt(46.81244726322789, 16.65002231745169, 2, f.PrintAnalog | f.Fauvist | f.CausticGlow), 
+        //new tdt(46.81244726322789, 16.65002231745169, 2, f.PrintAnalog | f.Fauvist | f.CausticGlow), 
         // a road somewhere
         new tdt(50.60152354612505, -111.64077556435313, 18, f.Vhs | f.Fauvist), 
         // i don't remember what this is
