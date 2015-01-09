@@ -8,6 +8,7 @@ attribute vec2 a_containerPosition;
 attribute vec2 a_vUv;
 attribute vec2 a_angularVelocity;
 
+uniform vec2 u_translate;
 uniform vec2 u_viewport;
 uniform int u_clock;
 
@@ -27,7 +28,7 @@ void main()
     v_hash = a_hash;
     v_type = a_type;
     v_vUv = a_vUv;
-    vec4 position = vec4(a_modelCoord + a_containerPosition, 0, 1);
+    vec4 position = vec4(a_modelCoord + a_containerPosition + u_translate, 0, 1);
     position.x = ((position.x / u_viewport.x) * 2.0) - 1.0;
     position.y = (((position.y - 25.0) / u_viewport.y) * -2.0) + 1.0;
     

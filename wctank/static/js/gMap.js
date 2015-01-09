@@ -34,7 +34,7 @@ function(posts, util, $) { gMap = {};
                 var add1 = once ? once : false;
                 if ( event_groups[loc].hasOwnProperty(event) ) {
                     var len = Object.keys(event_groups[loc][event]).length;
-                    event_groups[loc][event][len] = makeEvObj(add1, fn); 
+                    event_groups[loc][event][len] = new evObj(add1, fn); 
                 } else {
                     event_groups[loc][event] = {};
                     event_groups[loc][event][0] = new evObj(add1, fn);  

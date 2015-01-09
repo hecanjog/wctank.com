@@ -127,7 +127,8 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         // coastline near LA I think idk
         new tdt(34.06611259362441, -118.91275543937081, 13, f.CausticGlow), 
         // don't remember what this is
-        new tdt(43.01995881560774, -87.89964248960314, 20, f.CausticGlow | f.PrintAnalog)
+        new tdt(43.01995881560774, -87.89964248960314, 20, f.CausticGlow | f.PrintAnalog),
+        new tdt(38.51647228621493, -121.64318988084415, 11, f.CausticGlow) 
     ];
 
 return tableux; });

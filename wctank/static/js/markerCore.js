@@ -1,12 +1,15 @@
 define(
     [
         'util',
+        'markerMapPosition',
         'markerData',
         'visualCore',
+        'render',
         'text!MarkerShaders.glsl'
     ],
 
-function(util, markerData, visualCore, MarkerShaders) { var markerCore = {};
+function(util, markerMapPosition, markerData, visualCore, 
+         render, MarkerShaders) { var markerCore = {};
 
     var canv = document.getElementById("markers"),
         projection;
@@ -27,7 +30,6 @@ function(util, markerData, visualCore, MarkerShaders) { var markerCore = {};
     z.gl.enable(z.gl.BLEND);    
     
     var buffer = z.gl.createBuffer(),
-        objects = 1 + markerData.NUMBER_OF_PARTICLES;
         clock = 0; 
    
     z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
@@ -103,21 +105,105 @@ function(util, markerData, visualCore, MarkerShaders) { var markerCore = {};
     var vertices = 0; // total number of living vertices
     
     var u_viewport = z.gl.getUniformLocation(z.program, 'u_viewport'),
-        u_clock = z.gl.getUniformLocation(z.program, 'u_clock');
+        u_clock = z.gl.getUniformLocation(z.program, 'u_clock'),
+        u_translate = z.gl.getUniformLocation(z.program, 'u_translate');
+
+    var start = {x: 0, y: 0},
+        delta = {x: 0, y: 0};
+    
+    var zeroPositions = function() {
+        start.x = start.y = 0;
+        delta.x = delta.y = 0;
+    };
+    
+    var current_anchor = null;
+    
+    var queryMarkerPosition = function() {
+        if (!current_anchor) {
+            var markers = markerMapPosition.markers,
+                keys = markerMapPosition.livingKeys;
+
+            if (keys.length > 0) {    
+                for (var i = 0; i < keys.length; i++) {
+                    markers[keys[i]].update();
+                    if (markers[keys[i]].isAlive) {
+                        current_anchor = markers[keys[i]];   
+                        break;
+                    }         
+                }
+                return queryMarkerPosition();
+            } else {
+                return false;
+            }        
+        } else {
+            current_anchor.update();
+            if (current_anchor.isAlive) {
+                return current_anchor.getDrawingData();
+            } else {
+                current_anchor = null;
+                return queryMarkerPosition();
+            }
+        }
+    };
+    
+    var updateDelta = function() {
+        var pos = queryMarkerPosition();
+        if (pos) {
+            delta.x = pos.x - start.x;
+            delta.y = pos.y - start.y;
+        }    
+    };
+    var updateStart = function() {
+        var pos = queryMarkerPosition();
+        if (pos) {
+            start.x = pos.x;
+            start.y = pos.y;
+        }
+    };
+    
+    gMap.events.push('map', 'dragstart', function() {
+        render.push(updateDelta);
+    });
+
+    gMap.events.push('map', 'dragend', function() {
+        dragging = false;
+        window.setTimeout(function() {
+            render.rm(updateDelta);
+        }, 500); 
+    });
 
     markerCore.draw = function() {
         z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
         z.gl.uniform2f(u_viewport, window.innerWidth, window.innerHeight);
+        z.gl.uniform2f(u_translate, delta.x, delta.y);
         z.gl.uniform1i(u_clock, clock++);
         z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices); 
     };
+    
+    var glDataUpdate = function(data) {
+        zeroPositions();
+        updateStart();
 
-    markerCore.updateDataAndDraw = function() {
-        var data = markerData.getData();
         vertices = data.length / markerData.BLOCK_ITEMS;
         z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
         z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(data), z.gl.DYNAMIC_DRAW);
-        markerCore.draw();
+    };
+
+    // only call update data when histories are different
+    markerCore.updateDataAndDraw = function() {
+        markerData.makeData(false, function(data) {
+            if (data) {
+                glDataUpdate(data);
+            }             
+            markerCore.draw();
+        });
+    };
+
+    markerCore.forceUpdateDataAndDraw = function() {
+        markerData.makeData(true, function(data) {
+            glDataUpdate(data);
+            markerCore.draw();
+        });
     };
     
     markerCore.setVisibility = function(bool) {

@@ -38,20 +38,11 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
         });
     });
 
-    var updateData = false;
-    var update = function() {
-        if (updateData) {
-            markerCore.updateDataAndDraw();
-            updateData = false;
-        } else {
-            markerCore.draw();
-        }
-    };
-    render.push(update);
+    render.push(markerCore.draw);
 
-    gMap.events.push('map', 'bounds_changed', function() {
-        updateData = true;
-    });
+    gMap.events.push('map', 'bounds_changed', markerCore.updateDataAndDraw);
+    gMap.events.push('map', 'tilesloaded', markerCore.updateDataAndDraw);
+    gMap.events.push('map', 'zoom_changed', markerCore.forceUpdateDataAndDraw);
 
 return markerEvents; });
 // TODO: generate marker data in webworker

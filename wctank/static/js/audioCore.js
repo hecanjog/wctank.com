@@ -46,7 +46,7 @@ function(audioUtil, TWEEN) {
          * a reference to the last AudioModule or AudioNode in its signal chain.
          *
          * An array of AudioModules and/or AudioNodes can be supplied instead if
-         * multiple inputs are required.
+         * multiple outputs are required.
          * @type {AudioModule|AudioNode|Array} 
          */ 
         this._link_alias_out;
@@ -78,7 +78,6 @@ function(audioUtil, TWEEN) {
             in_addr = input;
 
             if (typeof target !== 'undefined') {
-               // link alias on both sides, then connect or link on both sides 
                 var out_node = this._link_alias_out ? this._link_alias_out : this,
                     in_node = target._link_alias_in ? target._link_alias_in : target;
 
@@ -93,7 +92,7 @@ function(audioUtil, TWEEN) {
                     in_addr = 0;
                 }
 
-                // recurse until we hit bedrock on both sides
+                // recurse until we hit WAAPI bedrock on both sides
                 if (!in_node.connect) {
                     out_node.link(in_node._link_alias_in, out_addr, in_addr);
                 } else if (!out_node.connect) {
@@ -163,9 +162,6 @@ function(audioUtil, TWEEN) {
             }; 
         },
        
-        /**
-         * 
-         */ 
         setValue: function(scope, node, param, fnname, irregular) {
             if (!irregular) {
                 scope[fnname] = function(val, time) {
