@@ -122,7 +122,6 @@ function(util, markerMapPosition, markerData, visualCore,
         if (!current_anchor) {
             var markers = markerMapPosition.markers,
                 keys = markerMapPosition.livingKeys;
-
             if (keys.length > 0) {    
                 for (var i = 0; i < keys.length; i++) {
                     markers[keys[i]].update();
@@ -131,7 +130,11 @@ function(util, markerMapPosition, markerData, visualCore,
                         break;
                     }         
                 }
-                return queryMarkerPosition();
+                if (current_anchor) {
+                    return queryMarkerPosition();
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }        

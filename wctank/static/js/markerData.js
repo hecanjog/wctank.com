@@ -36,9 +36,18 @@ function(markerMapPosition) { var markerData = {};
     var markerDataWorker = new Worker("/static/js/markerDataWorker.js");
 
     // get current marker state, compare to cache, push data blocks
-    var timeout = false;
+    var timeout = false,
+        cleared = false;
+
+    var makeDataDelay = function() {
+        timeout = window.setTimeout(function() {
+            timeout = false;
+            cleared = false;         
+        }, 150);
+    };
+
     markerData.makeData = function(override, callback) {
-        if (!timeout) {
+        if (!timeout && !cleared) {
             var state = markerMapPosition.getCurrentState();
             state.push(markerData.NUMBER_OF_PARTICLES);
             state.push(override);
@@ -48,10 +57,11 @@ function(markerMapPosition) { var markerData = {};
             };
             // TODO: this is just a monkey patch! Come back and fix this!
             if (!override) {
-                timeout = true;
-                window.setTimeout(function() {
-                    timeout = false;
-                }, 150);
+                makeDataDelay();
+            } else {
+                window.clearTimeout(timeout);
+                cleared = true;
+                makeDataDelay();                
             }
         }
     }; 
