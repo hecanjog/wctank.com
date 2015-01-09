@@ -36,10 +36,10 @@ function(util, markerMapPosition, markerData, visualCore,
 
     var a_hash = z.gl.getAttribLocation(z.program, 'a_hash'),
         a_type = z.gl.getAttribLocation(z.program, 'a_type'),
-        a_modelCoord = z.gl.getAttribLocation(z.program, 'a_modelCoord'),
-        a_containerPosition = z.gl.getAttribLocation(z.program, 'a_containerPosition'),
-        a_vUv = z.gl.getAttribLocation(z.program, 'a_vUv'),
-        a_angularVelocity = z.gl.getAttribLocation(z.program, 'a_angularVelocity');
+        a_model = z.gl.getAttribLocation(z.program, 'a_model'),
+        a_container = z.gl.getAttribLocation(z.program, 'a_container'),
+        a_uv = z.gl.getAttribLocation(z.program, 'a_uv'),
+        a_velocity = z.gl.getAttribLocation(z.program, 'a_velocity');
 
     // setup attributes
     // hash
@@ -48,25 +48,25 @@ function(util, markerMapPosition, markerData, visualCore,
     z.gl.enableVertexAttribArray(a_hash);
 
     // type
-    z.gl.vertexAttribPointer( a_type, markerData.TYPE_ITEMS, z.gl.FLOAT, false, 
-                             markerData.BLOCK_SIZE, markerData.TYPE_OFFSET );
+    z.gl.vertexAttribPointer(a_type, markerData.TYPE_ITEMS, z.gl.FLOAT, false, 
+                             markerData.BLOCK_SIZE, markerData.TYPE_OFFSET);
     z.gl.enableVertexAttribArray(a_type);
     // model view coordinates 
-    z.gl.vertexAttribPointer( a_modelCoord,markerData.MODEL_VER_ITEMS, z.gl.FLOAT, false, 
+    z.gl.vertexAttribPointer(a_model, markerData.MODEL_VER_ITEMS, z.gl.FLOAT, false, 
                              markerData.BLOCK_SIZE, markerData.MODEL_VER_OFFSET ); 
-    z.gl.enableVertexAttribArray(a_modelCoord);
+    z.gl.enableVertexAttribArray(a_model);
     // container coordinates
-    z.gl.vertexAttribPointer( a_containerPosition, markerData.LOCATION_VEC_ITEMS, z.gl.FLOAT, 
-                             false, markerData.BLOCK_SIZE, markerData.LOCATION_VEC_OFFSET );
-    z.gl.enableVertexAttribArray(a_containerPosition);
+    z.gl.vertexAttribPointer(a_container, markerData.LOCATION_VEC_ITEMS, z.gl.FLOAT, 
+                             false, markerData.BLOCK_SIZE, markerData.LOCATION_VEC_OFFSET);
+    z.gl.enableVertexAttribArray(a_container);
     // vUv
-    z.gl.vertexAttribPointer( a_vUv, markerData.VUV_ITEMS, z.gl.FLOAT, false, 
-                             markerData.BLOCK_SIZE, markerData.VUV_OFFSET );
-    z.gl.enableVertexAttribArray(a_vUv);
+    z.gl.vertexAttribPointer(a_uv, markerData.UV_ITEMS, z.gl.FLOAT, false, 
+                             markerData.BLOCK_SIZE, markerData.UV_OFFSET);
+    z.gl.enableVertexAttribArray(a_uv);
     // angular velocity
-    z.gl.vertexAttribPointer( a_angularVelocity, markerData.VELOCITY_ITEMS, z.gl.FLOAT, false, 
-                             markerData.BLOCK_SIZE, markerData.VELOCITY_OFFSET );
-    z.gl.enableVertexAttribArray(a_angularVelocity);
+    z.gl.vertexAttribPointer(a_velocity, markerData.VELOCITY_ITEMS, z.gl.FLOAT, false, 
+                             markerData.BLOCK_SIZE, markerData.VELOCITY_OFFSET);
+    z.gl.enableVertexAttribArray(a_velocity);
 
     // setup textures
     function Texture(name, path, TEXTUREID, index) {
@@ -187,12 +187,12 @@ function(util, markerMapPosition, markerData, visualCore,
     });
 
     gMap.events.push('map', 'dragend', function() {
-        dragging = false;
         window.setTimeout(function() {
             render.rm(updateDelta);
             render.rm(markerCore.tryDataUpdate);
-        }, 500); 
+        }, 1200); 
     });
+// kill timeout early if interrupted by another click!!!
 
     // only call update data when histories are different
     markerCore.tryDataUpdate = function() {

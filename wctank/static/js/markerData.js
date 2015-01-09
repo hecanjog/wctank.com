@@ -28,8 +28,8 @@ function(markerMapPosition) { var markerData = {};
     markerData.MODEL_VER_OFFSET = 8;
     markerData.LOCATION_VEC_ITEMS = 2;
     markerData.LOCATION_VEC_OFFSET = 16;
-    markerData.VUV_ITEMS = 2;
-    markerData.VUV_OFFSET = 24;
+    markerData.UV_ITEMS = 2;
+    markerData.UV_OFFSET = 24;
     markerData.VELOCITY_ITEMS = 2;
     markerData.VELOCITY_OFFSET = 32;
 
