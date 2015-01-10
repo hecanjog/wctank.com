@@ -22,16 +22,6 @@ varying float v_hash;
 varying float v_type;
 varying vec2 vUv;
 
-float rand(vec2 co)
-{
-    float a = 1.9898;
-    float b = 78.233;
-    float c = 43758.5453;
-    float dt = dot(co.xy, vec2(a, b));
-    float sn = mod(dt, 3.14);
-    return fract(sin(sn) * c);
-}
-
 float angle(float velocity, int clock) 
 {
     float pi = 3.1415927;
@@ -54,9 +44,6 @@ void main()
         position.x += 0.02 * angle(a_velocity.x, u_clock); 
         position.y += 0.01 * angle(a_velocity.y, u_clock);
     }
-
-    float r = rand(vec2(v_clock, 2.0)) * 10000.0;
-    if (int(mod(r, 10000.0)) == 0) position.y += 25.0; 
 
     gl_Position = position;
 }

@@ -2,7 +2,9 @@ define(
     [
         'audioUtil'
     ],    
-
+/*
+ * TODO: This is incomplete and not ready for use!
+ */
 function(audioUtil) { var audioSonorities = {};
 
     audioSonorities.VoiceTuple = function VoiceTuple(frequency, amplitude, unitEnum) {

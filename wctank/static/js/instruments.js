@@ -1,6 +1,6 @@
 define(
     [
-        'audioElements',
+        'audioModules',
         'audioNodes',
         'instrumentCore',
         'envelopeCore',
@@ -8,15 +8,15 @@ define(
         'util'
     ],
 
-function(audioElements, audioNodes, instrumentCore, 
+function(audioModules, audioNodes, instrumentCore, 
             envelopeCore, envelopeAsdr, util) { var instruments = {};
 
     instruments.raspyCarpark = function() {
-        var noise = audioElements.Noise(); 
+        var noise = audioModules.Noise(); 
         noise.gain.gain.value = 0.0;
         noise.start();
 
-        var convo = audioElements.Convolution("/static/assets/carpark.mp3");
+        var convo = audioModules.Convolution("/static/assets/carpark.mp3");
         convo.wetDry(100);
         convo.gain.gain.value = 1.0;
 
@@ -64,7 +64,7 @@ function(audioElements, audioNodes, instrumentCore,
 
     instruments.angularNastay = function() {
         
-        this.osc = audioElements.Osc('square');
+        this.osc = audioModules.Osc('square');
         this.osc.start();
         this.osc.gain.gain.value = 0;
         

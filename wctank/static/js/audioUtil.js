@@ -8,6 +8,7 @@ define(
 function(util, render, TWEEN) { var audioUtil = {};
     
     // TWEEN utils
+    // TODO: move audioUtil.tween into general util.js or its own module.
     audioUtil.tween = (function(tween) {
         tween.startTweens = function() {
             if ( render.has(TWEEN.update) === false ) 

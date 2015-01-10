@@ -6,7 +6,7 @@ define(
         'util'
     ],
 
-function(audioCore, audioUtil, audioNodes, util) { var elements = {};
+function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
     // make a buffer for white noise
     var sr = audioCore.ctx.sampleRate;
@@ -19,9 +19,9 @@ function(audioCore, audioUtil, audioNodes, util) { var elements = {};
         }
     }
     
-    elements.Noise = function Noise(amplitude) {
+    audioModules.Noise = function Noise(amplitude) {
         if (this.constructor !== audioCore.AudioModule) 
-            return new elements.Noise(amplitude);
+            return new audioModules.Noise(amplitude);
         this.source = audioCore.ctx.createBufferSource();
         this.source.buffer = noise_buf;
         this.source.loop = true;
@@ -41,11 +41,11 @@ function(audioCore, audioUtil, audioNodes, util) { var elements = {};
         this.source.connect(this.gain);
         this._link_alias_out = this.gain;
     };
-    elements.Noise.prototype = new audioCore.AudioModule();
+    audioModules.Noise.prototype = new audioCore.AudioModule();
     
-    elements.Osc = function Osc(oscType, frequency, amplitude) {
+    audioModules.Osc = function Osc(oscType, frequency, amplitude) {
         if (this.constructor !== audioCore.AudioModule) 
-            return new elements.Osc(oscType, frequency, amplitude);
+            return new audioModules.Osc(oscType, frequency, amplitude);
 
         this.osc = audioCore.ctx.createOscillator();
         this.osc.frequency.value = frequency ? frequency : 440;
@@ -61,12 +61,12 @@ function(audioCore, audioUtil, audioNodes, util) { var elements = {};
         audioCore.moduleExtensions.startStopThese(this, this.osc);
         audioCore.moduleExtensions.setValue(this, this.osc, 'frequency', 'setFrequency', true);
     };
-    elements.Osc.prototype = new audioCore.AudioModule();
+    audioModules.Osc.prototype = new audioCore.AudioModule();
 
-    elements.Bandpass = function Bandpass(frequency, Q, initGain) {
+    audioModules.Bandpass = function Bandpass(frequency, Q, initGain) {
         // construct sans new
         if (this.constructor !== audioCore.AudioModule) 
-            return new elements.Bandpass(frequency, Q);
+            return new audioModules.Bandpass(frequency, Q);
         
         // bp filter
         this.biquad = audioCore.ctx.createBiquadFilter();
@@ -225,11 +225,11 @@ function(audioCore, audioUtil, audioNodes, util) { var elements = {};
             }
         };
     };
-    elements.Bandpass.prototype = new audioCore.AudioModule();      
+    audioModules.Bandpass.prototype = new audioCore.AudioModule();      
 
-    elements.Player = function(pathToFile) {
+    audioModules.Player = function(pathToFile) {
         if (this.constructor !== audioCore.AudioModule) 
-            return new elements.Player(pathToFile);
+            return new audioModules.Player(pathToFile);
 
         var media = document.createElement('audio');
 
@@ -276,13 +276,13 @@ function(audioCore, audioUtil, audioNodes, util) { var elements = {};
         this.mediaSource = audioCore.ctx.createMediaElementSource(media);
         this._link_alias_out = this.mediaSource;
     };
-    elements.Player.prototype = new audioCore.AudioModule();
+    audioModules.Player.prototype = new audioCore.AudioModule();
 
-    elements.SpritePlayer = function(mp3Path, TextGridIntervals) {
+    audioModules.SpritePlayer = function(mp3Path, TextGridIntervals) {
         if (this.constructor !== audioCore.AudioModule) 
-            return new elements.SpritePlayer(mp3Path, TextGridIntervals);
+            return new audioModules.SpritePlayer(mp3Path, TextGridIntervals);
        
-        var player = new elements.Player(mp3Path);
+        var player = new audioModules.Player(mp3Path);
 
         this.gain = audioCore.ctx.createGain();
         this.gain.gain.value = def_gain;    
@@ -310,11 +310,11 @@ function(audioCore, audioUtil, audioNodes, util) { var elements = {};
         
         this._link_alias_out = this.gain;
     };
-    elements.SpritePlayer.prototype = new audioCore.AudioModule();
+    audioModules.SpritePlayer.prototype = new audioCore.AudioModule();
 
-    elements.SchroederReverb = function() {
+    audioModules.SchroederReverb = function() {
         if (this.constructor !== audioCore.AudioModule) 
-            return new elements.SchroederReverb();
+            return new audioModules.SchroederReverb();
 
         var parent = this;
 
@@ -423,11 +423,11 @@ function(audioCore, audioUtil, audioNodes, util) { var elements = {};
        
         audioCore.moduleExtensions.setValue(this, this.outGain, 'gain', 'setGain');
     };
-    elements.SchroederReverb.prototype = new audioCore.AudioModule();
+    audioModules.SchroederReverb.prototype = new audioCore.AudioModule();
 
-    elements.Convolution = function(path_to_audio) {
+    audioModules.Convolution = function(path_to_audio) {
         if (this.constructor !== audioCore.AudioModule) 
-            return new elements.Convolution(path_to_audio);
+            return new audioModules.Convolution(path_to_audio);
 
         var nop = audioNodes.Gain(),
             conv = audioNodes.Convolve();
@@ -456,12 +456,12 @@ function(audioCore, audioUtil, audioNodes, util) { var elements = {};
         audioCore.moduleExtensions.wetDry(this, dryGain, wetGain);
         this.wetDry(50);
     };
-    elements.Convolution.prototype = new audioCore.AudioModule();
+    audioModules.Convolution.prototype = new audioCore.AudioModule();
 
     // mostly here until audioworkers are implemented
-    elements.Analysis = function() {
+    audioModules.Analysis = function() {
         if (this.constructor !== audioCore.AudioModule) 
-            return new elements.Analysis();
+            return new audioModules.Analysis();
          
         var analyser = audioCore.ctx.createAnalyser(),
             data = new Uint8Array(analyser.frequencyBinCount);
@@ -492,6 +492,50 @@ function(audioCore, audioUtil, audioNodes, util) { var elements = {};
 
         this._link_alias_in = analyser;
     };
-    elements.Analysis.prototype = new audioCore.AudioModule();
+    audioModules.Analysis.prototype = new audioCore.AudioModule();
 
-return elements; });
+    // TODO: This is incomplete and broken.
+    audioModules.SubtractiveSynthesis = function(withNoise) {
+        if (this.constructor !== audioModules.SubtractiveSynthesis) 
+            return new audioModules.SubtractiveSynthesis(withNoise);
+
+        var dryIn = audioNodes.Gain(),
+            anaIn = audioNodes.Gain(),
+            analyser = audioModules.Analysis(),
+            noise = audioModules.Noise(),
+            dryGain = audioNodes.Gain(),
+            wetGain = audioNodes.Gain(),
+            outGain = audioNodes.Gain();
+
+        anaIn.link(analyser);
+        dryIn.link(dryGain).link(outGain);
+        wetGain.link(outGain);
+
+        var driver = withNoise ? noise : dryIn;
+
+        this._link_alias_in = [dryIn, anaIn];
+        this._link_alias_out = outGain;    
+
+        audioCore.moduleExtensions.startStopThese(this, noise); 
+        audioCore.moduleExtensions.wetDry(this, dryGain, wetGain);
+
+        var bp_bank = [];
+        this.updateFromSound = function() {
+            var dat = analyser.getData();
+            bp_bank.forEach(function(bp) {
+                bp = null;
+            });
+            bp_bank = [];
+
+            dat.forEach(function(val) {
+                var bp = audioModules.Bandpass(val.frequency, 1000, val.amplitude);
+                driver.link(bp).link(wetGain);
+            });
+        };
+        this.setQ = function(q) {
+            // set all bandpass q values 
+        };
+    };
+    audioModules.SubtractiveSynthesis.prototype = new audioCore.AudioModule();
+
+return audioModules; });
