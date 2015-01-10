@@ -86,7 +86,7 @@ var pushNewMarkerData = function(MarkerData, targetArr) {
             var angle = generateParticleAngles();
             for (var l = 0; l < cloud_sq.length / 2; l++) {
                 targetArr.push(MarkerData.hash, markerTypes.CLOUD,
-                               cloud_sq[l * 2] + vec.x, cloud_sq[l * 2 + 1] + vec.y - 25,
+                               cloud_sq[l * 2] + vec.x, cloud_sq[l * 2 + 1] + vec.y - 20,
                                MarkerData.x, MarkerData.y,
                                uv[l * 2], uv[l * 2 + 1],
                                angle.x, angle.y); 

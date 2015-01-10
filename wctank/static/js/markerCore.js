@@ -96,9 +96,9 @@ function(util, markerMapPosition, markerData, visualCore,
     }
 
     var textures = {
-        u_stumble: new Texture('u_stumble', 'static/assets/rap.png', z.gl.TEXTURE0, 0),
+        u_stumble: new Texture('u_stumble', 'static/assets/cat.png', z.gl.TEXTURE0, 0),
         u_video: new Texture('u_video', 'static/assets/colorbars.png', z.gl.TEXTURE1, 1),
-        u_random: new Texture('u_random', 'static/assets/rand.png', z.gl.TEXTURE2, 2),
+        u_random: new Texture('u_random', 'static/assets/warning.png', z.gl.TEXTURE2, 2),
         u_cloud: new Texture('u_cloud', 'static/assets/cloud.png', z.gl.TEXTURE3, 3)
     };
 
@@ -184,11 +184,13 @@ function(util, markerMapPosition, markerData, visualCore,
     gMap.events.queue('map', 'dragstart', function() {
         render.push(updateDelta);
         render.push(markerCore.tryDataUpdate);
+        render.push(markerCore.draw);
     });
 
     gMap.events.queue('map', 'dragend', function() {
         window.setTimeout(function() {
             render.rm(updateDelta);
+            render.rm(markerCore.draw);
             render.rm(markerCore.tryDataUpdate);
         }, 1200); 
     });

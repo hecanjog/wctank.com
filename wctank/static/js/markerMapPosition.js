@@ -24,8 +24,7 @@ function(util, gMap) { var markerMapPosition = {};
         this.isAlive;
 
         this.hash = util.hashCode(this.type + 
-            this.worldPosition.lat().toString() + 
-            this.worldPosition.lng().toString()).toString();
+            this.worldPosition.lat().toString() + this.worldPosition.lng().toString());
 
         this.update = function() {
             if (!proj) proj = gMap.pxOverlay.getProjection();
