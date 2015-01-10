@@ -10,12 +10,12 @@ function(markerMapPosition) { var markerData = {};
      * marker hash, texture, model ver, location vec, UV   velocity
      * f            f        f, f       f, f          f, f  f, f
      *
-     * marker hash: unique 32 bit int marker ID
-     * texture: what image to use, "enum"'d above in markerTypes
-     * model vec: vertex coordinates in container pixels centered around (0, 0)
-     * location vec: absolute location of marker in container pixels
+     * marker hash: unique ID
+     * texture: what image to use, enum'd above in markerTypes obj
+     * model coord: vertex coordinates (in pixels) where (0, 0) is the center of each marker.
+     * container coord: absolute location of marker in container pixels
      * UV: texture coordinates
-     * velocity: x, y in radians (for cloud particles)
+     * velocity: angular velocity (x, y) in radians (for cloud particles)
      */
     markerData.NUMBER_OF_PARTICLES = 20;
     markerData.BLOCK_ITEMS = 10;

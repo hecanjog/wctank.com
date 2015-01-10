@@ -390,10 +390,10 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
             cmgyk_back.style.webkitTransform = str;
             lzoom = zoom;           
         };
-        gMap.events.push('map', 'tilesloaded', onTilesLoaded, true); 
-        gMap.events.push('map', 'tilesloaded', koAndBlink);
-        gMap.events.push('map', 'bounds_changed', koAndBlink);
-        gMap.events.push('map', 'zoom_changed', onZoom); 
+        gMap.events.queue('map', 'tilesloaded', onTilesLoaded, true); 
+        gMap.events.queue('map', 'tilesloaded', koAndBlink);
+        gMap.events.queue('map', 'bounds_changed', koAndBlink);
+        gMap.events.queue('map', 'zoom_changed', onZoom); 
     };
     mutexVisualEffects.Cmgyk.prototype = new mutexVisualEffectsCore.MutexEffect();
 
@@ -471,13 +471,13 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
                 jit = jit_tmp;
             }, jit_delay);
         };
-        gMap.events.push('map', 'zoom_changed', function() {
+        gMap.events.queue('map', 'zoom_changed', function() {
             jitter(false);
         });
-        gMap.events.push('map', 'drag', function() {
+        gMap.events.queue('map', 'drag', function() {
             jitter(false);
         });
-        gMap.events.push('map', 'idle', function() {
+        gMap.events.queue('map', 'idle', function() {
             jitter(true);
         });
     };

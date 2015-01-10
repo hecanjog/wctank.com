@@ -181,12 +181,12 @@ function(util, markerMapPosition, markerData, visualCore,
         z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(data), z.gl.DYNAMIC_DRAW);
     };
     
-    gMap.events.push('map', 'dragstart', function() {
+    gMap.events.queue('map', 'dragstart', function() {
         render.push(updateDelta);
         render.push(markerCore.tryDataUpdate);
     });
 
-    gMap.events.push('map', 'dragend', function() {
+    gMap.events.queue('map', 'dragend', function() {
         window.setTimeout(function() {
             render.rm(updateDelta);
             render.rm(markerCore.tryDataUpdate);

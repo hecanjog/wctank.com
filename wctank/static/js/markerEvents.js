@@ -12,7 +12,7 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
     
     // instantiate markers and post loading!!
     // (...would this be better somewhere else???...)
-    gMap.events.push('map', 'tilesloaded', function() {
+    gMap.events.queue('map', 'tilesloaded', function() {
         posts.get(gMap.map.getBounds(), function(data) {
             $.each(data, function(i, post) {
                 var m,
@@ -35,9 +35,6 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
 
     render.push(markerCore.draw);
     
-    gMap.events.push('map', 'zoom_changed', markerCore.forceDataUpdate);
+    gMap.events.queue('map', 'zoom_changed', markerCore.forceDataUpdate);
 
 return markerEvents; });
-// TODO: generate marker data in webworker
-// new icons
-// then maybe mouseover fanciness
