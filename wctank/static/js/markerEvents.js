@@ -9,7 +9,6 @@ define(
 
 function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents = {};
 
-    
     // instantiate markers and post loading!!
     // (...would this be better somewhere else???...)
     gMap.events.queue('map', 'tilesloaded', function() {

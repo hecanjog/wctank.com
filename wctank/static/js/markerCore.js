@@ -30,7 +30,8 @@ function(util, markerMapPosition, markerData, visualCore,
     z.gl.enable(z.gl.BLEND);    
     
     var buffer = z.gl.createBuffer(),
-        clock = 0; 
+        clock = 0,
+        beNoise = 0;
    
     z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
 
@@ -106,7 +107,8 @@ function(util, markerMapPosition, markerData, visualCore,
     
     var u_viewport = z.gl.getUniformLocation(z.program, 'u_viewport'),
         u_clock = z.gl.getUniformLocation(z.program, 'u_clock'),
-        u_translate = z.gl.getUniformLocation(z.program, 'u_translate');
+        u_translate = z.gl.getUniformLocation(z.program, 'u_translate'),
+        u_beNoise = z.gl.getUniformLocation(z.program, 'u_beNoise');
 
     var start = {x: 0, y: 0},
         delta = {x: 0, y: 0};
@@ -169,6 +171,7 @@ function(util, markerMapPosition, markerData, visualCore,
         z.gl.uniform2f(u_viewport, window.innerWidth, window.innerHeight);
         z.gl.uniform2f(u_translate, delta.x, delta.y);
         z.gl.uniform1i(u_clock, clock++);
+        z.gl.uniform1i(u_beNoise, beNoise);
         z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices); 
     };
     
@@ -216,5 +219,15 @@ function(util, markerMapPosition, markerData, visualCore,
     markerCore.setVisibility = function(bool) {
         canv.style.visibility = bool ? 'visible' : 'hidden'; 
     };
+
+    markerCore.beNoise = function(bool) {
+        beNoise = bool;    
+    };
+
+    document.addEventListener('post_overlay', function(e) {
+        markerCore.beNoise(e.detail.data);
+    });
+
+    render.push(markerCore.draw);
 
 return markerCore; });

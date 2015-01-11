@@ -57,6 +57,7 @@ uniform sampler2D u_stumble;
 uniform sampler2D u_video;
 uniform sampler2D u_random;
 uniform sampler2D u_cloud;
+uniform int u_beNoise;
 
 varying float v_clock;
 varying float v_hash;
@@ -72,6 +73,7 @@ float rand(vec2 co)
     float sn = mod(dt, 3.14);
     return fract(sin(sn) * c);
 }
+
 
 void main()
 {
@@ -95,6 +97,15 @@ void main()
         if (select == 0) color = vec4(1, 0, 0, 1);
         if (select == 1) color = vec4(0, 1, 0, 1);
         if (select == 2) color = vec4(0, 0, 1, 1);
+    }
+
+    if (u_beNoise == 1 && color.w > 0.0) {
+        float n = rand(vec2(v_clock, gl_FragCoord.y * gl_FragCoord.x));
+        if (n > 0.5) {
+            color = vec4(0, 0, 0, 1);
+        } else {
+            color = vec4(0.2, 0.2, 0.2, 1);
+        }
     }
 
     gl_FragColor = color;

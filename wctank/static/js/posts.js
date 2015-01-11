@@ -1,10 +1,13 @@
 define(
     [
         'div', 
-        'jquery'
+        'jquery',
+        'gMap'
     ], 
 
-function(div, $) { 
+
+//TODO: this module is a mess!!!
+function(div, $, gMap) { 
     var posts = {};
     
     posts.displayedPostType = null;    
@@ -59,7 +62,7 @@ function(div, $) {
     // TODO: this might be complemented with a server-side component
     var throttle = false,
         throttle_interval = 500;
-    
+
     posts.get = function(visibleBounds, callback) {
         var sw = visibleBounds.getSouthWest(),
             ne = visibleBounds.getNorthEast(),
@@ -94,6 +97,14 @@ function(div, $) {
         } 
     };
     
+    // a custom event that is fired on post display activity
+    var status = { data: false };
+    var postEvent = new CustomEvent('post_overlay', {
+        "bubbles": false,
+        "cancelable": true,
+        "detail": status
+    });
+
     var loading; 
     $.get("static/assets/loading_cur.svg", function(data) {
         loading = new XMLSerializer().serializeToString(data);
@@ -142,6 +153,9 @@ function(div, $) {
         } else {
             $contents.fadeIn(trivial); // for now, just fade in if text
         }
+      
+        status.data = true; 
+        document.dispatchEvent(postEvent);
 
         marker_clicked = true;
         window.setTimeout(function() {
@@ -153,6 +167,8 @@ function(div, $) {
     $(document).on('click', '.close-post', function(e) {
         e.preventDefault();
         $(this).parent().fadeOut('fast');
+        status.data = false;
+        document.dispatchEvent(postEvent);
     });
     
     // Close overlay on mousedown over map, i.e., to move it.
@@ -162,10 +178,12 @@ function(div, $) {
             if ( div.$overlay.is(':visible') && 
                 (div.$overlay.css('opacity') === '1') && 
                     (marker_clicked === false) ) {
-                div.$overlay.fadeOut('fast'); 
+                div.$overlay.fadeOut('fast');
+                status.data = false;
+                document.dispatchEvent(postEvent);
             }
         }, 150);
     });
-
+    
     return posts;
 });

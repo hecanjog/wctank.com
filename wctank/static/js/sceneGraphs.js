@@ -110,6 +110,4 @@ function(sceneGraphCore, audioCore, rhythm, instruments,
     };
     sceneGraphs.klangMarche.prototype = new sceneGraphCore.SceneGraph();
          
-    
-
 return sceneGraphs; });
