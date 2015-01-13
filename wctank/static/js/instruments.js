@@ -243,7 +243,7 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
     // take time to figure that out.
     instruments.WesEnviron = function() {
         var bigEarDOM = document.createElement('audio');
-        bigEarDOM.src = "/static/assets/bigear.mp3";
+        bigEarDOM.src = "/streaming/bigear.mp3";
         bigEarDOM.autoplay = true;
         bigEarDOM.loop = true;
 
@@ -252,7 +252,7 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
         bigEar.connect(bigEarGain);
         
         var shoemartDOM = document.createElement('audio');
-        shoemartDOM.src = "/static/assets/shoemart.mp3";
+        shoemartDOM.src = "/streaming/shoemart.mp3";
         shoemartDOM.autoplay = true;
         shoemartDOM.loop = true;
         
