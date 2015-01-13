@@ -25,6 +25,7 @@ function(posts, util, $) { gMap = {};
 
         var events_added = false;
 
+        // interface to add events before or after gMap is ready.
         events.queue = function(loc, event, fn, once) {
             if ( (events_added && (loc === "marker")) || !events_added ) {
                 var evObj = function(once, fn) {

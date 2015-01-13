@@ -98,9 +98,9 @@ void main()
         if (select == 1) color = vec4(0, 1, 0, 1);
         if (select == 2) color = vec4(0, 0, 1, 1);
     }
-
+// limit to 15000
     if (u_beNoise == 1 && color.w > 0.0) {
-        float n = rand(vec2(v_clock, gl_FragCoord.y * gl_FragCoord.x));
+        float n = rand(vec2(v_clock * gl_FragCoord.x, (2.0 / v_clock) * gl_FragCoord.y));
         if (n > 0.5) {
             color = vec4(0, 0, 0, 1);
         } else {

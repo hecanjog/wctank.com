@@ -80,5 +80,5 @@ function(gMap, sceneGraphs, sceneGraphCore) {
     });
     gMap.events.initQueuedEvents('map');
 
-    sceneGraphCore.apply(sceneGraphs.klangMarche); 
+    sceneGraphCore.apply(sceneGraphs.Rooms); 
 });

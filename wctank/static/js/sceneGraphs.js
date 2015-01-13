@@ -2,112 +2,77 @@ define(
     [
         'sceneGraphCore',
         'audioCore',
+        'audioModules',
+        'audioNodes',
         'rhythm',
         'instruments',
         'mutexVisualEffects',
         'mutexVisualEffectsCore',
-        'tableux'
+        'tableux',
+        'gMap',
+        'util'
     ],
 
-function(sceneGraphCore, audioCore, rhythm, instruments, 
-         mutexVisualEffects, mutexVisualEffectsCore, tableux) { var sceneGraphs = {};
+function(sceneGraphCore, audioCore, audioModules, audioNodes, rhythm, 
+         instruments, mutexVisualEffects, mutexVisualEffectsCore, tableux, 
+         gMap, util) { var sceneGraphs = {};
 
-    sceneGraphs.klangMarche = function() {
-        
-        var clock = new rhythm.Clock(100);
-    
-        var rasp = new instruments.raspyCarpark();    
-       
-        // locked loop callback broken...
+    sceneGraphs.Rooms = function() {
+        var clock = new rhythm.Clock(60);
 
-        var config = {
-            opt: {
-                loop: 20
-            },
-            targets: {
-                rasp: rasp
-            },
-            seq: { 
-                0: { subd: 0.05, val: {rasp: ""}, rep: 10, smudge: 1.5 },
-                1: { subd: 0.25, val: {rasp: ""}, rep: 6}
-            },
-            callbacks: function() {
-                raspyRhythm.parseConfig(cfig2);
-                raspyRhythm.execute();
+        // TODO: when Sonorities are implemented, this will break
+        var choir_sonority = [
+            931.765564,
+            1100.557007,
+            1433.202026,
+            1879.656616,
+            1927.278442,
+            1951.355347,
+            2191.642578,
+            2684.844238,
+            2883.212891      
+        ]; 
+        var choir = new instruments.SubtractiveChoir(choir_sonority);
+        choir.gain.gain.value = 0.0;
+
+        choir.link(audioCore.out);
+
+        var isAccenting = false;
+        gMap.events.queue('map', 'dragstart', function() {
+            if (!isAccenting) {
+                var dur = util.smudgeNumber(500, 50);
+                choir.attack.createEnvelope({dur: dur, stage: true});
+                choir.attack.execute();
+                isAccenting = true;
+                window.setTimeout(function() {
+                    choir.accent();  
+                }, dur * 0.5);
+                window.setTimeout(function() {
+                    var t = dur * 1.5;
+                    choir.attack.createEnvelope({dur: t, stage: false});
+                    choir.attack.execute();
+                    window.setTimeout(function() {
+                        isAccenting = false;
+                    }, t);
+                }, dur * 1.2);
             }
-        };
-        var raspyRhythm = new rhythm.Generator(clock, config);
-       
-        var cfig2 = config;
-        cfig2.opt.loop = true;
-        cfig2.seq[3] = { subd: 0.11, val: {rasp: ""}, smudge: 20 };
-        cfig2.seq[4] = { subd: 0.27, val: {rasp: ""} };
-        delete cfig2.callbacks;
+        });
 
-        var iowa = new instruments.angularNastay();
-
-        var rubber_count = 0;
-
-        var rubberConfig = {
-            opt: {
-                loop: 8
-            },
-            targets: {
-                attack: iowa.attack,
-                freq: iowa.pitch
-            },
-            seq: {
-                0: { subd: 0.63123476, val: {attack: true, freq: 80}, smudge: 5},
-                1: { subd: 0.05, val: {attack: false} }
-            },
-            callbacks: function() {
-                rubberRhy.execute(); 
-                if ( (rubber_count++ % 8) === 0) {
-                    rubberRhy2.execute();
-                }
-            }
-        };
-        var rubberRhy = new rhythm.Generator(clock, rubberConfig);
-
-        var iowa2 = new instruments.angularNastay();
-        var rubberConfig2 = rubberConfig;
-        rubberConfig.targets = {
-            attack: iowa2.attack,
-            freq: iowa2.pitch
-        };
-        rubberConfig2.opt.loop = 4;
-        rubberConfig2.seq[0] = { subd: 1.1, val: {attack: true, freq: 100} };
-        rubberConfig2.seq[1] = { subd: 0.17, val: {attack: false} };
-        rubberConfig2.callbacks = function() {
-            rubberConfig2.opt.loop++;
-            rubberRhy2.shirk();
-            rubberRhy2.parseConfig(rubberConfig2);
-        };
-        var rubberRhy2 = new rhythm.Generator(clock, rubberConfig2);
-
-        iowa.link(audioCore.out);
-        iowa2.link(audioCore.out);
-        rasp.link(audioCore.out);
-
-        var vidFilt = new mutexVisualEffects.CausticGlow(); 
-
-        var tableuxEngine = new tableux.Engine();
-        tableuxEngine.parseData(tableux.stockList);
-        tableuxEngine.select(vidFilt);
+        var environ = new instruments.WesEnviron();
+        environ.link(audioCore.out);
+        environ.wetDry(50);
 
         this.init = function() {
-            mutexVisualEffectsCore.apply(vidFilt); 
             clock.start();
-            raspyRhythm.execute(); 
-            rubberRhy.execute();
+            choir.start();
+            vidFilt.apply();
         };
 
         this.teardown = function() {
-            raspyRhythm.shirk();
-            rubberRhy.shirk(); 
-            clock.stop();
+            choir.stop();
         };
+
     };
-    sceneGraphs.klangMarche.prototype = new sceneGraphCore.SceneGraph();
-         
+    sceneGraphs.Rooms.prototype = new sceneGraphCore.SceneGraph();
+        
 return sceneGraphs; });

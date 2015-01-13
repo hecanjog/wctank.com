@@ -5,7 +5,11 @@ define(
         'audioNodes',
         'util'
     ],
-
+// parallel sample player w/ mic sounds
+// multiple layered field recordings
+// subtractive choir reacting to user imput
+    // squarewaves
+// mic + raspy percussion interchanged with 
 function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
     // make a buffer for white noise
@@ -130,7 +134,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
             };
             gen.freq = function(pos) {
                 var freq = params.frequency;
-                return pos ? freqTarget(freq, 8, 10) : freqTarget(freq, 1, 10);
+                return pos ? freqTarget(freq, 23, 10) : freqTarget(freq, 20, 20);
             };
             return gen;
         }({}));
@@ -235,6 +239,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
         // workaround for when server is not configured to
         // accept range requests
+        // NOT good for large files
         this.loadFile = function(path) {
             var req = new XMLHttpRequest();
             req.responseType = 'blob';

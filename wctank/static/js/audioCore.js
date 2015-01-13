@@ -138,7 +138,7 @@ function(audioUtil, TWEEN) {
             };
         },
 
-        //TODO: generalize to crossFade with method name
+        //TODO: generalize wetDry to just a crossFade
 
         /**
          * wetDry extends a provided scope with a wetDry method that 

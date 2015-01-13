@@ -12,17 +12,17 @@ function(util, audioCore, audioUtil, TWEEN) { var envelopeCore = {};
     // time = percentage
     envelopeCore.EnvelopeValue = function(value, time) {
         var throwEnvelopeValueException = function(text) {
-            throw "Invalid EnvelopeValue param: " + text;
+            throw new Error("Invalid EnvelopeValue param: " + text);
         };
 
         var v, t;
         Object.defineProperty(this, 'value', {
             get: function() { return v; },
             set: function(val) {
-                if (typeof val === 'number') {
+                if (typeof val !== 'undefined') {
                     v = val;
                 } else {
-                    throwEnvelopeValueException("EnvelopeValue.value must be a number");
+                    throwEnvelopeValueException("EnvelopeValue.value is undefined");
                 }
             }
         });
@@ -52,7 +52,7 @@ function(util, audioCore, audioUtil, TWEEN) { var envelopeCore = {};
         });
 
         var throwEnvelopeException = function(text) {
-            throw "Envelope param error: " + text;
+            throw new Error("Envelope param error: " + text);
         };
 
         Object.defineProperty(this, 'duration', {
@@ -84,6 +84,7 @@ function(util, audioCore, audioUtil, TWEEN) { var envelopeCore = {};
             }
         });
 
+        //TODO: implement step function envelopes
         Object.defineProperty(this, 'interpolationArgs', {
             configurable: true,
             get: function() { return interpolationArgs; },
@@ -102,10 +103,12 @@ function(util, audioCore, audioUtil, TWEEN) { var envelopeCore = {};
         // interleaves the values of two Envelopes together,
         // repeating the modEnv over this.duration at an interval of
         // modDurPercent * 0.01 * this.duration
+        // TODO: throw error if asttempting to bake with an envelope
+        // that has values that are not numbers.
         this.bake = function(modEnv, modDurPercent, refractMag) {
      
             var throwBakeException = function(text) {
-                throw "Invalid envelopeCore.bake args: " + text;
+                throw new Error("Invalid envelopeCore.bake args: " + text);
             };
             
             if ( !(modEnv instanceof envelopeCore.Envelope) ) {
@@ -252,8 +255,8 @@ function(util, audioCore, audioUtil, TWEEN) { var envelopeCore = {};
             set: function(val) {
                 var checkAbEnvVal = function(abval) {
                     if ( !(abval instanceof envelopeCore.AbsoluteEnvelopeValue) ) {
-                        throw "Invalid AbsoluteEnvelope param: " +
-                            "valueSequence must be comprised of AbsoluteEnvelopeValue objects"; 
+                        throw new TypeError("Invalid AbsoluteEnvelope param: " +
+                            "valueSequence must be comprised of AbsoluteEnvelopeValue objects"); 
                     }
                 };
                 if (Array.isArray(val)) {
@@ -306,8 +309,8 @@ function(util, audioCore, audioUtil, TWEEN) { var envelopeCore = {};
                 (!isAbsolute && !(arguments[k] instanceof envelopeCore.AbsoluteEnvelope)) ) {
                 targets.push(arguments[k]);
             } else {
-                throw 'envelopeCore.concat error: cannot concat non-absolute '+ 
-                    'and absolute time envelopes together.';
+                throw new TypeError('envelopeCore.concat error: cannot concat non-absolute '+ 
+                    'and absolute time envelopes together.');
             }
             total_duration += arguments[k].duration;
             isFirst = false;

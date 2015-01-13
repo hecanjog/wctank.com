@@ -187,13 +187,11 @@ function(util, markerMapPosition, markerData, visualCore,
     gMap.events.queue('map', 'dragstart', function() {
         render.push(updateDelta);
         render.push(markerCore.tryDataUpdate);
-        render.push(markerCore.draw);
     });
 
     gMap.events.queue('map', 'dragend', function() {
         window.setTimeout(function() {
             render.rm(updateDelta);
-            render.rm(markerCore.draw);
             render.rm(markerCore.tryDataUpdate);
         }, 1200); 
     });

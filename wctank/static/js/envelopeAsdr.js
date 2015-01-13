@@ -234,9 +234,8 @@ function(envelopeCore) { var asdr = {};
                 changed = false;
             }
         }; 
-        // changed flags
-        // check if all components defined first, error message 
-        // indicates undefined components
+        
+        // TODO: allow variable durations in attack and decay stages
         this.getAS = function() {
             updateEnv();
             return as;
