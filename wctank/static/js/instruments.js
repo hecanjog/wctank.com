@@ -133,15 +133,14 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
     // TODO: reimplement in future to incorporate Sonorities
     // for now, constructs with array of frequencies
     instruments.SubtractiveChoir = function(arr) {
-        var q = 150,
+        var parent = this,
+            q = 200,
             amp = 1;
         
         this.noise = audioModules.Noise();
         this.gain = audioNodes.Gain();
 
         this.bp_bank = [];
-       
-        var parent = this;
 
         var pushBp = function(freq) {
             var bp = audioModules.Bandpass(freq, q, amp);
@@ -192,25 +191,25 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
 
         var attackAsdrParams = {
             a: {
-                dur: 50,
+                dur: 400,
                 inter: {
-                    type: 'linear'
+                    type: 'exponential'
                 },
-                val: [0.01, 0,    0.6, 99]
+                val: [0.01, 0,    0.5, 99]
             },
             s: {
                 dur: 100,
                 val: 0.6
             },
             d: {
-                dur: 100, 
+                dur: 500, 
                 inter: {
                     type: 'linear'
                 },
-                val: [0.6, 0,    0.2, 99]
+                val: [0.5, 0,    0.2, 99]
             },
             r: {
-                dur: 300,
+                dur: 200,
                 inter: {
                     type: 'linear'        
                 },
@@ -223,16 +222,12 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
         //TODO: allow variable returns in envelopeAsdr.Generator attack and decay stages
         //to avoid this kind of munging
         // takes an obj of the form {dur: number, stage: boolean(true for as, false for dr)}
-        this.attack.createEnvelope = function(valObj) {
-            var dur = valObj.dur,
-                stage = valObj.stage; 
-            if (stage) {
-                this.envelope = attackAsdr.attack.toAbsolute(dur);
-            } else {
-                var d = attackAsdr.decay.toAbsolute(dur);
-                var r = attackAsdr.release.toAbsolute();
-                this.envelope = envelopeCore.concat(d, r);
-            }
+        this.attack.createEnvelope = function(dur) {
+            attackAsdr.attack.duration = 
+                util.smudgeNumber(attackAsdr.attack.duration, 5);
+            attackAsdr.decay.duration = 
+                util.smudgeNumber(200, 5);
+            this.envelope = attackAsdr.getASDR(dur);
             return this.envelope;
         };
     };
@@ -250,23 +245,12 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
         var bigEar = audioCore.ctx.createMediaElementSource(bigEarDOM),
             bigEarGain = audioNodes.Gain();
         bigEar.connect(bigEarGain);
-        
-        var shoemartDOM = document.createElement('audio');
-        shoemartDOM.src = "/streaming/shoemart.mp3";
-        shoemartDOM.autoplay = true;
-        shoemartDOM.loop = true;
-        
-        var shoemart = audioCore.ctx.createMediaElementSource(shoemartDOM),
-            shoemartGain = audioNodes.Gain();
-        shoemart.connect(shoemartGain);
 
         var outGain = audioNodes.Gain();
 
         bigEarGain.connect(outGain);
-        shoemartGain.connect(outGain);
 
         this._link_alias_out = outGain;
-        audioCore.moduleExtensions.wetDry(this, bigEarGain, shoemartGain);
 
         var gainAsdrParams = {
             a: {
@@ -304,16 +288,6 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
             } else {
                 return gainAsdr.decay.toAbsolute(valObj.dur);
             }
-        };
-            
-        var crossEnv = new envelopeCore.Envelope();
-        crossEnv.interpolationType = 'linear';
-
-        this.crossFade = new instrumentCore.ParameterizedAction(this.wetDry);
-        this.crossFade.createEnvelope = function(valObj) {
-            crossEnv.valueSequence = [new envelopeCore.Envelope(valObj.val, 99)];
-            crossFade.envelope = crossEnv.toAbsolute(valObj.time);
-            return crossFade.envelope;
         };
 
     };
