@@ -62,10 +62,12 @@ function(sceneGraphCore, audioCore, audioModules, audioNodes, rhythm,
         environ.link(audioCore.out);
         environ.wetDry(50);
 
+        var vidfilt = new mutexVisualEffects.CausticGlow();
+
         this.init = function() {
             clock.start();
             choir.start();
-            vidFilt.apply();
+            vidfilt.apply();
         };
 
         this.teardown = function() {
