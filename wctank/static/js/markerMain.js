@@ -1,3 +1,4 @@
+// rename to markerMain
 define(
     [
         'gMap',
@@ -32,8 +33,8 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
         markerCore.forceDataUpdate();
     });
 
-    render.push(markerCore.draw);
-    
     gMap.events.queue('map', 'zoom_changed', markerCore.forceDataUpdate);
+
+    render.queue(markerCore.draw);
 
 return markerEvents; });

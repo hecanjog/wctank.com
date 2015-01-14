@@ -24,4 +24,7 @@ function(audioCore) { var nodes = {};
     nodes.Biquad = function() {
         return audioCore.wrapNode(audioCore.ctx.createBiquadFilter());
     };
+    nodes.MediaElementSource = function(elem) {
+        return audioCore.wrapNode(audioCore.ctx.createMediaElementSource(elem));
+    };
 return nodes; });

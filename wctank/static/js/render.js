@@ -23,7 +23,7 @@ function() { var render = {};
         cancelAnimationFrame(id);
     };
 
-    render.push = function(funct) {
+    render.queue = function(funct) {
         queue.push(funct);
         if (!render.rendering) render.start();
     };

@@ -47,13 +47,13 @@ define(
         return Math.random() * s + n;  
     },
 
-    getRndItem: function(set) {
+    getRndItem: function rndItem(set) {
         if ( Array.isArray(set) ) { 
             var idx = (Math.random() * set.length) | 0;
             return set[idx];
         } else {
             var keys = Object.keys(set);
-            return set[ util.getRndItem(keys) ];
+            return set[ rndItem(keys) ];
         }
     },
 

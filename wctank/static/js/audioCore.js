@@ -122,17 +122,25 @@ function(audioUtil, TWEEN) {
          * methods that, in turn,  call the .start() and .stop() methods of
          * an indeterminate number of Audio components.
          * @param {AudioModule} scope - scope to extend
-         * @param {...AudioModule|AudioNode} nodes - nodes on which to call .start() and .stop()
+         * @param {Array|...AudioModule|AudioNode} nodes - nodes on which to call .start() and .stop()
          */
         startStopThese: function(scope, nodes) {
-            var n = arguments;
+            var n, idx;
+            if (Array.isArray(nodes)) {
+                n = nodes;
+                idx = 0;
+            } else {
+                n = arguments;
+                idx = 1;
+            }
+             
             scope.start = function() {
-                for (var i = 1; i < n.length; i++) {
+                for (var i = idx; i < n.length; i++) {
                     n[i].start();
                 }
             };
             scope.stop = function() {
-                for (var i = 1; i < n.length; i++) {
+                for (var i = idx; i < n.length; i++) {
                     n[i].stop();
                 }
             };

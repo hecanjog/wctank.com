@@ -3,16 +3,17 @@ define(
         'audioCore',
         'audioModules',
         'audioNodes',
+        'audioUtil',
         'instrumentCore',
         'envelopeCore',
         'envelopeAsdr',
         'util'
     ],
 
-function(audioCore, audioModules, audioNodes, instrumentCore, 
+function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore, 
             envelopeCore, envelopeAsdr, util) { var instruments = {};
 
-    instruments.raspyCarpark = function() {
+    instruments.RaspyCarpark = function() {
         var noise = audioModules.Noise(); 
         noise.gain.gain.value = 0.0;
         noise.start();
@@ -61,9 +62,9 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
         
         this._link_alias_out = convo;
     };
-    instruments.raspyCarpark.prototype = new instrumentCore.Instrument();
+    instruments.RaspyCarpark.prototype = new instrumentCore.Instrument();
 
-    instruments.angularNastay = function() {
+    instruments.AngularNastay = function() {
         this.osc = audioModules.Osc('square');
         this.osc.start();
         this.osc.gain.gain.value = 0;
@@ -75,39 +76,7 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
 
         this._link_alias_out = this.gain;
 
-        var oscAsdrParams = {
-            a: {
-                dur: 100,
-                inter: {
-                    type: 'none'
-                },
-                val: [0.01, 0,      1, 10,
-                      0.2, 20,      0.9, 30,
-                      0.4, 40,      0.8, 50,
-                      0.3, 57,      0.75, 64,
-                      0.45, 73,     0.83, 83,
-                      0.15, 90,     1, 99]
-            },
-            s: {
-                dur: 100,
-                val: 1
-            },
-            d: {
-                dur: 200,
-                inter: {
-                    type: 'linear'
-                },
-                val: [1, 0,  0.5, 99]              
-            },
-            r: {
-                dur: 50,
-                inter: {
-                    type: 'exponential'
-                },
-                val: [0.5, 0,  0.0001, 99]
-            }
-        };
-        var oscAsdr = new envelopeAsdr.Generator(oscAsdrParams);
+        var oscAsdr = new envelopeAsdr.Generator(envelopeAsdr.presets.roughStart);
 
         this.attack = new instrumentCore.ParameterizedAction(this.osc.gain.gain);
         this.attack.createEnvelope = function(stage) {
@@ -128,7 +97,7 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
             return pEnv.toAbsolute();
         };
     };
-    instruments.angularNastay.prototype = new instrumentCore.Instrument(); 
+    instruments.AngularNastay.prototype = new instrumentCore.Instrument(); 
 
     // TODO: reimplement in future to incorporate Sonorities
     // for now, constructs with array of frequencies
@@ -165,131 +134,143 @@ function(audioCore, audioModules, audioNodes, instrumentCore,
             });
         };
 
-        this.fadeInOut = function(time) {
-            parent.bp_bank.forEach(function(v) {
-                v.fadeInOut(time);
-            }); 
-        };
-        
-        this.sonority = new instrumentCore.ParameterizedAction(function(arr, time) {
-            var vals = arr;
-            if (vals.length < bp_bank.length) {
-                var diff = bp_bank.length - vals.length;
-                while (diff-- > 0) {
-                    bp_bank.pop();
-                }
-            }
-            this.bp_bank.forEach(function(v) {
-                v.setFrequency(vals.shift()); 
-            });
-            if (vals.length > 0) {
-                vals.forEach(function(v) {
-                    pushBp(v);
-                });
-            } 
-        });
-
         var attackAsdrParams = {
             a: {
                 dur: 400,
-                inter: {
-                    type: 'exponential'
-                },
-                val: [0.01, 0,    0.5, 99]
+                inter: {type: 'exponential'},
+                val: [0.01, 0,  
+                      0.43, 99]
             },
             s: {
                 dur: 100,
-                val: 0.6
+                val: 0.43
             },
             d: {
                 dur: 500, 
-                inter: {
-                    type: 'linear'
-                },
-                val: [0.5, 0,    0.2, 99]
+                inter: {type: 'linear'},
+                val: [0.43, 0,    
+                      0.3, 99]
             },
             r: {
                 dur: 200,
-                inter: {
-                    type: 'linear'        
-                },
-                val: [0.2, 0,   0, 100]
+                inter: {type: 'linear'},
+                val: [0.3, 0, 
+                      0, 100]
             }
         };
         attackAsdr = new envelopeAsdr.Generator(attackAsdrParams);
+        this.asdr = attackAsdr;
 
         this.attack = new instrumentCore.ParameterizedAction(this.gain.gain); 
         //TODO: allow variable returns in envelopeAsdr.Generator attack and decay stages
-        //to avoid this kind of munging
+        // to avoid this kind of confusing munging
         // takes an obj of the form {dur: number, stage: boolean(true for as, false for dr)}
         this.attack.createEnvelope = function(dur) {
             attackAsdr.attack.duration = 
                 util.smudgeNumber(attackAsdr.attack.duration, 5);
-            attackAsdr.decay.duration = 
-                util.smudgeNumber(200, 5);
+            attackAsdr.decay.duration = util.smudgeNumber(200, 5);
             this.envelope = attackAsdr.getASDR(dur);
             return this.envelope;
         };
     };
     instruments.SubtractiveChoir.prototype = new instrumentCore.Instrument();
 
-    // just stream a few field recordings and expose crossfading functionality
+    // field recording / osc bank
     // TODO: this was interacting oddly with the dragstart event in Rooms,
     // take time to figure that out.
     instruments.WesEnviron = function() {
-        var bigEarDOM = document.createElement('audio');
-        bigEarDOM.src = "/streaming/bigear.mp3";
-        bigEarDOM.autoplay = true;
-        bigEarDOM.loop = true;
+        // TODO: moduleExtensions.startStopThese should also call .play?
+        this.bigEarDOM = document.createElement('audio');
+        this.bigEarDOM.src = "/streaming/bigear.mp3";
+        this.bigEarDOM.autoplay = true;
+        this.bigEarDOM.loop = true;
 
-        var bigEar = audioCore.ctx.createMediaElementSource(bigEarDOM),
-            bigEarGain = audioNodes.Gain();
-        bigEar.connect(bigEarGain);
+        var bigEar = audioNodes.MediaElementSource(this.bigEarDOM);
+        this.bigEarGain = audioNodes.Gain();
+        bigEar.link(this.bigEarGain);
 
-        var outGain = audioNodes.Gain();
+        // TODO: this should be reimplemented when Sonorities are available
+        var choir_sonority = [
+            1863.53118,
+            2201.114014,
+            1433.202026,
+            1879.656616,
+            1927.278442,
+            1951.355347,
+            2191.642578,
+        ];
 
-        bigEarGain.connect(outGain);
+        var osc_bank = [],
+            oscBankAttackGain = audioNodes.Gain();
+        this.oscBankGain = audioNodes.Gain();
+        for (var i = 0; i < 2; i++) {
+            var freq = util.getRndItem(choir_sonority),
+                type = util.getRndItem(audioUtil.oscTypes);
 
-        this._link_alias_out = outGain;
+            osc_bank.push(audioModules.Osc(type, freq, 0.12));
+            osc_bank[i].link(oscBankAttackGain);
+        }
 
-        var gainAsdrParams = {
-            a: {
-                dur: 1000,
-                inter: {
-                    type: 'exponential'
-                },
-                val: [0.01, 0,  1, 99]
-            },
-            s: {
-                dur: 1000,
-                val: 1
-            },
-            d: {
-                dur: 1000,
-                inter: {
-                    type: 'exponential'
-                },
-                val: [0.01, 0,  1, 99]
-            },
-            r: {
-                dur: 10,
-                inter: {
-                    type: 'none'
-                },
-                val: [0, 0,  0, 99]
-            }
+        var lowDroner = new audioModules.Osc('sine', 40, 1);
+        lowDroner.link(oscBankAttackGain);
+        osc_bank.push(lowDroner);
+
+        oscBankAttackGain.link(this.oscBankGain);
+
+        this.outGain = audioNodes.Gain();
+        
+        this.bigEarGain.link(this.outGain);
+        this.oscBankGain.link(this.outGain);
+
+        this._link_alias_out = this.outGain;
+
+        this.smudgeOscSonority = function(time) {
+            osc_bank.forEach(function(v) {
+                v.setFrequency(util.smudgeNumber(v.osc.frequency.value, 5), time); 
+                v.setGain(util.smudgeNumber(v.gain.gain.value, 10), time);
+            });
         };
-        var gainAsdr = new envelopeAsdr.Generator(gainAsdrParams);
+        this.smudgeOscSonority(0);
 
-        this.gain = new instrumentCore.ParameterizedAction(outGain.gain);
-        this.gain.createEnvelope = function(valObj) {
-            if (valObj.stage) {
-                return gainAsdr.attack.toAbsolute(valObj.dur);
+        var oscBankAsdr = new envelopeAsdr.Generator(envelopeAsdr.presets.roughStart);
+        this.oscBankAttack = new instrumentCore.ParameterizedAction(oscBankAttackGain.gain);
+        // TODO: implement mechanism to abstract out this copypasto?
+        this.oscBankAttack.createEnvelope = function(stage) {
+            if (stage) {
+                return oscBankAsdr.getAS();
             } else {
-                return gainAsdr.decay.toAbsolute(valObj.dur);
+                return oscBankAsdr.getDR();
             }
         };
 
+        var gainEnv = new envelopeCore.Envelope();
+        gainEnv.duration = 1000;
+        gainEnv.interpolationType = 'exponential';
+
+        // TODO: abstract out this boilerplate.
+        this.gain = new instrumentCore.ParameterizedAction(this.outGain.gain);
+        // arg {val: number, time: number}
+        this.gain.createEnvelope = function(paramObj) {
+            gainEnv.valueSequence = new envelopeCore.EnvelopeValue(paramObj.val, 99);
+            this.gain.envelope = gainEnv.toAbsolute(paramObj.time);
+            return this.gain.envelope;
+        };
+
+        audioCore.moduleExtensions.wetDry(this, this.bigEarGain, this.oscBankGain);
+        
+        var cfEnv = new envelopeCore.Envelope();
+        cfEnv.duration = 500;
+        cfEnv.interpolationType = 'linear';
+
+        this.crossFade = new instrumentCore.ParameterizedAction(this.wetDry);
+        // {val: number, time: number}
+        this.crossFade.createEnvelope = function(paramObj) {
+            cfEnv.valueSequence = new envelopeCore.EnvelopeValue(paramObj.val, 99);
+            this.crossFade.envelope = cfEnv.toAbsolute(paramObj.time);
+            return this.crossFade.envelope;
+        };
+
+        audioCore.moduleExtensions.startStopThese(this, osc_bank); 
     };
     instruments.WesEnviron.prototype = new instrumentCore.Instrument();
 

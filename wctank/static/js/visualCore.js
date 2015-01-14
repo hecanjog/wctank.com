@@ -102,7 +102,7 @@ function(render) { var visualCore = {};
             
             if (stage === 'init') {
                 ops = ['preInit', 'init', 'animate'];
-                r_op = 'push';
+                r_op = 'queue';
             } else if (stage === 'teardown') {
                 ops = ['preTeardown', 'animate', 'teardown'];
                 r_op = 'rm';
@@ -115,13 +115,11 @@ function(render) { var visualCore = {};
                     render[r_op](parent[fnName]);
                 }
             };
-            if (typeof hooks[0] === 'function') hooks[0]();
-            if ( parent[ ops[0] ] ) callFunct(ops[0]);
-            if (typeof hooks[1] === 'function') hooks[1]();
-            if ( parent[ ops[1] ] ) callFunct(ops[1]);
-            if (typeof hooks[2] === 'function') hooks[2]();
-            if ( parent[ ops[2] ] ) callFunct(ops[2]);
-            if (typeof hooks[3] === 'function') hooks[3]();
+
+            for (var i = 0; i < 4; i++) {
+                if (typeof hooks[i] === 'function') hooks[i]();
+                if ( parent[ ops[i] ] ) callFunct(ops[i]);
+            }
         };
     };
 

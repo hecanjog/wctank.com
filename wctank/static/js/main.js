@@ -34,7 +34,7 @@ define(
         'gMap',
         'sceneGraphs',
         'sceneGraphCore',
-        'markerEvents',
+        'markerMain',
         ['font!custom,families:',
             '[',
                 'timeless',

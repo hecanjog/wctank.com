@@ -11,7 +11,6 @@ define (
 function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visualEffects = {};
 
     visualEffects.Strut = function() {
-        
         var strut_front = document.createElement("canvas");
         strut_front.setAttribute("id", "strut-front");
 
@@ -87,7 +86,6 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
         var squares_front = document.createElement('canvas');
         squares_front.setAttribute("id", "squares-front");
 
-
         // r, g, b (a to be assigned in shader)
         var colors = new Float32Array([
             1.0, 0.0, 0.0,
@@ -123,7 +121,8 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
         
         var z = visualCore.webgl.setup(squares_front, SquaresShaders, true),
             a_vertex_buffer = z.gl.createBuffer(),
-            a_id, a_position, u_time;
+            a_id, a_position, 
+            u_time, u_alpha;
 
         // set up 
         z.gl.bindBuffer(z.gl.ARRAY_BUFFER, a_vertex_buffer);
@@ -141,9 +140,25 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
 
         u_time = z.gl.getUniformLocation(z.program, "u_time");
 
+        u_alpha = z.gl.getUniformLocation(z.program, "u_alpha");
+
         this.init = function() {
             document.body.appendChild(squares_front);
         };
+
+        var alpha = 0.1;
+
+        Object.defineProperty(this, 'alpha', {
+            get: function() { return alpha; },
+            set: function(v) { 
+                if (alpha >= 0 && alpha <= 1) {
+                    alpha = v;
+                } else {
+                    throw new Error("Invalid visualEffects.Squares param: "+
+                        "alpha must be a number between 0 and 1 inclusive");
+                }
+            }
+        });
 
         var cntr = 0;
         var getClock = function() {
@@ -153,13 +168,13 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
         this.animate = function() {
             z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
             z.gl.uniform1i(u_time, getClock());
+            z.gl.uniform1f(u_alpha, alpha);
             z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices.length / 3);
         };
         
         this.teardown = function() {
             document.body.removeChild(squares_front);
         };
-
     };
     visualEffects.Squares.prototype = new visualCore.Effect();
 

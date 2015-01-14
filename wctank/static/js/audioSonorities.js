@@ -7,7 +7,7 @@ define(
  */
 function(audioUtil) { var audioSonorities = {};
 
-    audioSonorities.VoiceTuple = function VoiceTuple(frequency, amplitude, unitEnum) {
+    audioSonorities.VoiceTuple = function VoiceTuple(frequency, amplitude, unit) {
         this.frequency = frequency;
         
         if (typeof amplitude === 'undefined') {
@@ -16,7 +16,7 @@ function(audioUtil) { var audioSonorities = {};
             this.amplitude = amplitude;
         }
         
-        if (typeof unitEnum === 'undefined') {
+        if (typeof unit === 'undefined') {
             this.unit = 'hz';
         } else {
             this.unit = unitEnum;

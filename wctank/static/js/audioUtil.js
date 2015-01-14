@@ -12,7 +12,7 @@ function(util, render, TWEEN) { var audioUtil = {};
     audioUtil.tween = (function(tween) {
         tween.startTweens = function() {
             if ( render.has(TWEEN.update) === false ) 
-                render.push(TWEEN.update);
+                render.queue(TWEEN.update);
         };
         // holy butts this is ugly. .length <= 2? I need to figure out why this works and
         // clean it up. But, in the meantime, it plugs a leak where unnecessary TWEEN.update
@@ -40,16 +40,15 @@ function(util, render, TWEEN) { var audioUtil = {};
         };
         return tween;
     }({})); 
-    
-    audioUtil.units = (function(units) {
-        
-        units.HZ = 'hz';
-        units.HERTZ = 'hz';
-        units.MEL = 'mel';
-        units.SCI = 'scientific';
-        units.SCIENTIFIC = 'scientific';
-        units.MIDI = 'midi';
+   
+    audioUtil.oscTypes = {
+        sine: 'sine',
+        square: 'square',
+        sawtooth: 'sawtooth',
+        triangle: 'triangle'
+    };
 
+    audioUtil.units = (function(units) {
         units.hz2Mel = function(hz) {
             return 1127 * Math.log(1 + (hz / 700));
         };
@@ -61,8 +60,6 @@ function(util, render, TWEEN) { var audioUtil = {};
         units.cents2Hz = function(cents, basehz) {
            return basehz * Math.pow(2, cents / 1200);   
         };
-    
-
         return units;
     }({}));
 

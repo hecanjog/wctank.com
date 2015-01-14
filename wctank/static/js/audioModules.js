@@ -64,6 +64,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
         audioCore.moduleExtensions.startStopThese(this, this.osc);
         audioCore.moduleExtensions.setValue(this, this.osc, 'frequency', 'setFrequency', true);
+        audioCore.moduleExtensions.setValue(this, this.gain, 'gain', 'setGain', true);
     };
     audioModules.Osc.prototype = new audioCore.AudioModule();
 

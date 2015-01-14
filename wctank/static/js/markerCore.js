@@ -185,17 +185,15 @@ function(util, markerMapPosition, markerData, visualCore,
     };
     
     gMap.events.queue('map', 'dragstart', function() {
-        render.push(updateDelta);
-        render.push(markerCore.tryDataUpdate);
+        render.queue(updateDelta);
+        render.queue(markerCore.tryDataUpdate);
     });
-
     gMap.events.queue('map', 'dragend', function() {
         window.setTimeout(function() {
             render.rm(updateDelta);
             render.rm(markerCore.tryDataUpdate);
         }, 1200); 
     });
-// kill timeout early if interrupted by another click!!!
 
     // only call update data when histories are different
     markerCore.tryDataUpdate = function() {
@@ -225,7 +223,5 @@ function(util, markerMapPosition, markerData, visualCore,
     document.addEventListener('post_overlay', function(e) {
         markerCore.beNoise(e.detail.data);
     });
-
-    render.push(markerCore.draw);
 
 return markerCore; });
