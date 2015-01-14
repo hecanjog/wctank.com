@@ -32,8 +32,8 @@ require.config({
 define(
     [
         'gMap',
-        'sceneGraphs',
-        'sceneGraphCore',
+        'scenes',
+        'sceneCore',
         'markerMain',
         ['font!custom,families:',
             '[',

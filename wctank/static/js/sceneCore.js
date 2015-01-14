@@ -5,17 +5,17 @@ define(
 
 function(util) { var core = {};
     
-    core.SceneGraph = function() {
+    core.Scene = function() {
         this.init = null;
         this.teardown = null;
     };
 
     var last = null;
-    core.apply = function(sceneGraphObj) {
+    core.apply = function(sceneObj) {
         if (last) {
             last.teardown(); 
         }
-        var scene = new sceneGraphObj();
+        var scene = new sceneObj();
         scene.init();
         last = scene; // watch for mem leaks?
         // write test that switches a lot

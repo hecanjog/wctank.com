@@ -1,6 +1,6 @@
 define(
     [
-        'sceneGraphCore',
+        'sceneCore',
         'audioCore',
         'audioModules',
         'audioNodes',
@@ -8,18 +8,15 @@ define(
         'instruments',
         'visualEffects',
         'mutexVisualEffects',
-        'mutexVisualEffectsCore',
         'tableux',
         'gMap',
-        'util',
-        'div'
+        'util'
     ],
 
-function(sceneGraphCore, audioCore, audioModules, audioNodes, rhythm, 
-         instruments, visualEffects, mutexVisualEffects, mutexVisualEffectsCore, 
-         tableux, gMap, util, div) { var sceneGraphs = {};
+function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments, 
+         visualEffects, mutexVisualEffects, tableux, gMap, util) { var scenes = {};
 
-    sceneGraphs.Rooms = function() {
+    scenes.Rooms = function() {
         
         /********************** stabs on zoom events *******************/
         // TODO: when Sonorities are implemented, this will break
@@ -124,6 +121,6 @@ function(sceneGraphCore, audioCore, audioModules, audioNodes, rhythm,
             choir.stop();
         };
     };
-    sceneGraphs.Rooms.prototype = new sceneGraphCore.SceneGraph();
+    scenes.Rooms.prototype = new sceneCore.Scene();
         
-return sceneGraphs; });
+return scenes; });
