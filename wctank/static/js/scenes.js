@@ -93,7 +93,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                 blur_fact = blur_thresh - zoom;
 
             glow.animatedPostBlurDuration = blur_fact < 0 ? 0 : blur_fact * 100 + 900;
-            glow.animatedPostBlurRadius = blur_fact < 0 ? 0 : Math.log10(blur_fact) * 10;
+            glow.animatedPostBlurRadius = blur_fact < 0 ? 0 : Math.log10(blur_fact) * 12;
         });
        
         // actions at extreme zoom levels
@@ -108,8 +108,8 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                         squares.operate('init');
                         squares_on = true;  
                     };
-                }, 3000);
-            } else if (squares_on && zoom > 1) { 
+                }, 1500);
+            } else if (squares_on && zoom > 4) { 
                 squares.operate('teardown');
                 squares_on = false;
             }         

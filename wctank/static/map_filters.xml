@@ -32,7 +32,7 @@
     <feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
     <feComponentTransfer in="SourceGraphic">
         <feFuncR type="discrete" tableValues="0"></feFuncR>
-        <feFuncG type="gamma" amplitude="2" exponent="3.2"></feFuncG>
+        <feFuncG id="caustic-glow-green-exponent" type="gamma" amplitude="2" exponent="3.1"></feFuncG>
         <feFuncB type="discrete" tableValues="0"></feFuncB>
     </feComponentTransfer>   
     <feComponentTransfer result="caustics">

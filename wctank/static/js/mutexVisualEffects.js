@@ -198,6 +198,16 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
             }
         });
 
+        var expo = 3.1,
+            cgGreen = document.getElementById('caustic-glow-green-exponent');
+        Object.defineProperty(this, 'lumaExponent', {
+            get: function() { return expo; },
+            set: function(v) {
+                expo = v;
+                cgGreen.setAttribute('exponent', expo.toString());
+            }
+        });
+
         var caustic_glow_back = document.createElement("div");
         caustic_glow_back.setAttribute("id", "caustic-glow-back");  
     
