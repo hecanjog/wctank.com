@@ -32,7 +32,7 @@
     <feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
     <feComponentTransfer in="SourceGraphic">
         <feFuncR type="discrete" tableValues="0"></feFuncR>
-        <feFuncG type="gamma" amplitude="2" exponent="5"></feFuncG>
+        <feFuncG type="gamma" amplitude="2" exponent="3.2"></feFuncG>
         <feFuncB type="discrete" tableValues="0"></feFuncB>
     </feComponentTransfer>   
     <feComponentTransfer result="caustics">
@@ -43,7 +43,11 @@
     <feGaussianBlur id="cg-glow-radius" stdDeviation="10.6" result="glow"></feGaussianBlur>   
     <feComposite in="gray" in2="glow" operator="xor"></feComposite>
     
-    <feGaussianBlur id="caustic-glow-post-blur" stdDeviation="0">
+    <feComponentTransfer>
+        <feFuncA type="discrete" tableValues="0"></feFuncA>
+    </feComponentTransfer>
+
+    <feGaussianBlur in="alphamap" id="caustic-glow-post-blur" stdDeviation="0">
         <animate id="caustic-glow-post-blur-animate" attributeName="stdDeviation" 
             values="" calcMode="linear" dur="1000ms" repeatCount="indefinite">
         </animate>

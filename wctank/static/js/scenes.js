@@ -89,7 +89,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             var percent = fact < 0 ? 0 : fact * mult;
             environ.wetDry(percent, 1200);
           
-            var blur_thresh = thresh - 3,
+            var blur_thresh = thresh - 5,
                 blur_fact = blur_thresh - zoom;
 
             glow.animatedPostBlurDuration = blur_fact < 0 ? 0 : blur_fact * 100 + 900;

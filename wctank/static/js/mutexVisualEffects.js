@@ -234,6 +234,7 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
         }; 
     
         var parent = this;
+        
         this.init = function() {
             if (player_ready) {
                 player.api("play");
@@ -243,8 +244,9 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
                 }, 250);
             }
             caustic_glow_back.style.visibility = "visible";
-            if ( (Math.random() * 10) <= 7 ) blink_map(); 
+            //if ( (Math.random() * 10) <= 7 ) blink_map(); 
         };
+        
         this.teardown = function() {
             player.api("pause");
             caustic_glow_back.style.visibility = "hidden";
