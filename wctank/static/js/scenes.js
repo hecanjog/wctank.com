@@ -88,8 +88,10 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             
             var percent = fact < 0 ? 0 : fact * mult;
             environ.wetDry(percent, 1200);
-           
-            var blur_fact = fact - 3; 
+          
+            var blur_thresh = thresh - 3,
+                blur_fact = blur_thresh - zoom;
+
             glow.animatedPostBlurDuration = blur_fact < 0 ? 0 : blur_fact * 100 + 900;
             glow.animatedPostBlurRadius = blur_fact < 0 ? 0 : Math.log10(blur_fact) * 10;
         });
@@ -112,7 +114,13 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                 squares_on = false;
             }         
         });
-
+// delayed noise blast after marker click
+// angular clusters
+// drum roll
+// mid zoom range pierce
+// closer zooms voice
+// duck out on video play
+// slow independently building musicalized texture swell
         this.init = function() {
             environ.start();
             environClock.start();

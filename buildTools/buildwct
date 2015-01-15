@@ -1,11 +1,19 @@
 #!/usr/bin/python2
 import subprocess
 
-print "\n * * * Making build directory..." 
+print "\n * * * Cleaning previous build..."
+subprocess.call("rm -r ../wctank/static/dist", shell=True)
+
+print " * * * Making build directory..." 
 subprocess.call("mkdir ../wctank/static/dist", shell=True)
 
+# Originally, I was just running r.js in node, but, I started to get Fatal out 
+# of memory errors, even with the v8 memory limit jacked up to 1.7gb. Switching to 
+# Rhino bypassed this, and it *works*, except that it's hella slow. So, some actual
+# debugging of the optimization in node might be worthwhile at some point.
 print " * * * Optimizing js..."
-subprocess.call("r.js -o build.js", shell=True)
+subprocess.call("java -classpath ./js.jar:./compiler.jar  \
+        org.mozilla.javascript.tools.shell.Main r.js -o build.js", shell=True)
 
 print " * * * Move main.js into dist..."
 subprocess.call("cp ../appbuildingspace/js/main.js ../wctank/static/dist/main.js", shell=True)
@@ -24,10 +32,11 @@ subprocess.call("cleancss -o ../wctank/static/dist/styles-min.css \
 print " * * * Cleaning up..."
 subprocess.call("rm ../wctank/static/dist/styles.css", shell=True)
 
-print " * * * Parsing audio sprites..."
+print " * * * Parsing audio sprites...\n"
 
 # while we're still using praat
 # task: {path/filename: foo, extension: bar}
+# TODO: should this be part of the build process?
 praat_tasks = {
     "wesvoc": {"filename": "wes", "extension": "wav"}
 }
@@ -37,12 +46,13 @@ subprocess.call("rm ../wctank/static/assets/*.TextGridIntervals", shell=True)
 for key in praat_tasks:
     f = praat_tasks[key]["filename"]
     ex = praat_tasks[key]["extension"]
+    
+    print " * * * Parsing "+f+"."+ex
     subprocess.call("praat ./audioSprites/parseAudioSprite.praat "+ \
             f+" "+ex+" ./ ../../wctank/static/assets/", shell=True)
 
-    print " * * * Converting "+f+"."+ex+" to mp3..."
-
+    print " * * * Converting "+f+"."+ex+" to mp3...\n"
     subprocess.call("lame -q0 -b198 ./audioSprites/"+f+"."+ex+ \
             " ../wctank/static/assets/"+f+".mp3", shell=True)
 
-print "\n * * * Done. Hopefully?"
+print "\n * * * Done.\n"

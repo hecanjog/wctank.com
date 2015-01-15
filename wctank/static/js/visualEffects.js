@@ -106,7 +106,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
     
         var vertices = [];
 
-        var nesting = 50,
+        var nesting = 10,
             diff = 1 / nesting,
             id = 0;
 
@@ -224,7 +224,5 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
         };
     };
     visualEffects.ShowBorders.prototype = new visualCore.Effect(); 
-
-
 
 return visualEffects; });

@@ -19,7 +19,7 @@ function(audioUtil) { var audioSonorities = {};
         if (typeof unit === 'undefined') {
             this.unit = 'hz';
         } else {
-            this.unit = unitEnum;
+            this.unit = unit;
         }
     };
 
@@ -42,7 +42,7 @@ function(audioUtil) { var audioSonorities = {};
                             if (typeof args[i][cntr + b] === 'string') 
                                 u = args[i][cntr + b++]; 
                         }
-                        this.voices.push(new audioSonorities.VoiceTuple(f, a, u);
+                        this.voices.push(new audioSonorities.VoiceTuple(f, a, u));
                         cntr += b;
                     }
                 }
