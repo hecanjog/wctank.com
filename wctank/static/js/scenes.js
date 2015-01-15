@@ -10,15 +10,16 @@ define(
         'mutexVisualEffects',
         'tableux',
         'gMap',
-        'util'
+        'util',
+        'jquery'
     ],
 
 function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments, 
-         visualEffects, mutexVisualEffects, tableux, gMap, util) { var scenes = {};
+         visualEffects, mutexVisualEffects, tableux, gMap, util, $) { var scenes = {};
 
     scenes.Rooms = function() {
-        
-        /********************** stabs on zoom events *******************/
+       
+        //stabs on zoom events 
         // TODO: when Sonorities are implemented, this will break
         var choir_sonority = [
             931.765564,
@@ -51,10 +52,14 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                 isAccenting = false;
             }, env_dur);
         });
-        /***************************************************************/
-
-
-        /*********************** Audio Environs ************************/
+        
+        // big things
+        var glow = new mutexVisualEffects.CausticGlow();
+        
+        var tab = new tableux.Engine();
+        tab.parseData(tableux.stockList);
+       
+        // audio environs 
         var environClock = new rhythm.Clock(80);
 
         var environ = new instruments.WesEnviron();
@@ -74,16 +79,22 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         }; 
         var bankRhythmGen = new rhythm.Generator(environClock, bankRhythmShort);
         
+        // audio/blur zoom event
         gMap.events.queue('map', 'zoom_changed', function() {
             var zoom = gMap.map.getZoom(),
-                thresh = 14,
-                mult = 100 / thresh,
-                percent = thresh - zoom < 0 ? 0 : (thresh - zoom) * mult;
+                thresh = 15,
+                fact = thresh - zoom,
+                mult = 100 / thresh;
+            
+            var percent = fact < 0 ? 0 : fact * mult;
             environ.wetDry(percent, 1200);
+           
+            var blur_fact = fact - 3; 
+            glow.animatedPostBlurDuration = blur_fact < 0 ? 0 : blur_fact * 100 + 900;
+            glow.animatedPostBlurRadius = blur_fact < 0 ? 0 : Math.log10(blur_fact) * 10;
         });
-        /***************************************************************/
        
-        /***************** Actions at extreme zoom levels **************/ 
+        // actions at extreme zoom levels
         var squares = new visualEffects.Squares(),
             squares_on = false;
 
@@ -95,18 +106,12 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                         squares.operate('init');
                         squares_on = true;  
                     };
-                }, 1500);
+                }, 3000);
             } else if (squares_on && zoom > 1) { 
                 squares.operate('teardown');
                 squares_on = false;
             }         
         });
-        /***************************************************************/
-
-        var glow = new mutexVisualEffects.CausticGlow();
-
-        var tab = new tableux.Engine();
-        tab.parseData(tableux.stockList);
 
         this.init = function() {
             environ.start();

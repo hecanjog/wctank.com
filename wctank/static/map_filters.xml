@@ -42,6 +42,20 @@
     <feComposite in="caustics" in2="alphamap" operator="in"></feComposite>
     <feGaussianBlur id="cg-glow-radius" stdDeviation="10.6" result="glow"></feGaussianBlur>   
     <feComposite in="gray" in2="glow" operator="xor"></feComposite>
+    
+    <feGaussianBlur id="caustic-glow-post-blur" stdDeviation="0">
+        <animate id="caustic-glow-post-blur-animate" attributeName="stdDeviation" 
+            values="" calcMode="linear" dur="1000ms" repeatCount="indefinite">
+        </animate>
+    </feGaussianBlur> 
+</filter>
+
+<filter id="animated-blur">
+    <feGaussianBlur id="animated-blur-feGaussianBlur" stdDeviation="0">
+        <animate id="animated-blur-animate-node" attributeName="stdDeviation" 
+            values="" calcMode="linear" dur="1000ms" repeatCount="indefinite">
+        </animate>
+    </feGaussianBlur> 
 </filter>
 
 <filter id="fauvist">
@@ -66,38 +80,26 @@
     <feOffset id="vhs-offset" dx="0" dy="0"></feOffset>
 </filter>
 
-<filter id="spectroscopy">
-    <!-- rm green, offset red and blue channels... on init, force apart, slowly bring closer -->
-</filter>
-
-<filter id="projection-blur">
-    <!-- pixelwise offset of r, g, b channels -->
-</filter>
-
 <filter id="cmgyk"> 
-        <feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
-        <feGaussianBlur id="cmgyk-denoise" in="gray" stdDeviation="1"></feGaussianBlur>   
-        <feConvolveMatrix 
-            kernelMatrix="-1 -1 -1 
-                          -1 8 -1 
-                          -1 -1 -1" 
-            preserveAlpha="true">
-        </feConvolveMatrix>
-        <feComponentTransfer>
-            <feFuncA type="linear" slope="0.7" intercept="-0.667"></feFuncA>
-        </feComponentTransfer>
-        <feComponentTransfer result="edged">
-            <feFuncA type="gamma" amplitude="3" exponent="0.1"></feFuncA>
-        </feComponentTransfer>
-        <feColorMatrix in="edged" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
-        <feComposite in="edged" in2="alphamap" operator="in"></feComposite> 
-        <feComponentTransfer result="edged-alpha-inv">
-            <feFuncA type="linear" slope="-30" intercept="1"></feFuncA>
-        </feComponentTransfer>
-</filter>
-
-<filter id="birds">
-    <!-- separate colors, replace each with a tiled picture of a bird -->
+    <feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
+    <feGaussianBlur id="cmgyk-denoise" in="gray" stdDeviation="1"></feGaussianBlur>   
+    <feConvolveMatrix 
+        kernelMatrix="-1 -1 -1 
+                      -1 8 -1 
+                      -1 -1 -1" 
+        preserveAlpha="true">
+    </feConvolveMatrix>
+    <feComponentTransfer>
+        <feFuncA type="linear" slope="0.7" intercept="-0.667"></feFuncA>
+    </feComponentTransfer>
+    <feComponentTransfer result="edged">
+        <feFuncA type="gamma" amplitude="3" exponent="0.1"></feFuncA>
+    </feComponentTransfer>
+    <feColorMatrix in="edged" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
+    <feComposite in="edged" in2="alphamap" operator="in"></feComposite> 
+    <feComponentTransfer result="edged-alpha-inv">
+        <feFuncA type="linear" slope="-30" intercept="1"></feFuncA>
+    </feComponentTransfer>
 </filter>
 
 </defs>

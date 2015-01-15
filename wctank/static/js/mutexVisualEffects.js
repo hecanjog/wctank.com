@@ -172,11 +172,29 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
 
         var stdDeviation = 10.6,
             cgGlow = document.getElementById("cg-glow-radius");
-        Object.defineProperty(this, 'glow_radius', {
+        Object.defineProperty(this, 'alphaBlurRadius', {
             get: function() { return stdDeviation; },
             set: function(val) { 
                 stdDeviation = val;
                 cgGlow.setAttribute('stdDeviation', stdDeviation.toString());
+            }
+        });
+
+        var blur_x = 0,
+            blur_animation_duration = 1000;
+            cgBlurAnimate = document.getElementById('caustic-glow-post-blur-animate');
+        Object.defineProperty(this, 'animatedPostBlurRadius', {
+            get: function() { return blur_x; },
+            set: function(v) {
+                blur_x = v;
+                cgBlurAnimate.setAttribute("values", "0 0;"+blur_x+" 0;0 0");
+            }
+        });
+        Object.defineProperty(this, 'animatedPostBlurDuration', {
+            get: function() { return blur_animation_duration; },
+            set: function(v) {
+                blur_animation_duration = v;
+                cgBlurAnimate.setAttribute('dur', blur_animation_duration.toString() + 'ms');
             }
         });
 
@@ -241,7 +259,6 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
             'name': { value: 'Cmgyk' },
             'css_class': { value: 'cmgyk' }
         });
-
 
         var denoiseStdDeviation = 1,
             cmgykDenoise = document.getElementById("cmgyk-denoise");

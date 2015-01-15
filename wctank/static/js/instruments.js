@@ -193,7 +193,6 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         var choir_sonority = [
             1863.53118,
             2201.114014,
-            1433.202026,
             1879.656616,
             1927.278442,
             1951.355347,
