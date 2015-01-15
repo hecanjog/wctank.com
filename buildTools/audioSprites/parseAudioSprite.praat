@@ -23,6 +23,3 @@ for i from 1 to num
 		appendFileLine: file$, start, " ", end
 	endif
 endfor
-
-
-

@@ -1,10 +1,13 @@
 define(
     [
         'div', 
-        'jquery'
+        'jquery',
+        'gMap'
     ], 
 
-function(div, $) { 
+
+//TODO: this module is a mess!!!
+function(div, $, gMap) { 
     var posts = {};
     
     posts.displayedPostType = null;    
@@ -13,7 +16,7 @@ function(div, $) {
         var content = '';
         if(typeof post.title !== 'undefined') {
             if(post.type === "link") {
-                    "<a target='_blank' href='"+post.url+"'>"+post.title+"</a></div>";
+                content += "<a target='_blank' href='"+post.url+"'>"+post.title+"</a></div>";
             } else {
                 content += "<div class='post-title'>"+post.title+"</div>";
             }
@@ -53,25 +56,31 @@ function(div, $) {
         });
         return template;
     };
-    
-    var clip = false,
-        clip_interval = 500;
+   
+    // Only pass one posts.get request per throttle_interval
+    // just in case posts.get is bound to an event that bubbles.
+    // TODO: this might be complemented with a server-side component
+    var throttle = false,
+        throttle_interval = 500;
+
     posts.get = function(visibleBounds, callback) {
         var sw = visibleBounds.getSouthWest(),
             ne = visibleBounds.getNorthEast(),
             url = '/' + sw.lat() + '/' + sw.lng() + '/' + ne.lat() + '/' + ne.lng();
-        if (!clip) {    
+        
+        if (!throttle) {    
             $.getJSON(url, function(data) {
-                // only allow 1 request per clip_interval
-                clip = true;
+                throttle = true;
                 window.setTimeout(function() {
-                    clip = false;
-                }, clip_interval);
+                    throttle = false;
+                }, throttle_interval);
+                
                 $.each(data, function(i, post) {
                     post.isTextPost = (function() {
                         var text_posts = ['text', 'audio', 'link', 'quote'];
                         return (text_posts.indexOf(post.type) !== -1) ? true : false;
                     }());
+                    
                     post.markerType = (function() {
                         if($.inArray('videos', post.tags) !== -1) {
                             return 'video';   
@@ -83,19 +92,30 @@ function(div, $) {
                         }
                     }()); 
                 }); 
+                
                 callback(data);    
             });
         } 
     };
     
+    // a custom event that is fired on post display activity
+    var status = { data: false };
+    var postEvent = new CustomEvent('post_overlay', {
+        "bubbles": false,
+        "cancelable": true,
+        "detail": status
+    });
+
     var loading; 
     $.get("static/assets/loading_cur.svg", function(data) {
         loading = new XMLSerializer().serializeToString(data);
     });
+    
     //TODO: highlight new posts, timeout loading svg 
     var marker_clicked = false;
     posts.display = function(post) {
         posts.displayedPostType = post.type;
+        
         var trivial = 130; //mini fade for content swap
         
         // cache overlay width before removing content if the overlay is visible,
@@ -115,9 +135,10 @@ function(div, $) {
         var $post = renderTemplate(post, $('#post-template'));
         div.$overlay.html($post).removeClass().addClass(post.type);
 
-        var $contents = div.$overlay.find("*");
-        var waiting = true;
-        var $loading;
+        var $contents = div.$overlay.find("*"),
+            waiting = true,
+            $loading;
+        
         if (!post.isTextPost) {
             div.$overlay.css("width", width);
             $contents.hide();
@@ -133,6 +154,9 @@ function(div, $) {
         } else {
             $contents.fadeIn(trivial); // for now, just fade in if text
         }
+      
+        status.data = true; 
+        document.dispatchEvent(postEvent);
 
         marker_clicked = true;
         window.setTimeout(function() {
@@ -140,22 +164,27 @@ function(div, $) {
         }, 200);
     };
 
-    // Close overlay when usr clicks on the X
+    // Close overlay when user clicks on the X
     $(document).on('click', '.close-post', function(e) {
         e.preventDefault();
         $(this).parent().fadeOut('fast');
+        status.data = false;
+        document.dispatchEvent(postEvent);
     });
     
     // Close overlay on mousedown over map, i.e., to move it.
     // TODO: Consider handling zoom events also.    
     div.$map.mousedown(function() {
         window.setTimeout(function() {
-            if ( div.$overlay.is(':visible') && (div.$overlay.css('opacity') === '1') 
-                && (marker_clicked === false) ) {
-                div.$overlay.fadeOut('fast'); 
+            if ( div.$overlay.is(':visible') && 
+                (div.$overlay.css('opacity') === '1') && 
+                    (marker_clicked === false) ) {
+                div.$overlay.fadeOut('fast');
+                status.data = false;
+                document.dispatchEvent(postEvent);
             }
         }, 150);
     });
-
+    
     return posts;
 });

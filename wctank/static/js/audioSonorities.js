@@ -2,10 +2,12 @@ define(
     [
         'audioUtil'
     ],    
-
+/*
+ * TODO: This is incomplete and not ready for use!
+ */
 function(audioUtil) { var audioSonorities = {};
 
-    audioSonorities.VoiceTuple = function VoiceTuple(frequency, amplitude, unitEnum) {
+    audioSonorities.VoiceTuple = function VoiceTuple(frequency, amplitude, unit) {
         this.frequency = frequency;
         
         if (typeof amplitude === 'undefined') {
@@ -14,10 +16,10 @@ function(audioUtil) { var audioSonorities = {};
             this.amplitude = amplitude;
         }
         
-        if (typeof unitEnum === 'undefined') {
+        if (typeof unit === 'undefined') {
             this.unit = 'hz';
         } else {
-            this.unit = unitEnum;
+            this.unit = unit;
         }
     };
 
@@ -40,7 +42,7 @@ function(audioUtil) { var audioSonorities = {};
                             if (typeof args[i][cntr + b] === 'string') 
                                 u = args[i][cntr + b++]; 
                         }
-                        this.voices.push(new audioSonorities.VoiceTuple(f, a, u);
+                        this.voices.push(new audioSonorities.VoiceTuple(f, a, u));
                         cntr += b;
                     }
                 }

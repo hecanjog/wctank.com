@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <head>
     <title>WC Tank</title>
-    
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/static/styles.less" type="text/css" rel="stylesheet/less">
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
+    {% if dev_template %}
+        <link href="/static/less/styles.less" type="text/css" rel="stylesheet/less">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
+    {% else %}        
+        <link href="/static/dist/styles-min.css" type="text/css" rel="stylesheet">
+    {% endif %}
 </head>
 
 <body>
@@ -15,19 +16,24 @@
     <div id="overlay"></div>
 
     <ul id="social-links">
-        <li><a href="http://wctank.tumblr.com" target="_blank"><i class="fa fa-tumblr-square"></i></a><li>
-        <li><a href="http://twitter.com/wctank" target="_blank"><i class="fa fa-twitter"></i></a><li>
-        <li><a href="http://soundcloud.com/wctank-1" target="_blank"><i class="fa fa-soundcloud"></i></a><li>
-        <li><a href="http://wctank.bandcamp.com" target="_blank"><i class="fa fa-music"></i></a><li>
-        <li><a href="http://vimeo.com/user1156557" target="_blank"><i class="fa fa-vimeo-square"></i></a><li>
+        <li><a href="http://wctank.tumblr.com" target="_blank"><i class="icon-tumblr-squared"></i></a><li>
+        <li><a href="http://twitter.com/wctank" target="_blank"><i class="icon-twitter"></i></a><li>
+        <li><a href="http://soundcloud.com/wctank-1" target="_blank"><i class="icon-soundcloud"></i></a><li>
+        <li><a href="http://wctank.bandcamp.com" target="_blank"><i class="icon-music"></i></a><li>
+        <li><a href="http://vimeo.com/user1156557" target="_blank"><i class="icon-vimeo-squared"></i></a><li>
     </ul>
 
     <script type="text/html" id="post-template">
-        <button class="close-post" type="button"><i class="fa fa-times-circle"></i></button>
+        <button class="close-post" type="button"><i class="icon-cancel-circled"></i></button>
         <div class="~!type">~!content</div>
         <div class="permalink"><a href="~!link" target="_blank"><p>view on tumblr</p></a></div>
     </script>
-   
-    <script data-main="/static/js/main" src="/static/lib/require.js"></script>
+  
+    {% if dev_template %} 
+        <script data-main="/static/js/main" src="/static/lib/require.js"></script>
+    {% else %}
+        <script src="/static/dist/main.js"></script>
+    {% endif %}
+    
     </body>
 </html>

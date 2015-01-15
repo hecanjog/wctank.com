@@ -1,9 +1,9 @@
 define(
     [
-        'sceneGraphCore'
+        'render'
     ],
 
-function(sceneGraphCore) { var visualCore = {};
+function(render) { var visualCore = {};
 
     visualCore.webgl = {
         success: false,
@@ -21,10 +21,10 @@ function(sceneGraphCore) { var visualCore = {};
                 try {
                     return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
                 } catch (err) {
-                    throw "WebGL is good to have? I like to fart";
+                    console.warn("WebGL is good to have? I like to fart");
                     return false;
                 }
-            }())
+            }());
             if (gl) {
                 visualCore.webgl.success = true;
                 gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -82,7 +82,7 @@ function(sceneGraphCore) { var visualCore = {};
         this.init = null; //function() {};
         this.animate = null; //function() {};
         this.preTeardown = null; //function() {};
-        this.teardown = null //function() {};
+        this.teardown = null; //function() {};
 
         this.operate = function(stage, hookObjArr) {
             var ops = [],
@@ -102,7 +102,7 @@ function(sceneGraphCore) { var visualCore = {};
             
             if (stage === 'init') {
                 ops = ['preInit', 'init', 'animate'];
-                r_op = 'push';
+                r_op = 'queue';
             } else if (stage === 'teardown') {
                 ops = ['preTeardown', 'animate', 'teardown'];
                 r_op = 'rm';
@@ -112,21 +112,13 @@ function(sceneGraphCore) { var visualCore = {};
                 if (fnName !== 'animate') {
                     parent[fnName]();
                 } else if (fnName === 'animate') {
-                    sceneGraphCore.render[r_op](parent[fnName]);
+                    render[r_op](parent[fnName]);
                 }
             };
-            if (typeof hooks[0] === 'function') hooks[0]();
-            if ( parent[ ops[0] ] ) callFunct(ops[0]);
-            if (typeof hooks[1] === 'function') hooks[1]();
-            if ( parent[ ops[1] ] ) callFunct(ops[1]);
-            if (typeof hooks[2] === 'function') hooks[2]();
-            if ( parent[ ops[2] ] ) callFunct(ops[2]);
-            if (typeof hooks[3] === 'function') hooks[3]();
-            
-            if ( sceneGraphCore.render.has() && (!sceneGraphCore.render.rendering) ) {
-                sceneGraphCore.render.go();
-            } else if ( !sceneGraphCore.render.has() ) {
-                sceneGraphCore.render.stop();
+
+            for (var i = 0; i < 4; i++) {
+                if (typeof hooks[i] === 'function') hooks[i]();
+                if ( parent[ ops[i] ] ) callFunct(ops[i]);
             }
         };
     };

@@ -1,0 +1,299 @@
+@import "mutex-filters";
+@import "visual-effects";
+@import "wes-fa-subset";
+
+// common media query params
+@small: ~"screen and (max-width: 31em)";
+@med-res: ~"only screen and (min-resolution: 1.2dppx), only screen and (-webkit-min-device-pixel-ratio: 1.2)";
+//@med-res: ~"only screen and (min-resolution: 1.0dppx)";
+
+//commonly used colors
+@off-white: #FBFBFB; //for text in overlay
+@salmon-blood: #eb054c; //ui icon hover
+
+
+/******************** Big Tags **********************/
+
+@font-base: 12pt;
+@med-mul: 0.8;
+
+body, html {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    font-size: @font-base;
+    @media @med-res {
+        font-size:   @font-base * @med-mul;
+    }
+}
+
+button {
+    background: none;
+    border: none;
+}
+
+/****************************************************/
+
+
+/***********************************************************************/
+/*************** More-or-less persistent UI Elements *******************/
+/***********************************************************************/
+
+// if we mess up somewhere, this image will be there!
+#fail-through {
+    .fullsize;
+    z-index: -9999;
+    background-image: url("../assets/words.png");
+}
+
+// canvas we are rendering map markers on
+#markers {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+
+/********************** Map *************************/
+
+// hide branding
+a[href^="http://maps.google.com/maps"] {
+    display: none !important;
+}
+.gm-style-cc {
+    display: none;
+}
+
+#map-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/****************************************************/
+
+
+/******************** post display area ************************/
+
+#overlay {
+    
+    display: none;
+    overflow: auto;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    min-width: 17em;
+    max-width: 33em;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: @off-white;
+    font-family: 'timeless';
+    font-size: 1.05em;
+    padding: 1.8em 1.9em 1.5em 1.5em;
+    
+    a {
+        color: @off-white;
+    }
+    em {
+        font-style: normal;
+        font-family: 'timelessitalic';
+        font-size: 1em;
+    }
+    strong {
+        font-style: normal;
+        font-family: 'timelessbold';
+    }
+    img {
+        width: 100%;
+        height: auto;
+    }
+    iframe { 
+        width: 70vw;
+        height: 30.4vw;
+        max-width: 100%;
+        max-height: 26em;
+        min-width: 26.5em;
+        min-height: 21.28em;
+        &:-webkit-full-screen {
+            max-width: none;
+            max-height: none;
+        }
+       
+    }
+    
+    .post-title {
+        font-family: 'timelessbold';
+        font-size: 1.2em;
+    } 
+    .post-body { // body of a text post, usually poetry
+        margin: 1.8em 0 2.1em 0.5em;
+        font-family: 'timeless';
+        line-height: 1.25em;
+        p {
+            margin-top: -0.65em;
+        }
+        br {
+            line-height: 1.3em;
+        }
+        img {
+            margin-top: 0.3em;
+            margin-bottom: 0.5em;
+        }
+    }
+    .post-caption {
+        font-family: 'frutigerlight';
+        font-size: 0.95em;
+        line-height: 1.24em;
+        margin-top: -0.20328em;
+        margin-bottom: 1.8em;
+        p {
+            margin-bottom: -0.575em;
+        }
+        em {
+            font-family: 'frutigerlightitalic';
+        }
+        strong {
+            font-family: 'frutigerbold';
+        }
+    }
+    .post-description { //used within link posts
+        .post-body;  
+        line-height: 1.3em;
+    }
+    .permalink {
+        margin-top: 2em;
+        text-align: right;
+    }
+    .quote {
+       // TODO: this.      
+    }
+    
+///////////// Special Cases
+    
+    // one of the most important spaces is between the
+    // visual element of a post and the following text
+    .text iframe {
+        margin-bottom: 0.3em;
+    }
+    .video iframe {
+        margin-bottom: -0.15em;
+    }
+    .photo img {
+        margin-bottom: -0.15em;
+    }
+
+    // media queries
+    @media @small {
+        width: auto;
+        left: 0;
+        right: 0;
+        padding-top: 2.3em;
+        padding-right: 1.5em;
+        iframe {
+            width: 100%;
+            min-width: 19.2em;
+            height: 60vw;
+            min-height: 15.36em;
+        }
+    }
+
+////////////
+
+}
+/**********************************************************/
+
+
+/**************** SVG loading placeholder *****************/
+ 
+#loading {
+    display: block;
+    width: 18.1em;
+    margin: auto;
+    height: 100%;
+    fill: none;
+    stroke: @off-white;
+    stroke-width: 3;
+    stroke-dasharray: 3200;
+    .animation(dash 3500ms infinite linear);
+}
+.keyframes(dash, {
+    from { stroke-dashoffset: 3200; }
+    to { stroke-dashoffset: -3200; }
+});
+
+/*********************************************************/
+
+/****** UI buttons: social links and close-post 'X' ******/
+
+.ui-controls() {
+    color: #fff;
+    font-size: 1.4em;
+    display: inline-block;
+    padding: 0.4em 0.4em 0.4em 0.44em;
+    margin: -0.15em 1px;
+    outline: none;
+    &:hover {
+      color: @salmon-blood;
+    }
+}
+.close-post {
+    position: absolute;
+    top: 0.5em;
+    right: 0.1em;
+    -webkit-transform: translate(-0.25em);
+    .ui-controls;
+    font-size: 1.2em;
+    padding: 0;
+}
+#social-links {
+    position: fixed;
+    top: 0;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    li {
+        display: block;
+        a {
+            .ui-controls;
+        }
+    }
+}
+
+/********************************************************/
+
+
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+
+
+/*************************** Webfonts ******************************/
+
+@font-face {
+    .apply-webfont('timeless', 'timelesstlig');
+}
+@font-face {
+    .apply-webfont('timelessbold', 'timelessef-bold-webfont');
+}
+@font-face {
+    .apply-webfont('timelessitalic', 'timelesstlig_italic-webfont');
+}
+@font-face {
+    .apply-webfont('frutigerbold', 'frutiger-bold-webfont');
+}
+@font-face {
+    .apply-webfont('frutigerlight', 'frutiger-light-webfont');
+}
+@font-face {
+    .apply-webfont('frutigerlightitalic', 'frutiger-lightitalic-webfont');
+}
+@font-face {
+    .apply-webfont('wes-fa-subset', 'wes-fa-subset');
+}
+/******************************************************************/

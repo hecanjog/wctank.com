@@ -18,6 +18,7 @@ varying float v_id;
 
 uniform vec3 u_colors[6];
 uniform int u_time;
+uniform float u_alpha;
 
 void main()
 {
@@ -26,7 +27,7 @@ void main()
     vec4 color;
     for (int i = 0; i < 12; i++) {
         if (i == idx) {
-            color = vec4(u_colors[i], mod(float(u_time), 2.0) );
+            color = vec4(u_colors[i], mod(float(u_time), 2.0) * u_alpha);
         }
     }
     gl_FragColor = color;

@@ -7,7 +7,12 @@ define(
 function(util, gMap) { var markerMapPosition = {};
     // all markers on the map are (lazily) wrapped in a MarkerData object 
     // and appended to markers under a unique hash key
-    var markers = {};
+    markerMapPosition.markers = {};
+    markerMapPosition.livingKeys = [];
+    
+    var overflow = 20,
+        proj = null;
+
 
     function MarkerData(googMarker) {
         this.marker = googMarker;
@@ -19,19 +24,17 @@ function(util, gMap) { var markerMapPosition = {};
         this.isAlive;
 
         this.hash = util.hashCode(this.type + 
-            this.worldPosition.lat().toString() + this.worldPosition.lng().toString()).toString();
+            this.worldPosition.lat().toString() + this.worldPosition.lng().toString());
 
         this.update = function() {
-            var overflow = 20,
-                proj = gMap.pxOverlay.getProjection(),
-                pnt = proj.fromLatLngToContainerPixel(this.worldPosition);
+            if (!proj) proj = gMap.pxOverlay.getProjection();
+            var pnt = proj.fromLatLngToContainerPixel(this.worldPosition);
 
             this.containerPosition =
                 ( (pnt.x < -overflow) || 
                   (pnt.y < -overflow) || 
                   (pnt.x > window.innerWidth + overflow) || 
-                  (pnt.y > window.innerHeight + overflow) ) ? 
-                null : pnt;
+                  (pnt.y > window.innerHeight + overflow) ) ? null : pnt;
              
             this.isAlive = this.containerPosition ? true : false;
         };
@@ -51,17 +54,20 @@ function(util, gMap) { var markerMapPosition = {};
 
     markerMapPosition.push = function(googMarker) {
         var dat = new MarkerData(googMarker);
-        if ( !(dat.hash in markers) ) 
-            markers[dat.hash] = dat;
+        if ( !(dat.hash in markerMapPosition.markers) ) 
+            markerMapPosition.markers[dat.hash] = dat;
     };
 
     markerMapPosition.getCurrentState = function() {
         var r = [];
+        markerMapPosition.livingKeys = [];
+        var markers = markerMapPosition.markers;
         for (var m in markers) {
-            if ( markers.hasOwnProperty(m) ) {
+            if (markers.hasOwnProperty(m)) {
                 markers[m].update();
-                if ( markers[m].isAlive ) {
-                    r.push( markers[m].getDrawingData() );
+                if (markers[m].isAlive) {
+                    r.push(markers[m].getDrawingData());
+                    markerMapPosition.livingKeys.push(m);
                 }
             }
         }
