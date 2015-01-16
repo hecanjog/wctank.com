@@ -26,7 +26,7 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
                 markerMapPosition.push(m);
                 gMap.events.initQueuedEvents('marker', m);
                 google.maps.event.addListener(m, 'click', function() { 
-                    posts.display(post); 
+                    posts.display(post);
                 });
             });
         });

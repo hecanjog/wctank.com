@@ -13,6 +13,7 @@ define(
 function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore, 
             envelopeCore, envelopeAsdr, util) { var instruments = {};
 
+    //TODO: normalize ParameterizedAction target naming conventions
     instruments.RaspyCarpark = function() {
         var noise = audioModules.Noise(); 
         noise.gain.gain.value = 0.0;
@@ -241,36 +242,43 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
                 return oscBankAsdr.getDR();
             }
         };
-
-        var gainEnv = new envelopeCore.Envelope();
-        gainEnv.duration = 1000;
-        gainEnv.interpolationType = 'exponential';
-
-        // TODO: abstract out this boilerplate.
-        this.gain = new instrumentCore.ParameterizedAction(this.outGain.gain);
-        // arg {val: number, time: number}
-        this.gain.createEnvelope = function(paramObj) {
-            gainEnv.valueSequence = new envelopeCore.EnvelopeValue(paramObj.val, 99);
-            this.gain.envelope = gainEnv.toAbsolute(paramObj.time);
-            return this.gain.envelope;
-        };
-
-        audioCore.moduleExtensions.wetDry(this, this.bigEarGain, this.oscBankGain);
         
-        var cfEnv = new envelopeCore.Envelope();
-        cfEnv.duration = 500;
-        cfEnv.interpolationType = 'linear';
-
-        this.crossFade = new instrumentCore.ParameterizedAction(this.wetDry);
-        // {val: number, time: number}
-        this.crossFade.createEnvelope = function(paramObj) {
-            cfEnv.valueSequence = new envelopeCore.EnvelopeValue(paramObj.val, 99);
-            this.crossFade.envelope = cfEnv.toAbsolute(paramObj.time);
-            return this.crossFade.envelope;
-        };
-
+        audioCore.moduleExtensions.wetDry(this, this.bigEarGain, this.oscBankGain);
         audioCore.moduleExtensions.startStopThese(this, osc_bank); 
     };
     instruments.WesEnviron.prototype = new instrumentCore.Instrument();
 
+    instruments.BigSampleDrum = function() {
+        var p = "static/assets/c-bass_strike_f_0",
+            ext = ".mp3",
+            paths = [];
+
+        for (var i = 1; i <= 9; i++) {
+            paths.push(p + i + ext);
+        }
+        var player = audioModules.SamplePlayer(paths);
+
+        var current = 0;
+        this.outGain = player.outGain;
+       
+       // envelope out if interrupting play! 
+        this.bangTarget = function() {
+            player.play(current);
+            current = ++current % player.samples;
+        };
+
+        var gtEnv = new envelopeCore.Envelope();
+        gtEnv.duration = 100;
+        gtEnv.interpolationType = 'linear';
+
+        //TODO: abstract out this boilerplate
+        this.gainTarget = new instrumentCore.ParameterizedAction(player.outGain.gain);
+        this.gainTarget.createEnvelope = function(paramObj) {
+            gtEnv.valueSequence = [new envelopeCore.EnvelopeValue(paramObj.val, 99)];
+            return gtEnv.toAbsolute(paramObj.time);
+        }; 
+
+        this._link_alias_out = player;
+    };
+    instruments.BigSampleDrum.prototype = new instrumentCore.Instrument();
 return instruments; });

@@ -46,5 +46,7 @@ function(audioCore, $) {
             if (cl === vol_up) toOff();
         }
     });
+
+    // handle audio ducking if viewing a post with sound.
 });
 

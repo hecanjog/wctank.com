@@ -106,7 +106,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
     
         var vertices = [];
 
-        var nesting = 10,
+        var nesting = 7,
             diff = 1 / nesting,
             id = 0;
 

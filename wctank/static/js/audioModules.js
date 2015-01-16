@@ -238,6 +238,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
         var media = document.createElement('audio');
 
+        // TODO: is there a reason to keep this?
         // workaround for when server is not configured to
         // accept range requests
         // NOT good for large files
@@ -269,7 +270,11 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
         this.setTime = function(time) {
             media.currentTime = time;
         };
-        
+        this.stop = function() {
+            this.pause();
+            this.setTime(0);  
+        };
+
         Object.defineProperties(this, {
             'currentTime': {
                 get: function() { return media.currentTime; } 
@@ -544,4 +549,36 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
     };
     audioModules.SubtractiveSynthesis.prototype = new audioCore.AudioModule();
 
+    // this is inefficient, but fine for small numbers of short sounds
+    // TODO: Instead, take a file annotated into audiosprites and split into array buffers
+    // for each source
+    audioModules.SamplePlayer = function(arr) {
+        if (this.constructor !== audioModules.SamplePlayer)
+            return new audioModules.SamplePlayer(arr);
+        
+        var players = [];
+        this.outGain = audioNodes.Gain();
+        this.outGain.gain.value = 1.0;
+
+        for (var i = 0; i < arr.length; i++) {
+            players.push(new audioModules.Player(arr[i]));
+            players[i].link(this.outGain); 
+        }
+        
+        Object.defineProperty(this, 'samples', {
+            value: players.length
+        });
+        // with index
+        this.play = function(n) {
+            if (players[n].isPlaying) players[n].stop();
+            players[n].play();
+        }; 
+        this.killAll = function() {
+            players.forEach(function(v) {
+                v.stop();
+            });
+        };
+        //limit concurrent sounds?
+        this._link_alias_out = this.outGain;
+    };
 return audioModules; });

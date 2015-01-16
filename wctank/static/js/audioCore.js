@@ -1,10 +1,11 @@
 define(
     [
         'audioUtil',
-        'tween'
+        'tween',
+        'jquery'
     ],
 
-function(audioUtil, TWEEN) { 
+function(audioUtil, TWEEN, $) { 
     
     /**
      * The audioCore module contains components essential to all sound making objects. 
@@ -16,12 +17,13 @@ function(audioUtil, TWEEN) {
     
     /** The active audioContext */ 
     audioCore.ctx = new ( window.AudioContext || window.webkitAudioContext )();
-    
+
     /** a gain node to serve as our signal out */
     audioCore.out = audioCore.ctx.createGain();
-    audioCore.out.gain.value = 1.0;
+    audioCore.out.gain.value = 1;
     audioCore.out.connect(audioCore.ctx.destination);
-    /**
+    
+     /**
      * audioCore.AudioModule is the base prototype for all sound making components,
      * and includes facilities to connect any objects that inherit from it together. 
      * @constructor

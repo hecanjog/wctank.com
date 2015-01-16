@@ -513,7 +513,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                                 v();
                             });
                         }
-                    }, prior_time + call_offset);
+                    }, prior_time + call_offset * 0.95);
                 };
 
                 var done = function() {
