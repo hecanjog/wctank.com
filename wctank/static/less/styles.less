@@ -229,7 +229,7 @@ a[href^="http://maps.google.com/maps"] {
 
 /*********************************************************/
 
-/****** UI buttons: social links and close-post 'X' ******/
+/****** UI buttons: social links, close-post 'X', mute ******/
 
 .ui-controls() {
     color: #fff;
@@ -265,6 +265,22 @@ a[href^="http://maps.google.com/maps"] {
     }
 }
 
+#mute-button-wrapper {
+    position: fixed;
+    bottom: 0;
+    right: 50%;
+    width: 2em;
+}
+
+#mute-button {
+    margin: 0;
+    padding: 0;
+    .ui-controls;
+    font-size: 1.9em;
+    &:hover {
+        cursor: pointer;
+    }
+}
 /********************************************************/
 
 

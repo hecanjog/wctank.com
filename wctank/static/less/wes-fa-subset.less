@@ -8,41 +8,48 @@
   }
 }
 */
- 
- [class^="icon-"]:before, [class*=" icon-"]:before {
-  font-family: "wes-fa-subset";
-  font-style: normal;
-  font-weight: normal;
-  speak: none;
- 
-  display: inline-block;
-  text-decoration: inherit;
-  //width: 1em;
-  //margin-right: .2em;
-  text-align: center;
-  /* opacity: .8; */
- 
-  /* For safety - reset parent styles, that can break glyph codes*/
-  font-variant: normal;
-  text-transform: none;
+
+.wes-fa-font-style() {
+    font-family: "wes-fa-subset";
+    font-style: normal;
+    font-weight: normal;
+    speak: none;
+
+    display: inline-block;
+    text-decoration: inherit;
+    //width: 1em;
+    //margin-right: .2em;
+    text-align: center;
+    /* opacity: .8; */
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
      
-  /* fix buttons height, for twitter bootstrap */
-  line-height: 1em;
- 
-  /* Animation center compensation - margins should be symmetric */
-  /* remove if not needed */
-  //margin-left: .2em;
- 
-  /* you can be more comfortable with increased icons size */
-  /* font-size: 120%; */
- 
-  /* Uncomment for 3D effect */
-  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    //margin-left: .2em;
+
+    /* you can be more comfortable with increased icons size */
+    /* font-size: 120%; */
+
+    /* Uncomment for 3D effect */
+    /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
- 
+
+ [class^="icon-"]:before, [class*=" icon-"]:before {
+    .wes-fa-font-style;
+ }
+
 .icon-tumblr-squared:before { content: '\e800'; } /* '' */
 .icon-twitter:before { content: '\e801'; } /* '' */
 .icon-soundcloud:before { content: '\e802'; } /* '' */
 .icon-vimeo-squared:before { content: '\e803'; } /* '' */
 .icon-music:before { content: '\e804'; } /* '' */
 .icon-cancel-circled:before { content: '\e805'; } /* '' */
+.icon-volume-up:before { content: '\e806'; } /* '' */
+.icon-blind:before { content: '\e807'; } /* '' */
+.icon-volume-off:before { content: '\e808'; } /* '' */

@@ -34,6 +34,7 @@ define(
         'scenes',
         'sceneCore',
         'markerMain',
+        'audioUI',
         ['font!custom,families:',
             '[',
                 'timeless',
