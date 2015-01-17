@@ -238,12 +238,11 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
         var media = document.createElement('audio');
 
-        // TODO: is there a reason to keep this?
-        // workaround for when server is not configured to
-        // accept range requests
-        // NOT good for large files
+        // TODO: there is no longer a reason to keep this weirdness!
+        // switch to arraybuffer.
         this.loadFile = function(path) {
             var req = new XMLHttpRequest();
+            req.open("GET", path, true);
             req.responseType = 'blob';
             req.onload = function() {
                 var reader = new FileReader();
@@ -252,7 +251,6 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
                     media.src = reader.result;
                 };
             };
-            req.open("GET", path, true);
             req.send();
         };
         if (pathToFile) this.loadFile(pathToFile);
@@ -289,11 +287,11 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
     };
     audioModules.Player.prototype = new audioCore.AudioModule();
 
-    audioModules.SpritePlayer = function(mp3Path, TextGridIntervals) {
+    audioModules.SpritePlayer = function(path, TextGridIntervals) {
         if (this.constructor !== audioCore.AudioModule) 
-            return new audioModules.SpritePlayer(mp3Path, TextGridIntervals);
+            return new audioModules.SpritePlayer(path, TextGridIntervals);
        
-        var player = new audioModules.Player(mp3Path);
+        var player = new audioModules.Player(path);
 
         this.gain = audioCore.ctx.createGain();
         this.gain.gain.value = def_gain;    

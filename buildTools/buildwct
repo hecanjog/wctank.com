@@ -51,8 +51,8 @@ for key in praat_tasks:
     subprocess.call("praat ./audioSprites/parseAudioSprite.praat "+ \
             f+" "+ex+" ./ ../../wctank/static/assets/", shell=True)
 
-    print " * * * Converting "+f+"."+ex+" to mp3...\n"
-    subprocess.call("lame -q0 -b198 ./audioSprites/"+f+"."+ex+ \
-            " ../wctank/static/assets/"+f+".mp3", shell=True)
+    print " * * * Converting "+f+"."+ex+" to ogg...\n"
+    subprocess.call("oggenc -q10 ./audioSprites/"+f+"."+ex+ \
+            " -o ../wctank/static/assets/"+f+".ogg", shell=True)
 
 print "\n * * * Done.\n"

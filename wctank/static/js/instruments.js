@@ -19,7 +19,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         noise.gain.gain.value = 0.0;
         noise.start();
 
-        var convo = audioModules.Convolution("/static/assets/carpark.mp3");
+        var convo = audioModules.Convolution("/static/assets/carpark.ogg");
         convo.wetDry(100);
         convo.gain.gain.value = 1.0;
 
@@ -56,7 +56,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
 
         var noiseAction = new instrumentCore.ParameterizedAction(noise.gain.gain);
         noiseAction.envelope = noiseAsdr.getASDR();
-
+        
         this.actionTarget = function() {
             noiseAction.execute();
         };
@@ -182,7 +182,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
     instruments.WesEnviron = function() {
         // TODO: moduleExtensions.startStopThese should also call .play?
         this.bigEarDOM = document.createElement('audio');
-        this.bigEarDOM.src = "/streaming/bigear.mp3";
+        this.bigEarDOM.src = "/streaming/bigear.ogg";
         this.bigEarDOM.autoplay = true;
         this.bigEarDOM.loop = true;
 
@@ -250,7 +250,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
 
     instruments.BigSampleDrum = function() {
         var p = "static/assets/c-bass_strike_f_0",
-            ext = ".mp3",
+            ext = ".ogg",
             paths = [];
 
         for (var i = 1; i <= 9; i++) {
