@@ -81,4 +81,8 @@ function(featureDetection, gMap, sceneGraphs, sceneGraphCore) {
     gMap.events.initQueuedEvents('map');
 
     sceneGraphCore.apply(sceneGraphs.NoMages); 
+
+    // suddenly remove loading screen - no transition!
+    var loading = document.getElementById("loading-container");
+    document.body.removeChild(loading);
 });

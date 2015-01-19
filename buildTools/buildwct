@@ -31,7 +31,8 @@ rm ${DIST_DIR}styles.css
 compress()
 {
     NAME=$(basename $1 .wav)
-    if [ -e "${ASSETS_DIR}${NAME}.ogg" ]
+    FILE_PATH=${ASSETS_DIR}${NAME}
+    if [ -e "${FILE_PATH}.ogg" ] && [ -e "${FILE_PATH}.mp3" ];
     then
         echo "* * * $1 has already been compressed. Skipping..."
     else

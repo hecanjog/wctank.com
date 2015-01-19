@@ -37,16 +37,29 @@ button {
 /****************************************************/
 
 
+/****************** Loading Screen ******************/
+#loading-container {
+    .fullsize;
+    z-index: -9999;
+    background-image: url("../assets/fail-sky.gif");
+    background-size: cover;
+}
+
+#loading-message {
+    .vert-pos(relative, 50%);
+    span {
+        display: block;
+        text-align: center;
+        font-family: frutigerlight;
+        line-height: 0.8em;
+    }
+}
+/****************************************************/
+
+
 /***********************************************************************/
 /*************** More-or-less persistent UI Elements *******************/
 /***********************************************************************/
-
-// if we mess up somewhere, this image will be there!
-#fail-through {
-    .fullsize;
-    z-index: -9999;
-    background-image: url("../assets/words.png");
-}
 
 // canvas we are rendering map markers on
 #markers {
@@ -265,7 +278,7 @@ a[href^="http://maps.google.com/maps"] {
     }
 }
 
-#mute-button-wrapper {
+#mute-button-container {
     position: fixed;
     bottom: 0;
     right: 50%;
