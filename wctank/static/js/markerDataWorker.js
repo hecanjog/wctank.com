@@ -52,19 +52,19 @@ var generateParticleVector = function() {
         y = (function() {
             var s = Math.random() * 100;
             if (s < 7) return y_dimen - (y_bin * 5);
-            if ( (s >= 7) && (s < 14) ) return y_dimen - (y_bin * 4);
-            if ( (s >= 14) && (s < 30) ) return y_dimen - (y_bin * 3);
-            if ( (s >= 30) && (s < 50) ) return y_dimen - (y_bin * 2);
-            if ( (s >= 50) && (s < 75) ) return y_dimen - (y_bin * 1); 
-            if ( (s >= 75) && (s < 100) ) return y_dimen; 
-        }())
+            if (s >= 7 && s < 14) return y_dimen - (y_bin * 4);
+            if (s >= 14 && s < 30) return y_dimen - (y_bin * 3);
+            if (s >= 30 && s < 50) return y_dimen - (y_bin * 2);
+            if (s >= 50 && s < 75) return y_dimen - (y_bin * 1); 
+            if (s >= 75 && s < 100) return y_dimen; 
+        }());
 
     return {x: x, y: y};
 };
 var generateParticleAngles = function() {
     var angle = function() {
         return Math.random() * Math.PI * 2 * 
-            ( (Math.random() < 0.5) ? -1 : 1 );
+            (Math.random() < 0.5 ? -1 : 1 );
     };
    
     return {x: angle(), y: angle()}; 

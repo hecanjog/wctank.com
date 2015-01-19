@@ -14,9 +14,9 @@ function(util, render, TWEEN) { var audioUtil = {};
             if ( render.has(TWEEN.update) === false ) 
                 render.queue(TWEEN.update);
         };
-        // holy butts this is ugly. .length <= 2? I need to figure out why this works and
+        // ick. .length <= 2? I need to figure out why this works and
         // clean it up. But, in the meantime, it plugs a leak where unnecessary TWEEN.update
-        // fns were being abandoned in the render loop to percolate tons of numbers forever and ever.
+        // fns were being abandoned in the render loop to percolate forever.
         tween.stopTweens = function() {
             if ( (TWEEN.getAll().length <= 2) && 
                 (typeof render.has(TWEEN.update) === 'number') ) {
@@ -40,7 +40,8 @@ function(util, render, TWEEN) { var audioUtil = {};
         };
         return tween;
     }({})); 
-   
+  
+    // having this around as a collection can be handy. 
     audioUtil.oscTypes = {
         sine: 'sine',
         square: 'square',

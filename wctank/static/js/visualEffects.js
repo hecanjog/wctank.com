@@ -39,8 +39,8 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
         z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MIN_FILTER, z.gl.NEAREST);
         z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MAG_FILTER, z.gl.NEAREST);
 
-        vUv_buffer = z.gl.createBuffer();
-        z.gl.bindBuffer(z.gl.ARRAY_BUFFER, vUv_buffer);
+        uv_buffer = z.gl.createBuffer();
+        z.gl.bindBuffer(z.gl.ARRAY_BUFFER, uv_buffer);
         z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array([
              0.0,  0.0,
              1.0,  0.0,
@@ -50,7 +50,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
              1.0,  1.0        
             ]), z.gl.STATIC_DRAW); 
        
-        a_vUv = z.gl.getAttribLocation(z.program, 'a_vUv');
+        a_uv = z.gl.getAttribLocation(z.program, 'a_uv');
         z.gl.vertexAttribPointer(a_vUv, 2, z.gl.FLOAT, false, 0, 0);
         z.gl.enableVertexAttribArray(a_vUv);
    

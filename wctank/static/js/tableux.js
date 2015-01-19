@@ -1,5 +1,5 @@
 /*
- * tableux determines starting center and zoom level depending on what filter is selected first.
+ * tableux determines a map center and zoom level depending on what filter is passed to .select
  */
 define(
     [

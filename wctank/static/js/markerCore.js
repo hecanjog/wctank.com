@@ -60,7 +60,7 @@ function(util, markerMapPosition, markerData, visualCore,
     z.gl.vertexAttribPointer(a_container, markerData.LOCATION_VEC_ITEMS, z.gl.FLOAT, 
                              false, markerData.BLOCK_SIZE, markerData.LOCATION_VEC_OFFSET);
     z.gl.enableVertexAttribArray(a_container);
-    // vUv
+    // UV
     z.gl.vertexAttribPointer(a_uv, markerData.UV_ITEMS, z.gl.FLOAT, false, 
                              markerData.BLOCK_SIZE, markerData.UV_OFFSET);
     z.gl.enableVertexAttribArray(a_uv);

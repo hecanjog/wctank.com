@@ -31,10 +31,10 @@ function(util, gMap) { var markerMapPosition = {};
             var pnt = proj.fromLatLngToContainerPixel(this.worldPosition);
 
             this.containerPosition =
-                ( (pnt.x < -overflow) || 
-                  (pnt.y < -overflow) || 
-                  (pnt.x > window.innerWidth + overflow) || 
-                  (pnt.y > window.innerHeight + overflow) ) ? null : pnt;
+                ( pnt.x < -overflow || 
+                  pnt.y < -overflow || 
+                  pnt.x > window.innerWidth + overflow || 
+                  pnt.y > window.innerHeight + overflow ) ? null : pnt;
              
             this.isAlive = this.containerPosition ? true : false;
         };

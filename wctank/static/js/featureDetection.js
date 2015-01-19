@@ -15,19 +15,12 @@ function(Modernizr, $) { var featureDetection = {};
         }
     };
 
-    featureDetection.audioExt;
+    featureDetection.audioExt = Modernizr.audio.ogg ? '.ogg' :
+                                Modernizr.audio.mp3 ? '.mp3' : failed.push('audiocodec');
 
     if (!Modernizr.webgl) failed.push('webgl');
     if (!Modernizr.webaudio) failed.push('webaudioapi');
     if (!Modernizr.webworkers) failed.push('webworkers');
-
-    if (Modernizr.audio.ogg) {
-        featureDetection.audioExt = '.ogg';
-    } else if (Modernizr.audio.mp3) {
-        featureDetection.audioExt = '.mp3';
-    } else {
-        failed.push('audiocodec');
-    }
     if (failed.length > 0) fail();
 
     featureDetection.audioProblemFatal = function() {

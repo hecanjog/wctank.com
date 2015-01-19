@@ -34,6 +34,7 @@ require.config({
 
 define(
     [
+        'featureDetection',
         'gMap',
         'scenes',
         'sceneCore',
@@ -51,7 +52,7 @@ define(
             ']'
         ].join('/n')
     ],
-function(gMap, sceneGraphs, sceneGraphCore) {
+function(featureDetection, gMap, sceneGraphs, sceneGraphCore) {
    
     // TODO: 
     // envelope looping mechanism
@@ -60,16 +61,12 @@ function(gMap, sceneGraphs, sceneGraphCore) {
     // nix pushing on absoluteEnvelope.valueSequence set in favor of explicit push
     // move tweenUtil into sceneGraph module, not audioUtil
 
-    /*
-     * map init work
-     */    
     gMap.init();
     var bounds = new google.maps.LatLngBounds(
         new google.maps.LatLng(42.96, -87.3159),
         new google.maps.LatLng(43.25, -86.9059)
     );
 
-    // TODO: Change to animated version?
     var overlay = new google.maps.GroundOverlay(
         'static/assets/virgo-logo.png',
         bounds
@@ -78,7 +75,6 @@ function(gMap, sceneGraphs, sceneGraphCore) {
     var clouds = new google.maps.weather.CloudLayer();
     clouds.setMap(gMap.map);
     
-    //TODO: Do something special?
     google.maps.event.addListener(overlay, 'click', function() {
         gMap.map.setZoom(9);
     });

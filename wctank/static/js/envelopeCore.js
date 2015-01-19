@@ -145,7 +145,6 @@ function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore
                 last_time = 0;
             
             // create array with modEnv repeating to 100%
-                // repeats + 1 jic next iter would include time = 100
             for (var i = 1; i <= repeats + 1; i++) {
                 modEnv.valueSequence.forEach(function(item) {
                     var t = (item.time / repeats) + last_time;
@@ -162,7 +161,6 @@ function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore
 
             values.reduce(function(previous, current) {
                 for (var l = 0; l < modValues.length; l++) {
-                    // bounds not inclusive on top to avoid dups around boundaries
                     if ( (modValues[l].time >= previous.time) &&
                         (modValues[l].time <= current.time) &&
                         (modValues[l].time !== last_val.time) ) { 
@@ -242,7 +240,6 @@ function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore
     };
     envelopeCore.AbsoluteEnvelopeValue.prototype = new envelopeCore.EnvelopeValue();
 
-    //construct with duration
     envelopeCore.AbsoluteEnvelope = function AbsoluteEnvelope(duration) {
         var seq = [];
 
@@ -334,7 +331,8 @@ function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore
 
             env.valueSequence.forEach(function(item) {
                 if (isAbsolute) {
-                    // AbsoluteEnv valueSequence is set to push on assignment
+                    // TODO: AbsoluteEnv valueSequence is set to push on assignment,
+                    // which is not a great decision.
                     concatted.valueSequence = new envelopeCore.AbsoluteEnvelopeValue(
                         item.value, item.time + last_duration,
                         item.interpolationType, item.interpolationArgs
@@ -430,7 +428,7 @@ function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore
             // So, we assume that updating at visual rate is a-ok,
             // and, I hope you don't expect to do any supa kewl microtiming
             // involving intervals less than 10-15 msec or so.
-                    // need to initialize this properly
+                    // TODO: need to initialize this properly
                     // works assuming that first value is at time 0
             var params = { value: Number(envelope.valueSequence[0].value) },
                 machine = new TWEEN.Tween(params);

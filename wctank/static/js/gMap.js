@@ -78,7 +78,7 @@ function(posts, util, $) { gMap = {};
             for (var evnt in ev_set) { 
                 if ( ev_set.hasOwnProperty(evnt) ) {
                     util.objectLength.call(ev_set[evnt]);
-                    (function() { //I'm so ready for let
+                    (function() { 
                         var persist = [];
                         var once = [];
                         for (var i = 0; i < ev_set[evnt].length; i++) {

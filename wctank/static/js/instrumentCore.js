@@ -6,11 +6,9 @@ define(
 
 function(audioCore, envelopeCore) { var instrumentCore = {};
 
-    // fuunction in this that takes a value and constructs a new envelope that can be appplied to 
-    // target - env gen fn - if null, then value if offset - refactor
     instrumentCore.ParameterizedAction = function(target, envelope) {
         var parent = this;
-       // read-only prop type 
+        
         var throwActionTypeError = function(mess) {
             throw new TypeError("Invalid instrumentCore.ParameterizedAction param: " + mess); 
         };

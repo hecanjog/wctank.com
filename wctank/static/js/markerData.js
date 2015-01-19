@@ -11,7 +11,7 @@ function(markerMapPosition) { var markerData = {};
      * f            f        f, f       f, f          f, f  f, f
      *
      * marker hash: unique ID
-     * texture: what image to use, enum'd above in markerTypes obj
+     * texture: what image to use, enum'd in worker
      * model coord: vertex coordinates (in pixels) where (0, 0) is the center of each marker.
      * container coord: absolute location of marker in container pixels
      * UV: texture coordinates
@@ -35,7 +35,6 @@ function(markerMapPosition) { var markerData = {};
 
     var markerDataWorker = new Worker("/static/js/markerDataWorker.js");
 
-    // no timeout on force, bind to tilesloaded
     markerData.makeData = function(override, callback) {
         var state = markerMapPosition.getCurrentState();
         var ovr = override ? override : false;

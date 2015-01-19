@@ -11,9 +11,6 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
      * gross clock. NOT ACCURATE ENOUGH FOR MICROTIMING!
      */ 
     rhythm.Clock = function(tempo, smudgeFactor) {
-        //  count param to synchro events
-        //  watcher attach
-        //  .sync() - sync multiple Clocks
         var queue = {},
             smudge, bpm, last, next, len,
             isOn = false,
@@ -30,7 +27,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
             
             var loop = function() {
                 var msec = 60000 / bpm,
-                    time = (smudge > 0) ? util.smudgeNumber(msec, smudge) : msec;
+                    time = smudge > 0 ? util.smudgeNumber(msec, smudge) : msec;
 
                 id = window.setTimeout(function() {
                     last = next;
@@ -69,7 +66,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
             configurable: true,
             get: function() { return bpm; },
             set: function(n) {
-                if ( (typeof n !== 'number') || (n <= 0) ) {
+                if (typeof n !== 'number' || n <= 0) {
                     throwClockParamException("bpm must be a Number "+
                     "greater than zero, not " + n + ".");
                 } else {
@@ -83,7 +80,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
         Object.defineProperty(this, 'smudgeFactor', {
             get: function() { return smudge; },
             set: function(n) {
-                if ( (typeof n === 'undefined') || (n < 0) ) {
+                if (typeof n === 'undefined' || n < 0) {
                     throwClockParamException("smudgeFactor must be "+
                         "a Number greater than or equal to zero, not " + n + "."); 
                 } else {
@@ -110,7 +107,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                 this.start(n);
             } else {
                 isOn = true;
-                if ( (typeof n === 'undefined') && (typeof bpm === 'undefined') ) {
+                if (typeof n === 'undefined' && typeof bpm === 'undefined') {
                     throw new Error("rhythm.Clock.Start can only be called without a bpm "+
                         "param if a bpm was previously defined through assignment or "+
                         "a prior start call.");
@@ -251,7 +248,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
             get: function() { return locked; },
             set: function(v) {
                 // false, number >= 0
-                if ( (v === false) || (v >= 0) ) {
+                if (v === false || v >= 0) {
                     locked = v;
                 } else {
                      throw new Error(rhythmGeneratorError(".locked must be "+
@@ -480,7 +477,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                 var off = offset ? offset : 0,
                     bang = false;
 
-                if (!locked || (clk.cycleCount % locked === 0)) {
+                if (!locked || clk.cycleCount % locked === 0) {
                     bang = true;
                     for (var s in q) {
                         if (q.hasOwnProperty(s)) {

@@ -6,7 +6,7 @@ define(
     ], 
 
 
-//TODO: this module is a mess!!!
+//TODO: this module is messy!
 function(div, $, gMap) { 
     var posts = {};
     
@@ -78,7 +78,7 @@ function(div, $, gMap) {
                 $.each(data, function(i, post) {
                     post.isTextPost = (function() {
                         var text_posts = ['text', 'audio', 'link', 'quote'];
-                        return (text_posts.indexOf(post.type) !== -1) ? true : false;
+                        return text_posts.indexOf(post.type) !== -1 ? true : false;
                     }());
                     
                     post.markerType = (function() {

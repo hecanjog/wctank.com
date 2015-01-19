@@ -5,11 +5,7 @@ define(
         'audioNodes',
         'util'
     ],
-// parallel sample player w/ mic sounds
-// multiple layered field recordings
-// subtractive choir reacting to user imput
-    // squarewaves
-// mic + raspy percussion interchanged with 
+
 function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
     // make a buffer for white noise
@@ -154,7 +150,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
                 var gain_out_time = total * (1 - gain_in_portion); 
                
                 // I tried this with persistent TWEENs and it didn't seem to work as well...
-                // TODO: figure out what that's about and try again, because this is bullshit
+                // TODO: figure out what that's about and try again, because this is awful
                 var QIn = new TWEEN.Tween(params)
                             .to({Q: gen.Q(true)}, Q_trans_time)
                             .onUpdate(updateQ);
@@ -413,7 +409,6 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
          * cool stuff to do!
          */
         // it's really easy to break audio playback with this
-        
         // TODO: just set this with operator
         this.setFeedbackCoeffMultiplier = function(n, time) {
             var t = time ? time : 0;
@@ -489,7 +484,6 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
                 this.frequency = frequency;
                 this.amplitude = amplitude;
             }
-           
 
             for (var i = 0; i < analyser.frequencyBinCount; i++) {
                 if (data[i] > 0) {
@@ -548,8 +542,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
     audioModules.SubtractiveSynthesis.prototype = new audioCore.AudioModule();
 
     // this is inefficient, but fine for small numbers of short sounds
-    // TODO: Instead, take a file annotated into audiosprites and split into array buffers
-    // for each source
+    // TODO: Instead, take a file + annotations and split audio into array buffers
     audioModules.SamplePlayer = function(arr) {
         if (this.constructor !== audioModules.SamplePlayer)
             return new audioModules.SamplePlayer(arr);

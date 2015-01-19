@@ -180,8 +180,6 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
     instruments.SubtractiveChoir.prototype = new instrumentCore.Instrument();
 
     // field recording / osc bank
-    // TODO: this was interacting oddly with the dragstart event in Rooms,
-    // take time to figure that out.
     instruments.WesEnviron = function() {
         // TODO: moduleExtensions.startStopThese should also call .play?
         this.bigEarDOM = document.createElement('audio');
@@ -283,4 +281,5 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         this._link_alias_out = player;
     };
     instruments.BigSampleDrum.prototype = new instrumentCore.Instrument();
+
 return instruments; });

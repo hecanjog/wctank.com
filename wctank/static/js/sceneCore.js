@@ -32,7 +32,7 @@ function(util) { var core = {};
         this.step = function(back) {
             var c = current;
             back ? c-- : c++;
-            if ( (c >= 0) && (c < queue.length) ) {
+            if (c >= 0 && c < queue.length) {
                 queue[c]();
                 current = c;
             } else {
@@ -46,7 +46,7 @@ function(util) { var core = {};
         };
 
         this.goTo = function(n) {
-            if ( (n < queue.length) && (n >= 0) ) {
+            if (n < queue.length && n >= 0) {
                 queue[n]();
             } else {
                 console.warn(
