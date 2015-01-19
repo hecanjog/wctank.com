@@ -3,10 +3,11 @@ define(
         'util',
         'audioCore',
         'audioUtil',
-        'tween'
+        'tween',
+        'featureDetection'
     ],
 
-function(util, audioCore, audioUtil, TWEEN) { var envelopeCore = {};
+function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore = {};
 
     // value = arbitrary param value
     // time = percentage
@@ -408,12 +409,17 @@ function(util, audioCore, audioUtil, TWEEN) { var envelopeCore = {};
             envelope.valueSequence.forEach(function(val) {
                 var t = audioCore.ctx.currentTime + util.time.msec2sec(off) + 
                     util.time.msec2sec(val.time);
-                if (val.interpolationType === 'linear') {
-                    target.linearRampToValueAtTime(val.value, t);
-                } else if (val.interpolationType === 'exponential') {
-                    target.exponentialRampToValueAtTime(val.value, t);
-                } else if (val.interpolationType === 'none') {
-                    target.setValueAtTime(val.value, t);
+                t = t ? t : 0;
+                try {
+                    if (val.interpolationType === 'linear') {
+                        target.linearRampToValueAtTime(val.value, t);
+                    } else if (val.interpolationType === 'exponential') {
+                        target.exponentialRampToValueAtTime(val.value, t);
+                    } else if (val.interpolationType === 'none') {
+                        target.setValueAtTime(val.value, t);
+                    }
+                } catch (e) {
+                    featureDetection.audioProblemFatal();
                 }
             });
 

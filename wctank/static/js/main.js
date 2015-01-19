@@ -7,6 +7,7 @@ require.config({
         text: '/static/lib/text',
         jquery: ['http://code.jquery.com/jquery-2.1.1.min',
                 '/static/lib/jquery-2.1.1.min'],
+        modernizr: '/static/lib/modernizr.custom',   
         froogaloop2: '/static/lib/froogaloop2.min',
         tween: '/static/lib/tween.min',
         filterXML: '/static/map_filters',
@@ -24,6 +25,9 @@ require.config({
         },
         'tween': {
             exports: 'TWEEN'
+        },
+        'modernizr': {
+            exports: 'Modernizr'
         }
     }
 });

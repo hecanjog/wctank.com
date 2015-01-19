@@ -6,7 +6,7 @@ build deps:
 java  
 praat  
 lame  
-oggenc
+oggenc      
 node
 
 node packages:  

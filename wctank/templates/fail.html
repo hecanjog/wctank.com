@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<head>
+    <title>sorry sorry sorry soryy sorry sopruyry sorryy sopryyy soryyys oryyy sorry soryyys oryyys soryys o...</title>
+    <style>
+        .text {
+            font-family: serif;
+            line-height: 1.3em; 
+        }
+        #fail-sky {
+            background-image: url('/static/assets/fail-sky.gif');
+            background-size: cover;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -999;
+            margin: 0;
+            padding: 0;
+        }
+        #fail-pic-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #fail-pic {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+        #fail-message-container {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            margin-right: 1.5%;
+            margin-bottom: 5%;
+        }
+        #tech-info {
+            position: fixed;
+            font-size: 0.8em;
+            bottom: 0;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="fail-sky"</div>
+    <div id="fail-pic-container">
+        <img id="fail-pic" src="/static/assets/fail-tears.png"></img>
+    </div>
+
+    <div id="fail-message-container">
+        <p class="text">
+            {% if type == 'webgl' %}
+                Oh hey, you're almost there, I think?<br>
+                But... you need to enable WebGL!
+                <a href="https://get.webgl.org/" target="_blank">For more information...</a>
+            {% elif type == 'audio-fatal' %}
+                Oh dear... there seems to be a problem with your audio.<br>
+                Yes indeed, it's all you. Check your system settings and drivers.
+            {% else %}
+                Oh no! We don't support your browser!<br>
+                Try upgrading to the latest version of 
+                <a href="https://www.google.com/chrome/browser/desktop/" target="_blank">Chrome/Chromium</a>
+                or <a href="https://www.mozilla.org/en-US/firefox/new/" target="_blank">Firefox</a>.
+            {% endif %}
+        </p>
+    </div>
+    <div id="tech-info" class="text">...more info, for those that want it: your browser needs to support
+        WebGL, WebWorkers, the Web Audio API, and .ogg or .mp3 playback.
+    </div>
+
+</body>
+</html>
