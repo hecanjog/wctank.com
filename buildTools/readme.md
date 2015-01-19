@@ -3,10 +3,11 @@ build process:
 run buildwct to build.  
 
 build deps:  
-java
-python  
+java  
 praat  
 lame  
+oggenc
+node
 
 node packages:  
 less  
