@@ -5,6 +5,7 @@
         propertyParser: '../lib/propertyParser',
         text: '../lib/text',
         jquery: '../lib/jquery-2.1.1.min',
+        modernizr: '../lib/modernizr-latest',
         froogaloop2: '../lib/froogaloop2.min',
         tween: '../lib/tween.min',
         filterXML: '../map_filters',

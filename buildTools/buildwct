@@ -1,58 +1,65 @@
-#!/usr/bin/python2
-import subprocess
+#!/bin/sh
 
-print "\n * * * Cleaning previous build..."
-subprocess.call("rm -r ../wctank/static/dist", shell=True)
+DIST_DIR="../wctank/static/dist/"
+ASSETS_DIR="../wctank/static/assets/"
 
-print " * * * Making build directory..." 
-subprocess.call("mkdir ../wctank/static/dist", shell=True)
+echo "* * * Cleaning previous build..."
+rm -r $DIST_DIR
 
-# Originally, I was just running r.js in node, but, I started to get Fatal out 
-# of memory errors, even with the v8 memory limit jacked up to 1.7gb. Switching to 
-# Rhino bypassed this, and it *works*, except that it's hella slow. So, some actual
-# debugging of the optimization in node might be worthwhile at some point.
-print " * * * Optimizing js..."
-subprocess.call("java -classpath ./js.jar:./compiler.jar  \
-        org.mozilla.javascript.tools.shell.Main r.js -o build.js", shell=True)
+echo "* * * Making build directory..."
+mkdir $DIST_DIR
 
-print " * * * Move main.js into dist..."
-subprocess.call("cp ../appbuildingspace/js/main.js ../wctank/static/dist/main.js", shell=True)
+echo "* * * Optimizing js..."
+java -classpath ./js.jar:./compiler.jar \
+    org.mozilla.javascript.tools.shell.Main r.js -o build.js
 
-print " * * * Cleaning up..."
-subprocess.call("rm -r ../appbuildingspace", shell=True)
+echo "* * * Move main.js into dist..."
+cp ../appbuildingspace/js/main.js ${DIST_DIR}main.js
 
-print " * * * Compiling less..."
-subprocess.call("lessc ../wctank/static/less/styles.less \
-        ../wctank/static/dist/styles.css", shell=True)
+echo "* * * Cleaning up..."
+rm -r ../appbuildingspace
 
-print " * * * Minifying CSS..."
-subprocess.call("cleancss -o ../wctank/static/dist/styles-min.css \
-        ../wctank/static/dist/styles.css", shell=True)
+echo "* * * Compiling less"
+lessc ../wctank/static/less/styles.less ${DIST_DIR}styles.css
 
-print " * * * Cleaning up..."
-subprocess.call("rm ../wctank/static/dist/styles.css", shell=True)
+echo "* * * Minifying CSS"
+cleancss -o ${DIST_DIR}styles-min.css ${DIST_DIR}styles.css
 
-print " * * * Parsing audio sprites...\n"
+echo "* * * Cleaning up..."
+rm ${DIST_DIR}styles.css
 
-# while we're still using praat
-# task: {path/filename: foo, extension: bar}
-# TODO: should this be part of the build process?
-praat_tasks = {
-    "wesvoc": {"filename": "wes", "extension": "wav"}
+compress()
+{
+    NAME=$(basename $1 .wav)
+    if [ -e "${ASSETS_DIR}${NAME}.ogg" ]
+    then
+        echo "* * * $1 has already been compressed. Skipping..."
+    else
+        echo "* * * Compressing ${1}..."
+        ./audio/compress $1 $ASSETS_DIR
+    fi
 }
 
-subprocess.call("rm ../wctank/static/assets/*.TextGridIntervals", shell=True)
+echo "* * * Beginning audio compression..."
+RAW=./audio/raw/*
+for f in $RAW
+do
+    compress $f
+done
 
-for key in praat_tasks:
-    f = praat_tasks[key]["filename"]
-    ex = praat_tasks[key]["extension"]
+echo "* * * Beginning audio sprite parsing..."
+PARSE=./audio/to-parse/*
+for f in $PARSE
+do
+    NAME=$(basename $f .wav)
     
-    print " * * * Parsing "+f+"."+ex
-    subprocess.call("praat ./audioSprites/parseAudioSprite.praat "+ \
-            f+" "+ex+" ./ ../../wctank/static/assets/", shell=True)
+    echo "* * * Cleaning previous ${NAME}.TextGridIntervals"
+    rm "${ASSETS_DIR}${NAME}.TextGridIntervals"
+    
+    echo "* * * Parsing ${f}..."
+    praat ./audio/parseAudioSprite.praat $NAME wav to-parse/ ../../wctank/static/assets/
 
-    print " * * * Converting "+f+"."+ex+" to ogg...\n"
-    subprocess.call("oggenc -q10 ./audioSprites/"+f+"."+ex+ \
-            " -o ../wctank/static/assets/"+f+".ogg", shell=True)
+    compress $f
+done
 
-print "\n * * * Done.\n"
+echo "* * * Done."
