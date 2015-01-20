@@ -16,28 +16,27 @@ To get a development enviornment running:
     
         git clone https://github.com/hecanjog/wctank.com.git  
     
-2. Assuming you have pip installed, cd into the directory and
-   install the dependencies:   
+2. Assuming you have pip installed, cd into the directory and install in develop mode:   
     
         cd wctank.com  
-        sudo pip2 install -r requirements.txt
+        sudo python2 setup.py develop
 
-3. To run a local dev server, you can use the "wct" script in the root directory.
+3. Then, to run a local dev server:
 
-        ./wct dev
+        wct dev
     
     This bootstraps the app by creating and populating its database, starts
     the flask runtime, and serves the app with uncompiled js + less.
 
     To aid deployment, you can also run:
 
-        ./wct bootstrap
+        wct bootstrap
 
     ...which just bootstraps.
 
     To test whether a build (see /buildtools) was successful, use:
 
-        ./wct run
+        wct run
 
     ...which skips the bootstrapping and serves compiled sources from wctank/static/dist.
 

@@ -9,7 +9,7 @@ setup(
         'flask', 
         'pytumblr',
         'Flask-SQLAlchemy',
-        'docopt'
+        'docopt',
     ],
     scripts=['wct'],
     zip_safe=False,
