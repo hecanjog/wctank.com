@@ -1,4 +1,4 @@
-This is very much still in-progress, and there's still a lot to do!   
+This is very much in-progress; there's a lot left to do!   
    
 Support:
 ========
