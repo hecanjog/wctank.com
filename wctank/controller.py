@@ -12,6 +12,11 @@ dev_template = False
 def index():
     return render_template('index.html', dev_template=dev_template)
 
+# feature detection fatal
+@app.route('/feature-fail/<failure_type>')
+def featureFail(failure_type):
+    return render_template('fail.html', type=failure_type, dev_template=dev_template);
+
 @app.route('/vimeo_data')
 def getvimeodata():
     page = urllib2.urlopen("http://player.vimeo.com/video/64770002")
@@ -75,8 +80,3 @@ def send_file_partial(fileName):
     rv.headers.add('Content-Range', 'bytes {0}-{1}/{2}'.format(byte1, byte1 + length - 1, size))
 
     return rv
-
-# feature detection fatal
-@app.route('/feature-fail/<failure_type>')
-def featureFail(failure_type):
-    return render_template('fail.html', type=failure_type);

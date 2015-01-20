@@ -21,12 +21,15 @@ rm -r ../appbuildingspace
 
 echo "* * * Compiling less"
 lessc ../wctank/static/less/styles.less ${DIST_DIR}styles.css
+lessc ../wctank/static/less/fail.less ${DIST_DIR}fail.css
 
 echo "* * * Minifying CSS"
 cleancss -o ${DIST_DIR}styles-min.css ${DIST_DIR}styles.css
+cleancss -o ${DIST_DIR}fail-min.css ${DIST_DIR}fail.css
 
 echo "* * * Cleaning up..."
 rm ${DIST_DIR}styles.css
+rm ${DIST_DIR}fail.css
 
 compress()
 {
