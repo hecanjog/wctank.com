@@ -1,12 +1,10 @@
-This is very much still in-progress, and many essential  
-features have not yet been implemented.   
-TODOs and issues abound!   
+This is very much still in-progress, and there's still a lot to do!   
    
 Support:
 ========
-Currently, only desktop flavors are supported.
-Full support for Chrome(ium).
-Mostly OK in Firefox.
+Currently, only desktop flavors are supported.   
+Full support for Chrome(ium).   
+Mostly OK in Firefox.   
 
 Installation:
 =============
@@ -16,7 +14,7 @@ To get a development enviornment running:
     
         git clone https://github.com/hecanjog/wctank.com.git  
     
-2. Assuming you have pip installed, cd into the directory and install in develop mode:   
+2. Assuming you have setuptools installed, cd into the directory and install in develop mode:   
     
         cd wctank.com  
         sudo python2 setup.py develop
