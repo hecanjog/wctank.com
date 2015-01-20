@@ -8,13 +8,13 @@ define(
         'envelopeCore',
         'envelopeAsdr',
         'util',
-        'featureDetection'
+        'featureDetectionMain'
     ],
 
 function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore, 
-            envelopeCore, envelopeAsdr, util, featureDetection) { var instruments = {};
+            envelopeCore, envelopeAsdr, util, featureDetectionMain) { var instruments = {};
    
-    var au_ext = featureDetection.audioExt;
+    var au_ext = featureDetectionMain.audioExt;
 
     //TODO: normalize ParameterizedAction target naming conventions
     instruments.RaspyCarpark = function() {

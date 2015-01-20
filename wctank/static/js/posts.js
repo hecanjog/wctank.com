@@ -10,8 +10,6 @@ define(
 function(div, $, gMap) { 
     var posts = {};
     
-    posts.displayedPostType = null;    
-    
     var renderTemplate = function(post, $template) {
         var content = '';
         if(typeof post.title !== 'undefined') {
@@ -98,14 +96,22 @@ function(div, $, gMap) {
         } 
     };
     
-    // a custom event that is fired on post display activity
-    var status = { data: false };
+    /*
+     *  a custom event that is fired on post display activity
+     */
+    var status = { visible: false, postType: null, content: null };
+    var statusInvisible = function() {
+        status.visible = false;
+        status.postType = null;
+        status.content = null;
+    };
     var postEvent = new CustomEvent('post_overlay', {
         "bubbles": false,
         "cancelable": true,
         "detail": status
     });
 
+    // animated loading image
     var loading; 
     $.get("static/assets/loading_cur.svg", function(data) {
         loading = new XMLSerializer().serializeToString(data);
@@ -114,17 +120,17 @@ function(div, $, gMap) {
     //TODO: highlight new posts, timeout loading svg 
     var marker_clicked = false;
     posts.display = function(post) {
-        posts.displayedPostType = post.type;
-        
         var trivial = 130; //mini fade for content swap
         
         // cache overlay width before removing content if the overlay is visible,
         // otherwise set it to the current min width
         var width;
-        if ( div.$overlay.is(':hidden') ) {
+        if (div.$overlay.is(':hidden')) {
             div.$overlay.fadeIn('fast');
+            
             // c.f. '@small' in styles
             var mm = window.matchMedia("screen and (max-width: 31em)"); 
+            
             // 'auto' fills screen when @small
             width = mm.matches ? 'auto' : div.$overlay.css('min-width');
         } else {
@@ -155,7 +161,9 @@ function(div, $, gMap) {
             $contents.fadeIn(trivial); // for now, just fade in if text
         }
       
-        status.data = true; 
+        status.visible = true;
+        status.postType = post.type;        
+        status.content = $post;
         document.dispatchEvent(postEvent);
 
         marker_clicked = true;
@@ -167,8 +175,10 @@ function(div, $, gMap) {
     // Close overlay when user clicks on the X
     $(document).on('click', '.close-post', function(e) {
         e.preventDefault();
-        $(this).parent().fadeOut('fast');
-        status.data = false;
+        $(this).parent().fadeOut('fast', function() {
+            $(this).find("*").html("");
+        });
+        statusInvisible();
         document.dispatchEvent(postEvent);
     });
     
@@ -176,11 +186,12 @@ function(div, $, gMap) {
     // TODO: Consider handling zoom events also.    
     div.$map.mousedown(function() {
         window.setTimeout(function() {
-            if ( div.$overlay.is(':visible') && 
-                (div.$overlay.css('opacity') === '1') && 
-                    (marker_clicked === false) ) {
-                div.$overlay.fadeOut('fast');
-                status.data = false;
+            if (div.$overlay.is(':visible') && div.$overlay.css('opacity') === '1' && 
+                    marker_clicked === false) {
+                div.$overlay.fadeOut('fast', function() {
+                    $(this).find("*").html("");
+                });
+                statusInvisible();
                 document.dispatchEvent(postEvent);
             }
         }, 150);

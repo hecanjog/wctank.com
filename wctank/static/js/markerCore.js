@@ -221,7 +221,7 @@ function(util, markerMapPosition, markerData, visualCore,
     };
 
     document.addEventListener('post_overlay', function(e) {
-        markerCore.beNoise(e.detail.data);
+        markerCore.beNoise(e.detail.visible);
     });
 
 return markerCore; });

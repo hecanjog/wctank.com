@@ -4,10 +4,10 @@ define(
         'audioCore',
         'audioUtil',
         'tween',
-        'featureDetection'
+        'featureDetectionMain'
     ],
 
-function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore = {};
+function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelopeCore = {};
 
     // value = arbitrary param value
     // time = percentage
@@ -417,7 +417,7 @@ function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore
                         target.setValueAtTime(val.value, t);
                     }
                 } catch (e) {
-                    featureDetection.audioProblemFatal();
+                    featureDetectionMain.audioProblemFatal();
                 }
             });
 

@@ -34,12 +34,12 @@ require.config({
 
 define(
     [
-        'featureDetection',
+        'featureDetectionMain',
         'gMap',
         'scenes',
         'sceneCore',
         'markerMain',
-        'audioUI',
+        'audioUIMain',
         ['font!custom,families:',
             '[',
                 'timeless',
@@ -52,7 +52,7 @@ define(
             ']'
         ].join('/n')
     ],
-function(featureDetection, gMap, sceneGraphs, sceneGraphCore) {
+function(featureDetectionMain, gMap, sceneGraphs, sceneGraphCore) {
    
     // TODO: 
     // envelope looping mechanism

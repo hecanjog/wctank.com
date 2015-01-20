@@ -4,7 +4,7 @@ define(
         'jquery'
     ],
 
-function(Modernizr, $) { var featureDetection = {};
+function(Modernizr, $) { var featureDetectionMain = {};
 
     var failed = [];
     var fail = function() {
@@ -15,7 +15,7 @@ function(Modernizr, $) { var featureDetection = {};
         }
     };
 
-    featureDetection.audioExt = Modernizr.audio.ogg ? '.ogg' :
+    featureDetectionMain.audioExt = Modernizr.audio.ogg ? '.ogg' :
                                 Modernizr.audio.mp3 ? '.mp3' : failed.push('audiocodec');
 
     if (!Modernizr.webgl) failed.push('webgl');
@@ -23,8 +23,8 @@ function(Modernizr, $) { var featureDetection = {};
     if (!Modernizr.webworkers) failed.push('webworkers');
     if (failed.length > 0) fail();
 
-    featureDetection.audioProblemFatal = function() {
+    featureDetectionMain.audioProblemFatal = function() {
         window.location.replace("feature-fail/audio-fatal");
     }; 
 
-return featureDetection; });
+return featureDetectionMain; });
