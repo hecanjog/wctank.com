@@ -11,6 +11,6 @@ setup(
         'Flask-SQLAlchemy',
         'docopt'
     ],
-    scripts=['wct']
+    scripts=['wct'],
     zip_safe=False,
 )
