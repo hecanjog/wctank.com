@@ -9,11 +9,11 @@ Modules that implement essential functionality for a series of
 interrelated modules are suffixed "-Core", e.g., markerCore.js,     
 where the engine that displays map markers is implemented.    
 
-Modules that contain a collection of objects that inherit from a   
-common parent and are functionally conceptualized in the same way    
-are suffixed "-s", e.g., instruments.js, which contains a collection    
-of sound makers, all of which use instrumentCore.Instrument as their   
-prototype.    
+Modules that contain a collection of objects that are used in the
+same way and *may* inherit from a common parent are suffixed "-s", 
+e.g., audioModules.js, which contains a collection of components 
+used to assemble instruments, all of which inherit 
+audioCore.AudioModule as their protptype.
 
 Modules whose primary function is not to provide functionality to       
 other modules but need to be included at SOME point are suffixed     

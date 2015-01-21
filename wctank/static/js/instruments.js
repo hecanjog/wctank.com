@@ -168,7 +168,6 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         this.attack = new instrumentCore.ParameterizedAction(this.gain.gain); 
         //TODO: allow variable returns in envelopeAsdr.Generator attack and decay stages
         // to avoid this kind of confusing munging
-        // takes an obj of the form {dur: number, stage: boolean(true for as, false for dr)}
         this.attack.createEnvelope = function(dur) {
             attackAsdr.attack.duration = 
                 util.smudgeNumber(attackAsdr.attack.duration, 5);
