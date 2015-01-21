@@ -69,9 +69,6 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
         var set$mapCss = function(clear_set) {
             var w = window.innerWidth,
                 h = window.innerHeight;
-            var px = function(n) {
-                return n+'px';
-            };
             var side = px(h * 0.5); 
             var makeCss = function(w, h, t, l, b) {
                 return {
@@ -84,8 +81,8 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
             };
             var obj = (function() {
                 if (!clear_set) {
-                    return makeCss(side, side, '25%', px((w * 0.5) - (h * 0.25)), '3px solid');
-                } else if (clear_set) {
+                    return makeCss(side, side, '25%', ((w * 0.5) - (h * 0.25))+'px', '3px solid');
+                } else {
                     return makeCss('100%', '100%', '0', '0', '0');
                 }
             }());
@@ -297,15 +294,10 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
             blink_num = 3;
 
         var should_ko = function() {
-            if (times_engaged > ko_num) return true;
-            return false;
+            return times_engaged > ko_num;
         };
         var should_blink = function() {
-            if (times_engaged > blink_num) {
-                //coord.pushCategory("cmgyk", cat.TAKEOVER_DOWN);   
-                return true;
-            }
-            return false;
+            return times_engaged > blink_num;
         };
 
         this.setImmediateBlink = function() {

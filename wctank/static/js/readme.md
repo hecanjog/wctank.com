@@ -7,7 +7,7 @@ descriptor, e.g., the 'marker' or 'audio' modules.
 
 Modules that implement essential functionality for a series of   
 interrelated modules are suffixed "-Core", e.g., markerCore.js,     
-where the webgl engine to display map markers is implemented.    
+where the engine that displays map markers is implemented.    
 
 Modules that contain a collection of objects that inherit from a   
 common parent and are functionally conceptualized in the same way    

@@ -52,8 +52,7 @@ function(render) { var visualCore = {};
                 
                 r.program = prgm;
 
-                // draw two big triangles
-                // available under the attribute 'position'
+                // draw two big triangles - available under attribute 'position'
                 // TODO: perhaps make available with a switch as it throws console 
                 // warnings if the position attribute is not used
                 var buffer = gl.createBuffer();
