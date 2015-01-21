@@ -65,7 +65,7 @@ function(audioCore, $) {
     document.addEventListener('post_overlay', function(e) {
         if (audioCore.out.gain.value) {
             if (e.detail.postType === 'video' || e.detail.postType === 'audio' ||
-                    e.detail.content.search("iframe")) {
+                    e.detail.content.search("iframe") >= 0) {
                 mainGainFade(0, overlay_fade);
                 toOff(); 
                 overlay_mute = true;

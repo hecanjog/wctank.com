@@ -103,14 +103,14 @@ function(div, $, gMap) {
     var statusInvisible = function() {
         status.visible = false;
         status.postType = null;
-        status.content = null;
+        status.content = "";
     };
     var postEvent = new CustomEvent('post_overlay', {
         "bubbles": false,
         "cancelable": true,
         "detail": status
     });
-
+    
     // animated loading image
     var loading; 
     $.get("static/assets/loading_cur.svg", function(data) {
