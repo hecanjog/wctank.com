@@ -21,7 +21,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
        
         //TODO: should this be more event dispatch-y?
 
-        /****************** Visual Ur-components ******************/
+        /****************** Primary visual components ******************/
         var glow = new mutexVisualEffects.CausticGlow();
         
         var tab = new tableux.Engine();
