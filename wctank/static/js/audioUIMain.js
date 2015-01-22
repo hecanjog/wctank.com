@@ -4,13 +4,19 @@ define(
         'jquery'
     ],
 
-function(audioCore, $) {
+function(audioCore, $) { var audioUIMain = {};
     var $mute = $("#mute-button"),
         mute_clicked = false,
         button_fade = 0.4,
         overlay_fade = 1.1,
         overlay_mute = false;
-    
+   
+    // expose mute button to finish fake click cycle
+    // ...it seems that in order to function properly, any web audio api 
+    // functions tied to the UI must be initialized by user input.     
+    // c.f. main.js
+    audioUIMain.muteButton = $mute;
+
     var vol_up = "icon-volume-up",
         vol_off = "icon-volume-off";
 
@@ -39,6 +45,7 @@ function(audioCore, $) {
             mute_clicked = false;
         }, button_fade * 1000);
     });
+    $mute.click(); // fake click
 
     $mute.mouseenter(function() {
         var cl = $mute.attr('class');               
@@ -76,5 +83,5 @@ function(audioCore, $) {
             overlay_mute = false;
         }
     });
-});
+return audioUIMain; });
 

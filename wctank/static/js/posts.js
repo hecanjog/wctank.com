@@ -113,13 +113,14 @@ function(div, $, gMap, loadingSVG) {
     });
     
     //TODO: highlight new posts, timeout loading svg 
-    var marker_clicked = false;
+    var marker_clicked = false,
+        width; // cache overlay width before removing content if the overlay is visible,
+    
     posts.display = function(post) {
         var trivial = 130; //mini fade for content swap
         
         // cache overlay width before removing content if the overlay is visible,
         // otherwise set it to the current min width
-        var width;
         if (div.$overlay.is(':hidden')) {
             div.$overlay.fadeIn('fast');
             
@@ -169,6 +170,7 @@ function(div, $, gMap, loadingSVG) {
     // Close overlay when user clicks on the X
     $(document).on('click', '.close-post', function(e) {
         e.preventDefault();
+        width = 'auto';
         $(this).parent().fadeOut('fast', function() {
             $(this).find("*").html("");
         });

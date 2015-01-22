@@ -126,7 +126,7 @@ a[href^="http://maps.google.com/maps"] {
         width: 100%;
         height: auto;
     }
-    iframe:not(.bandcamp_audio_player) { 
+    iframe { 
         width: 70vw;
         height: 30.4vw;
         max-width: 100%;
@@ -140,6 +140,13 @@ a[href^="http://maps.google.com/maps"] {
        
     }
     
+    // bandcamp player is an iframe, but needs to be
+    // shorter than the videos
+    .bandcamp_audio_player {
+        height: 7.33em;
+        min-height: 0;
+    }
+
     .post-title {
         font-family: 'timelessbold';
         font-size: 1.2em;

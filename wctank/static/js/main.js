@@ -39,8 +39,8 @@ define(
         'gMap',
         'scenes',
         'sceneCore',
-        'markerMain',
         'audioUIMain',
+        'markerMain',
         ['font!custom,families:',
             '[',
                 'timeless',
@@ -53,7 +53,7 @@ define(
             ']'
         ].join('/n')
     ],
-function(featureDetectionMain, gMap, sceneGraphs, sceneGraphCore) {
+function(featureDetectionMain, gMap, sceneGraphs, sceneGraphCore, audioUIMain) {
    
     // TODO: 
     // envelope looping mechanism
@@ -82,6 +82,9 @@ function(featureDetectionMain, gMap, sceneGraphs, sceneGraphCore) {
     gMap.events.initQueuedEvents('map');
 
     sceneGraphCore.apply(sceneGraphs.NoMages); 
+
+    // tail end of fake mute button click
+    audioUIMain.muteButton.click();
 
     // suddenly remove loading screen - no transition!
     var loading = document.getElementById("loading-container");
