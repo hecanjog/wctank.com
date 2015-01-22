@@ -8,11 +8,13 @@ define(
         'envelopeCore',
         'envelopeAsdr',
         'util',
-        'featureDetectionMain'
+        'featureDetectionMain',
+        'text!bassDrumSprites.TextGridIntervals'
     ],
 
 function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore, 
-            envelopeCore, envelopeAsdr, util, featureDetectionMain) { var instruments = {};
+            envelopeCore, envelopeAsdr, util, featureDetectionMain, 
+            bassDrumSprites) { var instruments = {};
    
     var au_ext = featureDetectionMain.audioExt;
 
@@ -249,17 +251,14 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
     instruments.WesEnviron.prototype = new instrumentCore.Instrument();
 
     instruments.BigSampleDrum = function() {
-        var p = "static/assets/c-bass_strike_f_0",
-            paths = [];
-
-        for (var i = 1; i <= 9; i++) {
-            paths.push(p + i + au_ext);
-        }
-        var player = audioModules.SamplePlayer(paths);
-
+        var player = new audioModules.SamplePlayer(
+            "/static/assets/bass_drum_sprites"+au_ext,
+            bassDrumSprites   
+        );
+       
         var current = 0;
         this.outGain = player.outGain;
-       
+
        // envelope out if interrupting play! 
         this.bangTarget = function() {
             player.play(current);

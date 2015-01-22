@@ -15,7 +15,7 @@
         AlphaStrutShaders: '../glsl/alphaStrut',
         SquaresShaders: '../glsl/squares',
         AngularShaders: '../glsl/angular',
-        SpriteIntervals: '../assets/wes',
+        bassDrumSprites: '../assets/bass_drum_sprites',
         moduleLoader: '../lib/require'
     },
     shim: {

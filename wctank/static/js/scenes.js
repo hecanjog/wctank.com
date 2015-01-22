@@ -174,7 +174,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                 bang: drum.bangTarget
             },
             seq: {
-                0: {subd: 0.0371 * 4, val: {bang:""}, smudge: 0.1, rep: 23},
+                0: {subd: 0.07 * 4, val: {bang:""}, smudge: 0.2, rep: 23},
                 1: {subd: 0.0445 * 4, val: {bang:""}, smudge: 0.5},
                 2: {subd: 0.0500 * 4, val: {bang:""}, smudge: 0.5},
                 3: {subd: 0.0594 * 4, val: {bang:""}, smudge: 0.5},
@@ -194,17 +194,17 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             },
             // TODO: referencing the time here is weird
             seq: {
-                0: {subd: 4, val: {
+                0: {subd: 4.5, val: {
                         gain: {
-                            val: 0.06, time: drumClock.beatLength
+                            val: 0.2, time: drumClock.beatLength
                         }
-                    }
+                    }, smudge: 10
                 },
-                1: {subd: 4, val: {
+                1: {subd: 4.5, val: {
                         gain: {
                             val: 0, time: drumClock.beatLength
                         }
-                    }
+                    }, smudge: 10
                 }     
             }
         };

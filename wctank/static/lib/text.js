@@ -341,7 +341,8 @@ define(['module'], function (module) {
                     stringBuffer.append(line);
                 }
                 //Make sure we return a JavaScript string and not a Java string.
-                content = String(stringBuffer.toString()); //String
+                content = String(stringBuffer.toString() + "\n"); //String
+                // ARRRGH! You strip whitespace at the end of the file! dont doo that!
             } finally {
                 input.close();
             }

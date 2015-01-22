@@ -228,6 +228,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
     };
     audioModules.Bandpass.prototype = new audioCore.AudioModule();      
 
+    //TODO: combine these three players into 1?
     audioModules.Player = function(pathToFile) {
         if (this.constructor !== audioCore.AudioModule) 
             return new audioModules.Player(pathToFile);
@@ -235,7 +236,6 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
         var media = document.createElement('audio');
 
         // TODO: there is no longer a reason to keep this weirdness!
-        // switch to arraybuffer.
         this.loadFile = function(path) {
             var req = new XMLHttpRequest();
             req.open("GET", path, true);
@@ -316,6 +316,65 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
         this._link_alias_out = this.gain;
     };
     audioModules.SpritePlayer.prototype = new audioCore.AudioModule();
+
+    // special player that can play many simultaneous sounds from a file
+    audioModules.SamplePlayer = function(path, textGridIntervals) { 
+        if (this.constructor !== audioModules.SamplePlayer)
+            return new audioModules.SamplePlayer(path, textGridIntervals);
+        
+        var breakpoints = audioUtil.parseSpriteIntervals(textGridIntervals);
+        util.objectLength.call(breakpoints);
+        var frames = breakpoints[breakpoints.length - 1].end * audioCore.ctx.sampleRate;
+        var samples = audioCore.ctx.createBuffer(2, frames, audioCore.ctx.sampleRate);
+
+        // TODO: should abstract this out.
+        var req = new XMLHttpRequest();
+        req.open("GET", path, true);
+        req.responseType = "arraybuffer";
+        req.onload = function() {
+            audioCore.ctx.decodeAudioData(req.response, function(audioBuffer) {
+                samples.buffer = audioBuffer;
+            });
+        };
+        req.send();
+
+        this.outGain = audioNodes.Gain();
+        this.outGain.gain.value = 1.0;
+        
+        Object.defineProperty(this, 'samples', {
+            value: breakpoints.length
+        });
+        
+        var living_nodes = {};
+
+        // with index
+        this.play = function(n) {
+            var player = audioCore.ctx.createBufferSource();
+            player.buffer = samples.buffer;
+            player.connect(this.outGain);
+
+            var id = util.hashCode((Math.random() * 100000).toString());
+            living_nodes[id] = player;
+            player.onended = function() {
+                delete living_nodes[id];
+            };
+
+            var length = breakpoints[n].end - breakpoints[n].start;
+            player.start(0.001, breakpoints[n].start, length);
+        }; 
+       
+        this.kill = function() {
+            for (var node in living_nodes) {
+                if (living_nodes.hasOwnProperty(node)) {
+                    living_nodes[node].stop();
+                }
+            }
+            living_nodes = {};
+        };
+
+        //limit concurrent sounds?
+        this._link_alias_out = this.outGain;
+    };
 
     audioModules.SchroederReverb = function() {
         if (this.constructor !== audioCore.AudioModule) 
@@ -541,35 +600,4 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
     };
     audioModules.SubtractiveSynthesis.prototype = new audioCore.AudioModule();
 
-    // this is inefficient, but fine for small numbers of short sounds
-    // TODO: Instead, take a file + annotations and split audio into array buffers
-    audioModules.SamplePlayer = function(arr) {
-        if (this.constructor !== audioModules.SamplePlayer)
-            return new audioModules.SamplePlayer(arr);
-        
-        var players = [];
-        this.outGain = audioNodes.Gain();
-        this.outGain.gain.value = 1.0;
-
-        for (var i = 0; i < arr.length; i++) {
-            players.push(new audioModules.Player(arr[i]));
-            players[i].link(this.outGain); 
-        }
-        
-        Object.defineProperty(this, 'samples', {
-            value: players.length
-        });
-        // with index
-        this.play = function(n) {
-            if (players[n].isPlaying) players[n].stop();
-            players[n].play();
-        }; 
-        this.killAll = function() {
-            players.forEach(function(v) {
-                v.stop();
-            });
-        };
-        //limit concurrent sounds?
-        this._link_alias_out = this.outGain;
-    };
 return audioModules; });
