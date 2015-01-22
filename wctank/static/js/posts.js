@@ -2,12 +2,13 @@ define(
     [
         'div', 
         'jquery',
-        'gMap'
+        'gMap',
+        'text!loadingSVG.svg'
     ], 
 
 
 //TODO: this module is messy!
-function(div, $, gMap) { 
+function(div, $, gMap, loadingSVG) { 
     var posts = {};
     
     var renderTemplate = function(post, $template) {
@@ -29,20 +30,7 @@ function(div, $, gMap) {
             content += "<div class='post-text'>"+post.text+"</div>";
         }
         if(typeof post.player !== 'undefined') {
-            //console.log(post.player);
             content += Array.isArray(post.player) ? post.player[0].embed_code : post.player;
-            /*
-            // instagram video embeds are broken, so scrape
-            if (player.search("instagram-media") !== -1) {
-                var div = document.createElement('div');
-                div.innerHTML = player;
-                div.style.width = div.style.height = 0;
-                document.body.appendChild(div);
-               console.log(div.innerHTML); 
-                var url = div.innerHTML.match(/http:\/\/.+?instagram\.com\/.+?\.mp4/);
-                console.log(url);
-            }*/
-            //content += player;
         }
         if(typeof post.description !== 'undefined') {
             content += "<div class='post-description'>"+post.description+"</div>";
@@ -124,12 +112,6 @@ function(div, $, gMap) {
         "detail": status
     });
     
-    // animated loading image
-    var loading; 
-    $.get("static/assets/loading_cur.svg", function(data) {
-        loading = new XMLSerializer().serializeToString(data);
-    });
-    
     //TODO: highlight new posts, timeout loading svg 
     var marker_clicked = false;
     posts.display = function(post) {
@@ -161,7 +143,7 @@ function(div, $, gMap) {
             div.$overlay.css("width", width);
             $contents.hide();
             window.setTimeout(function() {
-                if (waiting) $loading = div.$overlay.append(loading).find("#loading");
+                if (waiting) $loading = div.$overlay.append(loadingSVG).find("#loading");
             }, 300);
             $contents.load(function() {
                 if ($loading) $loading.fadeOut(trivial).remove(); 

@@ -9,6 +9,7 @@
         froogaloop2: '../lib/froogaloop2.min',
         tween: '../lib/tween.min',
         filterXML: '../map_filters',
+        loadingSVG: '../assets/loading_cur',
         VHSShaders: '../glsl/vhs',
         MarkerShaders: '../glsl/markers',
         AlphaStrutShaders: '../glsl/alphaStrut',

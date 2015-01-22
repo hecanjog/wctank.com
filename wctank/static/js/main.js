@@ -11,11 +11,12 @@ require.config({
         froogaloop2: '/static/lib/froogaloop2.min',
         tween: '/static/lib/tween.min',
         filterXML: '/static/map_filters',
+        loadingSVG: '/static/assets/loading_cur',
         VHSShaders: '/static/glsl/vhs',
         MarkerShaders: '/static/glsl/markers',
         AlphaStrutShaders: '/static/glsl/alphaStrut',
         SquaresShaders: '/static/glsl/squares',
-        SpriteIntervals: '/static/assets/wes'
+        SpriteIntervals: '/static/assets/wes',
     },
 
     shim: {
