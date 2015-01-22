@@ -106,18 +106,18 @@ function(render) { var visualCore = {};
                 ops = ['preTeardown', 'animate', 'teardown'];
                 r_op = 'rm';
             }
-            var parent = this;
+            var outer = this;
             var callFunct = function(fnName) {
                 if (fnName !== 'animate') {
-                    parent[fnName]();
+                    outer[fnName]();
                 } else if (fnName === 'animate') {
-                    render[r_op](parent[fnName]);
+                    render[r_op](outer[fnName]);
                 }
             };
 
             for (var i = 0; i < 4; i++) {
                 if (typeof hooks[i] === 'function') hooks[i]();
-                if ( parent[ ops[i] ] ) callFunct(ops[i]);
+                if ( outer[ ops[i] ] ) callFunct(ops[i]);
             }
         };
     };

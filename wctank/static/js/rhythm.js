@@ -565,11 +565,11 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
             });
         }; 
       
-        var parent = this; 
+        var outer = this; 
         util.watchProperty(clk, 'bpm', function() {
-            parent.shirk();
+            outer.shirk();
             resolveRhythmicSequence();
-            parent.execute();
+            outer.execute();
         }); 
     };
 

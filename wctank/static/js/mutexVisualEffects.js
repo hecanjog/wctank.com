@@ -32,7 +32,7 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
         troller_back.src = "https://archive.org/download/C.E.PriceSunClouds/SunClouds_512kb.mp4";
         troller_back.setAttribute("id", "troller-back");
     
-        var parent = this,
+        var outer = this,
             rot = 0,
             ident = "rotate(0deg)",
             to_id;
@@ -102,8 +102,8 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
             transform("rotate(360deg)");
             if (cntr === 0) {
                 window.setTimeout(function() { 
-                    parent.operate('teardown');
-                    parent.operate('init');                
+                    outer.operate('teardown');
+                    outer.operate('init');                
                 }, 50);
             }
             cntr++;
@@ -240,14 +240,14 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
             }, del);
         }; 
     
-        var parent = this;
+        var outer = this;
         
         this.init = function() {
             if (player_ready) {
                 player.api("play");
             } else {
                 window.setTimeout(function() {
-                    parent.init();
+                    outer.init();
                 }, 250);
             }
             caustic_glow_back.style.visibility = "visible";

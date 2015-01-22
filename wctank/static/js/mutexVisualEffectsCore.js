@@ -22,7 +22,7 @@ function(util, div, gMap, visualCore) { var mutexVisualEffectsCore = {};
         var dummy = new visualCore.Effect();
         delete this.operate;
         this._operate = function(stage) {
-            var parent = this,
+            var outer = this,
                 op = dummy.operate.bind(this),
                 $op;
             if (stage === 'init') {
@@ -31,7 +31,7 @@ function(util, div, gMap, visualCore) { var mutexVisualEffectsCore = {};
                 $op = 'removeClass';
             }
             op(stage, [{address: 1, fn: function() {
-                div.$map[$op](parent.css_class);
+                div.$map[$op](outer.css_class);
             }}]);
         };
         this.apply = function() {

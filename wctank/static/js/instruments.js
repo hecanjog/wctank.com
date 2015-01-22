@@ -106,7 +106,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
     // TODO: reimplement in future to incorporate Sonorities
     // for now, constructs with array of frequencies
     instruments.SubtractiveChoir = function(arr) {
-        var parent = this,
+        var outer = this,
             q = 200,
             amp = 1;
         
@@ -117,8 +117,8 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
 
         var pushBp = function(freq) {
             var bp = audioModules.Bandpass(freq, q, amp);
-            parent.noise.link(bp).link(parent.gain);
-            parent.bp_bank.push(bp);
+            outer.noise.link(bp).link(outer.gain);
+            outer.bp_bank.push(bp);
         };
 
         if (Array.isArray(arr)) {
@@ -133,7 +133,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         audioCore.moduleExtensions.startStopThese(this, this.noise);
         
         this.accent = function() {
-            parent.bp_bank.forEach(function(v) {
+            outer.bp_bank.forEach(function(v) {
                 v.accent();
             });
         };

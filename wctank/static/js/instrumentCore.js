@@ -7,7 +7,7 @@ define(
 function(audioCore, envelopeCore) { var instrumentCore = {};
 
     instrumentCore.ParameterizedAction = function(target, envelope) {
-        var parent = this;
+        var outer = this;
         
         var throwActionTypeError = function(mess) {
             throw new TypeError("Invalid instrumentCore.ParameterizedAction param: " + mess); 
@@ -49,7 +49,7 @@ function(audioCore, envelopeCore) { var instrumentCore = {};
         if (envelope) this.envelope = envelope;
 
         this.execute = function(offset) {
-            envelopeCore.apply(parent.target, parent.envelope, offset);
+            envelopeCore.apply(outer.target, outer.envelope, offset);
         };
   
         /*

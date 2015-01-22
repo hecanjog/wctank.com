@@ -175,7 +175,7 @@ function(div, $, gMap) {
     // Close overlay when user clicks on the X
     $(document).on('click', '.close-post', function(e) {
         e.preventDefault();
-        $(this).parent().fadeOut('fast', function() {
+        $(this).outer().fadeOut('fast', function() {
             $(this).find("*").html("");
         });
         statusInvisible();

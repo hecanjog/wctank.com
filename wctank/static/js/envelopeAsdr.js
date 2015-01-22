@@ -131,7 +131,7 @@ function(envelopeCore) { var asdr = {};
     };
     asdr.Sustain.prototype = new asdr.ComponentEnvelope();
    
-    var parent = asdr;
+    var outer = asdr;
 
     asdr.Generator = function(attack, sustain, decay, release) {
         var a, s, d, r, env, as, dr, 
@@ -161,7 +161,7 @@ function(envelopeCore) { var asdr = {};
         Object.defineProperty(this, 'sustain', {
             get: function() { return s; },
             set: function(val) {
-                if ( !(val instanceof parent.Sustain) ) {
+                if ( !(val instanceof outer.Sustain) ) {
                     asdrGenException("SUSTAIN envelope must be "+
                         "an instance of asdr.Sustain, not "+val);
                 } else {

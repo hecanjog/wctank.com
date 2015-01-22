@@ -29,7 +29,7 @@ function(audioUtil, TWEEN, $) {
      * @constructor
      */
     audioCore.AudioModule = function() {
-        var parent = this;     
+        var outer = this;     
         
         /** 
          * An AudioModule that is not also a Web Audio API AudioNode and does not

@@ -297,7 +297,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
         var sprites = audioUtil.parseSpriteIntervals(TextGridIntervals); 
         util.objectLength.call(sprites); 
         
-        var parent = this;
+        var outer = this;
         this.playRandomSprite = function() {
             if (!player.isPlaying) {        
                 var sprite = sprites[(Math.random() * sprites.length) | 0],
@@ -307,7 +307,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
                 this.gain.gain.setValueAtTime(def_gain, audioCore.ctx.currentTime + 0.01);
                 player.play();    
                 window.setTimeout(function() {
-                    parent.gain.gain.setValueAtTime(0, audioCore.ctx.currentTime + 0.01);
+                    outer.gain.gain.setValueAtTime(0, audioCore.ctx.currentTime + 0.01);
                     player.pause(); 
                 }, dur * 1000);
             }
@@ -321,7 +321,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
         if (this.constructor !== audioCore.AudioModule) 
             return new audioModules.SchroederReverb();
 
-        var parent = this;
+        var outer = this;
 
         function AllPass(delay) {
             var nop = audioNodes.Gain();
