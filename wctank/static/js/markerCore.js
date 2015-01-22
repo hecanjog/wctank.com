@@ -14,7 +14,7 @@ function(util, markerMapPosition, markerData, visualCore,
     var canv = document.getElementById("markers"),
         projection;
     
-    var z = visualCore.webgl.setup(canv, MarkerShaders, true);
+    var z = visualCore.webgl.setup(canv, MarkerShaders, false, true);
 
     var updateViewport = function() {
         canv.width = window.innerWidth;

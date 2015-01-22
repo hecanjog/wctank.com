@@ -23,7 +23,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
         });
         document.body.appendChild(vid);
 
-        var z = visualCore.webgl.setup(strut_front, AlphaStrutShaders, true),
+        var z = visualCore.webgl.setup(strut_front, AlphaStrutShaders, true, true),
                 vid_tex, vUv_buffer, a_vUv, u_vid,
                 threshold = 50;
 
@@ -119,7 +119,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
             id++;  
         }
         
-        var z = visualCore.webgl.setup(squares_front, SquaresShaders, true),
+        var z = visualCore.webgl.setup(squares_front, SquaresShaders),
             a_vertex_buffer = z.gl.createBuffer(),
             u_alpha = 0.1,
             a_id, a_position, u_time;

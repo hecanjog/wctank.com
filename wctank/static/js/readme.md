@@ -18,4 +18,4 @@ Modules whose primary function is not to provide functionality to other modules
 but need to be included at SOME point are suffixed "-Main", e.g., audioUIMain.js,    
 which makes the mute button work.      
 
-Isolated modules are just descriptively named.      
+Otherwise modules are just descriptively named.      

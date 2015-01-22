@@ -29,7 +29,20 @@ function(div, $, gMap) {
             content += "<div class='post-text'>"+post.text+"</div>";
         }
         if(typeof post.player !== 'undefined') {
-            content += post.player[0].embed_code;
+            //console.log(post.player);
+            var player = Array.isArray(post.player) ? post.player[0].embed_code : post.player;
+            /*
+            // instagram video embeds are broken, so scrape
+            if (player.search("instagram-media") !== -1) {
+                var div = document.createElement('div');
+                div.innerHTML = player;
+                div.style.width = div.style.height = 0;
+                document.body.appendChild(div);
+               console.log(div.innerHTML); 
+                var url = div.innerHTML.match(/http:\/\/.+?instagram\.com\/.+?\.mp4/);
+                console.log(url);
+            }*/
+            content += player;
         }
         if(typeof post.description !== 'undefined') {
             content += "<div class='post-description'>"+post.description+"</div>";
@@ -76,7 +89,7 @@ function(div, $, gMap) {
                 $.each(data, function(i, post) {
                     post.isTextPost = (function() {
                         var text_posts = ['text', 'audio', 'link', 'quote'];
-                        return text_posts.indexOf(post.type) !== -1 ? true : false;
+                        return text_posts.indexOf(post.type) !== -1;
                     }());
                     
                     post.markerType = (function() {
@@ -129,9 +142,8 @@ function(div, $, gMap) {
             div.$overlay.fadeIn('fast');
             
             // c.f. '@small' in styles
-            var mm = window.matchMedia("screen and (max-width: 31em)"); 
-            
             // 'auto' fills screen when @small
+            var mm = window.matchMedia("screen and (max-width: 31em)"); 
             width = mm.matches ? 'auto' : div.$overlay.css('min-width');
         } else {
             width = div.$overlay.css("width");
@@ -144,8 +156,8 @@ function(div, $, gMap) {
         var $contents = div.$overlay.find("*"),
             waiting = true,
             $loading;
-        
-        if (!post.isTextPost) {
+       
+        if (!post.isTextPost && $post.search("instagram-media") === -1) {
             div.$overlay.css("width", width);
             $contents.hide();
             window.setTimeout(function() {
@@ -158,7 +170,7 @@ function(div, $, gMap) {
                 waiting = false;
             });
         } else {
-            $contents.fadeIn(trivial); // for now, just fade in if text
+            $contents.fadeIn(trivial); // for now, just fade in if text ...or instagram
         }
       
         status.visible = true;
@@ -175,7 +187,7 @@ function(div, $, gMap) {
     // Close overlay when user clicks on the X
     $(document).on('click', '.close-post', function(e) {
         e.preventDefault();
-        $(this).outer().fadeOut('fast', function() {
+        $(this).parent().fadeOut('fast', function() {
             $(this).find("*").html("");
         });
         statusInvisible();

@@ -7,7 +7,7 @@ function(render) { var visualCore = {};
 
     visualCore.webgl = {
         success: false,
-        setup: function(canvas, shaders, DEBUG) {
+        setup: function(canvas, shaders, fullscreenVertices, DEBUG) {
             var r = {};
             var getShaderLog = function(gl_shader_obj) {
                 if ( !gl.getShaderParameter(gl_shader_obj, gl.COMPILE_STATUS) ) 
@@ -21,7 +21,6 @@ function(render) { var visualCore = {};
                 try {
                     return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
                 } catch (err) {
-                    console.warn("WebGL is good to have? I like to fart");
                     return false;
                 }
             }());
@@ -55,21 +54,23 @@ function(render) { var visualCore = {};
                 // draw two big triangles - available under attribute 'position'
                 // TODO: perhaps make available with a switch as it throws console 
                 // warnings if the position attribute is not used
-                var buffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-                    -1.0, -1.0,
-                     1.0, -1.0,
-                    -1.0,  1.0,
-                    -1.0,  1.0,
-                     1.0, -1.0,
-                     1.0,  1.0]), gl.STATIC_DRAW);
-                
-                var a_position = gl.getAttribLocation(prgm, 'position');
-                gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 0, 0);
-                gl.enableVertexAttribArray(a_position); 
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
-                
+                if (fullscreenVertices) {
+                    var buffer = gl.createBuffer();
+                    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                        -1.0, -1.0,
+                         1.0, -1.0,
+                        -1.0,  1.0,
+                        -1.0,  1.0,
+                         1.0, -1.0,
+                         1.0,  1.0]), gl.STATIC_DRAW);
+                    
+                    var a_position = gl.getAttribLocation(prgm, 'position');
+                    gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(a_position); 
+                    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
+                }
+
                 r.gl = gl;
                 return r;
             }
