@@ -30,7 +30,7 @@ function(div, $, gMap) {
         }
         if(typeof post.player !== 'undefined') {
             //console.log(post.player);
-            var player = Array.isArray(post.player) ? post.player[0].embed_code : post.player;
+            content += Array.isArray(post.player) ? post.player[0].embed_code : post.player;
             /*
             // instagram video embeds are broken, so scrape
             if (player.search("instagram-media") !== -1) {
@@ -42,7 +42,7 @@ function(div, $, gMap) {
                 var url = div.innerHTML.match(/http:\/\/.+?instagram\.com\/.+?\.mp4/);
                 console.log(url);
             }*/
-            content += player;
+            //content += player;
         }
         if(typeof post.description !== 'undefined') {
             content += "<div class='post-description'>"+post.description+"</div>";
@@ -157,7 +157,7 @@ function(div, $, gMap) {
             waiting = true,
             $loading;
        
-        if (!post.isTextPost && $post.search("instagram-media") === -1) {
+        if (!post.isTextPost) {
             div.$overlay.css("width", width);
             $contents.hide();
             window.setTimeout(function() {
