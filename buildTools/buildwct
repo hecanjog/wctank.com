@@ -56,13 +56,14 @@ PARSE=./audio/to-parse/*
 for f in $PARSE
 do
     NAME=$(basename $f .wav)
-    
-    echo "* * * Cleaning previous ${NAME}.TextGridIntervals"
-    rm "${ASSETS_DIR}${NAME}.TextGridIntervals"
-    
-    echo "* * * Parsing ${f}..."
-    praat ./audio/parseAudioSprite.praat $NAME wav to-parse/ ../../wctank/static/assets/
-
+   
+    if [ -e "${ASSETS_DIR}${NAME}.TextGridIntervals" ]
+    then
+        echo "* * * $f has already been parsed. Skipping..."
+    else
+        echo "* * * Parsing ${f}..."
+        praat ./audio/parseAudioSprite.praat $NAME wav to-parse/ $ASSETS_DIR
+    fi
     compress $f
 done
 

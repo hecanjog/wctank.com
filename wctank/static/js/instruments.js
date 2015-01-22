@@ -9,12 +9,13 @@ define(
         'envelopeAsdr',
         'util',
         'featureDetectionMain',
-        'text!bassDrumSprites.TextGridIntervals'
+        'text!bassDrumSprites.TextGridIntervals',
+        'text!wesSprites.TextGridIntervals'
     ],
 
 function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore, 
             envelopeCore, envelopeAsdr, util, featureDetectionMain, 
-            bassDrumSprites) { var instruments = {};
+            bassDrumSprites, wesSprites) { var instruments = {};
    
     var au_ext = featureDetectionMain.audioExt;
 

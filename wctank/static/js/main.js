@@ -16,7 +16,8 @@ require.config({
         MarkerShaders: '/static/glsl/markers',
         AlphaStrutShaders: '/static/glsl/alphaStrut',
         SquaresShaders: '/static/glsl/squares',
-        bassDrumSprites: '/static/assets/bass_drum_sprites'
+        bassDrumSprites: '/static/assets/bass_drum_sprites',
+        wesSprites: '/static/assets/wes'
     },
 
     shim: {
@@ -84,7 +85,7 @@ function(featureDetectionMain, gMap, sceneGraphs, sceneGraphCore, audioUIMain) {
     sceneGraphCore.apply(sceneGraphs.NoMages); 
 
     // tail end of fake mute button click
-    audioUIMain.muteButton.click();
+    //audioUIMain.muteButton.click();
 
     // suddenly remove loading screen - no transition!
     var loading = document.getElementById("loading-container");

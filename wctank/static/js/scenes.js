@@ -196,7 +196,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             seq: {
                 0: {subd: 4.5, val: {
                         gain: {
-                            val: 0.2, time: drumClock.beatLength
+                            val: 0.15, time: drumClock.beatLength
                         }
                     }, smudge: 10
                 },

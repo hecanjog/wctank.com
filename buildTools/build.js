@@ -16,6 +16,7 @@
         SquaresShaders: '../glsl/squares',
         AngularShaders: '../glsl/angular',
         bassDrumSprites: '../assets/bass_drum_sprites',
+        wesSprites: '../assets/wes',
         moduleLoader: '../lib/require'
     },
     shim: {

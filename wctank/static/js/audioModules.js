@@ -283,7 +283,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
     };
     audioModules.Player.prototype = new audioCore.AudioModule();
 
-    audioModules.SpritePlayer = function(path, TextGridIntervals) {
+    audioModules.SpritePlayer = function(path, textGridIntervals) {
         if (this.constructor !== audioCore.AudioModule) 
             return new audioModules.SpritePlayer(path, TextGridIntervals);
        
@@ -294,7 +294,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
         player.link(this.gain);
         
-        var sprites = audioUtil.parseSpriteIntervals(TextGridIntervals); 
+        var sprites = audioUtil.parseSpriteIntervals(textGridIntervals); 
         util.objectLength.call(sprites); 
         
         var outer = this;
