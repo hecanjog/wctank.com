@@ -40,5 +40,5 @@ To get a development enviornment running:
 
 N.B.! 
 -----
-The app is being deployed with a nginx -> uwsgi stack, which is MUCH more performant then the flask
+The app is being deployed with nginx + uwsgi, which is MUCH more performant then the flask
 runtime. In particular, the map markers will take a lot longer to appear than they do in production.
