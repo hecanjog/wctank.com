@@ -9,7 +9,8 @@ function(audioCore, $) { var audioUIMain = {};
         mute_clicked = false,
         button_fade = 0.4,
         overlay_fade = 1.1,
-        overlay_mute = false;
+        overlay_mute = false,
+        manual_mute = false;
    
     /*
     // expose mute button to finish fake click cycle
@@ -36,10 +37,12 @@ function(audioCore, $) { var audioUIMain = {};
         if (audioCore.out.gain.value) {
             toOff();
             mainGainFade(0, button_fade);
+            manual_mute = true;
         } else {
             overlay_mute = false;
             toUp();
             mainGainFade(1, button_fade);
+            manual_mute = false;
         }
         mute_clicked = true;
         window.setTimeout(function() {
@@ -78,7 +81,7 @@ function(audioCore, $) { var audioUIMain = {};
                 toOff(); 
                 overlay_mute = true;
             }
-        } else if (overlay_mute) {
+        } else if (overlay_mute && !manual_mute) {
             mainGainFade(1, overlay_fade);
             toUp();
             overlay_mute = false;
