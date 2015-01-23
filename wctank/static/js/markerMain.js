@@ -36,7 +36,15 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
         window.setTimeout(updateMarkers, 200);
     });
     gMap.events.queue('map', 'tilesloaded', updateMarkers);
-    gMap.events.queue('map', 'zoom_changed', markerCore.forceDataUpdate);
+    gMap.events.queue('map', 'zoom_changed', function() {
+        // apparently there's a period of time between when the map seems 'ready'
+        // and actually being able to get projections, and the tableux select
+        // can fire during this time, so swallow that error.
+        markerCore.forceDataUpdate();
+        try {
+            updateMarkers();
+        } catch(e) { /* do nothing */ }
+    });
 
     render.queue(markerCore.draw);
 
