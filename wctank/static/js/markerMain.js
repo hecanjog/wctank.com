@@ -10,9 +10,8 @@ define(
 
 function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents = {};
 
-    // instantiate markers and post loading!!
-    // (...would this be better somewhere else???...)
-    gMap.events.queue('map', 'tilesloaded', function() {
+
+    var updateMarkers = function() {
         posts.get(gMap.map.getBounds(), function(data) {
             $.each(data, function(i, post) {
                 var m,
@@ -30,9 +29,13 @@ function(gMap, posts, render, markerMapPosition, markerCore) { var markerEvents 
                 });
             });
         });
-        markerCore.forceDataUpdate();
-    });
+        markerCore.tryDataUpdate();
+    };
 
+    gMap.events.queue('map', 'dragend', function() {
+        window.setTimeout(updateMarkers, 200);
+    });
+    gMap.events.queue('map', 'tilesloaded', updateMarkers);
     gMap.events.queue('map', 'zoom_changed', markerCore.forceDataUpdate);
 
     render.queue(markerCore.draw);
