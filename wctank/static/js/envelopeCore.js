@@ -44,19 +44,67 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
         if (typeof time !== 'undefined') this.time = time;
     };
 
-    envelopeCore.Envelope = function Envelope() {
-        var duration, interpolationType, interpolationArgs;       
+    envelopeCore.Envelope = function() {
+        var duration, interpolationType, interpolationArgs,
+            valueSequence = [];       
         
-        this.valueSequence = [];
-        Object.defineProperty(this, 'valueSequence', {
-            writable: true
-        });
-
         var throwEnvelopeException = function(text) {
             throw new Error("Envelope param error: " + text);
         };
+        var checkEnvelopeValue = function(val) {
+            if ( !(val instanceof envelopeCore.EnvelopeValue) ) {
+                ASDRComponentException("item in valueSequence must be an instance of "+
+                                       "envelopeCore.EnvelopeValue, not "+val);
+  
+            }
+            if (val.time < 0 || val.time > 100) {
+                ASDRComponentException("valueSequenceItem.time must be "+
+                                       "a percentage between 0 and 100 inclusive, not "+
+                                       val.time);
+
+            }
+        };
+
+        Object.defineProperty(this, 'valueSequence', {
+            enumerable: true,
+            configurable: true,
+            get: function() { return valueSequence; },
+            set: function(val, override, tests) { //...and other checks
+                if (arguments.length > 2) {
+                    var checks = [];
+                    for (var i = 2; i < arguments.length; i++) {
+                        checks.push(arguments[i]);
+                    }
+                }
+                var runAddlChecks = function(item) {
+                    if (checks) {
+                        checks.forEach(function(test) {
+                            test(item);
+                        });
+                    }
+                };
+                if (Array.isArray(val)) {
+                    if ( !(val[0] instanceof envelopeCore.EnvelopeValue) ) {
+                        valueSequence = envelopeCore.arrayToEnvelopeValues(val); 
+                    } else {
+                        var seq = [];
+                        val.forEach(function(v) {
+                            if (!override) checkEnvelopeValue(v);
+                            runAddlChecks(v);                            
+                            seq.push(v);
+                        });
+                        valueSequence = seq;
+                    }
+                } else {
+                    if (!override) checkEnvelopeValue(val);
+                    runAddlChecks(val);
+                    valueSequence = [val];
+                }
+            }
+        });
 
         Object.defineProperty(this, 'duration', {
+            enumerable: true,
             configurable: true,
             get: function() { return duration; },
             set: function(val) {
@@ -69,6 +117,7 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
         });
 
         Object.defineProperty(this, 'interpolationType', {
+            enumerable: true,
             configurable: true,
             get: function() { return interpolationType; },
             set: function(val) {
@@ -87,6 +136,7 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
 
         //TODO: implement step function envelopes
         Object.defineProperty(this, 'interpolationArgs', {
+            enumerable: true,
             configurable: true,
             get: function() { return interpolationArgs; },
             set: function(val) {
@@ -100,128 +150,124 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
                 }
             }
         });
-
-        // interleaves the values of two Envelopes together,
-        // repeating the modEnv over this.duration at an interval of
-        // modDurPercent * 0.01 * this.duration
-        // TODO: throw error if asttempting to bake with an envelope
-        // that has values that are not numbers.
-        this.bake = function(modEnv, modDurPercent, refractMag) {
-     
-            var throwBakeException = function(text) {
-                throw new Error("Invalid envelopeCore.bake args: " + text);
-            };
-            
-            if ( !(modEnv instanceof envelopeCore.Envelope) ) {
-                throwBakeException("MODENV must be an instance of envelopeCore.Envelope");
-            }
-
-            if ( !((modDurPercent > 0) && (modDurPercent <= 100)) ) {
-                throwBakeException("MODDURPERCENT must be a NUMBER greater than 0 and "+
-                                   "less than or equal to 100, not" + modDurPercent);
-            }
-
-            if ( !((refractMag > 0) && (refractMag <= 1)) ) {
-                throwBakeException("REFRACTMAG must be a NUMBER greater than 0 and "+
-                                   "less than or equal to 1, not" + refractMag);
-            }
-
-            var cooked = new envelopeCore.Envelope(),
-                values = this.valueSequence.slice(0);
-
-            values.sort(function(a, b) {
-                return a.time - b.time;
-            }); 
-      
-            // Ideally, I would implement this so that any modifications would be
-            // time invariant across a range of note durations. However, the goal here
-            // is not necessarily to make a general purpose synth, but to make an
-            // instrument that has its own idiosynchratic behaviors. So, as is, the 
-            // modification speed will vary with the duration of the note that the
-            // envelope is applied to, which is kind of neat conceptually. 
-            // Also, it's slightly easier to write, so win? Maybe?
-            var modValues = [],
-                repeats = ((100 / modDurPercent) + 0.5) | 0, 
-                last_time = 0;
-            
-            // create array with modEnv repeating to 100%
-            for (var i = 1; i <= repeats + 1; i++) {
-                modEnv.valueSequence.forEach(function(item) {
-                    var t = (item.time / repeats) + last_time;
-                    if (t <= 100) {
-                        var ev = new envelopeCore.EnvelopeValue(item.value, t); 
-                        modValues.push(ev);
-                    }
-                });
-                last_time += (100 / repeats) | 0;
-            }
-
-            var inter_values = [],
-                last_val = {value: -999, time: -999};    
-
-            values.reduce(function(previous, current) {
-                for (var l = 0; l < modValues.length; l++) {
-                    if ( (modValues[l].time >= previous.time) &&
-                        (modValues[l].time <= current.time) &&
-                        (modValues[l].time !== last_val.time) ) { 
-                        var inter = envelopeCore.interpolation.linearRefraction(
-                            previous, current, modValues[l], refractMag
-                        ); 
-                        inter_values.push(inter);
-                        last_val = inter;
-                    }
-                }
-                return current;
-            }); 
-
-            filtered_values = [];
-            // rm original values if overlapping with time in inter_values
-            values.forEach(function(val) {
-                var found = false;
-                for (var j = 0; j < inter_values.length; j++) {
-                    if (val.time === inter_values[j].time) {
-                        found = true;
-                        break;
-                    }
-                }
-                // TODO: the undefined check here patches over some weird behavior in 
-                // envelopeAsdr.Sustain.bake() where inter_values[j] was sometimes undefined.
-                // THIS IS SUPER STUPID!
-                if (!found && (typeof inter_values[j] !== 'undefined')) {
-                    filtered_values.push(inter_values[j].time);
-                }
-            });
-
-            var final_val = filtered_values.concat(inter_values); 
-            final_val.sort(function(a, b) {
-                return a.time - b.time;
-            });
-
-            cooked.valueSequence = final_val;
-            cooked.duration = this.duration;
-            cooked.interpolationType = modEnv.interpolationType;
-            cooked.interpolationArgs = modEnv.interpolationArgs;
-            
-            return cooked;
+    };
+    envelopeCore.Envelope.prototype = {};
+    envelopeCore.Envelope.prototype.constructor = envelopeCore.Envelope;
+    
+    // interleaves the values of two Envelopes together,
+    // repeating the modEnv over this.duration at an interval of
+    // modDurPercent * 0.01 * this.duration
+    // TODO: throw error if asttempting to bake with an envelope
+    // that has values that are not numbers.
+    envelopeCore.Envelope.prototype.bake = function(modEnv, modDurPercent, refractMag) {
+        var throwBakeException = function(text) {
+            throw new Error("Invalid envelopeCore.bake args: " + text);
         };
+        
+        if ( !(modEnv instanceof envelopeCore.Envelope) ) {
+            throwBakeException("MODENV must be an instance of envelopeCore.Envelope");
+        }
 
-        this.toAbsolute = function(duration) {
-            var d = duration ? duration : this.duration,
-                absolute = new envelopeCore.AbsoluteEnvelope(d);
-            
-            this.valueSequence.forEach(function(item) {
-                var t = absolute.duration * item.time * 0.01,
-                    ev = new envelopeCore.AbsoluteEnvelopeValue(
-                                item.value, 
-                                t,
-                                interpolationType,
-                                interpolationArgs);
-                absolute.valueSequence = ev;
+        if ( !((modDurPercent > 0) && (modDurPercent <= 100)) ) {
+            throwBakeException("MODDURPERCENT must be a NUMBER greater than 0 and "+
+                               "less than or equal to 100, not" + modDurPercent);
+        }
+
+        if ( !((refractMag > 0) && (refractMag <= 1)) ) {
+            throwBakeException("REFRACTMAG must be a NUMBER greater than 0 and "+
+                               "less than or equal to 1, not" + refractMag);
+        }
+
+        var cooked = new envelopeCore.Envelope(),
+            values = this.valueSequence.slice(0);
+
+        values.sort(function(a, b) {
+            return a.time - b.time;
+        }); 
+  
+        var modValues = [],
+            repeats = ((100 / modDurPercent) + 0.5) | 0, 
+            last_time = 0;
+        
+        // create array with modEnv repeating to 100%
+        for (var i = 1; i <= repeats + 1; i++) {
+            modEnv.valueSequence.forEach(function(item) {
+                var t = (item.time / repeats) + last_time;
+                if (t <= 100) {
+                    var ev = new envelopeCore.EnvelopeValue(item.value, t); 
+                    modValues.push(ev);
+                }
             });
+            last_time += (100 / repeats) | 0;
+        }
 
-            return absolute;
-        };
+        var inter_values = [],
+            last_val = {value: -999, time: -999};    
 
+        values.reduce(function(previous, current) {
+            for (var l = 0; l < modValues.length; l++) {
+                if ( (modValues[l].time >= previous.time) &&
+                    (modValues[l].time <= current.time) &&
+                    (modValues[l].time !== last_val.time) ) { 
+                    var inter = envelopeCore.interpolation.linearRefraction(
+                        previous, current, modValues[l], refractMag
+                    );
+                    inter_values.push(inter);
+                    last_val = inter;
+                }
+            }
+            return current;
+        }); 
+
+        filtered_values = [];
+        // rm original values if overlapping with time in inter_values
+        values.forEach(function(val) {
+            var found = false;
+            for (var j = 0; j < inter_values.length; j++) {
+                if (val.time === inter_values[j].time) {
+                    found = true;
+                    break;
+                }
+            }
+            // TODO: the undefined check here patches over some weird behavior in 
+            // envelopeAsdr.Sustain.bake() where inter_values[j] was sometimes undefined.
+            // THIS IS SUPER STUPID!
+            if (!found && (typeof inter_values[j] !== 'undefined')) {
+                filtered_values.push(inter_values[j].time);
+            }
+        });
+
+        var final_val = filtered_values.concat(inter_values); 
+        final_val.sort(function(a, b) {
+            return a.time - b.time;
+        });
+
+        cooked.valueSequence = final_val;
+        cooked.duration = this.duration;
+        cooked.interpolationType = modEnv.interpolationType;
+        cooked.interpolationArgs = modEnv.interpolationArgs;
+        
+        return cooked;
+    };
+
+    envelopeCore.Envelope.prototype.toAbsolute = function(duration) {
+        var outer = this;
+
+        var d = duration ? duration : this.duration,
+            absolute = new envelopeCore.AbsoluteEnvelope(d);
+
+        this.valueSequence.forEach(function(item) {
+            var t = absolute.duration * item.time * 0.01,
+                ev = new envelopeCore.AbsoluteEnvelopeValue(
+                            item.value, 
+                            t,
+                            outer.interpolationType,
+                            outer.interpolationArgs
+                );
+            absolute.valueSequence.push(ev);
+        });
+
+        return absolute;
     };
    
     // TODO: Is inheriting from EnvelopeValue here worth it? 
@@ -240,8 +286,14 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
     };
     envelopeCore.AbsoluteEnvelopeValue.prototype = new envelopeCore.EnvelopeValue();
 
-    envelopeCore.AbsoluteEnvelope = function AbsoluteEnvelope(duration) {
+    envelopeCore.AbsoluteEnvelope = function(duration) {
         var seq = [];
+
+        envelopeCore.Envelope.call(this);
+        delete this.interpolationType; 
+        delete this.interpolationArgs;
+        delete this.bake;
+        delete this.toAbsolute;
 
         Object.defineProperty(this, 'duration', {
             value: duration,
@@ -268,13 +320,9 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
                 }
             }
         });
-
     };
-    envelopeCore.AbsoluteEnvelope.prototype = new envelopeCore.Envelope();
-    delete envelopeCore.AbsoluteEnvelope.prototype.interpolationType; 
-    delete envelopeCore.AbsoluteEnvelope.prototype.interpolationArgs;
-    delete envelopeCore.AbsoluteEnvelope.prototype.bake;
-    delete envelopeCore.AbsoluteEnvelope.prototype.toAbsolute;
+    envelopeCore.AbsoluteEnvelope.prototype = Object.create(envelopeCore.Envelope.prototype);
+    envelopeCore.AbsoluteEnvelope.prototype.constructor = envelopeCore.AbsoluteEnvelope;
 
     envelopeCore.interpolation = {
         linearRefraction: function(a, b, n, refractMag) {
@@ -407,7 +455,6 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
             envelope.valueSequence.forEach(function(val) {
                 var t = audioCore.ctx.currentTime + util.time.msec2sec(off) + 
                     util.time.msec2sec(val.time);
-                t = t ? t : 0;
                 try {
                     if (val.interpolationType === 'linear') {
                         target.linearRampToValueAtTime(val.value, t);
@@ -491,20 +538,18 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
                     addToMachineQueue(val); 
                 }
             });
-            
-            onCompleteCache.push(function() {
-                audioUtil.stopTweens();
-            });
 
             if (uses_interpolation) {
+                onCompleteCache.push(function() {
+                    audioUtil.stopTweens();
+                    machine = null;
+                });
                 audioUtil.tween.startTweens();
                 machine.start();
-            }
-            
-            if (timeout_ids.length > 0) {
-                r = timeout_ids;
-            } else {
                 r = machine;
+            } else {
+                machine = null;
+                r = timeout_ids;
             }
         }
         

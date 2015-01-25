@@ -9,22 +9,31 @@ function(asdr, envelopeCore) {
     describe("ASDR", function() {
 
         beforeEach(function() {
-            a = new asdr.ComponentEnvelope(20, 'exponential', null, [
-                new envelopeCore.EnvelopeValue(0, 0),
-                new envelopeCore.EnvelopeValue(1, 99)
-            ]);
-            s = new asdr.Sustain(1000, 1.0);
-            d = new asdr.ComponentEnvelope(300, 'linear', null, [
-                new envelopeCore.EnvelopeValue(1, 0),
-                new envelopeCore.EnvelopeValue(0.5, 99)
-            ]);
-            r = new asdr.ComponentEnvelope(20, 'linear', null, [
-                new envelopeCore.EnvelopeValue(0.5, 0),
-                new envelopeCore.EnvelopeValue(0, 99)
-            ]);
-            gen = new asdr.Generator(a, s, d, r);
+            gen = new asdr.Generator({
+                a: {
+                    dur: 20,
+                    inter: {type: 'exponential'},
+                    val: [0, 0,  1, 99]
+                },
+                s: {
+                    dur: 1000,
+                    val: 1
+                },
+                d: {
+                    dur: 300,
+                    inter: {type: 'linear'},
+                    val: [1, 0,  0.5, 99]
+                },
+                r: {
+                    dur: 20,
+                    inter: {type: 'linear'},
+                    val: [0.5, 0,  0, 99]
+                }
+            });
         });
-   
+  
+        
+
         describe("ComponentEnvelope", function() {
             it("throws when provided invalid amplitude values", function() {
                 expect(function() {
@@ -36,16 +45,17 @@ function(asdr, envelopeCore) {
         });
 
         describe("Sustain", function() {
-            it("throws when given invalid amplitude parameters", function() {
+           
+            xit("throws when given invalid amplitude parameters", function() {
                 expect(function() {
                     var sus = new asdr.Sustain(100, -10);
                 }).toThrow();
             });
 
             it("updates .valueSequence when amplitude changes", function() {
-                expect(s.valueSequence[0].value).toEqual(1);
-                s.amplitude = 0.5;
-                expect(s.valueSequence[0].value).toEqual(0.5);
+                expect(gen.sustain.valueSequence[0].value).toEqual(1);
+                gen.sustain.amplitude = 0.5;
+                expect(gen.sustain.valueSequence[0].value).toEqual(0.5);
             });
 
             it("bakes then updates with the correct valueSequence, "+
@@ -132,6 +142,14 @@ function(asdr, envelopeCore) {
                 expect(abs.valueSequence[6].value).toEqual(0.5); 
                 expect(abs.valueSequence[7].value).toEqual(0); 
             });
+
+            it(" - envelopes bound to a generator can be independently modified", function() {
+                expect(gen.decay.duration).toEqual(300);             
+                gen.attack.duration = 100;
+                expect(gen.attack.duration).toEqual(100);
+                expect(gen.decay.duration).toEqual(300);
+            });
+
         });
     });
 });

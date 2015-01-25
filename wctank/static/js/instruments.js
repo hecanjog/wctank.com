@@ -16,7 +16,7 @@ define(
 function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore, 
             envelopeCore, envelopeAsdr, util, featureDetectionMain, 
             bassDrumSprites, wesSprites) { var instruments = {};
-   
+    
     var au_ext = featureDetectionMain.audioExt;
 
     //TODO: normalize ParameterizedAction target naming conventions
@@ -144,7 +144,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         var attackAsdrParams = {
             a: {
                 dur: 400,
-                inter: {type: 'exponential'},
+                inter: {type: 'linear'}, // TODO: setting exponential here breaks everything
                 val: [0.01, 0,  
                       0.43, 99]
             },
@@ -162,11 +162,10 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
                 dur: 200,
                 inter: {type: 'linear'},
                 val: [0.3, 0, 
-                      0, 100]
+                      0, 99]
             }
         };
         attackAsdr = new envelopeAsdr.Generator(attackAsdrParams);
-        this.asdr = attackAsdr;
 
         this.attack = new instrumentCore.ParameterizedAction(this.gain.gain); 
         //TODO: allow variable returns in envelopeAsdr.Generator attack and decay stages
@@ -175,26 +174,143 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
             attackAsdr.attack.duration = 
                 util.smudgeNumber(attackAsdr.attack.duration, 5);
             attackAsdr.decay.duration = util.smudgeNumber(200, 5);
-            this.envelope = attackAsdr.getASDR(dur);
-            return this.envelope;
+            outer.attack.envelope = attackAsdr.getASDR();
+            return outer.attack.envelope;
         };
     };
     instruments.SubtractiveChoir.prototype = new instrumentCore.Instrument();
+    
+    instruments.Organ = function() {
+        var outer = this;
 
-    // field recording / osc bank
-    instruments.WesEnviron = function() {
-        // TODO: moduleExtensions.startStopThese should also call .play?
-        this.bigEarDOM = document.createElement('audio');
-        this.bigEarDOM.src = "/streaming/bigearsample.6"+au_ext;
-        this.bigEarDOM.autoplay = true;
-        this.bigEarDOM.loop = true;
+        var max_voices = 10,
+            partials = 10,
+            q = 250;
 
-        var bigEar = audioNodes.MediaElementSource(this.bigEarDOM);
-        this.bigEarGain = audioNodes.Gain();
-        bigEar.link(this.bigEarGain);
+        var atten = audioNodes.Gain();
+        this.outGain = audioNodes.Gain();
+        atten.link(this.outGain);
+    
+        this._link_alias_out = this.outGain;
 
+        var noise = audioModules.Noise();
+        noise.start();
+
+        var voices = [];
+
+        var Voice = function() {
+            var outer = this;
+            
+            var inNode = audioNodes.Gain(),
+                bp_bank = [];
+            
+            this.outGain = audioNodes.Gain();
+            this.outGain.gain.value = 0;
+
+            for (var j = 0; j < partials; j++) {
+                (function() {
+                    var bp = audioModules.Bandpass(100, q);
+                    bp.setFrequency = null;
+                    audioCore.moduleExtensions.setValue(
+                        bp, bp.biquad, 'frequency', 'setFrequency', false
+                    );
+                    bp_bank.push(bp);
+                    inNode.link(bp).link(outer.outGain);
+                }());
+            }
+            
+            this.setFrequency = function(freq) {
+                for (var l = 0; l < bp_bank.length; l++) {
+                    bp_bank[l].setFrequency(freq + freq * l);
+                    bp_bank[l].setGain(1 / (l + 1));
+                }
+            };
+
+            this.attackTarget = new instrumentCore.ParameterizedAction(this.outGain.gain);
+            this.attackTarget.createEnvelope = function(env) {
+                outer.attackTarget.envelope = env;
+                outer.attackTarget.execute();
+            };
+
+            this._link_alias_in = inNode;
+            this._link_alias_out = this.outGain; 
+        };
+        Voice.prototype = new audioCore.AudioModule();
+
+        for (var i = 0; i < max_voices; i++) {
+            voices[i] = new Voice();
+            noise.link(voices[i]).link(atten);
+        }
+
+        // paramObj: {voice: number, frequency: number}
+        this.pitchTarget = new instrumentCore.ParameterizedAction(function(paramObj) {
+            voices[paramObj.voice].setFrequency(paramObj.frequency);
+        });
+
+        var ptEnv = new envelopeCore.Envelope();
+        ptEnv.duration = 25;
+        ptEnv.interpolationType = 'none';
+  
+        this.pitchTarget.createEnvelope = function(paramObj) {
+            ptEnv.valueSequence = [new envelopeCore.EnvelopeValue(paramObj, 0)];
+            return ptEnv.toAbsolute();
+        };
+        
+        var attackAsdr = new envelopeAsdr.Generator({
+            a: {
+                dur: 200,
+                inter: {type: 'exponential'},
+                val: [0.01, 0,  1, 99]
+            },
+            s: {
+                dur: 100,
+                val: 1
+            },
+            d: {
+                dur: 50,
+                inter: {type: 'linear'},
+                val: [1, 0,  0.7, 99]
+            },
+            r: {
+                dur: 50,
+                inter: {type: 'linear'},
+                val: [0.7, 0,  0.5, 99]
+            }
+        });
+
+        // paramObj : {isAttack: true for yes, false for release, 'asdr' for full envelope 
+        //      voices: [array of voices to trigger]}
+        //      dur: {subd: if 'asdr', provide subd, clock: clock ref}
+        this.attackTarget = new instrumentCore.ParameterizedAction(function(paramObj) {
+            var cmd = voices[paramObj.voice].attackTarget.createEnvelope;
+            
+            if (paramObj.isAttack === 'asdr') {
+                var dur = paramObj.dur.subd * paramObj.dur.clock.beatLength,
+                    sus_len = dur - (attackAsdr.attack.duration + attackAsdr.decay.duration +
+                        attackAsdr.release.duration);
+                cmd(attackAsdr.getASDR(sus_len));    
+            } else if (paramObj.isAttack) {
+                cmd(attackAsdr.getAS());
+            } else {
+                cmd(attackAsdr.getDR());
+            }
+        });
+
+        var atEnv = new envelopeCore.Envelope();
+        atEnv.duration = 50;
+        atEnv.interpolationType = 'none';
+        
+        this.attackTarget.createEnvelope = function(paramObj) {
+            atEnv.valueSequence = [new envelopeCore.EnvelopeValue(paramObj, 0)];
+            outer.attackTarget.envelope = atEnv.toAbsolute();
+            return atEnv.toAbsolute();
+        };
+    };
+    instruments.Organ.prototype = new instrumentCore.Instrument();
+
+    instruments.Beep = function() {
         // TODO: this should be reimplemented when Sonorities are available
-        var choir_sonority = [
+        var beep_sono = [
             1863.53118,
             2201.114014,
             1879.656616,
@@ -204,29 +320,20 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         ];
 
         var osc_bank = [],
-            oscBankAttackGain = audioNodes.Gain();
+            oscBankAttackGain = audioNodes.Gain(),
+            oscBankGainAtten = audioNodes.Gain();
+
+        oscBankGainAtten.gain.value = 0.8;
+
         this.oscBankGain = audioNodes.Gain();
-        for (var i = 0; i < 2; i++) {
-            var freq = util.getRndItem(choir_sonority),
+        for (var i = 0; i < 9; i++) {
+            var freq = util.getRndItem(beep_sono),
                 type = util.getRndItem(audioUtil.oscTypes);
 
             osc_bank.push(audioModules.Osc(type, freq, 0.12));
-            osc_bank[i].link(oscBankAttackGain);
+            osc_bank[i].link(oscBankAttackGain).link(oscBankGainAtten);
         }
-
-        var lowDroner = new audioModules.Osc('sine', 40, 1);
-        lowDroner.link(oscBankAttackGain);
-        osc_bank.push(lowDroner);
-
-        oscBankAttackGain.link(this.oscBankGain);
-
-        this.outGain = audioNodes.Gain();
         
-        this.bigEarGain.link(this.outGain);
-        this.oscBankGain.link(this.outGain);
-
-        this._link_alias_out = this.outGain;
-
         this.smudgeOscSonority = function(time) {
             osc_bank.forEach(function(v) {
                 v.setFrequency(util.smudgeNumber(v.osc.frequency.value, 5), time); 
@@ -245,9 +352,25 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
                 return oscBankAsdr.getDR();
             }
         };
-        
-        audioCore.moduleExtensions.wetDry(this, this.bigEarGain, this.oscBankGain);
+
         audioCore.moduleExtensions.startStopThese(this, osc_bank); 
+    };
+    instruments.Beep.prototype = new instrumentCore.Instrument();
+
+    // field recording
+    instruments.WesEnviron = function() {
+        // TODO: moduleExtensions.startStopThese should also call .play?
+        this.bigEarDOM = document.createElement('audio');
+        this.bigEarDOM.src = "/streaming/bigearsample.6"+au_ext;
+        this.bigEarDOM.autoplay = true;
+        this.bigEarDOM.loop = true;
+
+        this.outGain = audioNodes.Gain();
+        
+        var bigEar = audioNodes.MediaElementSource(this.bigEarDOM);
+        bigEar.link(this.outGain);
+       
+        this._link_alias_out = this.outGain;
     };
     instruments.WesEnviron.prototype = new instrumentCore.Instrument();
 
@@ -280,5 +403,84 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         this._link_alias_out = player;
     };
     instruments.BigSampleDrum.prototype = new instrumentCore.Instrument();
+
+    instruments.WesVox = function() {
+        var wes = audioModules.SpritePlayer("/static/assets/wes"+au_ext, wesSprites);
+        this.outGain = audioNodes.Gain();
+
+        wes.link(this.outGain);
+        
+        this.actionTarget = wes.playRandomSprite;
+
+        this._link_alias_out = this.outGain;
+    };
+    instruments.WesVox.prototype = new instrumentCore.Instrument();
+
+    instruments.NoiseSquawk = function() {
+        var outer = this;
+        
+        var noise = audioModules.Noise(0, 10);
+        noise.start();
+        noise.gain.gain.value = 0;
+
+        this.outGain = audioNodes.Gain();
+        this.outGain.gain.value = 0.1;
+
+        noise.link(this.outGain);    
+        
+        // let's make an envelope for noise squaks
+        var attackValues = [];
+        for (var i = 0; i < 19; i++) {
+            attackValues.push(Math.random() * 0.5 + 0.3, i * 5); 
+        }
+        attackValues.push(1, 100);
+
+        var attack = new envelopeAsdr.ComponentEnvelope(200, 'none', null, attackValues),
+            sustain = new envelopeAsdr.Sustain(1, 1),
+            release = new envelopeAsdr.ComponentEnvelope(500, 'none', null, [0, 0]);
+
+        var decay = new envelopeAsdr.ComponentEnvelope(500, 'none', null);
+
+        var calcDecaySequence = function() {
+            var decayValues = [];
+            for (var j = attack.valueSequence.length - 1; j > 0; j--) {
+                decayValues.push(attack.valueSequence[j]);
+            }
+            
+            var decayDummy = new envelopeCore.Envelope();
+            decayDummy.valueSequence = decayValues;
+            decayDummy.duration = 500;
+            decayDummy.interpolationType = 'none';
+
+            var line = new envelopeCore.Envelope();
+            line.duration = 100;
+            line.valueSequence = envelopeCore.arrayToEnvelopeValues([1, 0,  0, 99]);
+            line.interpolationType = 'none';
+            
+            var cooked = line.bake(decayDummy, 100, 0.8);
+            envelopeAsdr.clipValueSequence(cooked);
+
+            decay.valueSequence = cooked.valueSequence;
+        };
+        calcDecaySequence();
+
+        var noiseAsdr = new envelopeAsdr.Generator(attack, sustain, decay, release);
+       
+        this.attackTarget = new instrumentCore.ParameterizedAction(noise.gain.gain);
+        this.attackTarget.createEnvelope = function(dur) {
+            noise.downsample = util.smudgeNumber(20, 75);
+            noiseAsdr.attack.valueSequence.forEach(function(v) {
+                v.value = Math.random();
+            });
+            calcDecaySequence();
+            noiseAsdr.attack.duration = dur / 2;
+            noiseAsdr.decay.duration = dur / 2;
+            outer.attackTarget.envelope = noiseAsdr.getASDR();
+            return outer.attackTarget.envelope;     
+        };
+
+        this._link_alias_out = this.outGain;
+    };
+    instruments.NoiseSquawk.prototype = new instrumentCore.Instrument();
 
 return instruments; });

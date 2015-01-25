@@ -1,21 +1,20 @@
 define(
     [
         'audioCore',
-        'audioElements',
-        'audioNodes',
-        'audioActors'
+        'audioModules',
+        'audioNodes'
     ],
 
-function(audio, audioElements, audioNodes, audioActors) {
+function(audio, audioModules, audioNodes) {
     
     describe("AudioModule.link", function() {
         beforeEach(function() {
-            module = audioElements.Bandpass(50, 100, 1);
-            module2 = audioElements.Noise();
+            module = audioModules.Bandpass(50, 100, 1);
+            module2 = audioModules.Noise();
             mixinNode = audioNodes.Gain();
             mixinNode2 = audioNodes.Delay(1);
             audioNode = audio.ctx.createGain();
-            multipleInModule = new audioActors.SubtractiveSynthesis();
+            multipleInModule = audioModules.SubtractiveSynthesis();
             multipleInMixinNode = audioNodes.Merge(2);
             multipleOutMixinNode = audioNodes.Split(2);
         });

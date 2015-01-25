@@ -74,8 +74,6 @@ function(featureDetectionMain, gMap, sceneGraphs, sceneGraphCore, audioUIMain) {
         bounds
     );
     overlay.setMap(gMap.map);
-    var clouds = new google.maps.weather.CloudLayer();
-    clouds.setMap(gMap.map);
     
     google.maps.event.addListener(overlay, 'click', function() {
         gMap.map.setZoom(9);

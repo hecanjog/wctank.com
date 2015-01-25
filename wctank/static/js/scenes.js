@@ -11,11 +11,13 @@ define(
         'tableux',
         'gMap',
         'util',
-        'jquery'
+        'jquery',
+        'featureDetectionMain'
     ],
 
 function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments, 
-         visualEffects, mutexVisualEffects, tableux, gMap, util, $) { var scenes = {};
+         visualEffects, mutexVisualEffects, tableux, gMap, util, $, 
+         featureDetectionMain) { var scenes = {};
 
     scenes.NoMages = function() {
        
@@ -53,65 +55,20 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         /**********************************************************/
 
         /********************* Audio Environ **********************/
-        var environClock = new rhythm.Clock(80);
+        var environClock = new rhythm.Clock(30);
 
         var environ = new instruments.WesEnviron();
         environ.link(audioCore.out);
 
-        var plusMinusCntr = util.smudgeNumber(10, 20) | 0,
-            plusMinus = true;
 
-        var bankRhythm = {
-            opt: {
-                loop: 50
-            },
-            targets: {
-                bank: environ.oscBankAttack
-            },
-            seq: {
-                0: { subd: 0.33, val: {bank: true}, smudge: 2.5 },
-                1: { subd: 0.05, val: {bank: false}, smudge: 0.5 }
-            },
-            callbacks: function() {
-                var switched = false;
-                bankRhythm.opt.loop = (function() {
-                    var n = util.smudgeNumber(bankRhythm.opt.loop, 15) | 0;
-                    if (plusMinusCntr === 0) {
-                        plusMinus = !plusMinus;
-                        plusMinusCntr = util.smudgeNumber(10, 20) | 0;
-                        switched = true;
-                    }
-                    if (((plusMinus && n > bankRhythm.opt.loop) ||
-                          (!plusMinus && n < bankRhythm.opt.loop)) &&
-                         plusMinusCntr > 0) {
-                        plusMinusCntr--;
-                        return n;
-                    } else {
-                        return n + 2;
-                    }
-                }());
-                
-                var subd = switched ? util.smudgeNumber(1.2, 20) :
-                    util.smudgeNumber(0.4, 30);
-
-                bankRhythm.seq[0].subd = subd;
-
-                environ.smudgeOscSonority(0);
-
-                bankRhythmGen.parseConfig(bankRhythm);
-                bankRhythmGen.execute();
-            }
-        }; 
-        var bankRhythmGen = new rhythm.Generator(environClock, bankRhythm);
-        
         gMap.events.queue('map', 'zoom_changed', function() {
             var zoom = gMap.map.getZoom(),
-                thresh = 15,
+                thresh = 12,
                 fact = thresh - zoom,
                 mult = 100 / thresh;
             
             var percent = fact < 0 ? 0 : fact * mult;
-            environ.wetDry(percent, 1200);
+            //environ.wetDry(percent, 1200);
          
             // !!!! glow blur params are closely related to audio environ 
             var blur_thresh = thresh - 5,
@@ -143,21 +100,60 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         var choirVerb = new audioModules.SchroederReverb();
 
         choir.link(choirVerb).link(audioCore.out);
-
         gMap.events.queue('map', 'zoom_changed', function() {
             var dur = util.smudgeNumber(100, 50);
             choir.attack.createEnvelope(dur);
             choir.attack.execute();
-            isAccenting = true;
             var env_dur = choir.attack.envelope.duration;
             window.setTimeout(function() {
                 choir.accent();  
             },  env_dur * util.smudgeNumber(0.5, 20));
-            window.setTimeout(function() {
-                isAccenting = false;
-            }, env_dur);
         });
+       
         ///////////
+        var organ = new instruments.Organ(),
+            organConvo = audioModules.Convolution('/static/assets/mausoleum'+
+                            featureDetectionMain.audioExt);
+        organConvo.wetDry(100);
+            //window.organ = organ;
+        organ.link(organConvo).link(audioCore.out);
+        
+        var organClock = new rhythm.Clock(55);
+        var organRhythmParams = {
+            opt: {
+                loop: true
+            },
+            targets: {
+                atk: organ.attackTarget,
+                freq: organ.pitchTarget
+            },
+            seq: {
+                0: {
+                    subd: 1, 
+                    val: {
+                        atk: {voice: 0, isAttack: true},
+                        freq: {voice: 0, frequency: 330}
+                    }
+                },
+                1: {
+                    subd: 1,
+                    val: {
+                        atk: {voice: 1, isAttack: 'asdr', dur: {subd: 1, clock: organClock}}, 
+                        freq: {voice: 1, frequency: 196}
+                    }
+                },
+                2: {
+                    subd: 1,
+                    val: {
+                        atk: {voice: 2, isAttack: 'asdr', dur: {subd: 1, clock: organClock}},
+                        freq: {voice: 2, frequency: 262}
+                    }
+                }
+            }
+        }; 
+        var organRhythm = new rhythm.Generator(organClock, organRhythmParams);
+        organRhythm.execute();
+        organClock.start();
 
         ////////// drum rolls far out
         var drumClock = new rhythm.Clock(105.2);
@@ -182,8 +178,6 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             }
         };
         var bangGen = new rhythm.Generator(drumClock, drumBangRhythm);
-
-        var drumEnd = false;
 
         var drumGainRhythm = {
             opt: {
@@ -230,19 +224,34 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                 gainGen.loop = false;
             }
         });
-
+              
         //////////
         /**********************************************************/
 
-// delayed noise blast after marker click
-// angular clusters
-// closer zooms voice
-// duck out on video play
-// slow independently building musicalized texture swell
+        // slow chord progression from messiaen or something that goes slower further out
+        //
+        var sqwk = new instruments.NoiseSquawk();
+        sqwk.link(audioCore.out);
+        
+        var queueSquawk = function() {
+            if (Math.random() < 0.2) {
+                window.setTimeout(function() {
+                    sqwk.attackTarget.createEnvelope(util.smudgeNumber(800, 50));
+                    sqwk.attackTarget.execute();
+                }, util.smudgeNumber(4000, 20));
+            }
+        };
+        gMap.events.queue('marker', 'click', queueSquawk);
+        gMap.events.queue('map', 'zoom_changed', queueSquawk);
+
+        // angular clusters
+        // closer zooms voice
+        // duck out on video play
+        // slow independently building musicalized texture swell
         this.init = function() {
-            environ.start();
+            //environ.start();
             environClock.start();
-            bankRhythmGen.execute();
+            //bankRhythmGen.execute();
             tab.select(glow);
             choir.start();
             glow.apply();

@@ -12,18 +12,30 @@ Object.keys(window.__karma__.files).forEach(function(file) {
   }
 });
 
+//TODO: figure out why relative config paths are failing
+var lib_path = '/home/paul/Desktop/dev/wctank.com/wctank/static/lib/';
+
 require.config({
     // Karma serves files under /base, which is the basePath from your config file
     baseUrl: '/base',
 
     paths: {
-        'tween': '/home/paul/Desktop/dev/wctank.com/wctank/static/lib/tween.min'
+        'tween': lib_path+'tween.min',
+        'modernizr': lib_path+'modernizr.custom',
+        'jquery': lib_path+'jquery-2.1.1.min'
     },
 
     shim: {
         'tween': {
             exports: 'TWEEN'
+        },
+        'modernizr': {
+            exports: 'Modernizr'
+        },
+        'jquery': {
+            exports: '$'
         }
+
     },
 
     // dynamically load all test files

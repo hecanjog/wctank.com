@@ -49,7 +49,7 @@ function(audioCore, envelopeCore) { var instrumentCore = {};
         if (envelope) this.envelope = envelope;
 
         this.execute = function(offset) {
-            envelopeCore.apply(outer.target, outer.envelope, offset);
+            envelopeCore.apply(this.target, this.envelope, offset);
         };
   
         /*

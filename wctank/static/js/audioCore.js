@@ -95,13 +95,15 @@ function(audioUtil, TWEEN, $) {
                     in_addr = 0;
                 }
 
+                var waapiFn = arguments[3] ? 'disconnect' : 'connect';
+
                 // recurse until we hit WAAPI bedrock on both sides
-                if (!in_node.connect) {
-                    out_node.link(in_node._link_alias_in, out_addr, in_addr);
-                } else if (!out_node.connect) {
-                    out_node._link_alias_out.link(in_node, out_addr, in_addr);
+                if (!in_node[waapiFn]) {
+                    out_node.link(in_node._link_alias_in, out_addr, in_addr, arguments[3]);
+                } else if (!out_node[waapiFn]) {
+                    out_node._link_alias_out.link(in_node, out_addr, in_addr, arguments[3]);
                 } else {
-                    out_node.connect(in_node, out_addr, in_addr);
+                    out_node[waapiFn](in_node, out_addr, in_addr);
                 }
 
                 return target;
@@ -109,6 +111,10 @@ function(audioUtil, TWEEN, $) {
             } else {
                 throwLinkException("Input node is not defined");
             }
+        };
+
+        this.delink = function(target, output, input) {
+            this.link(target, output, input, true);
         };
     };
 

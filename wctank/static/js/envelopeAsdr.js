@@ -1,58 +1,40 @@
 define(
     [
-        'envelopeCore'
+        'envelopeCore',
+        'util'
     ],
 
-function(envelopeCore) { var asdr = {};
+function(envelopeCore, util) { var asdr = {};
 
     asdr.ComponentEnvelope = function(duration, interpolationType, 
                                       interpolationArgs, valueSequence) {
+        envelopeCore.Envelope.call(this);
+       
         var ASDRComponentException = function(text) {
             throw new Error("ASDRComponent param error: " + text);
         };
-        var checkAmpComponentParam = function(name, val) {
-            if ( (val < 0) || (val > 1) ) {
-                ASDRComponentException(name+" must be a number between " + 
+        var checkAmpComponentParam = function(val) {
+            if (val.value < 0 || val.value > 1) {
+                ASDRComponentException(" must be a number between " + 
                     "0 and 1 inclusive or null not " + val);
             }
         };
-        
-        var seq = [];
-        var checkEnvelopeValue = function(val) {
-            if ( !(val instanceof envelopeCore.EnvelopeValue) ) {
-                ASDRComponentException("valueSequenceItem must be an instance of "+
-                                       "envelopeCore.EnvelopeValue");
-  
-            }
-            checkAmpComponentParam('valueSequenceItem.value item', val.value);
-            if ( (val.time < 0) || (val.time > 100) ) {
-                ASDRComponentException("valueSequenceItem.time must be "+
-                                       "a percentage between 0 and 100 inclusive");
 
-            }
-            
-        };
+        var vsAssessors = Object.getOwnPropertyDescriptor(this, 'valueSequence');
         Object.defineProperty(this, 'valueSequence', {
-            get: function() { return seq; },
+            get: vsAssessors.get,
             set: function(val) {
-                if (Array.isArray(val)) {
-                    val.forEach(function(item) {
-                        checkEnvelopeValue(item); //?
-                        seq.push(item);
-                    });
-                } else {
-                    checkEnvelopeValue(val); //?
-                    seq.push(val);
-                }
+                vsAssessors.set(val, false, checkAmpComponentParam);                       
             }
         });
-        
+
         if (duration) this.duration = duration;
         if (interpolationType) this.interpolationType = interpolationType;
         if (interpolationArgs) this.interpolationArgs = interpolationArgs;
         if (valueSequence) this.valueSequence = valueSequence;
     };
-    asdr.ComponentEnvelope.prototype = new envelopeCore.Envelope();
+    asdr.ComponentEnvelope.prototype = Object.create(envelopeCore.Envelope.prototype);
+    asdr.ComponentEnvelope.prototype.constructor = asdr.ComponentEnvelope;
     
     asdr.Sustain = function(duration, amplitude) {
         this.duration = duration;
@@ -131,8 +113,6 @@ function(envelopeCore) { var asdr = {};
     };
     asdr.Sustain.prototype = new asdr.ComponentEnvelope();
    
-    var outer = asdr;
-
     asdr.Generator = function(attack, sustain, decay, release) {
         var a, s, d, r, env, as, dr, 
             changed = false,
@@ -147,48 +127,60 @@ function(envelopeCore) { var asdr = {};
                     "an instance of asdr.ComponentEnvelope, not "+val);
             }
         };
-        
-        Object.defineProperty(this, 'attack', {
-            get: function() { return a; },
-            set: function(val) { 
-                changed = true;
-                checkEnvelope('ATTACK', val);
-                a = val;
-                changed = true;
-            }
-        }); 
        
+        var adrSet = function(env, name) {
+            checkEnvelope(name, env);
+            changed = true;
+            var keys = [];
+            for (var key in env) {
+                keys.push(key);
+            }
+            util.watchProperty(env, 'duration', function() {
+                changed = true;
+            });
+        };
+
+        Object.defineProperties(this, {
+            'attack': {
+                get: function() { return a; },
+                set: function(val) { 
+                    adrSet(val, 'ATTACK');
+                    a = val;
+                }
+            },
+            'decay': {
+                get: function() { return d; },
+                set: function(val) { 
+                    adrSet(val, 'DECAY');
+                    d = val;
+                }
+
+            },
+            'release': {
+                get: function() { return r; },
+                set: function(val) { 
+                    adrSet(val, 'RELEASE');
+                    r = val;
+                }
+            }
+        });
+
         Object.defineProperty(this, 'sustain', {
             get: function() { return s; },
             set: function(val) {
-                if ( !(val instanceof outer.Sustain) ) {
+                if ( !(val instanceof asdr.Sustain) ) {
                     asdrGenException("SUSTAIN envelope must be "+
                         "an instance of asdr.Sustain, not "+val);
                 } else {
                     s = val;
                     changed = true;
+                    util.watchProperty(val, Object.keys(val), function() {
+                        changed = true;
+                    });
                 } 
             }
         }); 
         
-        Object.defineProperty(this, 'decay', {
-            get: function() { return d; },
-            set: function(val) { 
-                checkEnvelope('DECAY', val);
-                d = val;
-                changed = true;
-            }
-        });
-
-        Object.defineProperty(this, 'release', {
-            get: function() { return r; },
-            set: function(val) {
-                checkEnvelope('RELEASE', val);
-                r = val;
-                changed = true;
-            }
-        });
-   
         var aIsComponent = attack instanceof asdr.ComponentEnvelope;   
 
         if (aIsComponent) this.attack = attack;
@@ -198,6 +190,8 @@ function(envelopeCore) { var asdr = {};
 
         var parseStage = function(o) {
             var inter_type, inter_args;
+            
+            var dur = o.dur;
             if ('inter' in o) {
                 inter_type = o.inter.type;
                 inter_args = o.inter.args ? o.inter.args : null;
@@ -205,9 +199,11 @@ function(envelopeCore) { var asdr = {};
                 inter_type = 'none';
                 inter_args = null;
             }
-
-            return new asdr.ComponentEnvelope(o.dur, inter_type, inter_args, 
+            
+            var r = new asdr.ComponentEnvelope(dur, inter_type, inter_args, 
                 envelopeCore.arrayToEnvelopeValues(o.val));
+
+            return r;
         };
 
         // construct with object
@@ -221,7 +217,7 @@ function(envelopeCore) { var asdr = {};
       
         var generator = this; 
         var updateEnv = function(dur) {
-            if (!env || ( (typeof dur === 'number') && (dur !== priorDuration) ) || changed) {
+            if (!env || (typeof dur === 'number' && dur !== priorDuration) || changed) {
                 var absA = generator.attack.toAbsolute(),
                     absS = generator.sustain.toAbsolute(dur),
                     absD = generator.decay.toAbsolute(),
@@ -249,6 +245,13 @@ function(envelopeCore) { var asdr = {};
             updateEnv(sustainDuration);
             return env;
         };
+    };
+
+    asdr.clipValueSequence = function(env) {
+        env.valueSequence.forEach(function(v) {
+            if (v.value > 1) v.value = 1;
+            if (v.value < 0) v.value = 0;
+        });
     };
 
     // a collection of useful param objs to construct envelopeAsdr.Generators with
@@ -280,5 +283,4 @@ function(envelopeCore) { var asdr = {};
             }
         }
     };
-
 return asdr; });

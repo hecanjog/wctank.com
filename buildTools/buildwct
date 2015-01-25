@@ -62,7 +62,7 @@ do
         echo "* * * $f has already been parsed. Skipping..."
     else
         echo "* * * Parsing ${f}..."
-        praat ./audio/parseAudioSprite.praat $NAME wav to-parse/ $ASSETS_DIR
+        praat ./audio/parseAudioSprite.praat $NAME wav to-parse/ ../$ASSETS_DIR
     fi
     compress $f
 done
