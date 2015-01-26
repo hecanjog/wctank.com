@@ -63,6 +63,9 @@ function(audioUtil, TWEEN, $) {
          * @returns {AudioModule|AudioNode} target
          */
         this.link = function(target, output, input) {        
+            
+            var waapiFn = arguments[3] ? 'disconnect' : 'connect'; 
+
             var throwLinkException = function(text) {
                 throw new Error("Invalid link parameters: " + text);
             };
@@ -80,7 +83,7 @@ function(audioUtil, TWEEN, $) {
             out_addr = output;
             in_addr = input;
 
-            if (typeof target !== 'undefined') {
+            if (typeof target !== 'undefined' || arguments[3]) {
                 var out_node = this._link_alias_out ? this._link_alias_out : this,
                     in_node = target._link_alias_in ? target._link_alias_in : target;
 
@@ -94,8 +97,6 @@ function(audioUtil, TWEEN, $) {
                     in_node = in_node[input];
                     in_addr = 0;
                 }
-
-                var waapiFn = arguments[3] ? 'disconnect' : 'connect';
 
                 // recurse until we hit WAAPI bedrock on both sides
                 if (!in_node[waapiFn]) {
@@ -112,10 +113,13 @@ function(audioUtil, TWEEN, $) {
                 throwLinkException("Input node is not defined");
             }
         };
-
+        //TODO: proper delink function that can disconnect 
+        //individual connections between modules
+        
+        /*
         this.delink = function(target, output, input) {
-            this.link(target, output, input, true);
-        };
+            outer.link(target, output, input, true);
+        };*/
     };
 
     /** 
