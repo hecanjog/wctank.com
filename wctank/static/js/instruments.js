@@ -184,7 +184,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         var outer = this;
 
         var max_voices = 10,
-            partials = 10,
+            partials = 9,
             q = 250;
 
         var atten = audioNodes.Gain();
@@ -193,7 +193,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
     
         this._link_alias_out = this.outGain;
 
-        var noise = audioModules.Noise();
+        var noise = audioModules.Noise(1, 7);
         noise.start();
 
         var voices = [];
@@ -222,7 +222,9 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
             this.setFrequency = function(freq) {
                 for (var l = 0; l < bp_bank.length; l++) {
                     bp_bank[l].setFrequency(freq + freq * l);
-                    bp_bank[l].setGain(1 / (l + 1));
+                    var gain = 1 / (l + 1);
+                    if ((l + 1) % 3 === 0) gain += 0.1;
+                    bp_bank[l].setGain(gain);
                 }
             };
 

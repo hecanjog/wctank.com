@@ -78,12 +78,13 @@ function(featureDetectionMain, gMap, sceneGraphs, sceneGraphCore, audioUIMain) {
     google.maps.event.addListener(overlay, 'click', function() {
         gMap.map.setZoom(9);
     });
-    gMap.events.initQueuedEvents('map');
 
     sceneGraphCore.apply(sceneGraphs.NoMages); 
 
     // tail end of fake mute button click
     //audioUIMain.muteButton.click();
+
+    gMap.events.initQueuedEvents('map');
 
     // suddenly remove loading screen - no transition!
     var loading = document.getElementById("loading-container");

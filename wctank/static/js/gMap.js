@@ -24,6 +24,12 @@ function(posts, util, $) { gMap = {};
 
         var events_added = false;
 
+        // events queued before initQueuedEvents is called 
+        // will have their functions delegated to a single
+        // listener for each different event. However, events added
+        // after this point will be added individually, so, try to
+        // favor the former.
+        
         // adds events before or after gMap is ready.
         events.queue = function(loc, event, fn, once) {
             if ( (events_added && (loc === "marker")) || !events_added ) {
@@ -47,7 +53,7 @@ function(posts, util, $) { gMap = {};
                 }
             }
         };
-
+        
         events.initQueuedEvents = function(set, marker) {
             events_added = true; 
             

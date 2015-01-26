@@ -21,8 +21,6 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
 
     scenes.NoMages = function() {
        
-        //TODO: should this be more event dispatch-y?
-
         /****************** Primary visual components ******************/
         var glow = new mutexVisualEffects.CausticGlow();
         
@@ -112,13 +110,18 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
        
         ///////////
         var organ = new instruments.Organ(),
-            organConvo = audioModules.Convolution('/static/assets/mausoleum'+
+            organConvo = audioModules.Convolution('/static/assets/york-minster'+
                             featureDetectionMain.audioExt);
-        organConvo.wetDry(100);
-            //window.organ = organ;
-        organ.link(organConvo).link(audioCore.out);
+        organConvo.wetDry(95);
+       
+        organ.outGain.gain.value = 0.8;
+        organConvo.gain.gain.value = 0.68;
         
-        var organClock = new rhythm.Clock(55);
+        organ.link(organConvo).link(audioCore.out);
+
+        var organClock = new rhythm.Clock(50);
+        organClock.smudgeFactor = 3;
+        
         var organRhythmParams = {
             opt: {
                 loop: true
@@ -154,8 +157,25 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         var organRhythm = new rhythm.Generator(organClock, organRhythmParams);
         organRhythm.execute();
         organClock.start();
+        
+        gMap.events.queue('map', 'zoom_changed', function() {
+            var zoom = gMap.map.getZoom();
+            organClock.bpm = 50 - (25 - zoom * 1.25);
+            var gain = (function() {
+                if (zoom >= 18) {
+                    return 0.05;   
+                } else {
+                    return 0.45 + (18 - zoom) * 0.0306;
+                }
+            }());
+                console.log(zoom, gain);
+            organConvo.gain.gain.linearRampToValueAtTime(
+               gain, audioCore.ctx.currentTime + 1
+            );
+        });
 
-        ////////// drum rolls far out
+
+        // drum rolls far out
         var drumClock = new rhythm.Clock(105.2);
         
         var drum = new instruments.BigSampleDrum();
@@ -240,8 +260,20 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         gMap.events.queue('marker', 'click', queueSquawk);
         gMap.events.queue('map', 'zoom_changed', queueSquawk);
 
+        //occasional wes
+        var vox = new instruments.WesVox();
+        vox.link(audioCore.out);
+        var voxId = window.setInterval(function speak() {
+            if (Math.random() < 0.05) {
+                window.clearInterval(voxId);
+                vox.actionTarget();
+                voxId = window.setInterval(speak, util.smudgeNumber(1000, 10));
+            }
+        }, 1000); 
 
-        //////////
+        
+
+
         /**********************************************************/
         
         // angular clusters
