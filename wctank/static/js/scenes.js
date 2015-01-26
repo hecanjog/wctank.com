@@ -330,14 +330,16 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
 
         //occasional wes
         var vox = new instruments.WesVox();
-        vox.link(audioCore.out, 0, 0);
-        var voxId = window.setInterval(function speak() {
-            if (Math.random() < 0.05) {
+        vox.link(audioCore.out);
+        vox.outGain.gain.value = 0.3;
+        var speak = function() {
+             if (Math.random() < 0.07) {
                 window.clearInterval(voxId);
                 vox.actionTarget();
                 voxId = window.setInterval(speak, util.smudgeNumber(1000, 10));
             }
-        }, 1000); 
+        };
+        var voxId = window.setInterval(speak, 1000); 
 
 
         /**********************************************************/
