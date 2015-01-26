@@ -287,7 +287,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                         plusMinusCntr--;
                         return n;
                     } else {
-                        return n + 2;
+                        return n + 1;
                     }
                 }());
                 
@@ -330,7 +330,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
 
         //occasional wes
         var vox = new instruments.WesVox();
-        vox.link(audioCore.out);
+        vox.link(audioCore.out, 0, 0);
         var voxId = window.setInterval(function speak() {
             if (Math.random() < 0.05) {
                 window.clearInterval(voxId);
