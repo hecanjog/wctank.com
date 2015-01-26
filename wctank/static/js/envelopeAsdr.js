@@ -8,6 +8,7 @@ function(envelopeCore, util) { var asdr = {};
 
     asdr.ComponentEnvelope = function(duration, interpolationType, 
                                       interpolationArgs, valueSequence) {
+        
         envelopeCore.Envelope.call(this);
        
         var ASDRComponentException = function(text) {
@@ -37,82 +38,96 @@ function(envelopeCore, util) { var asdr = {};
     asdr.ComponentEnvelope.prototype.constructor = asdr.ComponentEnvelope;
     
     asdr.Sustain = function(duration, amplitude) {
-        this.duration = duration;
-       
-        var vs, cookedVs,
-            cooked = false;
+        var outer = this;
+        asdr.ComponentEnvelope.call(this);
 
+        this.duration = duration;
+      
+        this._vs; 
+        this._cookedVs;
+        this._cooked = false;
+        this._priorBakeParams = {};
+
+        Object.defineProperty(this, 'valueSequence', {
+            get: function() { 
+                if (!outer._cooked) {
+                    return outer._vs;
+                } else {
+                    return outer._cookedVs;
+                }
+            },
+            set: function(v) {
+                outer.unBake();
+                outer._vs = v;
+                outer._cookedVs = null;
+            }
+        });
         var checkAmpValue = function(n) {
-            if ( (n < 0) || (n > 1) ) {
+            if (n < 0 || n > 1) {
                 throw new RangeError("invalid asdr.Sustain param: amplitude must be a value "+
                         "between 0 and 1 inclusive");
             }
         };
         var setValSeq = function(n) {
-            vs = [ 
+            outer.valueSequence = [ 
                 new envelopeCore.EnvelopeValue(n, 0),
                 new envelopeCore.EnvelopeValue(n, 99)
             ];
         };
-
         checkAmpValue(amplitude);
         setValSeq(amplitude);
-        
+       
+        var amp; 
         Object.defineProperty(this, 'amplitude', {
             get: function() { return amp; },
             set: function(val) {
                 checkAmpValue(val);
                 amp = val;
                 setValSeq(val);
-                if (cooked) {
-                    rebake();
+                if (outer._cooked) {
+                    outer.bake(_priorBakeParams.modEnv, 
+                               _priorBakeParams.modDurPercent,
+                               _priorBakeParams.refractMag );
                 }            
             }
         });
         if (amplitude) this.amplitude = amplitude;
-        
-        Object.defineProperty(this, 'valueSequence', {
-            get: function() { 
-                if (!cooked) {
-                    return vs;
-                } else {
-                    return cookedVs;
-                }
-            }
-        });
 
-        var interType = 'none';
-        Object.defineProperty(this, 'interpolationType', {
-            get: function() { return interType; }
-        });
+        this.interpolationType = 'none';
         this.interpolationArgs = null;
-        
-        var dummy = new envelopeCore.Envelope();
-        this.bake = function(modEnv, modDurPercent, refractMag) {
-            if (modEnv instanceof envelopeCore.Envelope) {
-                dummy.valueSequence = vs;
-                interType = dummy.interpolationType = modEnv.interpolationType;
-                this.interpolationArgs = dummy.interpolationArgs = modEnv.interpolationArgs;
-                dummy.duration = modEnv.duration; 
-                cookedVs = dummy.bake(modEnv, modDurPercent, refractMag).valueSequence;
-                cooked = true;
-            } else if ( (typeof dummy.valueSequence[0].value === 'number') && !cooked) {
-                interType = dummy.interpolationType;
-                cooked = true; 
-            } else {
-                console.warn("asdr.Sustain.bake called sans arguments without a prior "+
-                            ".bake and .unBake - no action taken.");
-            }
-        };
-        this.unBake = function() {
-            interType = 'none';
-            this.interpolationArgs = null;
-            cooked = false;
-        };
-
     };
-    asdr.Sustain.prototype = new asdr.ComponentEnvelope();
-   
+    asdr.Sustain.prototype = Object.create(asdr.ComponentEnvelope.prototype);
+    asdr.Sustain.prototype.constructor = asdr.Sustain;
+
+    var dummy = new envelopeCore.Envelope();
+    
+    asdr.Sustain.prototype.bake = function(modEnv, modDurPercent, refractMag) {
+        if (modEnv instanceof envelopeCore.Envelope) {
+            dummy.valueSequence = this._vs;
+            this.interpolationType = dummy.interpolationType = modEnv.interpolationType;
+            this.interpolationArgs = dummy.interpolationArgs = modEnv.interpolationArgs;
+            dummy.duration = modEnv.duration; 
+            this._cookedVs = dummy.bake(modEnv, modDurPercent, refractMag).valueSequence;
+            this._cooked = true;
+            this._priorBakeParams = { modEnv: modEnv, 
+                                      modDurPercent: modDurPercent, 
+                                      refractMag: refractMag };
+
+        } else if (dummy.valueSequence[0] && !this._cooked) {
+            this.interpolationType = dummy.interpolationType;
+            this._cooked = true; 
+        } else {
+            console.warn("asdr.Sustain.bake called sans arguments without a prior "+
+                        ".bake and .unBake - no action taken.");
+        }
+    };
+    
+    asdr.Sustain.prototype.unBake = function() {
+        this.interpolationType = 'none';
+        this.interpolationArgs = null;
+        this._cooked = false;
+    };
+
     asdr.Generator = function(attack, sustain, decay, release) {
         var a, s, d, r, env, as, dr, 
             changed = false,
@@ -174,7 +189,7 @@ function(envelopeCore, util) { var asdr = {};
                 } else {
                     s = val;
                     changed = true;
-                    util.watchProperty(val, Object.keys(val), function() {
+                    util.watchProperty(val, ['duration', 'valueSequence'], function() {
                         changed = true;
                     });
                 } 

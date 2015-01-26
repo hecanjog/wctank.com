@@ -224,12 +224,8 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                 gainGen.loop = false;
             }
         });
-              
-        //////////
-        /**********************************************************/
-
-        // slow chord progression from messiaen or something that goes slower further out
-        //
+       
+        //occasional noise bursts 
         var sqwk = new instruments.NoiseSquawk();
         sqwk.link(audioCore.out);
         
@@ -244,6 +240,10 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         gMap.events.queue('marker', 'click', queueSquawk);
         gMap.events.queue('map', 'zoom_changed', queueSquawk);
 
+
+        //////////
+        /**********************************************************/
+        
         // angular clusters
         // closer zooms voice
         // duck out on video play

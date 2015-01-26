@@ -53,12 +53,12 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
         };
         var checkEnvelopeValue = function(val) {
             if ( !(val instanceof envelopeCore.EnvelopeValue) ) {
-                ASDRComponentException("item in valueSequence must be an instance of "+
+                throwEnvelopeException("item in valueSequence must be an instance of "+
                                        "envelopeCore.EnvelopeValue, not "+val);
   
             }
             if (val.time < 0 || val.time > 100) {
-                ASDRComponentException("valueSequenceItem.time must be "+
+                throwEnvelopeException("valueSequenceItem.time must be "+
                                        "a percentage between 0 and 100 inclusive, not "+
                                        val.time);
 
