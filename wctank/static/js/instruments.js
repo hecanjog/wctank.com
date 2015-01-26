@@ -322,18 +322,15 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         ];
 
         var osc_bank = [],
-            oscBankAttackGain = audioNodes.Gain(),
-            oscBankGainAtten = audioNodes.Gain();
-
-        oscBankGainAtten.gain.value = 0.8;
-
+            oscBankAttackGain = audioNodes.Gain();
         this.oscBankGain = audioNodes.Gain();
-        for (var i = 0; i < 9; i++) {
+        
+        for (var i = 0; i < 3; i++) {
             var freq = util.getRndItem(beep_sono),
                 type = util.getRndItem(audioUtil.oscTypes);
 
             osc_bank.push(audioModules.Osc(type, freq, 0.12));
-            osc_bank[i].link(oscBankAttackGain).link(oscBankGainAtten);
+            osc_bank[i].link(oscBankAttackGain).link(this.oscBankGain);
         }
         
         this.smudgeOscSonority = function(time) {
@@ -343,6 +340,8 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
             });
         };
         this.smudgeOscSonority(0);
+
+        audioCore.moduleExtensions.setValue(this, this.oscBankGain, 'gain', 'setGain', false);
 
         var oscBankAsdr = new envelopeAsdr.Generator(envelopeAsdr.presets.roughStart);
         this.oscBankAttack = new instrumentCore.ParameterizedAction(oscBankAttackGain.gain);
@@ -354,6 +353,8 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
                 return oscBankAsdr.getDR();
             }
         };
+
+        this._link_alias_out = this.oscBankGain;
 
         audioCore.moduleExtensions.startStopThese(this, osc_bank); 
     };

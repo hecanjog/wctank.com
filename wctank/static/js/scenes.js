@@ -49,66 +49,41 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             }         
         });
         /////////
-        
-        /**********************************************************/
-
-        /********************* Audio Environ **********************/
-        var environClock = new rhythm.Clock(30);
-
-        var environ = new instruments.WesEnviron();
-        environ.link(audioCore.out);
-
-
+       
+        /// animated blur far out
         gMap.events.queue('map', 'zoom_changed', function() {
-            var zoom = gMap.map.getZoom(),
-                thresh = 12,
-                fact = thresh - zoom,
-                mult = 100 / thresh;
+            var zoom = gMap.map.getZoom();
             
-            var percent = fact < 0 ? 0 : fact * mult;
-            //environ.wetDry(percent, 1200);
-         
-            // !!!! glow blur params are closely related to audio environ 
-            var blur_thresh = thresh - 5,
+            var blur_thresh = 7,
                 blur_fact = blur_thresh - zoom;
 
             glow.animatedPostBlurDuration = blur_fact < 0 ? 0 : blur_fact * 100 + 900;
             glow.animatedPostBlurRadius = blur_fact < 0 ? 0 : Math.log10(blur_fact) * 12;
         });
+
         /**********************************************************/
 
-        /*************** Adjunct Audio Behavior *******************/
-        
-        /////////// choir stabs on zoom events
-        // TODO: when Sonorities are implemented, this will break
-        var choir_sonority = [
-            931.765564,
-            1100.557007,
-            1433.202026,
-            1879.656616,
-            1927.278442,
-            1951.355347,
-            2191.642578,
-            2684.844238,
-            2883.212891      
-        ]; 
-        var choir = new instruments.SubtractiveChoir(choir_sonority);
-        choir.gain.gain.value = 0.0;
+        /********************* Audio Environ **********************/
+        var environClock = new rhythm.Clock(30);
 
-        var choirVerb = new audioModules.SchroederReverb();
+        // field recording
+        var environ = new instruments.WesEnviron();
+        environ.link(audioCore.out);
 
-        choir.link(choirVerb).link(audioCore.out);
         gMap.events.queue('map', 'zoom_changed', function() {
-            var dur = util.smudgeNumber(100, 50);
-            choir.attack.createEnvelope(dur);
-            choir.attack.execute();
-            var env_dur = choir.attack.envelope.duration;
-            window.setTimeout(function() {
-                choir.accent();  
-            },  env_dur * util.smudgeNumber(0.5, 20));
+            var zoom = gMap.map.getZoom(),
+                gain;
+            if (zoom >= 18) {
+                gain = 1;
+            } else if (zoom <= 3) {
+                gain = 0;
+            } else {
+                gain = 1 - (15 - zoom) * 0.067;
+            }
+            environ.outGain.gain.linearRampToValueAtTime(gain, audioCore.ctx.currentTime + 0.5);
         });
-       
-        ///////////
+
+        // organ ostinato
         var organ = new instruments.Organ(),
             organConvo = audioModules.Convolution('/static/assets/york-minster'+
                             featureDetectionMain.audioExt);
@@ -163,18 +138,48 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             organClock.bpm = 50 - (25 - zoom * 1.25);
             var gain = (function() {
                 if (zoom >= 18) {
-                    return 0.05;   
+                    return 0.02;   
                 } else {
                     return 0.45 + (18 - zoom) * 0.0306;
                 }
             }());
-                console.log(zoom, gain);
             organConvo.gain.gain.linearRampToValueAtTime(
                gain, audioCore.ctx.currentTime + 1
             );
         });
+        /**********************************************************/
 
+        
+        /*************** Adjunct Audio Behavior *******************/
+        /////////// choir stabs on zoom events
+        // TODO: when Sonorities are implemented, this will break
+        var choir_sonority = [
+            931.765564,
+            1100.557007,
+            1433.202026,
+            1879.656616,
+            1927.278442,
+            1951.355347,
+            2191.642578,
+            2684.844238,
+            2883.212891      
+        ]; 
+        var choir = new instruments.SubtractiveChoir(choir_sonority);
+        choir.gain.gain.value = 0.0;
 
+        var choirVerb = new audioModules.SchroederReverb();
+
+        choir.link(choirVerb).link(audioCore.out);
+        gMap.events.queue('map', 'zoom_changed', function() {
+            var dur = util.smudgeNumber(100, 50);
+            choir.attack.createEnvelope(dur);
+            choir.attack.execute();
+            var env_dur = choir.attack.envelope.duration;
+            window.setTimeout(function() {
+                choir.accent();  
+            },  env_dur * util.smudgeNumber(0.5, 20));
+        });
+       
         // drum rolls far out
         var drumClock = new rhythm.Clock(105.2);
         
@@ -245,6 +250,69 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             }
         });
        
+        // megaphone spectra beeps further out
+        var plusMinusCntr = util.smudgeNumber(10, 20) | 0,
+            plusMinus = true;
+       
+        var beepClock = new rhythm.Clock(80);
+
+        var beeps = new instruments.Beep();
+        beeps.link(choirVerb).link(audioCore.out);
+        beeps.oscBankGain.gain.value = 0;
+        beeps.start();
+
+        var bankRhythm = {
+            opt: {
+                loop: 2
+            },
+            targets: {
+                bank: beeps.oscBankAttack
+            },
+            seq: {
+                0: { subd: 0.33, val: {bank: true}, smudge: 2.5 },
+                1: { subd: 0.05, val: {bank: false}, smudge: 0.5 }
+            },
+            callbacks: function() {
+                var switched = false;
+                bankRhythm.opt.loop = (function() {
+                    var n = util.smudgeNumber(bankRhythm.opt.loop, 15) | 0;
+                    if (plusMinusCntr === 0) {
+                        plusMinus = !plusMinus;
+                        plusMinusCntr = util.smudgeNumber(10, 20) | 0;
+                        switched = true;
+                    }
+                    if (((plusMinus && n > bankRhythm.opt.loop) ||
+                          (!plusMinus && n < bankRhythm.opt.loop)) &&
+                         plusMinusCntr > 0) {
+                        plusMinusCntr--;
+                        return n;
+                    } else {
+                        return n + 2;
+                    }
+                }());
+                
+                var subd = switched ? util.smudgeNumber(1.2, 20) :
+                    util.smudgeNumber(0.4, 30);
+
+                bankRhythm.seq[0].subd = subd;
+
+                beeps.smudgeOscSonority(0);
+
+                bankRhythmGen.parseConfig(bankRhythm);
+                bankRhythmGen.execute();
+            }
+        }; 
+        var bankRhythmGen = new rhythm.Generator(beepClock, bankRhythm);
+        bankRhythmGen.execute();
+        beepClock.start();
+
+        gMap.events.queue('map', 'zoom_changed', function() {
+            var zoom = gMap.map.getZoom(),
+                gain = zoom <= 5 ? 
+                       zoom ? 0.45 / zoom : 0.45 : 0;
+            beeps.setGain(gain);
+        });
+
         //occasional noise bursts 
         var sqwk = new instruments.NoiseSquawk();
         sqwk.link(audioCore.out);
@@ -271,15 +339,9 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             }
         }, 1000); 
 
-        
-
 
         /**********************************************************/
         
-        // angular clusters
-        // closer zooms voice
-        // duck out on video play
-        // slow independently building musicalized texture swell
         this.init = function() {
             //environ.start();
             environClock.start();
