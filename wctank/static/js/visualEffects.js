@@ -121,7 +121,7 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
         
         var z = visualCore.webgl.setup(squares_front, SquaresShaders),
             a_vertex_buffer = z.gl.createBuffer(),
-            u_alpha = 0.1,
+            u_alpha = 0.01,
             a_id, a_position, u_time;
 
         // set up 

@@ -12,12 +12,14 @@ define(
         'gMap',
         'util',
         'jquery',
-        'featureDetectionMain'
+        'featureDetectionMain',
+        'envelopeCore',
+        'envelopeAsdr'
     ],
 
 function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments, 
          visualEffects, mutexVisualEffects, tableux, gMap, util, $, 
-         featureDetectionMain) { var scenes = {};
+         featureDetectionMain, envelopeCore, envelopeAsdr) { var scenes = {};
 
     scenes.NoMages = function() {
        
@@ -54,11 +56,11 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         gMap.events.queue('map', 'zoom_changed', function() {
             var zoom = gMap.map.getZoom();
             
-            var blur_thresh = 7,
-                blur_fact = blur_thresh - zoom;
+            var thresh = 9,
+                fact = thresh - zoom;
 
-            glow.animatedPostBlurDuration = blur_fact < 0 ? 0 : blur_fact * 100 + 900;
-            glow.animatedPostBlurRadius = blur_fact < 0 ? 0 : Math.log10(blur_fact) * 12;
+            glow.animatedPostBlurDuration = zoom > thresh ? 0 : fact * 100 + 900;
+            glow.animatedPostBlurRadius = zoom > thresh ? 0 : Math.log10(fact) * 12;
         });
 
         /**********************************************************/
@@ -400,7 +402,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             drum_id;
         gMap.events.queue('map', 'zoom_changed', function() {
             var zoom = gMap.map.getZoom();
-            if (!isDrumming && zoom <= 5) {
+            if (!isDrumming && zoom <= 14) {
                 isDrumming = true;
                 drum_id = window.setTimeout(function() {
                     bangGen.loop = true;
@@ -409,19 +411,19 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                     gainGen.execute();
                     drumClock.start();
                 }, util.smudgeNumber(1400, 10));
-            } else if (isDrumming && zoom >= 8) {
+            } else if (isDrumming && zoom >= 16) {
                 window.clearTimeout(drum_id);
                 isDrumming = false;
                 bangGen.loop = false;
                 gainGen.loop = false;
             }
         });
-       
-        // megaphone spectra beeps further out
+      
+         // megaphone spectra beeps further out
         var plusMinusCntr = util.smudgeNumber(10, 20) | 0,
             plusMinus = true;
 
-        var beepClock = new rhythm.Clock(80);
+        var beepClock = new rhythm.Clock(180);
 
         var beeps = new instruments.Beep();
         beeps.link(choirVerb).link(audioCore.out);
@@ -472,12 +474,98 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         var bankRhythmGen = new rhythm.Generator(beepClock, bankRhythm);
         bankRhythmGen.execute();
         beepClock.start();
-
+        
         gMap.events.queue('map', 'zoom_changed', function() {
             var zoom = gMap.map.getZoom(),
-                gain = zoom <= 5 ? 
-                       zoom ? 0.45 / zoom : 0.45 : 0;
-            beeps.setGain(gain);
+                beep_gain = zoom <= 4 ? 
+                            zoom ? 0.06 / zoom : 0.06 : 0;
+            beeps.setGain(beep_gain);
+        });
+
+
+        // tinnitus / altitude osc
+        var tinOsc = audioModules.Osc('sine', 13000, 1),
+            tinOscGain = audioNodes.Gain();
+
+        tinOsc.link(tinOscGain).link(audioCore.out);
+
+        tinOscGain.gain.value = 0;
+        tinOsc.start();
+
+        var tinAsdr = new envelopeAsdr.Generator({
+            a: {
+                dur: 10,
+                inter: {
+                    type: 'linear'
+                },
+                val: [1, 0,  0.01, 10,  0.5, 99]
+            },
+            s: {
+                dur: 1000,
+                val: 0.5
+            },
+            d: {
+                dur: 2000,
+                inter: {
+                    type: 'linear'
+                },
+                val: [0.5, 0,  0.05, 99]
+            },
+            r: {
+                dur: 200,
+                inter: {
+                    type: 'none'
+                },
+                val: [0.05, 0,  0, 99],
+
+            }
+        }); 
+
+        // TODO: should build in bake facilitated modifications into 
+        // ComponentEnvelope
+        var rndEnv = new envelopeCore.Envelope();
+        rndEnv.duration = 200;
+        rndEnv.interpolationType = 'none';
+        
+        for (var i = 0; i <= 10; i++) {
+            rndEnv.valueSequence.push(
+                new envelopeCore.EnvelopeValue(Math.random(), i * 10)
+            );
+        }
+
+        // TODO: come back to this! the release valueSequence assignment
+        // occasionally triggers a very rare error where the valueSequence 
+        // returned from bake is invalid according to the input valudation of
+        // envelopeAsdr.ComponentEnvelope, so, just as a patch,
+        // swallow the error and try again.
+        var assignVs = function() {
+            try {
+                tinAsdr.release.valueSequence = rndEnv.bake(tinAsdr.release, 100, 0.8)
+                                                    .valueSequence;
+            } catch(e) {
+                window.setTimeout(assignVs, 100);
+            }
+        };
+
+        var osc_was_zoomed = false,
+            osc_fading_out = false;
+
+        gMap.events.queue('map', 'zoom_changed', function() {
+            var zoom = gMap.map.getZoom();
+
+            if (zoom <= 7 && !osc_fading_out && !osc_was_zoomed) {
+                osc_was_zoomed = true;
+                tinOscGain.gain.value = 0.001;
+                envelopeCore.apply(tinOsc.gain.gain, tinAsdr.getAS(), 0);
+            } else if (zoom >= 7 && osc_was_zoomed) {
+                osc_was_zoomed = false;
+                tinOscGain.gain.setValueAtTime(0, audioCore.ctx.currentTime + 2);
+                envelopeCore.apply(tinOsc.gain.gain, tinAsdr.getDR(), 0);
+                osc_fading_out = true;
+                window.setTimeout(function() {
+                    osc_fading_out = true;
+                }, 2000);
+            }
         });
 
         //occasional noise bursts 

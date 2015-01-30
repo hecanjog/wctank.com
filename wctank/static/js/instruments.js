@@ -329,7 +329,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
             var freq = util.getRndItem(beep_sono),
                 type = util.getRndItem(audioUtil.oscTypes);
 
-            osc_bank.push(audioModules.Osc(type, freq, 0.12));
+            osc_bank.push(audioModules.Osc(type, freq * 1.33, 0.12));
             osc_bank[i].link(oscBankAttackGain).link(this.oscBankGain);
         }
         

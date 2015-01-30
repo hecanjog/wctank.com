@@ -124,8 +124,8 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
                 // interpolation may be "linear", "exponential", "none", or "stairstep"
                 // in the latter case, an interpolationArgs number can be provided to 
                 // define the number of steps 
-                if ( (val === "linear") || (val === "exponential") ||
-                    (val === "none") || (val === "stairstep") ) {
+                if (val === "linear" || val === "exponential" ||
+                    val === "none" || val === "stairstep") {
                     interpolationType = val;
                 } else {
                     throwEnvelopeException("interpolation must be 'linear', 'exponential', "+
