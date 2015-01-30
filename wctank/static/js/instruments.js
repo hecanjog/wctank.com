@@ -184,7 +184,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
         var outer = this;
 
         var max_voices = 10,
-            partials = 9,
+            partials = 10,
             q = 250;
 
         var atten = audioNodes.Gain();
@@ -193,7 +193,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
     
         this._link_alias_out = this.outGain;
 
-        var noise = audioModules.Noise(1, 7);
+        var noise = audioModules.Noise(1, 8);
         noise.start();
 
         var voices = [];

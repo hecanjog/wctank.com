@@ -56,6 +56,16 @@ define(
             }         
         });
     },
+    
+    // destructively enumerate obj 
+    enumerate: function(obj) {
+        var i = 0;
+        for (var prop in obj) {
+            if (obj.hasOwnProperty(prop)) {
+                obj[i++] = obj[prop];
+            }
+        }
+    },
 
     hasBit: function(x, y) {
         return ( (x & y) === y ) ? true : false;

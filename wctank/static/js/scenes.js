@@ -87,7 +87,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         var organ = new instruments.Organ(),
             organConvo = audioModules.Convolution('/static/assets/york-minster'+
                             featureDetectionMain.audioExt);
-        organConvo.wetDry(95);
+        organConvo.wetDry(100);
        
         organ.outGain.gain.value = 0.8;
         organConvo.gain.gain.value = 0.68;
@@ -97,13 +97,14 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         var organClock = new rhythm.Clock(50);
         organClock.smudgeFactor = 3;
         
-        var organRhythmParams = {
+        var ost_loop = 0;
+        var ostinatoParams = {
             opt: {
-                loop: true
+                loop: 1
             },
             targets: {
                 atk: organ.attackTarget,
-                freq: organ.pitchTarget
+                freq: organ.pitchTarget,
             },
             seq: {
                 0: {
@@ -127,12 +128,149 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                         freq: {voice: 2, frequency: 262}
                     }
                 }
+            },
+            callbacks: function() {
+                if (ost_loop++ === 10) {
+                    ostinatoParams.opt.loop = true;
+                    ostinatoRhythm.parseConfig(ostinatoParams);
+                    ostinatoRhythm.execute();
+                    tenorClock.start();
+                    tenorRhythm.execute();
+                }
+                ostinatoRhythm.parseConfig(ostinatoParams);
+                ostinatoRhythm.execute();
             }
         }; 
-        var organRhythm = new rhythm.Generator(organClock, organRhythmParams);
-        organRhythm.execute();
-        organClock.start();
+        var ostinatoRhythm = new rhythm.Generator(organClock, ostinatoParams);
         
+        var tonalCenterGesture = {
+            0: {
+                subd: 3.14159,
+                val: {
+                    atk: {voice: 3, isAttack: 'asdr', dur: {subd: 3.14159, clock: organClock}},
+                    freq: {voice: 3, frequency: 689}
+                }
+            },
+            1: {
+                subd: 0.875,
+                val: {
+                    atk: {voice: 3, isAttack: true, smudge: 75},
+                    freq: {voice: 3, frequency: 661}
+                }
+            }
+        };
+
+        var tenorParams = {
+            opt: {
+                loop: 1
+            },
+            targets: {
+                atk: organ.attackTarget,
+                freq: organ.pitchTarget
+            },
+            seq: {
+                0: Object.create(tonalCenterGesture[0]),
+                1: Object.create(tonalCenterGesture[1])
+            },
+            callbacks: function voice() {
+                var len = Object.keys(tenorParams.seq).length;
+                
+                tenorParams.seq[len] = {
+                    subd: Math.random() * 0.20,
+                    val: {
+                        atk: {voice: 3, isAttack: true, smudge: 10},
+                        freq: {voice: 3, 
+                               frequency: util.smudgeNumber(
+                                   tenorParams.seq[len - 1].val.freq.frequency, 10)}
+                    }
+                };
+                var max_length = 10;
+                if (len > max_length) {
+                    var i = (len - max_length + Math.random() * 5) | 0;
+                    while (i--) {
+                        delete tenorParams.seq[(Math.random() * max_length) | 0];
+                    }
+                    util.enumerate(tenorParams.seq);
+                } 
+
+                if (Math.random() < 0.5) {
+                    voice();
+                } else {    
+                    tenorRhythm.parseConfig(tenorParams);
+                    tenorRhythm.execute();
+                }
+                
+                if (len >= 20) {
+                    altoRhythm.execute();
+                }
+            }
+        };
+        var tenorClock = new rhythm.Clock(55),
+            tenorRhythm = new rhythm.Generator(tenorClock, tenorParams);
+
+        var alto_ct = 0;
+        var altoParams = {
+            opt: {
+                loop: 1
+            },
+            targets: {
+                atk: organ.attackTarget,
+                freq: organ.pitchTarget
+            },
+            seq: {
+                0: {
+                    subd: 8.123,
+                    val: {
+                        atk: {voice: 4, isAttack: true},
+                        freq: {voice: 4, frequency: 494}
+                    }
+                },
+                1: {
+                    subd: 8.123,
+                    val: {
+                        atk: {voice: 4, isAttack: true},
+                        freq: {voice: 4, frequency: 518}
+                    }
+                }
+
+            },
+            callbacks: function() {
+                var len = Object.keys(altoParams.seq).length;
+
+                var calcFreq = function() {
+                    var mode = [
+                        480,
+                        490,
+                        500,
+                        510,
+                        520 
+                    ];
+                    
+                    var freq = util.getRndItem(mode);
+                    if ((alto_ct++ % 3) === 0)
+                        freq += 0.2 * (alto_ct / 3);
+                    return freq;
+                };
+
+                // reorder sequence. 
+
+                altoParams.seq[len] = {
+                    subd: altoParams.seq[len - 1].subd,
+                    val: {
+                        atk: {voice: 4, isAttack: true, smudge: 20},
+                        freq: {voice: 4, frequency: calcFreq()}
+                    }
+                };
+                
+                altoRhythm.parseConfig(altoParams);
+                altoRhythm.execute();
+            }
+        };
+        var altoRhythm = new rhythm.Generator(tenorClock, altoParams);
+
+        ostinatoRhythm.execute();
+        organClock.start();
+
         gMap.events.queue('map', 'zoom_changed', function() {
             var zoom = gMap.map.getZoom();
             organClock.bpm = 50 - (25 - zoom * 1.25);
@@ -253,7 +391,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         // megaphone spectra beeps further out
         var plusMinusCntr = util.smudgeNumber(10, 20) | 0,
             plusMinus = true;
-       
+
         var beepClock = new rhythm.Clock(80);
 
         var beeps = new instruments.Beep();
