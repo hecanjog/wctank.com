@@ -111,7 +111,15 @@ function(div, $, gMap, loadingSVG) {
         "cancelable": true,
         "detail": status
     });
-    
+
+    // oh glory... c.f. the huge comment block below
+    var iframeMouseStatus = {status: null};
+    var overlayIframeMouse = new CustomEvent('overlay_iframe_mouse', {
+        "bubbles": false,
+        "cancelable": true,
+        "detail": iframeMouseStatus
+    });
+  
     //TODO: highlight new posts, timeout loading svg 
     var marker_clicked = false,
         width; // cache overlay width before removing content if the overlay is visible,
@@ -135,11 +143,11 @@ function(div, $, gMap, loadingSVG) {
         
         var $post = renderTemplate(post, $('#post-template'));
         div.$overlay.html($post).removeClass().addClass(post.type);
-
+         
         var $contents = div.$overlay.find("*"),
             waiting = true,
             $loading;
-       
+      
         if (!post.isTextPost) {
             div.$overlay.css("width", width);
             $contents.hide();
@@ -151,11 +159,29 @@ function(div, $, gMap, loadingSVG) {
                 div.$overlay.css("width", "auto");
                 $contents.fadeIn(trivial);
                 waiting = false;
+
+                // TODO: this is a REALLY dirty hack to decouple the volume controls 
+                // of vimeo videos in the overlay and any in the background. 
+                // a real solution will be to either stream the background video 
+                // from the server, or scrape the vimeo cdn urls and display in a 
+                // custom player. I have really no idea how the two iframes are
+                // communicating... they don't seem to be postmessaging anything,
+                // and although there HAS to be some global state somewhere, 
+                // I can't find it! ...yet?
+                var $iframe = $contents.find('iframe');
+                $iframe.mouseover(function() {
+                    iframeMouseStatus.status = 'mouseover';
+                    window.dispatchEvent(overlayIframeMouse);
+                });
+                $iframe.mouseout(function() {
+                    iframeMouseStatus.status = 'mouseout';
+                    window.dispatchEvent(overlayIframeMouse);
+                });
             });
         } else {
             $contents.fadeIn(trivial); // for now, just fade in if text ...or instagram
         }
-      
+
         status.visible = true;
         status.postType = post.type;        
         status.content = $post;

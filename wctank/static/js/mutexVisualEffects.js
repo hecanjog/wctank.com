@@ -210,20 +210,37 @@ function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
     
         var vid_id = "107871876",
             vimeo_player = document.createElement("iframe");
-        vimeo_player.setAttribute("id", "vimeo-player");
+        vimeo_player.setAttribute("id", "vimeo-background-player");
         vimeo_player.src = 
             "//player.vimeo.com/video/"+vid_id+
-            "?api=1&player_id=vimeo-player&autopause=0&loop=1";
+            "?api=1&player_id=vimeo-background-player&autopause=0&loop=1";
         caustic_glow_back.appendChild(vimeo_player);
          
         document.body.appendChild(caustic_glow_back);
 
-        var player = $f( $('#vimeo-player')[0] ),
-            player_ready = false;
+        var player = $f( $('#vimeo-background-player')[0] ),
+            player_ready = false,
+            mouse_interval_id;
+        
         player.addEvent('ready', function() {
             player_ready = true;
             player.api("setVolume", 0);
             player.api('pause');
+
+            // the second part of the nasty hack from posts.js
+            // this is, I think, the worst bit of code I've ever written.
+            // ... it only completely works about 50 - 60% of the time
+            // TODO: change this as soon as possible! (1/30)
+            // .. although, it's kinda neat in a deconstructive sort of way...
+            window.addEventListener('overlay_iframe_mouse', function(e) {
+                if (e.detail.status === 'mouseover') {
+                    mouse_interval_id = window.setInterval(function() {
+                        player.api('setVolume', 0);
+                    }, 1); // floors at ca. 8 - 14
+                } else if (e.detail.status === 'mouseout') {
+                    window.clearInterval(mouse_interval_id);
+                }
+            });
         });
 
         var blink_id = null;

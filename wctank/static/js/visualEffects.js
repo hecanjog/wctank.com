@@ -165,11 +165,18 @@ function(div, gMap, visualCore, AlphaStrutShaders, SquaresShaders, $) { var visu
             return cntr++ % colors.length;
         };
 
-        this.animate = function() {
+        var drawCycle = function() {
             z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
             z.gl.uniform1i(u_time, getClock());
             z.gl.uniform1f(u_alpha, alpha);
             z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices.length / 3);
+        };
+
+        this.animate = function() {
+            drawCycle();
+            // force unusual phase relationships between animation 
+            // and refresh rate of screen
+            window.setTimeout(drawCycle, 23);
         };
         
         this.teardown = function() {
