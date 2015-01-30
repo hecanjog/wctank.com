@@ -521,7 +521,6 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                     executeCallbacks();
                 };
 
-
                 if (was_loopin) done();
                 
                 /*

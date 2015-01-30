@@ -174,24 +174,53 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             },
             callbacks: function voice() {
                 var len = Object.keys(tenorParams.seq).length;
+
+                var freq = util.smudgeNumber(tenorParams.seq[len - 1]
+                                              .val.freq.frequency, 10);
                 
+                // nudge, but don't force voice to be 
+                // w/in limits
+                if (freq < 400) {
+                    freq += 10;
+                } else if (freq > 1200) {
+                    freq -= 10;
+                }
+
                 tenorParams.seq[len] = {
                     subd: Math.random() * 0.20,
                     val: {
                         atk: {voice: 3, isAttack: true, smudge: 10},
-                        freq: {voice: 3, 
-                               frequency: util.smudgeNumber(
-                                   tenorParams.seq[len - 1].val.freq.frequency, 10)}
+                        freq: {voice: 3, frequency: freq}
                     }
                 };
-                var max_length = 10;
-                if (len > max_length) {
-                    var i = (len - max_length + Math.random() * 5) | 0;
+               
+                // this looks weird but I'm incorporating a bug
+                // I wrote at one point involving a bad object enumeration 
+                // function because I like the way it sounds (the enumeration
+                // works fine now...). 
+                var filter_start_len = 10;
+                if (len > filter_start_len) {
+                    var i = (len - filter_start_len + Math.random() * len * 0.5) | 0;
                     while (i--) {
+                       delete tenorParams.seq[(Math.random() * filter_start_len) | 0];
+                    }
+                    var j = 0;
+                    for (var prop in tenorParams.seq) {
+                        if (tenorParams.seq.hasOwnProperty(prop)) {
+                            tenorParams.seq[j++] = tenorParams.seq[prop];
+                        }
+                    }
+                    tenorParams.seq = util.enumerate(tenorParams.seq);
+                } 
+
+                var max_length = 45;
+                if (len > max_length) {
+                    var k = (len - max_length + Math.random * len * 0.25) | 0;
+                    while (k--) {
                         delete tenorParams.seq[(Math.random() * max_length) | 0];
                     }
-                    util.enumerate(tenorParams.seq);
-                } 
+                    tenorParams.seq = util.enumerate(tenorParams.seq);
+                }
 
                 if (Math.random() < 0.5) {
                     voice();
@@ -252,12 +281,12 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                     return freq;
                 };
 
-                // reorder sequence. 
+                // TODO: reorder sequence. 
 
                 altoParams.seq[len] = {
                     subd: altoParams.seq[len - 1].subd,
                     val: {
-                        atk: {voice: 4, isAttack: true, smudge: 20},
+                        atk: {voice: 4, isAttack: true, smudge: 10},
                         freq: {voice: 4, frequency: calcFreq()}
                     }
                 };

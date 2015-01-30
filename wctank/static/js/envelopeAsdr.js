@@ -237,12 +237,13 @@ function(envelopeCore, util) { var asdr = {};
                     absS = generator.sustain.toAbsolute(dur),
                     absD = generator.decay.toAbsolute(),
                     absR = generator.release.toAbsolute();
-                
+               
                 as = envelopeCore.concat(absA, absS);
                 dr = envelopeCore.concat(absD, absR);
                 env = envelopeCore.concat(absA, absS, absD, absR);
                 priorDuration = dur;
                 changed = false;
+
             }
         }; 
         

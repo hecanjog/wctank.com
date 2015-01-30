@@ -59,12 +59,14 @@ define(
     
     // destructively enumerate obj 
     enumerate: function(obj) {
-        var i = 0;
+        var i = 0,
+            r = {};
         for (var prop in obj) {
             if (obj.hasOwnProperty(prop)) {
-                obj[i++] = obj[prop];
+                r[i++] = obj[prop];
             }
         }
+        return r;
     },
 
     hasBit: function(x, y) {
