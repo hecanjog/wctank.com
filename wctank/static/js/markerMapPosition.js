@@ -13,8 +13,7 @@ function(util, gMap) { var markerMapPosition = {};
     var overflow = 20,
         proj = null;
 
-
-    function MarkerData(googMarker) {
+    var MarkerData = function(googMarker) {
         this.marker = googMarker;
         this.type = googMarker.markerType;
        
@@ -29,7 +28,7 @@ function(util, gMap) { var markerMapPosition = {};
         this.update = function() {
             if (!proj) proj = gMap.pxOverlay.getProjection();
             var pnt = proj.fromLatLngToContainerPixel(this.worldPosition);
-
+            
             this.containerPosition =
                 ( pnt.x < -overflow || 
                   pnt.y < -overflow || 
@@ -41,26 +40,46 @@ function(util, gMap) { var markerMapPosition = {};
         this.update();
 
         this.getDrawingData = function() {
-            function DrawingData(hash, type, x, y) {
+            var DrawingData = function(hash, type, x, y) {
                 this.hash = hash;
                 this.type = type;
                 this.x = x;
                 this.y = y;
-            }
+            };
             return new DrawingData(this.hash, this.type, 
                         this.containerPosition.x, this.containerPosition.y);
         };
-    }
+    };
 
     markerMapPosition.push = function(googMarker) {
         var dat = new MarkerData(googMarker);
-        if ( !(dat.hash in markerMapPosition.markers) ) 
-            markerMapPosition.markers[dat.hash] = dat;
+        markerMapPosition.markers[dat.hash] = dat;
     };
 
+    markerMapPosition.markerExists = function(lat, lng) {
+        for (var m in markerMapPosition.markers) {
+            if (markerMapPosition.markers.hasOwnProperty(m)) {
+                var mark = markerMapPosition.markers[m].worldPosition,
+                    err = 0.0000001;
+                if (mark.lat() > lat - err && mark.lat() < lat + err &&
+                        mark.lng() > lng - err && mark.lng() < lng + err) {
+                    return true;
+                }            
+            }
+        }
+        return false;
+    };
+
+    var r = [];
+    
     markerMapPosition.getCurrentState = function() {
-        var r = [];
-        markerMapPosition.livingKeys = [];
+        while (r.length > 0) {
+            r.pop();
+        }
+        while (markerMapPosition.livingKeys.length > 0) {
+            markerMapPosition.livingKeys.pop();
+        }
+        
         var markers = markerMapPosition.markers;
         for (var m in markers) {
             if (markers.hasOwnProperty(m)) {

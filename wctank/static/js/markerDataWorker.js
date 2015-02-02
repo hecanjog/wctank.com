@@ -95,10 +95,19 @@ var pushNewMarkerData = function(MarkerData, targetArr) {
     }
 };
 
+var r = [];
+
 // message passing
 onmessage = function(e) {
-    var r = [],
-        dat = e.data,
+    while (r.length > 0) {
+        r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+        r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+        r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+        r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+        r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+    };
+
+    var dat = e.data,
         override;
 
     override = dat.pop();
@@ -129,9 +138,8 @@ onmessage = function(e) {
         dat.forEach(function(v) {
             pushNewMarkerData(v, r);
         });
+        postMessage(r);
     } else {
-        r = false;
+        postMessage(false);
     }
-    
-    postMessage(r);
 };

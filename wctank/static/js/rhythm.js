@@ -466,8 +466,50 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
 
         
         var clock_fns = [],
-            cancelables = [],
             reinit_id = "I went to Santee once. Someone I knew milked a goat.";
+        
+        /*
+         * Manage expiration of cancelables
+         * by regularly sweeping and ping-ponging 
+         * ... originally, this was set up so that each cancelable was provided
+         * a ref to the array in which they were stored, and each would splice
+         * itself out when it expired, but it was super hard to plug a memory
+         * leak that resulted, so, this is a more manual approach, I suppose.
+         */
+        var cancelables = {
+            active: 0,
+            0: [],
+            1: []
+        };
+        
+        var updateCancelables = function() {
+            var active = cancelables.active,
+                other = (cancelables.active + 1) % 2;
+            for (var i = 0; i < cancelables[active].length; i++) {
+                if (cancelables[active].fresh) {
+                    cancelables[other].push(cancelables[active]);
+                }
+            }
+            while (cancelables[active].length > 0) {
+                cancelables[active].pop();
+                cancelables[active].pop();
+                cancelables[active].pop();
+                cancelables[active].pop();
+                cancelables[active].pop();
+            }
+            cancelables.active = other;
+        };
+        window.setInterval(updateCancelables, 1000);
+
+        var pushToCancelables = function(item) {
+            cancelables[cancelables.active].push(item);
+        };
+        var triggerCancelables = function() {
+            var active = cancelables[cancelables.active];
+            for (var i = 0; i < active.length; i++) {
+                active[i].cancel();
+            }
+        };
 
         this.execute = function() {
             var bootstrap_count = 0,
@@ -491,8 +533,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                                             q[s].time + off
                                         );
                                     
-                                        cancelables.push(cncl);
-                                        cncl.prep(cancelables);
+                                        pushToCancelables(cncl);
                                     }());
                                 }
                             }
@@ -559,9 +600,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                 clk.rm(v);
             });
             floatingLoopReinitializer.rm(reinit_id);
-            cancelables.forEach(function(v, idx) {
-                v.cancel();
-            });
+            triggerCancelables();
         }; 
       
         var outer = this; 

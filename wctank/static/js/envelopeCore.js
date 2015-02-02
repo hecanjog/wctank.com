@@ -407,42 +407,40 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
     };
 
     var Cancelable = function(t, expiration) {
-        var storage_ref;
-        if (t instanceof TWEEN.Tween) {
+        var targ = t,
+            expiry = expiration;
+
+        if (targ instanceof TWEEN.Tween) {
             this.cancel = function() {
-                t.stop();
-                t = null; //TODO: ?
+                targ.stop();
+                targ = null; //TODO: ?
                 audioUtil.tween.stopTweens();
+                spoil();
             };
-        } else if (t instanceof AudioParam) {
+        } else if (targ instanceof AudioParam) {
             this.cancel = function() {
-                t.cancelScheduledValues(audioCore.ctx.currentTime);
+                targ.cancelScheduledValues(audioCore.ctx.currentTime);
+                spoil();
             };
-        } else if (Array.isArray(t)) {
+        } else if (Array.isArray(targ)) {
             this.cancel = function() {
-                t.forEach(function(v) {
+                targ.forEach(function(v) {
                     window.clearTimeout(v);
                 });
+                spoil();
             };
         } 
-          
-        this.prep = function(arr) {
-            storage_ref = arr;
-        };
         
-        this.fresh = true;
-        
+        this.fresh = 1;
+
+        var outer = this;     
         var spoil = function() {
-            if (storage_ref) {
-                var idx = storage_ref.indexOf(this);
-                storage_ref.splice(idx, 1); 
-            } else {
-                this.fresh = false;
-                this.cancel = function() {};
-            }
+            outer.fresh = 0;
+            outer.cancel = function() {};
+            targ = null;
         };
         
-        window.setTimeout(spoil, expiration);
+        window.setTimeout(spoil, expiry);
     };
 
     envelopeCore.apply = function(target, envelope, offset) {

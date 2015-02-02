@@ -36,8 +36,8 @@ function(markerMapPosition) { var markerData = {};
     var markerDataWorker = new Worker("/static/js/markerDataWorker.js");
 
     markerData.makeData = function(override, callback) {
-        var state = markerMapPosition.getCurrentState();
-        var ovr = override ? override : false;
+        var state = markerMapPosition.getCurrentState(),
+            ovr = override ? override : false;
         state.push(markerData.NUMBER_OF_PARTICLES);
         state.push(ovr);
         markerDataWorker.postMessage(state); 
