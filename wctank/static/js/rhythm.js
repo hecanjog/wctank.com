@@ -311,11 +311,12 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
         Object.defineProperty(this, 'targets', {
             get: function() { return targ; },
             set: function(targets) {
-                var r = {};
+                targ = null;
+                targ = {};
 
                 var checkTarget = function(toOperate, name) {
                     if (toOperate instanceof instrumentCore.ParameterizedAction) {
-                        r[name] = toOperate;
+                        targ[name] = toOperate;
                     } else if (typeof toOperate === 'function') {
                         // a little help so you can just pass rhythm gen arbitrary 
                         // functions to call; if passing any particular values to 
@@ -326,7 +327,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                         env.interpolationType = 'none';
                         env.valueSequence.push(new envelopeCore.EnvelopeValue(0, 0));
                         action.envelope = env.toAbsolute();
-                        r[name] = action;
+                        targ[name] = action;
                     } else if ('actionTarget' in toOperate) {
                         checkTarget(toOperate.actionTarget, name);
                     } else {
@@ -343,7 +344,6 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                     }
                 } 
 
-                targ = r;
                 util.objectLength.call(targ);
             }
         });
@@ -385,12 +385,24 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
             prior_time = 0;
          
         var resolveRhythmicSequence = function() {
+            q = null;
+            q = {};
+            
             var i = 0;
             var subd2time = function(subd) {
                 return (60 / clk.bpm) * 1000 * subd;
             };
-           
-            q = {};
+            var intermediateTargetValues = function(time, values) {
+                this.time = time;
+                this.values = values;
+            };
+          
+            for (var prop in q) {
+                if (q.hasOwnProperty(prop)) {
+                    delete q[prop];
+                }
+            }
+
             prior_time = 0;
 
             for (var step in rseq) {
@@ -399,7 +411,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                         prior_time = subd2time(rseq[step].subd);
                     } else {
                         (function() {
-                            var values = {},
+                            var values = {}, // mem is leaking here.
                                 smudge = rseq[step].smudge,
                                 repeats = rseq[step].rep ? rseq[step].rep : 1;
                            
@@ -419,9 +431,10 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                                     values = null; 
                                 }
                                 
-                                q[i++] = {time: time, values: values};
+                                q[i++] = new intermediateTargetValues(time, values); // dont use a generic object here
                                 time = prior_time = time + subd2time(rseq[step].subd);
                             }
+                            values = null;
                         }());
                     }
                 }
@@ -459,6 +472,8 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
 
             if ('callbacks' in c) this.callbacks = c.callbacks;
 
+            q = null;
+            q = {};
             this.rhythmicSequence = c.seq || c.sequence;
             resolveRhythmicSequence();
         };
@@ -525,16 +540,14 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                         if (q.hasOwnProperty(s)) {
                             for (var t in q[s].values) {
                                 if (q[s].values.hasOwnProperty(t)) {
-                                    (function() {
-                                        var cncl = envelopeCore.apply(
+                                    pushToCancelables(
+                                        envelopeCore.apply(
                                             targ[t].target,
                                             q[s].values[t] ? 
                                                 q[s].values[t] : targ[t].envelope,
                                             q[s].time + off
-                                        );
-                                    
-                                        pushToCancelables(cncl);
-                                    }());
+                                        )
+                                    );
                                 }
                             }
                         }

@@ -206,9 +206,9 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
 
         values.reduce(function(previous, current) {
             for (var l = 0; l < modValues.length; l++) {
-                if ( (modValues[l].time >= previous.time) &&
-                    (modValues[l].time <= current.time) &&
-                    (modValues[l].time !== last_val.time) ) { 
+                if (modValues[l].time >= previous.time &&
+                    modValues[l].time <= current.time &&
+                    modValues[l].time !== last_val.time) { 
                     var inter = envelopeCore.interpolation.linearRefraction(
                         previous, current, modValues[l], refractMag
                     );
@@ -412,34 +412,43 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
 
         if (targ instanceof TWEEN.Tween) {
             this.cancel = function() {
-                targ.stop();
-                targ = null; //TODO: ?
-                audioUtil.tween.stopTweens();
-                spoil();
+                if (targ) {
+                    targ.stop();
+                    targ = null; //TODO: ?
+                    audioUtil.tween.stopTweens();
+                    spoil();
+                }
             };
         } else if (targ instanceof AudioParam) {
             this.cancel = function() {
-                targ.cancelScheduledValues(audioCore.ctx.currentTime);
-                spoil();
+                if (targ) {
+                    targ.cancelScheduledValues(audioCore.ctx.currentTime);
+                    spoil();
+                }
             };
         } else if (Array.isArray(targ)) {
             this.cancel = function() {
-                targ.forEach(function(v) {
-                    window.clearTimeout(v);
-                });
-                spoil();
+                if (targ) {
+                    targ.forEach(function(v) {
+                        window.clearTimeout(v);
+                    });
+                    spoil();
+                }
             };
         } 
         
-        this.fresh = 1;
-
-        var outer = this;     
+        var fresh = 1;
+        Object.defineProperty(this, 'fresh', {
+            get: function() { return fresh; },
+            set: function(v) { fresh = v; }
+        });
+        
         var spoil = function() {
-            outer.fresh = 0;
-            outer.cancel = function() {};
+            this.fresh = 0;
+            this.cancel = function() {};
             targ = null;
         };
-        
+
         window.setTimeout(spoil, expiry);
     };
 
