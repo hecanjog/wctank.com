@@ -58,6 +58,7 @@ uniform sampler2D u_video;
 uniform sampler2D u_random;
 uniform sampler2D u_cloud;
 uniform int u_beNoise;
+uniform int u_beColoredNoise;
 
 varying float v_clock;
 varying float v_hash;
@@ -105,6 +106,16 @@ void main()
             color = vec4(0, 0, 0, 1);
         } else {
             color = vec4(0.2, 0.2, 0.2, 1);
+            if (u_beColoredNoise == 1) {
+                vec2 zero = vec2(0.0, 0.0);
+                if (n < 0.66) {
+                    color.xy = zero;
+                } else if (n > 0.66 && n < 0.866) {
+                    color.yz = zero;
+                } else {
+                    color.xz = zero;
+                }
+            }
         }
     }
 

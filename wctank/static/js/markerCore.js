@@ -31,7 +31,8 @@ function(util, markerMapPosition, markerData, visualCore,
     
     var buffer = z.gl.createBuffer(),
         clock = 0,
-        beNoise = 0;
+        beNoise = 0,
+        beColoredNoise = 0;
    
     z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
 
@@ -109,6 +110,7 @@ function(util, markerMapPosition, markerData, visualCore,
         u_clock = z.gl.getUniformLocation(z.program, 'u_clock'),
         u_translate = z.gl.getUniformLocation(z.program, 'u_translate'),
         u_beNoise = z.gl.getUniformLocation(z.program, 'u_beNoise');
+        u_beColoredNoise = z.gl.getUniformLocation(z.program, 'u_beColoredNoise');
 
     var start = {x: 0, y: 0},
         delta = {x: 0, y: 0};
@@ -183,16 +185,47 @@ function(util, markerMapPosition, markerData, visualCore,
         z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
         z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(data), z.gl.DYNAMIC_DRAW);
     };
-    
+   
+    var markerPositionFailsafe = function() {
+        var pos = queryMarkerPosition();
+        if (pos) {
+            var mark_x = delta.x + start.x,
+                mark_y = delta.y + start.y;
+
+            var err = 1.75;
+            if (pos.x > mark_x + err || pos.x < mark_x - err ||
+                    pos.y > mark_y + err || pos.y < mark_y - err) {
+                markerCore.forceDataUpdate();
+                return true;
+            } else {
+                return false;
+            }
+        }
+    };
+
     gMap.events.queue('map', 'dragstart', function() {
         render.queue(updateDelta);
         render.queue(markerCore.tryDataUpdate);
     });
+
     gMap.events.queue('map', 'dragend', function() {
+        for (var i = 200; i <= 1200; i += 100) {
+            window.setTimeout(markerPositionFailsafe, i);
+        }
+       
+        for (var j = 1300; i <= 2000; i += 100) {
+            window.setTimeout(function() {
+                if (markerPositionFailsafe()) {
+                    markerCore.beNoise(true, true);
+                    window.setTimeout(markerCore.beNoise, util.smudgeNumber(50, 20));
+                }
+            }, i);
+        }
+         
         window.setTimeout(function() {
             render.rm(updateDelta);
             render.rm(markerCore.tryDataUpdate);
-        }, 1200); 
+        }, 500); 
     });
 
     // only call update data when histories are different
@@ -216,8 +249,9 @@ function(util, markerMapPosition, markerData, visualCore,
         canv.style.visibility = bool ? 'visible' : 'hidden'; 
     };
 
-    markerCore.beNoise = function(bool) {
-        beNoise = bool;    
+    markerCore.beNoise = function(bool, isColored) {
+        beNoise = bool;
+        beColoredNoise = isColored;
     };
 
     document.addEventListener('post_overlay', function(e) {
