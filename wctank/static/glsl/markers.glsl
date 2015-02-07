@@ -106,15 +106,14 @@ void main()
             color = vec4(0, 0, 0, 1);
         } else {
             color = vec4(0.2, 0.2, 0.2, 1);
-            if (u_beColoredNoise == 1) {
-                vec2 zero = vec2(0.0, 0.0);
-                if (n < 0.66) {
-                    color.xy = zero;
-                } else if (n > 0.66 && n < 0.866) {
-                    color.yz = zero;
-                } else {
-                    color.xz = zero;
-                }
+        }
+        if (u_beColoredNoise == 1) {
+            if (n < 0.33) {
+                color = vec4(1.0, 0.0, 0.0, 1);
+            } else if (n > 0.33 && n < 0.66) {
+                color = vec4(0.0, 1.0, 0.0, 1);
+            } else {
+                color = vec4(0.0, 0.0, 1.0, 1);
             }
         }
     }

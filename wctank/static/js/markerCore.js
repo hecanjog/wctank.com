@@ -174,6 +174,7 @@ function(util, markerMapPosition, markerData, visualCore,
         z.gl.uniform2f(u_translate, delta.x, delta.y);
         z.gl.uniform1i(u_clock, clock++);
         z.gl.uniform1i(u_beNoise, beNoise);
+        z.gl.uniform1i(u_beColoredNoise, beColoredNoise);
         z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices); 
     };
     
@@ -217,7 +218,7 @@ function(util, markerMapPosition, markerData, visualCore,
             window.setTimeout(function() {
                 if (markerPositionFailsafe()) {
                     markerCore.beNoise(true, true);
-                    window.setTimeout(markerCore.beNoise, util.smudgeNumber(50, 20));
+                    window.setTimeout(markerCore.beNoise, util.smudgeNumber(30, 20));
                 }
             }, i);
         }
