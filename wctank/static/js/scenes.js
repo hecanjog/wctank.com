@@ -292,7 +292,16 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                         freq: {voice: 4, frequency: calcFreq()}
                     }
                 };
-                
+
+                var max_length = 40;
+                if (len > max_length) {
+                    var i = len - max_length;
+                    while (i--) {
+                        delete altoParams.seq[0];
+                        altoParams.seq = util.enumerate(altoParams.seq);
+                    }
+                }
+
                 altoRhythm.parseConfig(altoParams);
                 altoRhythm.execute();
             }
