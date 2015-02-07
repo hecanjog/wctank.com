@@ -214,10 +214,10 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                     }
                     tenorParams.seq = util.enumerate(tenorParams.seq);
                 } 
-
-                var max_length = 45;
+                
+                var max_length = util.smudgeNumber(90, 15) | 0;
                 if (len > max_length) {
-                    var k = (len - max_length + Math.random * len * 0.25) | 0;
+                    var k = (len + (Math.random() * len * 0.25) - max_length) | 0;
                     while (k--) {
                         delete tenorParams.seq[(Math.random() * max_length) | 0];
                     }

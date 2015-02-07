@@ -377,6 +377,7 @@ function(util, instrumentCore, envelopeCore) { var rhythm = {};
                         }
                     }
                 }
+                rseq = null;
                 rseq = s;
             }
         });
