@@ -108,7 +108,7 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
             configurable: true,
             get: function() { return duration; },
             set: function(val) {
-                if ( (val >= 0) || (val === null) ) {
+                if (val >= 0 || val === null) {
                     duration = val;
                 } else {
                     throwEnvelopeException("duration must be a number >= 0 or null not "+val);
