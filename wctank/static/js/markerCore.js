@@ -177,14 +177,24 @@ function(util, markerMapPosition, markerData, visualCore,
         z.gl.uniform1i(u_beColoredNoise, beColoredNoise);
         z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices); 
     };
-    
+   
+    var data32Arr;
+    var getDataArray = function(data) {
+        if (!data32Arr || data.length > data32Arr.length) {
+            data32Arr = new Float32Array(data); 
+        } else if (data.length <= data32Arr.length) {
+            data32Arr.set(data);
+        } 
+        return data32Arr;
+    }; 
+
     var glDataUpdate = function(data) {
         zeroPositions();
         updateStart();
 
         vertices = data.length / markerData.BLOCK_ITEMS;
         z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
-        z.gl.bufferData(z.gl.ARRAY_BUFFER, new Float32Array(data), z.gl.DYNAMIC_DRAW);
+        z.gl.bufferData(z.gl.ARRAY_BUFFER, getDataArray(data), z.gl.DYNAMIC_DRAW);
     };
    
     var markerPositionFailsafe = function() {

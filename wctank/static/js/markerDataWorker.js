@@ -95,17 +95,21 @@ var pushNewMarkerData = function(MarkerData, targetArr) {
     }
 };
 
-var r = [];
-
-// message passing
-onmessage = function(e) {
+var emptyArray = function(r) {
     while (r.length > 0) {
         r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
         r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
         r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
         r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
         r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
-    };
+    }
+};
+
+var r = [];
+
+// message passing
+onmessage = function(e) {
+    emptyArray(r);
 
     var dat = e.data,
         override;
@@ -117,7 +121,7 @@ onmessage = function(e) {
     last_length = vertices;
     vertices = dat.length * 12; //?
 
-    living = [];
+    emptyArray(living);
     var same = true;
 
     dat.forEach(function(v) {
@@ -129,7 +133,8 @@ onmessage = function(e) {
     if (living.length !== last_alive.length) {
         same = false;
     }
-    last_alive = [];
+    
+    emptyArray(last_alive);
     living.forEach(function(v) {
         last_alive.push(v);
     });

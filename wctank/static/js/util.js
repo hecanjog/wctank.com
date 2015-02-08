@@ -92,7 +92,18 @@ define(
             return set[ rndItem(keys) ];
         }
     },
-
+    
+    // this optimization is only worth it in extreme circumstances
+    emptyArray: function(r) {
+        while (r.length > 0) {
+            r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+            r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+            r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+            r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+            r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();r.pop();
+        }
+    },
+    
     shuffleArray: function(arr) {
          
     },
