@@ -66,8 +66,6 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         /**********************************************************/
 
         /********************* Audio Environ **********************/
-        var environClock = new rhythm.Clock(30);
-
         // field recording
         var environ = new instruments.WesEnviron();
         environ.link(audioCore.out);
@@ -605,13 +603,21 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         };
         var voxId = window.setInterval(speak, 1000); 
 
-
+        ////// WWAPI may glitch after about 5 - 7 min, so before then, we need to
+        // seriously reduce cpu usage, so slice bpms and try to musicalize it.
+        // need to introduce other changes alongside bpm that will accentuate the change
+        window.setTimeout(function() { 
+            window.setInterval(function() {
+                var min = 0.2;
+                organClock.bpm = organClock.bpm * (Math.random() * 0.65 + min); 
+                tenorClock.bpm = tenorClock.bpm * (Math.random() * 0.4 + min);    
+                drumClock.bpm = drumClock.bpm * (Math.random() * 0.9 + min);
+                beepClock.bpm = beepClock.bpm * (Math.random() * 1.5 + min);
+            }, util.smudgeNumber(100000, 10)); 
+        }, 180000);
         /**********************************************************/
         
         this.init = function() {
-            //environ.start();
-            environClock.start();
-            //bankRhythmGen.execute();
             tab.select(glow);
             choir.start();
             glow.apply();
