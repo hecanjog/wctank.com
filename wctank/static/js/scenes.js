@@ -215,7 +215,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                     tenorParams.seq = util.enumerate(tenorParams.seq);
                 } 
                 
-                var max_length = util.smudgeNumber(90, 15) | 0;
+                var max_length = util.smudgeNumber(80, 15) | 0; //!!!!!!!
                 if (len > max_length) {
                     var k = (len + (Math.random() * len * 0.25) - max_length) | 0;
                     while (k--) {
@@ -293,7 +293,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                     }
                 };
 
-                var max_length = 40;
+                var max_length = 20; // !!!!!!
                 if (len > max_length) {
                     var i = len - max_length;
                     while (i--) {
