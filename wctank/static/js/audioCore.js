@@ -29,8 +29,6 @@ function(audioUtil, TWEEN, $) {
      * @constructor
      */
     audioCore.AudioModule = function() {
-        var outer = this;     
-        
         /** 
          * An AudioModule that is not also a Web Audio API AudioNode and does not
          * inherit from AudioModule as a mixin should override _link_alias_in with
@@ -113,13 +111,6 @@ function(audioUtil, TWEEN, $) {
                 throwLinkException("Input node is not defined");
             }
         };
-        //TODO: proper delink function that can disconnect 
-        //individual connections between modules
-        
-        /*
-        this.delink = function(target, output, input) {
-            outer.link(target, output, input, true);
-        };*/
     };
 
     /** 

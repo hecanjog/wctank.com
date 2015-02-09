@@ -178,14 +178,18 @@ function(util, markerMapPosition, markerData, visualCore,
         z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices); 
     };
    
-    var data32Arr;
+    var data32Arr,
+        blank = new Float32Array([0]);
     var getDataArray = function(data) {
         if (!data32Arr || data.length > data32Arr.length) {
             data32Arr = new Float32Array(data); 
-        } else if (data.length <= data32Arr.length) {
+            return data32Arr;
+        } else if (data.length > 0 && data.length <= data32Arr.length) {
             data32Arr.set(data);
+            return data32Arr.subarray(0, data.length);
+        } else {
+            return blank;
         } 
-        return data32Arr;
     }; 
 
     var glDataUpdate = function(data) {

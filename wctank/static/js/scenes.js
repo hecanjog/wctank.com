@@ -238,6 +238,14 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             tenorRhythm = new rhythm.Generator(tenorClock, tenorParams);
 
         var alto_ct = 0;
+        var alto_mode = [
+            480,
+            490,
+            500,
+            510,
+            520 
+        ];
+
         var altoParams = {
             opt: {
                 loop: 1
@@ -267,15 +275,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                 var len = Object.keys(altoParams.seq).length;
 
                 var calcFreq = function() {
-                    var mode = [
-                        480,
-                        490,
-                        500,
-                        510,
-                        520 
-                    ];
-                    
-                    var freq = util.getRndItem(mode);
+                    var freq = util.getRndItem(alto_mode);
                     if ((alto_ct++ % 3) === 0)
                         freq += 0.2 * (alto_ct / 3);
                     return freq;
@@ -606,15 +606,30 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         ////// WWAPI may glitch after about 5 - 7 min, so before then, we need to
         // seriously reduce cpu usage, so slice bpms and try to musicalize it.
         // need to introduce other changes alongside bpm that will accentuate the change
+        var paused;
         window.setTimeout(function() { 
             window.setInterval(function() {
-                var min = 0.2;
+                var min = 0.1;
+                
                 organClock.bpm = organClock.bpm * (Math.random() * 0.65 + min); 
                 tenorClock.bpm = tenorClock.bpm * (Math.random() * 0.4 + min);    
                 drumClock.bpm = drumClock.bpm * (Math.random() * 0.9 + min);
                 beepClock.bpm = beepClock.bpm * (Math.random() * 1.5 + min);
-            }, util.smudgeNumber(100000, 10)); 
-        }, 180000);
+                
+                var clocks = [organClock, tenorClock, drumClock, beepClock];
+                
+                if (paused) paused.start();
+
+                paused = util.getRndItem(clocks);
+                paused.pause();
+
+                if (Math.random() < 0.1) {
+                    tenorClock.bpm = tenorClock.bpm * 3;
+                    // quick ritardando
+                }
+
+            }, util.smudgeNumber(60000, 10)); 
+        }, 120000);
         /**********************************************************/
         
         this.init = function() {
