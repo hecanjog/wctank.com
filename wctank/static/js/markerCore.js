@@ -224,11 +224,11 @@ function(util, markerMapPosition, markerData, visualCore,
     });
 
     gMap.events.queue('map', 'dragend', function() {
-        for (var i = 100; i <= 800; i += 100) {
+        for (var i = 100; i <= 400; i += 100) {
             window.setTimeout(markerPositionFailsafe, i);
         }
        
-        for (var j = 900; i <= 2000; i += 100) {
+        for (var j = 500; i <= 2000; i += 100) {
             window.setTimeout(function() {
                 if (markerPositionFailsafe()) {
                     markerCore.beNoise(true, true);
