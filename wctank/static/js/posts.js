@@ -167,7 +167,7 @@ function(div, $, gMap, loadingSVG) {
                 // custom player. I have really no idea how the two iframes are
                 // communicating... they don't seem to be postmessaging anything,
                 // and although there HAS to be some global state somewhere, 
-                // I can't find it! ...yet?
+                // I can't find it yet!
                 var $iframe = $contents.find('iframe');
                 $iframe.mouseover(function() {
                     iframeMouseStatus.status = 'mouseover';

@@ -583,5 +583,5 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
         };
     };
     audioModules.SubtractiveSynthesis.prototype = new audioCore.AudioModule();
-window.sub = audioModules.SubtractiveSynthesis();
+
 return audioModules; });

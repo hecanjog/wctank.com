@@ -10,11 +10,11 @@ function(render) { var visualCore = {};
         setup: function(canvas, shaders, fullscreenVertices, DEBUG) {
             var r = {};
             var getShaderLog = function(gl_shader_obj) {
-                if ( !gl.getShaderParameter(gl_shader_obj, gl.COMPILE_STATUS) ) 
+                if (!gl.getShaderParameter(gl_shader_obj, gl.COMPILE_STATUS)) 
                     console.log( gl.getShaderInfoLog(gl_shader_obj) );
             };
             var getProgramLog = function(gl_program_obj) {
-                if ( !gl.getProgramParameter(gl_program_obj, gl.LINK_STATUS) )
+                if (!gl.getProgramParameter(gl_program_obj, gl.LINK_STATUS))
                     console.log( gl.getProgramInfoLog(gl_program_obj) );
             };
             var gl = (function() {
@@ -52,8 +52,7 @@ function(render) { var visualCore = {};
                 r.program = prgm;
 
                 // draw two big triangles - available under attribute 'position'
-                // TODO: perhaps make available with a switch as it throws console 
-                // warnings if the position attribute is not used
+                // with fillscreenVertices switch
                 if (fullscreenVertices) {
                     var buffer = gl.createBuffer();
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -89,7 +88,7 @@ function(render) { var visualCore = {};
                 hooks = [],
                 r_op;
 
-            if ( Array.isArray(hookObjArr) ) {
+            if (Array.isArray(hookObjArr)) {
                 hookObjArr.forEach(function(hookObj) {
                     if (hookObj.address <= 3) {
                         hooks[hookObj.address] = hookObj.fn;
@@ -118,7 +117,7 @@ function(render) { var visualCore = {};
 
             for (var i = 0; i < 4; i++) {
                 if (typeof hooks[i] === 'function') hooks[i]();
-                if ( outer[ ops[i] ] ) callFunct(ops[i]);
+                if (outer[ops[i]]) callFunct(ops[i]);
             }
         };
     };

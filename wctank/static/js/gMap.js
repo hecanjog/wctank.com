@@ -32,13 +32,13 @@ function(posts, util, $) { gMap = {};
         
         // adds events before or after gMap is ready.
         events.queue = function(loc, event, fn, once) {
-            if ( (events_added && (loc === "marker")) || !events_added ) {
+            if ((events_added && loc === "marker") || !events_added ) {
                 var evObj = function(once, fn) {
                     this.once = once;
                     this.fn = fn;
                 };
                 var add1 = once ? once : false;
-                if ( event_groups[loc].hasOwnProperty(event) ) {
+                if (event_groups[loc].hasOwnProperty(event)) {
                     var len = Object.keys(event_groups[loc][event]).length;
                     event_groups[loc][event][len] = new evObj(add1, fn); 
                 } else {
@@ -81,7 +81,7 @@ function(posts, util, $) { gMap = {};
             }());
 
             for (var evnt in ev_set) { 
-                if ( ev_set.hasOwnProperty(evnt) ) {
+                if (ev_set.hasOwnProperty(evnt)) {
                     util.objectLength.call(ev_set[evnt]);
                     (function() { 
                         var persist = [];
