@@ -168,7 +168,7 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
             throwBakeException("MODENV must be an instance of envelopeCore.Envelope");
         }
 
-        if ( !((modDurPercent > 0) && (modDurPercent <= 100)) ) {
+        if (!(modDurPercent > 0 && modDurPercent <= 100)) {
             throwBakeException("MODDURPERCENT must be a NUMBER greater than 0 and "+
                                "less than or equal to 100, not" + modDurPercent);
         }

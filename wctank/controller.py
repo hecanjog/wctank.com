@@ -37,14 +37,15 @@ def getposts(swk, swa, nek, nea):
 
     return ' '.join(['[', ','.join(posts), ']'])
 
-# mostly some copypasto from: 
-# http://blog.asgaard.co.uk/2012/08/03/http-206-partial-content-for-flask-python
-# to support HTTP 206
 @app.after_request
 def after_request(response):
     response.headers.add('Accept-Ranges', 'bytes')
+    response.headers.add('Cache-Control', 'public, max-age=0')
     return response
 
+# mostly some copypasto from: 
+# http://blog.asgaard.co.uk/2012/08/03/http-206-partial-content-for-flask-python
+# to support HTTP 206
 @app.route('/streaming/<fileName>')
 def send_file_partial(fileName):
     path = os.path.expanduser("~/wctank.com/wctank/static/assets/" + fileName)
