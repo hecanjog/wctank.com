@@ -75,11 +75,6 @@ function(div, $, gMap, loadingSVG) {
                 }, throttle_interval);
                 
                 $.each(data, function(i, post) {
-                    post.isTextPost = (function() {
-                        var text_posts = ['text', 'audio', 'link', 'quote'];
-                        return text_posts.indexOf(post.type) !== -1;
-                    }());
-                    
                     post.markerType = (function() {
                         if($.inArray('videos', post.tags) !== -1) {
                             return 'video';   
@@ -90,6 +85,13 @@ function(div, $, gMap, loadingSVG) {
                             return 'random';
                         }
                     }()); 
+                    
+                    post.isTextPost = (function() {
+                        var text_posts = ['text', 'audio', 'link', 'quote'];
+                        return (post.tags.indexOf('videos') === -1 && 
+                            text_posts.indexOf(post.type) !== -1);
+                    }());
+
                 }); 
                 
                 callback(data);    
@@ -167,7 +169,7 @@ function(div, $, gMap, loadingSVG) {
                 // custom player. I have really no idea how the two iframes are
                 // communicating... they don't seem to be postmessaging anything,
                 // and although there HAS to be some global state somewhere, 
-                // I can't find it yet!
+                // I can't find it yet! ... It may be in some shared vimeo player js...
                 var $iframe = $contents.find('iframe');
                 $iframe.mouseover(function() {
                     iframeMouseStatus.status = 'mouseover';

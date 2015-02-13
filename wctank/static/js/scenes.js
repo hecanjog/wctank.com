@@ -34,25 +34,31 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
 
         /***************** Adjunct Visual Behaviors ***************/
 
-        ///////// squares trigger far out
-        var squares = new visualEffects.Squares(),
-            squares_on = false;
-
-        gMap.events.queue('map', 'zoom_changed', function() {
-            var zoom = gMap.map.getZoom();
-            if (zoom === 3) {
-                window.setTimeout(function() {
-                    if (gMap.map.getZoom() === 3) {
-                        squares.operate('init');
-                        squares_on = true;  
-                    };
-                }, 200);
-            } else if (squares_on && zoom > 4) { 
-                squares.operate('teardown');
+        /*
+         *  This doesn't make much sense without the audio to contextualize it,
+         *  so fail if webaudio fails.
+         */
+        if (Modernizr.webaudio) {
+            ///////// squares trigger far out
+            var squares = new visualEffects.Squares(),
                 squares_on = false;
-            }         
-        });
-        /////////
+
+            gMap.events.queue('map', 'zoom_changed', function() {
+                var zoom = gMap.map.getZoom();
+                if (zoom === 3) {
+                    window.setTimeout(function() {
+                        if (gMap.map.getZoom() === 3) {
+                            squares.operate('init');
+                            squares_on = true;  
+                        }
+                    }, 200);
+                } else if (squares_on && zoom > 4) { 
+                    squares.operate('teardown');
+                    squares_on = false;
+                }         
+            });
+            /////////
+        }
        
         /// animated blur far out
         gMap.events.queue('map', 'zoom_changed', function() {

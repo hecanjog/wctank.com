@@ -24,11 +24,11 @@ function(Modernizr, $) { var featureDetectionMain = {};
     if (fatal.length > 0) fail();
     
     /*
-     * TODO: Instead of just hard failing if there is a driver problem,
-     * try to be a bit more graceful. 
+     * TODO: Instead of just hard failing if there is a driver or other 
+     * enviornment problem, try to be a bit more graceful. 
      */
-    featureDetectionMain.audioProblemFatal = function() {
-        window.location.replace("feature-fail/audio-fatal");
+    featureDetectionMain.fatal = function(mess) {
+        window.location.replace("feature-fail/"+mess);
     }; 
 
 return featureDetectionMain; });

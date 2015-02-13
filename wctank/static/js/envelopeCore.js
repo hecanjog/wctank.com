@@ -471,7 +471,7 @@ function(util, audioCore, audioUtil, TWEEN, featureDetectionMain) { var envelope
                         target.setValueAtTime(val.value, t);
                     }
                 } catch (e) {
-                    featureDetectionMain.audioProblemFatal();
+                    featureDetectionMain.fatal("audio-fatal");
                 }
             });
 
