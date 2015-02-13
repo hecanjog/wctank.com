@@ -1,10 +1,11 @@
 define(
     [
         'audioCore',
+        'modernizr',
         'jquery'
     ],
 
-function(audioCore, $) { var audioUIMain = {};
+function(audioCore, Modernizr, $) { var audioUIMain = {};
     var $mute = $("#mute-button"),
         mute_clicked = false,
         button_fade = 0.4,
@@ -12,13 +13,6 @@ function(audioCore, $) { var audioUIMain = {};
         overlay_mute = false,
         manual_mute = false;
    
-    /*
-    // expose mute button to finish fake click cycle
-    // ...it seems that in order to function properly, any web audio api 
-    // functions tied to the UI must be initialized by user input.     
-    // c.f. main.js
-    audioUIMain.muteButton = $mute;
-*/
     var vol_up = "icon-volume-up",
         vol_off = "icon-volume-off";
 
@@ -29,12 +23,28 @@ function(audioCore, $) { var audioUIMain = {};
         $mute.removeClass(vol_off).addClass(vol_up);
     };
 
+    var muteHookCallbacks = [],
+        last_gain = 1;
     var mainGainFade = function(val, time) {
-        audioCore.out.gain.linearRampToValueAtTime(val, audioCore.ctx.currentTime + time);
+        last_gain = val;
+        if (Modernizr.webaudio) {
+            audioCore.out.gain.linearRampToValueAtTime(val, audioCore.ctx.currentTime + time);
+        }
+        muteHookCallbacks.forEach(function(cb) {
+            cb(val, time);
+        });
+    };
+
+    /*
+     * Mostly for if web audio fails; provides a mechanism by which
+     * fallback audio can still be muted. 
+     */
+    audioUIMain.muteHook = function(callback) {
+        muteHookCallbacks.push(callback);
     };
 
     $mute.click(function() {
-        if (audioCore.out.gain.value) {
+        if (last_gain === 1) {
             toOff();
             mainGainFade(0, button_fade);
             manual_mute = true;

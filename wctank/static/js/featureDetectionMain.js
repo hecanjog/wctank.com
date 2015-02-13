@@ -6,9 +6,10 @@ define(
 
 function(Modernizr, $) { var featureDetectionMain = {};
 
-    var failed = [];
+    var fatal = [];
+
     var fail = function() {
-        if (failed.length === 1 && failed[0] === 'webgl') {
+        if (failed.fatal === 1 && fatal[0] === 'webgl') {
             window.location.replace("feature-fail/webgl");
         } else {
             window.location.replace("feature-fail/"+failed);
@@ -18,11 +19,14 @@ function(Modernizr, $) { var featureDetectionMain = {};
     featureDetectionMain.audioExt = Modernizr.audio.ogg ? '.ogg' :
                                 Modernizr.audio.mp3 ? '.mp3' : failed.push('audiocodec');
 
-    if (!Modernizr.webgl) failed.push('webgl');
-    if (!Modernizr.webaudio) failed.push('webaudioapi');
-    if (!Modernizr.webworkers) failed.push('webworkers');
-    if (failed.length > 0) fail();
-
+    if (!Modernizr.webgl) fatal.push('webgl');
+    if (!Modernizr.webworkers) fatal.push('webworkers');
+    if (fatal.length > 0) fail();
+    
+    /*
+     * TODO: Instead of just hard failing if there is a driver problem,
+     * try to be a bit more graceful. 
+     */
     featureDetectionMain.audioProblemFatal = function() {
         window.location.replace("feature-fail/audio-fatal");
     }; 
