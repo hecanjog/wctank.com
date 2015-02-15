@@ -40,7 +40,8 @@ def getposts(swk, swa, nek, nea):
 @app.after_request
 def after_request(response):
     response.headers.add('Accept-Ranges', 'bytes')
-    response.headers.add('Cache-Control', 'public, max-age=0')
+    response.cache_control.max_age = 0
+    response.cache_control.public = True
     return response
 
 # mostly some copypasto from: 
