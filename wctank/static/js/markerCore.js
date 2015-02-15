@@ -5,16 +5,26 @@ define(
         'markerData',
         'visualCore',
         'render',
+        'featureDetectionMain',
         'text!MarkerShaders.glsl'
     ],
 
 function(util, markerMapPosition, markerData, visualCore, 
-         render, MarkerShaders) { var markerCore = {};
+         render, featureDetectionMain, MarkerShaders) { var markerCore = {};
 
     var canv = document.getElementById("markers"),
         projection;
     
     var z = visualCore.webgl.setup(canv, MarkerShaders, false, true);
+
+    /*
+     * The modernizer webgl test is 'soft', i.e., if the ability to create a context
+     * exists, then it passes. However, this excludes situations where using webgl may 
+     * not be enabled for other reasons, e.g., if it is not enabled in the browser, 
+     * misbehaving drivers, etc. webgl.setup not returning at this point turns out to be 
+     * a good determinant of whether or not using webgl is possible.
+     */
+    if (typeof z === 'undefined') featureDetectionMain.fatal('webgl');
 
     var updateViewport = function() {
         canv.width = window.innerWidth;

@@ -245,7 +245,14 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
             media.pause();
         };
         this.setTime = function(time) {
-            media.currentTime = time;
+            // if readyState is HAVE_NOTHING,
+            // attempting to set the currentTime may throw an error.
+            if (media.readyState > 0) {
+                media.currentTime = time;
+            } else {
+                console.warn("Hey! AudioModules.Player doesn't have data yet, " + 
+                        "so attempting to set the currentTime is a problem.");
+            }
         };
         this.stop = function() {
             this.pause();
