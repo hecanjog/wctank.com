@@ -1,11 +1,11 @@
 define(
     [
         'audioCore',
-        'modernizr',
+        'featureDetection',
         'jquery'
     ],
 
-function(audioCore, Modernizr, $) { var audioUIMain = {};
+function(audioCore, featureDetection, $) { var audioUIMain = {};
     var $mute = $("#mute-button"),
         mute_clicked = false,
         button_fade = 0.4,
@@ -27,7 +27,7 @@ function(audioCore, Modernizr, $) { var audioUIMain = {};
         last_gain = 1;
     var mainGainFade = function(val, time) {
         last_gain = val;
-        if (Modernizr.webaudio) {
+        if (featureDetection.webaudio) {
             audioCore.out.gain.linearRampToValueAtTime(val, audioCore.ctx.currentTime + time);
         }
         muteHookCallbacks.forEach(function(cb) {
@@ -64,7 +64,7 @@ function(audioCore, Modernizr, $) { var audioUIMain = {};
     $mute.mouseenter(function() {
         var cl = $mute.attr('class');               
         if (!mute_clicked) {
-            if (audioCore.out.gain.value) {
+            if (last_gain) {
                 if (cl === vol_up) toOff();
             } else {
                 if (cl === vol_off) toUp();
@@ -75,7 +75,7 @@ function(audioCore, Modernizr, $) { var audioUIMain = {};
     $mute.mouseleave(function() {
         var cl = $mute.attr('class');
         if (!mute_clicked) {
-            if (audioCore.out.gain.value) {
+            if (last_gain) {
                 if (cl === vol_off) toUp();
             } else {
                 if (cl === vol_up) toOff();

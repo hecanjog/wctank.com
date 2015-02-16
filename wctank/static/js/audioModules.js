@@ -3,10 +3,11 @@ define(
         'audioCore',
         'audioUtil',
         'audioNodes',
-        'util'
+        'util',
+        'featureDetection'
     ],
 
-function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
+function(audioCore, audioUtil, audioNodes, util, featureDetection) { var audioModules = {};
 
     audioModules.Noise = function Noise(amplitude, downsample) {
         if (this.constructor !== audioCore.AudioModule) 
@@ -273,7 +274,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
             }
         });
 
-        if (Modernizr.webaudio) {
+        if (featureDetection.webaudio) {
             this.mediaSource = audioCore.ctx.createMediaElementSource(media);
             this._link_alias_out = this.mediaSource;
         }
@@ -300,16 +301,16 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
                     dur = sprite.end - sprite.start;
                 player.setTime(sprite.start);
                 outer.gain.gain.value = 0;
-                if (Modernizr.webaudio) envelope(1.0);
+                if (featureDetection.webaudio) envelope(1.0);
                 player.play();    
                 window.setTimeout(function() {
-                    if (Modernizr.webaudio) envelope(0);
+                    if (featureDetection.webaudio) envelope(0);
                     player.pause(); 
                 }, dur * 1000);
             }
         };
  
-        if (Modernizr.webaudio) {
+        if (featureDetection.webaudio) {
             this.gain = audioCore.ctx.createGain();
             this.gain.gain.value = 1.0;
             
@@ -321,9 +322,9 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
     // special player that can play many simultaneous sounds from a file
     audioModules.SamplePlayer = function(path, textGridIntervals) { 
-        if (this.constructor !== audioModules.SamplePlayer)
+        if (this.constructor !== audioCore.AudioModule)
             return new audioModules.SamplePlayer(path, textGridIntervals);
-        
+       
         var breakpoints = audioUtil.parseSpriteIntervals(textGridIntervals);
         util.objectLength.call(breakpoints);
         var frames = breakpoints[breakpoints.length - 1].end * audioCore.ctx.sampleRate;
@@ -378,6 +379,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
         //limit concurrent sounds?
         this._link_alias_out = this.outGain;
     };
+    audioModules.SamplePlayer.prototype = new audioCore.AudioModule();
 
     audioModules.SchroederReverb = function() {
         if (this.constructor !== audioCore.AudioModule) 

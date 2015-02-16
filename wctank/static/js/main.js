@@ -36,7 +36,6 @@ require.config({
 
 define(
     [
-        'featureDetectionMain',
         'gMap',
         'scenes',
         'sceneCore',
@@ -54,7 +53,7 @@ define(
             ']'
         ].join('/n')
     ],
-function(featureDetectionMain, gMap, sceneGraphs, sceneGraphCore, audioUIMain) {
+function(gMap, scenes, sceneCore, audioUIMain) {
    
     // TODO: 
     // envelope looping mechanism
@@ -79,7 +78,7 @@ function(featureDetectionMain, gMap, sceneGraphs, sceneGraphCore, audioUIMain) {
         gMap.map.setZoom(9);
     });
 
-    sceneGraphCore.apply(sceneGraphs.NoMages); 
+    sceneCore.apply(scenes.NoMages); 
 
     // tail end of fake mute button click
     //audioUIMain.muteButton.click();

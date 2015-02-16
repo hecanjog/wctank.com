@@ -1,10 +1,10 @@
 define(
     [
         'render',
-        'featureDetectionMain'
+        'featureDetection'
     ],
 
-function(render, featureDetectionMain) { var visualCore = {};
+function(render, featureDetection) { var visualCore = {};
 
     visualCore.webgl = {
         success: false,
@@ -22,7 +22,7 @@ function(render, featureDetectionMain) { var visualCore = {};
                 try {
                     return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
                 } catch (err) {
-                    featureDetectionMain.fatal("uncaught-webgl");
+                    featureDetection.fatal("uncaught-webgl");
                     return false;
                 }
             }());

@@ -5,12 +5,12 @@ define(
         'markerData',
         'visualCore',
         'render',
-        'featureDetectionMain',
+        'featureDetection',
         'text!MarkerShaders.glsl'
     ],
 
 function(util, markerMapPosition, markerData, visualCore, 
-         render, featureDetectionMain, MarkerShaders) { var markerCore = {};
+         render, featureDetection, MarkerShaders) { var markerCore = {};
 
     var canv = document.getElementById("markers"),
         projection;
@@ -24,7 +24,7 @@ function(util, markerMapPosition, markerData, visualCore,
      * misbehaving drivers, etc. webgl.setup not returning at this point turns out to be 
      * a good determinant of whether or not using webgl is possible.
      */
-    if (typeof z === 'undefined') featureDetectionMain.fatal('webgl');
+    if (typeof z === 'undefined') featureDetection.fatal('webgl');
 
     var updateViewport = function() {
         canv.width = window.innerWidth;

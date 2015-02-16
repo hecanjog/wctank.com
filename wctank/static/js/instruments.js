@@ -8,16 +8,16 @@ define(
         'envelopeCore',
         'envelopeAsdr',
         'util',
-        'featureDetectionMain',
+        'featureDetection',
         'text!bassDrumSprites.TextGridIntervals',
         'text!wesSprites.TextGridIntervals'
     ],
 
 function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore, 
-            envelopeCore, envelopeAsdr, util, featureDetectionMain, 
+            envelopeCore, envelopeAsdr, util, featureDetection, 
             bassDrumSprites, wesSprites) { var instruments = {};
     
-    var au_ext = featureDetectionMain.audioExt;
+    var au_ext = featureDetection.audioExt;
 
     //TODO: normalize ParameterizedAction target naming conventions
     instruments.RaspyCarpark = function() {

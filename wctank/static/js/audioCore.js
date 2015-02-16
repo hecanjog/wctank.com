@@ -1,11 +1,12 @@
 define(
     [
         'audioUtil',
+        'featureDetection', 
         'tween',
         'jquery'
     ],
 
-function(audioUtil, TWEEN, $) { 
+function(audioUtil, featureDetection, TWEEN, $) { 
     
     /**
      * The audioCore module contains components essential to all sound making objects. 
@@ -16,13 +17,12 @@ function(audioUtil, TWEEN, $) {
     var audioCore = {};
 
 /*
- * This is a bit kludgy, but will allow the page to 
- * load without sound and sans errors if the webaudio api fails.
+ * This is a bit kludgy, but facilitates webaudio fallback.
  */
-if (Modernizr.webaudio) {
+if (featureDetection.webaudio) {
 
     /** The active audioContext */ 
-    audioCore.ctx = new ( window.AudioContext || window.webkitAudioContext )();
+    audioCore.ctx = new (window.AudioContext || window.webkitAudioContext)();
 
     /** a gain node to serve as our signal out */
     audioCore.out = audioCore.ctx.createGain();
@@ -228,6 +228,9 @@ if (Modernizr.webaudio) {
         audioCore.AudioModule.call(node);
         return node;
     };
+
+} else {
+    audioCore.AudioModule = function() {};
 }
  
 return audioCore; });

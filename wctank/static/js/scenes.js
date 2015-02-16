@@ -12,8 +12,7 @@ define(
         'gMap',
         'util',
         'jquery',
-        'featureDetectionMain',
-        'modernizr',
+        'featureDetection',
         'audioUIMain',
         'envelopeCore',
         'envelopeAsdr'
@@ -21,15 +20,17 @@ define(
 
 function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments, 
          visualEffects, mutexVisualEffects, tableux, gMap, util, $, 
-         featureDetectionMain, Modernizr, audioUIMain, envelopeCore, envelopeAsdr) { var scenes = {};
+         featureDetection, audioUIMain, envelopeCore, envelopeAsdr) { var scenes = {};
     
      scenes.NoMages = function() {
        
         /****************** Primary visual components ******************/
         var glow = new mutexVisualEffects.CausticGlow();
-        
+        glow.apply();
+
         var tab = new tableux.Engine();
         tab.parseData(tableux.stockList);
+        tab.select(glow);
         /**********************************************************/
 
         /***************** Adjunct Visual Behaviors ***************/
@@ -38,28 +39,26 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
          *  This doesn't make much sense without the audio to contextualize it,
          *  so fail if webaudio fails.
          */
-        if (Modernizr.webaudio) {
-            ///////// squares trigger far out
-            var squares = new visualEffects.Squares(),
-                squares_on = false;
+        ///////// squares trigger far out
+        var squares = new visualEffects.Squares(),
+            squares_on = false;
 
-            gMap.events.queue('map', 'zoom_changed', function() {
-                var zoom = gMap.map.getZoom();
-                if (zoom === 3) {
-                    window.setTimeout(function() {
-                        if (gMap.map.getZoom() === 3) {
-                            squares.operate('init');
-                            squares_on = true;  
-                        }
-                    }, 200);
-                } else if (squares_on && zoom > 4) { 
-                    squares.operate('teardown');
-                    squares_on = false;
-                }         
-            });
-            /////////
-        }
-       
+        gMap.events.queue('map', 'zoom_changed', function() {
+            var zoom = gMap.map.getZoom();
+            if (zoom === 3) {
+                window.setTimeout(function() {
+                    if (gMap.map.getZoom() === 3) {
+                        squares.operate('init');
+                        squares_on = true;  
+                    }
+                }, 200);
+            } else if (squares_on && zoom > 4) { 
+                squares.operate('teardown');
+                squares_on = false;
+            }         
+        });
+        /////////
+   
         /// animated blur far out
         gMap.events.queue('map', 'zoom_changed', function() {
             var zoom = gMap.map.getZoom();
@@ -73,7 +72,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
 
         /**********************************************************/
 
-        if (Modernizr.webaudio) {
+        if (featureDetection.webaudio) {
 
             /********************* Audio Environ **********************/
             // field recording
@@ -96,7 +95,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             // organ ostinato
             var organ = new instruments.Organ(),
                 organConvo = audioModules.Convolution('/static/assets/york-minster'+
-                                featureDetectionMain.audioExt);
+                                featureDetection.audioExt);
             organConvo.wetDry(100);
            
             organ.outGain.gain.value = 0.8;
@@ -644,31 +643,24 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             /**********************************************************/
         
         } else { // if web audio is not available
-            var fallbackAudio = document.createElement('audio');
-            fallbackAudio.src = "/streaming/bigearsample.6"+featureDetectionMain.audioExt; 
-            fallbackAudio.loop = true;
-            fallbackAudio.autoplay = true;
-            document.body.appendChild(fallbackAudio);
+            var fbEnviron = document.createElement('audio');
+            fbEnviron.src = "/streaming/bigearsample.6"+featureDetection.audioExt; 
+            fbEnviron.loop = true;
+            fbEnviron.autoplay = true;
             
             var setFallbackVolume = function(v) {
                 if (v === 1) {
-                    fallbackAudio.muted = false;
+                    fbEnviron.muted = false;
                 } else {
-                    fallbackAudio.muted = true;
+                    fbEnviron.muted = true;
                 }
             };
             audioUIMain.muteHook(setFallbackVolume);
         }
-
-        this.init = function() {
-            tab.select(glow);
-            glow.apply();
-        };
-
-        this.teardown = function() {
-            //choir.stop();
-        };
-    
+        
+        // these should actually do things...
+        this.init = function() {};
+        this.teardown = function() {};
     };
     scenes.NoMages.prototype = new sceneCore.Scene();
 
