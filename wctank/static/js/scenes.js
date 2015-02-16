@@ -22,8 +22,8 @@ define(
 function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments, 
          visualEffects, mutexVisualEffects, tableux, gMap, util, $, 
          featureDetectionMain, Modernizr, audioUIMain, envelopeCore, envelopeAsdr) { var scenes = {};
-
-    scenes.NoMages = function() {
+    
+     scenes.NoMages = function() {
        
         /****************** Primary visual components ******************/
         var glow = new mutexVisualEffects.CausticGlow();

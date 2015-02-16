@@ -408,7 +408,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
     instruments.BigSampleDrum.prototype = new instrumentCore.Instrument();
 
     instruments.WesVox = function() {
-        var wes = audioModules.SpritePlayer("/static/assets/wes"+au_ext, wesSprites);
+        var wes = audioModules.SpritePlayer("/streaming/wes"+au_ext, wesSprites);
         this.outGain = audioNodes.Gain();
 
         wes.link(this.outGain);

@@ -220,6 +220,7 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
 
         // TODO: there is no longer a reason to keep this weirdness!
         this.loadFile = function(path) {
+            /*
             var req = new XMLHttpRequest();
             req.open("GET", path, true);
             req.responseType = 'blob';
@@ -230,7 +231,8 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
                     media.src = reader.result;
                 };
             };
-            req.send();
+            req.send();*/
+            media.src = pathToFile;
         };
         if (pathToFile) this.loadFile(pathToFile);
 
@@ -250,8 +252,11 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
             if (media.readyState > 0) {
                 media.currentTime = time;
             } else {
+                /*
                 console.warn("Hey! AudioModules.Player doesn't have data yet, " + 
                         "so attempting to set the currentTime is a problem.");
+                console.trace();
+                */
             }
         };
         this.stop = function() {
@@ -268,8 +273,10 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
             }
         });
 
-        this.mediaSource = audioCore.ctx.createMediaElementSource(media);
-        this._link_alias_out = this.mediaSource;
+        if (Modernizr.webaudio) {
+            this.mediaSource = audioCore.ctx.createMediaElementSource(media);
+            this._link_alias_out = this.mediaSource;
+        }
     };
     audioModules.Player.prototype = new audioCore.AudioModule();
 
@@ -279,31 +286,36 @@ function(audioCore, audioUtil, audioNodes, util) { var audioModules = {};
         
         var player = new audioModules.Player(path);
 
-        this.gain = audioCore.ctx.createGain();
-        this.gain.gain.value = 1.0;
-
-        player.link(this.gain);
-        
         var sprites = audioUtil.parseSpriteIntervals(textGridIntervals); 
         util.objectLength.call(sprites); 
         
         var outer = this;
+        var envelope = function(val) {
+            outer.gain.gain.setValueAtTime(val, audioCore.ctx.currentTime + 0.01);
+        };
+
         this.playRandomSprite = function() {
             if (!player.isPlaying) {        
                 var sprite = sprites[(Math.random() * sprites.length) | 0],
                     dur = sprite.end - sprite.start;
                 player.setTime(sprite.start);
                 outer.gain.gain.value = 0;
-                outer.gain.gain.setValueAtTime(1.0, audioCore.ctx.currentTime + 0.01);
+                if (Modernizr.webaudio) envelope(1.0);
                 player.play();    
                 window.setTimeout(function() {
-                    outer.gain.gain.setValueAtTime(0, audioCore.ctx.currentTime + 0.01);
+                    if (Modernizr.webaudio) envelope(0);
                     player.pause(); 
                 }, dur * 1000);
             }
         };
-        
-        this._link_alias_out = this.gain;
+ 
+        if (Modernizr.webaudio) {
+            this.gain = audioCore.ctx.createGain();
+            this.gain.gain.value = 1.0;
+            
+            player.link(this.gain);
+            this._link_alias_out = this.gain;
+        }
     };
     audioModules.SpritePlayer.prototype = new audioCore.AudioModule();
 
