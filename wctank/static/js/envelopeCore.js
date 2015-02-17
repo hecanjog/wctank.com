@@ -4,10 +4,12 @@ define(
         'audioCore',
         'audioUtil',
         'tween',
-        'featureDetection'
+        'featureDetection',
+        'audioUIMain'
     ],
 
-function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore = {};
+function(util, audioCore, audioUtil, TWEEN, 
+        featureDetection, audioUIMain) { var envelopeCore = {};
 
     // value = arbitrary param value
     // time = percentage
@@ -473,6 +475,7 @@ function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore
                 } catch (e) {
                     // this branch is usually reached if there are audio driver problems
                     // featureDetection.fatal("audio-fatal");
+                    audioUIMain.disableMuteButton();
                 }
             });
 

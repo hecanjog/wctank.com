@@ -20,11 +20,10 @@ function(Modernizr, $) { var featureDetection = {};
     if (!Modernizr.webworkers) fatal.push('webworkers');
     if (fatal.length > 0) fail();
 
-    featureDetection.audioExt = Modernizr.audio.ogg ? '.ogg' :
+    featureDetection.audioext = Modernizr.audio.ogg ? '.ogg' :
                                 Modernizr.audio.mp3 ? '.mp3' : false;
 
-    // mostly here to aid debugging.
-    featureDetection.webaudio = Modernizr.webaudio && featureDetection.audioExt; 
+    featureDetection.webaudio = !!(Modernizr.webaudio && featureDetection.audioext); 
 
     /*
      * TODO: Instead of just hard failing if there is a driver or other 

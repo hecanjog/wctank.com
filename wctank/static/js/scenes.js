@@ -100,7 +100,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             // organ ostinato
             var organ = new instruments.Organ(),
                 organConvo = audioModules.Convolution('/static/assets/york-minster'+
-                                featureDetection.audioExt);
+                                featureDetection.audioext);
             organConvo.wetDry(100);
            
             organ.outGain.gain.value = 0.8;
@@ -647,8 +647,8 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             }, 120000);
             /**********************************************************/
         
-        } else if (featureDetection.audioExt) { // if web audio is not available, but no codec problems
-            var ext = featureDetection.audioExt;
+        } else if (featureDetection.audioext) { // if web audio is not available, but no codec problems
+            var ext = featureDetection.audioext;
         
             var environ = new audioModules.Player("/streaming/fallback_everything"+ext);
             environ.loop = true;
@@ -657,7 +657,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             var beeps;
 
             environ.canPlayThrough = function() {
-                beeps = new audioModules.Player("/streaming/fallback_beeps"+ext);
+                beeps = new audioModules.Player("/streaming/fallback_beeps_drum"+ext);
                 beeps.loop = true;
                 beeps.autoplay = true;
                 beeps.volume = 0;

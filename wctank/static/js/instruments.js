@@ -17,7 +17,7 @@ function(audioCore, audioModules, audioNodes, audioUtil, instrumentCore,
             envelopeCore, envelopeAsdr, util, featureDetection, 
             bassDrumSprites, wesSprites) { var instruments = {};
     
-    var au_ext = featureDetection.audioExt;
+    var au_ext = featureDetection.audioext;
 
     //TODO: normalize ParameterizedAction target naming conventions
     instruments.RaspyCarpark = function() {
