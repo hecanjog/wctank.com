@@ -213,27 +213,31 @@ function(audioCore, audioUtil, audioNodes, util, featureDetection) { var audioMo
     audioModules.Bandpass.prototype = new audioCore.AudioModule();      
 
     //TODO: combine these three players into 1?
-    audioModules.Player = function(pathToFile) {
+    audioModules.Player = function(pathToFile, disableRangeRequests) {
         if (this.constructor !== audioCore.AudioModule) 
             return new audioModules.Player(pathToFile);
+
+        var outer = this;
 
         var media = document.createElement('audio');
 
         // TODO: there is no longer a reason to keep this weirdness!
         this.loadFile = function(path) {
-            /*
-            var req = new XMLHttpRequest();
-            req.open("GET", path, true);
-            req.responseType = 'blob';
-            req.onload = function() {
-                var reader = new FileReader();
-                reader.readAsDataURL(req.response);
-                reader.onloadend = function() {
-                    media.src = reader.result;
+            if (disableRangeRequests) {
+                var req = new XMLHttpRequest();
+                req.open("GET", path, true);
+                req.responseType = 'blob';
+                req.onload = function() {
+                    var reader = new FileReader();
+                    reader.readAsDataURL(req.response);
+                    reader.onloadend = function() {
+                        media.src = reader.result;
+                    };
                 };
-            };
-            req.send();*/
-            media.src = pathToFile;
+                req.send();
+            } else {
+                media.src = pathToFile;
+            }
         };
         if (pathToFile) this.loadFile(pathToFile);
 
@@ -264,15 +268,47 @@ function(audioCore, audioUtil, audioNodes, util, featureDetection) { var audioMo
             this.pause();
             this.setTime(0);  
         };
+       
+        var canPlay = false,
+            canPlayFn = function() {};
+
+        media.addEventListener('canplaythrough', function() {
+            canPlay = true;
+            canPlayFn();
+        });
 
         Object.defineProperties(this, {
+            'canPlayThrough': {
+                get: function() { return canPlay; },
+                set: function(v) {
+                    canPlayFn = v;
+                }
+            },
             'currentTime': {
                 get: function() { return media.currentTime; } 
             },
             'isPlaying': {
                 get: function() { return playing; }
+            },
+            'loop': {
+                get: function() { return media.loop; },
+                set: function(v) { media.loop = v; }
+            },
+            'autoplay': {
+                get: function() { return media.autoplay; },
+                set: function(v) { media.autoplay = v; }
+            },
+            'volume': {
+                get: function() { return media.volume; },
+                set: function(v) { media.volume = v; }
+            },
+            'muted': {
+                get: function() { return media.muted; },
+                set: function(v) { media.muted = v; }
             }
         });
+
+        
 
         if (featureDetection.webaudio) {
             this.mediaSource = audioCore.ctx.createMediaElementSource(media);
@@ -285,7 +321,8 @@ function(audioCore, audioUtil, audioNodes, util, featureDetection) { var audioMo
         if (this.constructor !== audioCore.AudioModule) 
             return new audioModules.SpritePlayer(path, textGridIntervals);
         
-        var player = new audioModules.Player(path);
+        var player = new audioModules.Player(path, true);
+        this.player = player;
 
         var sprites = audioUtil.parseSpriteIntervals(textGridIntervals); 
         util.objectLength.call(sprites); 
@@ -295,18 +332,25 @@ function(audioCore, audioUtil, audioNodes, util, featureDetection) { var audioMo
             outer.gain.gain.setValueAtTime(val, audioCore.ctx.currentTime + 0.01);
         };
 
+        var pToId;
         this.playRandomSprite = function() {
             if (!player.isPlaying) {        
                 var sprite = sprites[(Math.random() * sprites.length) | 0],
                     dur = sprite.end - sprite.start;
                 player.setTime(sprite.start);
-                outer.gain.gain.value = 0;
-                if (featureDetection.webaudio) envelope(1.0);
+                if (featureDetection.webaudio) {
+                    outer.gain.gain.value = 0;
+                    envelope(1.0);
+                }
                 player.play();    
-                window.setTimeout(function() {
+                pToId = window.setTimeout(function() {
                     if (featureDetection.webaudio) envelope(0);
                     player.pause(); 
                 }, dur * 1000);
+            } else {
+                outer.player.pause();
+                window.clearTimeout(pToId);
+                outer.playRandomSprite();
             }
         };
  

@@ -471,7 +471,8 @@ function(util, audioCore, audioUtil, TWEEN, featureDetection) { var envelopeCore
                         target.setValueAtTime(val.value, t);
                     }
                 } catch (e) {
-                    featureDetection.fatal("audio-fatal");
+                    // this branch is usually reached if there are audio driver problems
+                    // featureDetection.fatal("audio-fatal");
                 }
             });
 

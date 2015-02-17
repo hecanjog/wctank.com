@@ -15,12 +15,15 @@ define(
         'featureDetection',
         'audioUIMain',
         'envelopeCore',
-        'envelopeAsdr'
+        'envelopeAsdr',
+        'text!fallbackChoirSprites.TextGridIntervals',
+        'text!fallbackSquawkSprites.TextGridIntervals'
     ],
 
 function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments, 
          visualEffects, mutexVisualEffects, tableux, gMap, util, $, 
-         featureDetection, audioUIMain, envelopeCore, envelopeAsdr) { var scenes = {};
+         featureDetection, audioUIMain, envelopeCore, envelopeAsdr,
+         fallbackChoirSprites, fallbackSquawkSprites) { var scenes = {};
     
      scenes.NoMages = function() {
        
@@ -37,28 +40,28 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
 
         /*
          *  This doesn't make much sense without the audio to contextualize it,
-         *  so fail if webaudio fails.
+         *  so don't init if audio fails, or until beep audio is available.
          */
-        ///////// squares trigger far out
-        var squares = new visualEffects.Squares(),
-            squares_on = false;
-
-        gMap.events.queue('map', 'zoom_changed', function() {
-            var zoom = gMap.map.getZoom();
-            if (zoom === 3) {
-                window.setTimeout(function() {
-                    if (gMap.map.getZoom() === 3) {
-                        squares.operate('init');
-                        squares_on = true;  
-                    }
-                }, 200);
-            } else if (squares_on && zoom > 4) { 
-                squares.operate('teardown');
+        var initSquares = function() {
+            var squares = new visualEffects.Squares(),
                 squares_on = false;
-            }         
-        });
-        /////////
-   
+
+            gMap.events.queue('map', 'zoom_changed', function() {
+                var zoom = gMap.map.getZoom();
+                if (zoom === 3) {
+                    window.setTimeout(function() {
+                        if (gMap.map.getZoom() === 3) {
+                            squares.operate('init');
+                            squares_on = true;  
+                        }
+                    }, 200);
+                } else if (squares_on && zoom > 4) { 
+                    squares.operate('teardown');
+                    squares_on = false;
+                }         
+            });
+        };
+           
         /// animated blur far out
         gMap.events.queue('map', 'zoom_changed', function() {
             var zoom = gMap.map.getZoom();
@@ -73,7 +76,9 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
         /**********************************************************/
 
         if (featureDetection.webaudio) {
-
+            
+            initSquares();
+            
             /********************* Audio Environ **********************/
             // field recording
             var environ = new instruments.WesEnviron();
@@ -220,7 +225,7 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
                             }
                         }
                         tenorParams.seq = util.enumerate(tenorParams.seq);
-                    } 
+                    }
                     
                     var max_length = util.smudgeNumber(80, 15) | 0; //!!!!!!!
                     if (len > max_length) {
@@ -642,21 +647,62 @@ function(sceneCore, audioCore, audioModules, audioNodes, rhythm, instruments,
             }, 120000);
             /**********************************************************/
         
-        } else { // if web audio is not available
-            var fbEnviron = document.createElement('audio');
-            fbEnviron.src = "/streaming/bigearsample.6"+featureDetection.audioExt; 
-            fbEnviron.loop = true;
-            fbEnviron.autoplay = true;
+        } else if (featureDetection.audioExt) { // if web audio is not available, but no codec problems
+            var ext = featureDetection.audioExt;
+        
+            var environ = new audioModules.Player("/streaming/fallback_everything"+ext);
+            environ.loop = true;
+            environ.autoplay = true;
+
+            var beeps;
+
+            environ.canPlayThrough = function() {
+                beeps = new audioModules.Player("/streaming/fallback_beeps"+ext);
+                beeps.loop = true;
+                beeps.autoplay = true;
+                beeps.volume = 0;
+                
+                beeps.canPlayThrough = initSquares;
+
+                gMap.events.queue('map', 'zoom_changed', function() {
+                    var zoom = gMap.map.getZoom();
+                    beep_gain = zoom <= 4 ?
+                                zoom ? 1 / zoom : 1 : 0;
+
+                    beeps.volume = beep_gain; 
+                });
+            };  
             
+            var squawks = new audioModules.SpritePlayer("/static/assets/fallback_squawk"+ext,
+                                    fallbackSquawkSprites);
+
+            var choir = new audioModules.SpritePlayer("/static/assets/fallback_choir"+ext,
+                                fallbackChoirSprites);
+
+            var squawkChoir = function() {
+                if (Math.random() < 0.3) {
+                    window.setTimeout(squawks.playRandomSprite, util.smudgeNumber(4000, 20));
+                }
+                choir.playRandomSprite();
+            };
+            gMap.events.queue('map', 'zoom_changed', squawkChoir);
+            gMap.events.queue('marker', 'click', squawkChoir);
+
             var setFallbackVolume = function(v) {
                 if (v === 1) {
-                    fbEnviron.muted = false;
+                    environ.muted = false;
+                    if (beeps) beeps.muted = false;
+                    squawks.player.muted = false;
+                    choir.player.muted = false;
                 } else {
-                    fbEnviron.muted = true;
+                    environ.muted = true;
+                    if (beeps) beeps.muted = true;
+                    squawks.player.muted = true;
+                    choir.player.muted = true;
                 }
             };
             audioUIMain.muteHook(setFallbackVolume);
-        }
+        }         
         
         // these should actually do things...
         this.init = function() {};

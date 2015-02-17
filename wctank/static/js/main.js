@@ -17,7 +17,9 @@ require.config({
         AlphaStrutShaders: '/static/glsl/alphaStrut',
         SquaresShaders: '/static/glsl/squares',
         bassDrumSprites: '/static/assets/bass_drum_sprites',
-        wesSprites: '/static/assets/wes'
+        wesSprites: '/static/assets/wes',
+        fallbackChoirSprites: '/static/assets/fallback_choir',
+        fallbackSquawkSprites: '/static/assets/fallback_squawk'
     },
 
     shim: {
