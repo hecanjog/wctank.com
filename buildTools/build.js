@@ -17,6 +17,8 @@
         AngularShaders: '../glsl/angular',
         bassDrumSprites: '../assets/bass_drum_sprites',
         wesSprites: '../assets/wes',
+        fallbackChoirSprites: '../assets/fallback_choir',
+        fallbackSquawkSprites: '../assets/fallback_squawk',
         moduleLoader: '../lib/require'
     },
     shim: {
