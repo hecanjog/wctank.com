@@ -3,8 +3,10 @@ This is very much in-progress; there's a lot left to do!
 Support:
 ========
 Currently, only desktop flavors are supported.   
-Full support for recent versions of Chrome(ium).   
-OK-ish in Firefox.   
+Full support for recent versions of Chrome(ium), v.37 or better.     
+Partial support for older versions of Chrome, as well as newer versions of Opera.     
+OK-ish in Firefox.     
+Safari does fun things.     
 
 Installation:
 =============
