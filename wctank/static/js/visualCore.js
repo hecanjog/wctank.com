@@ -22,7 +22,7 @@ function(render, featureDetection) { var visualCore = {};
                 try {
                     return canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
                 } catch (err) {
-                    featureDetection.fatal("uncaught-webgl");
+                    featureDetection.fatal("webgl");
                     return false;
                 }
             }());

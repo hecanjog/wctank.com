@@ -145,7 +145,7 @@ if (featureDetection.webaudio) {
              
             scope.start = function() {
                 for (var i = idx; i < n.length; i++) {
-                    n[i].start();
+                    n[i].start(0, 0); 
                 }
             };
             scope.stop = function() {
