@@ -232,5 +232,5 @@ if (featureDetection.webaudio) {
 } else {
     audioCore.AudioModule = function() {};
 }
- 
+
 return audioCore; });
