@@ -68,8 +68,6 @@ if (featureDetection.webaudio) {
          */
         this.link = function(target, output, input) {        
             
-            var waapiFn = arguments[3] ? 'disconnect' : 'connect'; 
-
             var throwLinkException = function(text) {
                 throw new Error("Invalid link parameters: " + text);
             };
@@ -83,13 +81,13 @@ if (featureDetection.webaudio) {
                 }
             };
             
-            var out_addr, in_addr;
-            out_addr = output;
-            in_addr = input;
+            var out_addr = output,
+                in_addr = input;
 
             if (typeof target !== 'undefined' || arguments[3]) {
                 var out_node = this._link_alias_out ? this._link_alias_out : this,
-                    in_node = target._link_alias_in ? target._link_alias_in : target;
+                    in_node = arguments[3] ? null : 
+                              target._link_alias_in ? target._link_alias_in : target;
 
                 if (Array.isArray(out_node)) {
                     checkLink(true, output, out_node);
@@ -103,12 +101,18 @@ if (featureDetection.webaudio) {
                 }
 
                 // recurse until we hit WAAPI bedrock on both sides
-                if (!in_node[waapiFn]) {
+                if (arguments[3]) { 
+                    if (!out_node.disconnect) {
+                        out_node.link(null, null, null, true);
+                    } else {
+                        out_node.disconnect();
+                    }
+                } else if (!in_node.connect) {
                     out_node.link(in_node._link_alias_in, out_addr, in_addr, arguments[3]);
-                } else if (!out_node[waapiFn]) {
+                } else if (!out_node.connect) {
                     out_node._link_alias_out.link(in_node, out_addr, in_addr, arguments[3]);
                 } else {
-                    out_node[waapiFn](in_node, out_addr, in_addr);
+                    out_node.connect(in_node, out_addr, in_addr);
                 }
 
                 return target;
@@ -116,6 +120,10 @@ if (featureDetection.webaudio) {
             } else {
                 throwLinkException("Input node is not defined");
             }
+        };
+
+        this.sever = function() {
+            this.link(null, null, null, true);
         };
     };
 

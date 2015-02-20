@@ -6,7 +6,10 @@ define(
     ],
 
 function(audioCore, audioNodes, util) { var audioMixer = {};
-   
+  
+    var soloCnt = 0,
+        soloEvent = new Event('trackSoloedStateChange'); 
+
     // constructFn returns obj in the form {startables: [ ], endpoint: gainnode}
     audioMixer.Track = function(constructFn) {
         var contents, construct,
@@ -36,50 +39,59 @@ function(audioCore, audioNodes, util) { var audioMixer = {};
         };
         
         this._destroy = function() {
-            contents.endpoint.disconnect();
+            //contents.endpoint.disconnect();
             contents = endpoint = gainParam = endpoint.it = gainParam.it = null;
-            bus.removeTrack(this);
         }; 
-        this._nullBusref = function() {
-            bus = null;
-        };
 
         var command = function(cmd) {
             for (var prop in contents.startables) {
                 if (contents.startables.hasOwnProperty(prop)) {
                     var it = contents.startables[prop];
-                    if (it[cmd]) it[cmd]();
+                    if (it[cmd]) {
+                        it[cmd]();
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
             }
         };
         this.start = function() {
-            command('start');
+            var cmds = ['start', 'play', 'execute'];
+            for (var i = 0; i < cmds.length; i++) {
+                if (!command(cmds[i])) continue;
+                else break;
+            }
         };
         this.pause = function() {
             command('pause');
         };
         this.stop = function() {
-            command('stop');
+            var cmds = ['stop', 'shirk'];
+            for (var i = 0; i < cmds.length; i++) {
+                if (!command(cmds[i])) continue;
+                else break;
+            }
         };
 
         this.gain = gainParam.it;
-        
-        var bus;
-        this._busLink = function(busRef) {
-            bus = busRef;
-        };
         
         var soloed = false;
         Object.defineProperty(this, 'solo', {
             get: function() { return soloed; },
             set: function(v) {
-                if (bus instanceof audioMixer.Bus) {
-                    soloed = v;
-                    bus._soloTracks();
-                } else {
-                    throw new Error("");
-                } 
+                if (soloed && !v) soloCnt--;
+                else if (v) soloCnt++;
+                soloed = v;
+                document.dispatchEvent(soloEvent);
             }
+        });
+
+        var outer = this; // possible mem leak
+        document.addEventListener('trackSoloedStateChange', function() {
+            if (soloCnt && outer.soloed) outer.mute = false;
+            else if (soloCnt && !outer.soloed) outer.mute = true;
+            else if (!soloCnt) outer.mute = false;
         });
 
         var muted = false,
@@ -104,29 +116,50 @@ function(audioCore, audioNodes, util) { var audioMixer = {};
 
     audioMixer.Bus = function() {
         var tracks = {};
-       
-        var gain = audioNodes.Gain();
-        this.gain = gain.gain;
 
-        this._soloTracks = function() {
-            var isSoloing = false;
-            for (var trk in tracks) {
-                if (tracks.hasOwnProperty(trk)) {
-                    if (!tracks[trk].solo) {
-                        tracks[trk].mute = true;
-                        isSoloing = true;
-                    }
-                }
-            }
-            if (!isSoloing) {
-                for (var trk in tracks) {
-                    if (tracks.hasOwnProperty(trk)) {
-                        tracks[trk].mute = false;
-                    }
-                }
+        var input = audioNodes.Gain();
+        this.inputGain = input.gain;
+        
+        var output = audioNodes.Gain();
+        this.outputGain = output.gain;
+
+        input.link(output);
+        
+        var effectsChain = [];
+        
+        this.addEffect = function(module, index) {
+            var idx = index > effectsChain.length ? effectsChain.length : 
+                      index < 0 ? 0 : index;
+
+            effectsChain.splice(idx, 0, module); 
+        
+            var nodeInFront = idx - 1 >= 0 ? effectsChain[idx - 1] : input,
+                nodeBehind = idx + 1 <= effectsChain.length ? effectsChain[idx + 1] : output;
+
+            nodeInFront.sever();
+            nodeInFront.link(module).link(nodeBehind);
+        };
+
+        // args number idx or AudioModule to rm
+        this.removeEffect = function(index) {
+            var idx = index instanceof audioCore.AudioModule ? effectsChain.indexOf(index) : 
+                      index < 0 ? 0 :
+                      index >= effectsChain.length ? effectsChain.length - 1 :
+                      index;
+
+            if (idx > -1) {
+                var nodeInFront = idx - 1 >= 0 ? effectsChain[idx - 1] : input,
+                    nodeBehind = idx + 1 <= effectsChain.length ? effectsChain[idx + 1] : output;
+
+                effectsChain.splice(idx, 1);
+
+                nodeInFront.sever();
+                nodeInFront.link(nodeBehind);
+            } else {
+                throw new Error("audioModule not found in effects chain");
             }
         };
-       
+
         // is completely dereferencing the track after removing it 
         // from the bus a good idea?
         this.removeTrack = function(track) {
@@ -135,25 +168,51 @@ function(audioCore, audioNodes, util) { var audioMixer = {};
                     if (track === tracks[trk]) {
                         delete tracks[trk];
                         track._destroy();
-                        track._nullBusref();
                         track = null;
                     }
                 }
             } 
         };
 
-        var lla = 0,
-            outer = this;
-        this.addTrack = function(trk) {
-            if (trk instanceof audioMixer.Track) {
-                trk._create();
-                tracks[lla++] = trk;
-                trk._busLink(outer);
-                trk.link(gain); 
+        var lla = 0;
+        this.addTrack = function() {
+            for (var i = 0; i < arguments.length; i++) {
+                var trk = arguments[i];
+                if (trk instanceof audioMixer.Track || trk instanceof audioMixer.Bus) {
+                    trk._create();
+                    tracks[lla++] = trk;
+                    trk.link(input); 
+                }
             }
         };
-        
-        this._link_alias_out = gain;
+
+        var command = function(cmd) {
+            for (var trk in tracks) {
+                if (tracks.hasOwnProperty(trk)) {
+                    tracks[trk][cmd]();
+                }
+            }
+        };
+
+        this.start = function() {
+            command('start');            
+        };
+        this.stop = function() {
+            command('stop');
+        };
+        this.pause = function() {
+            command('pause');
+        };
+
+        this._create = function() {
+            command('_create');           
+        };
+        this._destroy = function() {
+            command('_destroy');
+            // and local things too!
+        };
+
+        this._link_alias_out = output;
     };
     audioMixer.Bus.prototype = new audioCore.AudioModule();
         

@@ -64,10 +64,10 @@ function(audio, audioModules, audioNodes) {
             expect(function() { multipleOutMixinNode.link(mixinNode2, 1, null); }).not.toThrow();
         });
 
-        xit("delinks modules", function() {
+        it("severs modules", function() {
             expect(function() { 
                 module2.link(module); 
-                module2.delink();
+                module2.sever();
             }).not.toThrow();
         });
 

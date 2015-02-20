@@ -15,7 +15,9 @@ define(
 function(util, div, gMap, visualCore, markerCore, mutexVisualEffectsCore,
          filterXML, VHSShaders, $, $f) { var mutexVisualEffects = {};
 
-    var cont = document.createElement("svg_filters");
+     // will default to a HTMLUnknown element, which is fine for XML
+     // that does not need to be seen or manipulated
+    var cont = document.createElement("svg-filters");     
     cont.style.position = "fixed";
     cont.style.bottom = 0;
     cont.style.zIndex = -99999999;
