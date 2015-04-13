@@ -1,4 +1,21 @@
-This is very much in-progress; there's a lot left to do!   
+~~This is very much in-progress; there's a lot left to do!~~
+
+Well, yeah, but I'm not sure when I'm going to be able to get back to this.    
+
+Here's a todo list that should happen at *some* point:      
+
+1. Address some usability issues. 
+  - Start user on newest post, or, at least, on *a* post,             
+    and/or on a region on the map that looks like a map, with the filtering.                    
+  - Don't filter zoom controls.           
+
+2. Fix some of the code slop.          
+  - Integrate newer version of rudy api     
+   (which contains more high-level organizational structures)               
+
+3. Make better           
+  - use more of wes's music.             
+  - make audio layer more interactive            
    
 Support:
 ========
