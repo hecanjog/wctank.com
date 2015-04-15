@@ -164,7 +164,7 @@ function(posts, util, $) { gMap = {};
         return '#'+Math.floor(Math.random()*16777215).toString(16);
     }
 
-    var plus_last;
+    var plus_last = "#fff";
 
     zoom_plus.addEventListener("click", function() {
         try {
@@ -186,7 +186,7 @@ function(posts, util, $) { gMap = {};
     });
 
 
-    var minus_last;
+    var minus_last = "#fff";
 
     zoom_minus.addEventListener("click", function() {
         try {
