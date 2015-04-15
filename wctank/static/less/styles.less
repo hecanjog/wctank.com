@@ -72,13 +72,13 @@ button {
     z-index: 10;
 }
 
-
 /********************** Map *************************/
 
 // hide branding
 a[href^="http://maps.google.com/maps"] {
     display: none !important;
 }
+
 .gm-style-cc {
     display: none;
 }
@@ -94,7 +94,6 @@ a[href^="http://maps.google.com/maps"] {
 /******************** post display area ************************/
 
 #overlay {
-    
     display: none;
     overflow: auto;
     position: absolute;
@@ -225,7 +224,6 @@ a[href^="http://maps.google.com/maps"] {
     }
 
 ////////////
-
 }
 /**********************************************************/
 
@@ -243,6 +241,7 @@ a[href^="http://maps.google.com/maps"] {
     stroke-dasharray: 3200;
     .animation(dash 3500ms infinite linear);
 }
+
 .keyframes(dash, {
     from { stroke-dashoffset: 3200; }
     to { stroke-dashoffset: -3200; }
@@ -261,8 +260,10 @@ a[href^="http://maps.google.com/maps"] {
     outline: none;
     &:hover {
       color: @salmon-blood;
+      cursor: pointer;
     }
 }
+
 .close-post {
     position: absolute;
     top: 0.5em;
@@ -271,10 +272,8 @@ a[href^="http://maps.google.com/maps"] {
     .ui-controls;
     font-size: 1.2em;
     padding: 0;
-    &:hover {
-        cursor: pointer;
-    }
 }
+
 #social-links {
     position: fixed;
     top: 0;
@@ -284,6 +283,22 @@ a[href^="http://maps.google.com/maps"] {
     li {
         display: block;
         a {
+            .ui-controls;
+        }
+    }
+}
+
+#zoom-controls {
+    .no-select;
+    position: absolute;
+    bottom: 5%;
+    right: 0;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    li {
+        display: block;
+        i {
             .ui-controls;
         }
     }
@@ -302,9 +317,6 @@ a[href^="http://maps.google.com/maps"] {
     padding: 0;
     .ui-controls;
     font-size: 1.9em;
-    &:hover {
-        cursor: pointer;
-    }
 }
 /********************************************************/
 
@@ -315,7 +327,6 @@ a[href^="http://maps.google.com/maps"] {
 
 
 /*************************** Webfonts ******************************/
-
 @font-face {
     .apply-webfont('timeless', 'timelesstlig');
 }

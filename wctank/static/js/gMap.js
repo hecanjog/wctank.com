@@ -137,7 +137,7 @@ function(posts, util, $) { gMap = {};
             zoom: 11,
             mapTypeId: google.maps.MapTypeId.SATELLITE,
             disableDefaultUI: true,
-            zoomControl: true,
+            zoomControl: false,
             zoomControlOptions: {
                 position: google.maps.ControlPosition.LEFT_BOTTOM
             }
@@ -149,9 +149,60 @@ function(posts, util, $) { gMap = {};
         gMap.pxOverlay.setMap(gMap.map);
     };
 
+    /*
+     * zoom controls
+     */
     gMap.zoomControlsVisible = function(b) {
         var $zoomCtl = $(".gmnoprint").not(".gm-style-cc");
         b ? $zoomCtl.show() : $zoomCtl.hide();
     };
+
+    var zoom_plus = document.getElementById("zoom-in");
+    var zoom_minus = document.getElementById("zoom-out");
+
+    function randHex() {
+        return '#'+Math.floor(Math.random()*16777215).toString(16);
+    }
+
+    var plus_last;
+
+    zoom_plus.addEventListener("click", function() {
+        try {
+            var z = gMap.map.getZoom();
+            gMap.map.setZoom(++z);
+            plus_last = randHex();
+            zoom_plus.style.color = plus_last;
+        } catch(e) {
+            // will throw if map isn't ready, so cover that up.
+        }
+    });
+
+    zoom_plus.addEventListener("mouseover", function() {
+        zoom_plus.style.color = "#eb054c";
+    });
+
+    zoom_plus.addEventListener("mouseout", function() {
+        zoom_plus.style.color = plus_last;
+    });
+
+
+    var minus_last;
+
+    zoom_minus.addEventListener("click", function() {
+        try {
+            var z = gMap.map.getZoom();
+            gMap.map.setZoom(--z);
+            minus_last = randHex();
+            zoom_minus.style.color = minus_last;
+        } catch (e) {}
+    });
+
+    zoom_minus.addEventListener("mouseover", function() {
+        zoom_minus.style.color = "#eb054c";
+    });
+
+    zoom_minus.addEventListener("mouseout", function() {
+        zoom_minus.style.color = minus_last;
+    });
 
 return gMap; });

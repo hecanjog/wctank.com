@@ -6,8 +6,8 @@ Here's a todo list that should happen at *some* point:
 
 1. Address some usability issues. 
   - Start user on newest post, or, at least, on *a* post,             
-    and/or on a region on the map that looks like a map, with the filtering.                    
-  - Don't filter zoom controls.           
+    and/or ~~on a region on the map that looks like a map~~ (removed the emptier options), with the filtering.                    
+  - ~~Don't filter zoom controls.~~ check and check           
 
 2. Fix some of the code slop.          
   - Integrate newer version of rudy api     

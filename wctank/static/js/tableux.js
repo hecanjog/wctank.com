@@ -19,7 +19,7 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
     }
     tableux.flags.ALL = 0xFFFFFFFF;
     
-    tableux.TableuxDataTuple = function TableuxDataTuple(lat, lng, zoom, flag, exes) {
+    tableux.TableuxDataTuple = function(lat, lng, zoom, flag, exes) {
         this.loc = new google.maps.LatLng(lat, lng);
         this.zoom = zoom;
         this.flag = flag;
@@ -83,18 +83,18 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         new tdt(43.04786791144118, -87.90162418859109, 19, f.PrintAnalog),
         // river, boats
         new tdt(43.01021208352276, 272.1016006032805, 20, f.Fauvist | f.Vhs),
-        // rows of working-class houses
+        // rows of houses
         new tdt(42.99286263118931, -87.97206972615822, 18, f.PrintAnalog | f.Vhs | f.Fauvist | f.CausticGlow),
         // over lake michigan somewhere
-        new tdt(33.62344395619926, -118.12228629350284, 13, f.CausticGlow | f.Vhs | f.Cmgyk | f.Fauvist, 
-            [function(filterObj) {
-                if (filterObj.hasOwnProperty('setImmediateBlink')) filterObj.setImmediateBlink();
-            }]
-        ),
+        //new tdt(33.62344395619926, -118.12228629350284, 13, f.CausticGlow | f.Vhs | f.Cmgyk | f.Fauvist, 
+        //    [function(filterObj) {
+        //        if (filterObj.hasOwnProperty('setImmediateBlink')) filterObj.setImmediateBlink();
+        //    }]
+        //),
         /*
          * the bigger wider world
          */
-        // yves klein-ish - like this one
+         // yves klein-ish - like this one
         new tdt(51.740833805621726, -259.4416938221475, 19, f.Fauvist),
         // another colorful mountain
         new tdt(50.728666177507385, 99.64364876389303, 18, f.Fauvist | f.PrintAnalog),
@@ -117,18 +117,18 @@ function(util, gMap, mutexVisualEffects) { var tableux = {};
         new tdt(50.684622622794876, -111.752220877931, 16, f.Vhs | f.PrintAnalog | f.Fauvist | f.Cmgyk),
         new tdt(50.683246001156895, -111.7443836219054, 16, f.CausticGlow),                
         // a port near so cal
-        new tdt(33.74546214254659, -118.22587598936661, 18, f.ALL),
+        //new tdt(33.74546214254659, -118.22587598936661, 18, f.ALL),
         // a world map
         //new tdt(46.81244726322789, 16.65002231745169, 2, f.PrintAnalog | f.Fauvist | f.CausticGlow), 
         // a road somewhere
         new tdt(50.60152354612505, -111.64077556435313, 18, f.Vhs | f.Fauvist), 
         // i don't remember what this is
-        new tdt(47.45747901459409, 117.24761052530815, 13, f.Vhs | f.Fauvist | f.CausticGlow), 
+        //new tdt(47.45747901459409, 117.24761052530815, 13, f.Vhs | f.Fauvist | f.CausticGlow), 
         // coastline near LA I think idk
-        new tdt(34.06611259362441, -118.91275543937081, 13, f.CausticGlow), 
+        //new tdt(34.06611259362441, -118.91275543937081, 13, f.CausticGlow), 
         // don't remember what this is
-        new tdt(43.01995881560774, -87.89964248960314, 20, f.CausticGlow | f.PrintAnalog),
-        new tdt(38.51647228621493, -121.64318988084415, 11, f.CausticGlow) 
+        //new tdt(43.01995881560774, -87.89964248960314, 20, f.CausticGlow | f.PrintAnalog),
+        //new tdt(38.51647228621493, -121.64318988084415, 11, f.CausticGlow) 
     ];
 
 return tableux; });
