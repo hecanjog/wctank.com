@@ -1,8 +1,4 @@
-~~This is very much in-progress; there's a lot left to do!~~
-
-Well, yeah, but I'm not sure when I'm going to be able to get back to this.    
-
-Here's a todo list that should happen at *some* point:      
+Here's a todo list of things that should happen:      
 
 1. Address some usability issues. 
   - Start user on newest post, or, at least, on *a* post,             
