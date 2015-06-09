@@ -17,13 +17,15 @@ def index():
 def featureFail(failure_type):
     return render_template('fail.html', type=failure_type, dev_template=dev_template);
 
+# used when grabbing raw video for webgl processing
 @app.route('/vimeo_data')
 def getvimeodata():
     page = urllib2.urlopen("http://player.vimeo.com/video/64770002")
     vimcdn = re.compile('(http:\/\/pdl\.vimeocdn\.com\/93159\/486\/160286516\.mp4\?token2=.{43})');
     url = vimcdn.findall(page.read())[0]
     return url
-    
+ 
+# query database for posts within visible bounds
 @app.route('/<swk>/<swa>/<nek>/<nea>')
 def getposts(swk, swa, nek, nea):
     records = models.Post.query.filter(models.Post.lat >= swk) \

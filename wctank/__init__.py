@@ -7,9 +7,9 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
 db = SQLAlchemy(app)
 
-log_handler = logging.FileHandler(os.path.expanduser('~/wctank.flask.log'))
-log_handler.setLevel(logging.WARNING)
-app.logger.addHandler(log_handler)
+_log_handler = logging.FileHandler(os.path.expanduser('~/wctank.flask.log'))
+_log_handler.setLevel(logging.WARNING)
+app.logger.addHandler(_log_handler)
 
 from wctank import models
 from wctank import controller

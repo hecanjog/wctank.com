@@ -10,7 +10,7 @@ Usage:
 
 Options:
     dev         Bootstrap and run server locally, use raw source files.
-    bootstrap   Create and populate posts and jobs db
+    bootstrap   Create and populate posts db
     run         Only run server, use compiled sources.
 """
 
@@ -34,4 +34,3 @@ if __name__ == '__main__':
     
     if args['run'] == True:
         app.run('0.0.0.0')
-

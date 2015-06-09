@@ -1,8 +1,7 @@
 from wctank import db, utils
 
 class Post(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    md5 = db.Column(db.String(32))
+    md5 = db.Column(db.String(32), primary_key = True)
     lat = db.Column(db.Float)
     lng = db.Column(db.Float)
     json = db.Column(db.Text)
