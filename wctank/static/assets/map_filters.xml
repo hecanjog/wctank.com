@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+<defs>
+
+
+<filter id="caustic-glow">
+    <feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"></feColorMatrix>
+    <feComponentTransfer in="SourceGraphic">
+        <feFuncR type="discrete" tableValues="0"></feFuncR>
+        <feFuncG id="caustic-glow-green-exponent" type="gamma" amplitude="2" exponent="3.1"></feFuncG>
+        <feFuncB type="discrete" tableValues="0"></feFuncB>
+    </feComponentTransfer>   
+    <feComponentTransfer result="caustics">
+        <feFuncG type="linear" slope="100" intercept="0"></feFuncG>
+    </feComponentTransfer>
+    <feColorMatrix in="caustics" type="luminanceToAlpha" result="alphamap"></feColorMatrix>
+    <feComposite in="caustics" in2="alphamap" operator="in"></feComposite>
+    <feGaussianBlur id="cg-glow-radius" stdDeviation="10.6" result="glow"></feGaussianBlur>   
+    <feComposite in="gray" in2="glow" operator="xor"></feComposite>
+    
+    <feComponentTransfer>
+        <feFuncA type="discrete" tableValues="0"></feFuncA>
+    </feComponentTransfer>
+
+    <feGaussianBlur in="alphamap" id="caustic-glow-post-blur" stdDeviation="0">
+        <animate id="caustic-glow-post-blur-animate" attributeName="stdDeviation" 
+            values="" calcMode="linear" dur="1000ms" repeatCount="indefinite">
+        </animate>
+    </feGaussianBlur> 
+</filter>
+
+
+<filter id="animated-blur">
+    <feGaussianBlur id="animated-blur-feGaussianBlur" stdDeviation="0">
+        <animate id="animated-blur-animate-node" attributeName="stdDeviation" 
+            values="" calcMode="linear" dur="1000ms" repeatCount="indefinite">
+        </animate>
+    </feGaussianBlur> 
+</filter>
+
+</defs>
+</svg>

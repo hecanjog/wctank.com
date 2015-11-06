@@ -1,0 +1,9 @@
+{
+    "name": "wctank-builder",
+    "version": "0.0.1",
+    "description": "very small tool to build the es5 version of wctank.com",
+    "dependencies": {
+        "systemjs-builder": "^0.9.1",
+        "uglify-js": "^2.4.17"
+    }
+}

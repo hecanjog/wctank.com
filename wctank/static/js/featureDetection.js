@@ -1,36 +1,24 @@
-define(
-    [
-        'modernizr',
-        'jquery'
-    ],
+/**
+ * @module featureDetection
+ * detect status of webgl, webaudio, and webworkers
+ * on the client, hard fail in certain circumstances
+ */ 
 
-function(Modernizr, $) { var featureDetection = {};
+import {$} from "jquery";
+import {Modernizr} from "modernizer";
 
-    var fatal = [];
 
-    var fail = function() {
-        if (failed.fatal === 1 && fatal[0] === 'webgl') {
-            window.location.replace("feature-fail/webgl");
-        } else {
-            window.location.replace("feature-fail/"+fatal);
-        }
-    };
+export let audioext = Modernizr.audio.ogg ? '.ogg' :
+                      Modernizr.audio.mp3 ? '.mp3' : false;
 
-    if (!Modernizr.webgl) fatal.push('webgl');
-    if (!Modernizr.webworkers) fatal.push('webworkers');
-    if (fatal.length > 0) fail();
 
-    featureDetection.audioext = Modernizr.audio.ogg ? '.ogg' :
-                                Modernizr.audio.mp3 ? '.mp3' : false;
+export let webaudio = !!(Modernizr.webaudio && featureDetection.audioext); 
 
-    featureDetection.webaudio = !!(Modernizr.webaudio && featureDetection.audioext); 
 
-    /*
-     * TODO: Instead of just hard failing if there is a driver or other 
-     * enviornment problem, try to be a bit more graceful. 
-     */
-    featureDetection.fatal = function(mess) {
-        window.location.replace("feature-fail/"+mess);
-    }; 
+export let redirect_fatal = (mess) => {
+    window.location.replace(`feature-fail/${mess}`);
+}; 
 
-return featureDetection; });
+
+if (!Modernizr.webgl) redirect_fatal('webgl');
+if (!Modernizr.webworkers) redirect_fatal('webworkers');

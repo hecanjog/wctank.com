@@ -1,18 +1,13 @@
-define(
-    
-    [
-        "jquery"
-    ], 
-       
-function($) { var div = {};
-    
-    div.$overlay = $('#overlay');
-    div.$map = $("#map-canvas");
+/**
+ * @module div
+ */
+import {$} from "jquery";
 
-    // useful css selectors
-    div.selectors = {
-        $_map_imgs: "#map-canvas :nth-child(1) :nth-child(1)" + 
-            ":nth-child(1) :nth-child(5) :nth-child(1) > div"
-    };
+export let $overlay = $('#overlay');
+export let $map = $("$map-canvas");
 
-return div; });
+// useful css selectors
+export const selectors = {
+    $_map_imgs: "#map-canvas :nth-child(1) :nth-child(1)" + 
+        ":nth-child(1) :nth-child(5) :nth-child(1) > div"
+};

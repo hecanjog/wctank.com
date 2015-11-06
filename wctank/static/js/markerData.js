@@ -1,49 +1,48 @@
-define(
-    [
-        'markerMapPosition',
-    ],
+/**
+ * @module markerData
+ * serves as an interface to the markerDataWorker
+ */ 
 
-function(markerMapPosition) { var markerData = {};
 
-    /*
-     * interleaved block structure: (f = 32 bit float)
-     * marker hash, texture, model ver, location vec, UV   velocity
-     * f            f        f, f       f, f          f, f  f, f
-     *
-     * marker hash: unique ID
-     * texture: what image to use, enum'd in worker
-     * model coord: vertex coordinates (in pixels) where (0, 0) is the center of each marker.
-     * container coord: absolute location of marker in container pixels
-     * UV: texture coordinates
-     * velocity: angular velocity (x, y) in radians (for cloud particles)
-     */
-    markerData.NUMBER_OF_PARTICLES = 20;
-    markerData.BLOCK_ITEMS = 10;
-    markerData.BLOCK_SIZE = 40;
-    markerData.HASH_ITEMS = 1;
-    markerData.HASH_OFFSET = 0;
-    markerData.TYPE_ITEMS = 1;
-    markerData.TYPE_OFFSET = 4;
-    markerData.MODEL_VER_ITEMS = 2;
-    markerData.MODEL_VER_OFFSET = 8;
-    markerData.LOCATION_VEC_ITEMS = 2;
-    markerData.LOCATION_VEC_OFFSET = 16;
-    markerData.UV_ITEMS = 2;
-    markerData.UV_OFFSET = 24;
-    markerData.VELOCITY_ITEMS = 2;
-    markerData.VELOCITY_OFFSET = 32;
+import * as markerMapPosition from "markerMapPosition";
 
-    var markerDataWorker = new Worker("/static/js/markerDataWorker.js");
 
-    markerData.makeData = function(override, callback) {
-        var state = markerMapPosition.getCurrentState(),
-            ovr = override ? override : false;
-        state.push(markerData.NUMBER_OF_PARTICLES);
-        state.push(ovr);
-        markerDataWorker.postMessage(state); 
-        markerDataWorker.onmessage = function(e) {
-            callback(e.data);
-        };
-    }; 
+/*
+ * interleaved block structure: (f = 32 bit float)
+ * marker hash, texture, model ver, location vec, UV   velocity
+ * f            f        f, f       f, f          f, f  f, f
+ *
+ * marker hash: unique ID
+ * texture: what image to use, enum'd in worker
+ * model coord: vertex coordinates (in pixels) where (0, 0) is the center of each marker.
+ * container coord: absolute location of marker in container pixels
+ * UV: texture coordinates
+ * velocity: angular velocity (x, y) in radians (for cloud particles)
+ */
+export const NUMBER_OF_PARTICLES = 20,
+             BLOCK_ITEMS = 10,
+             BLOCK_SIZE = 40,
+             HASH_ITEMS = 1,
+             HASH_OFFSET = 0,
+             TYPE_ITEMS = 1,
+             TYPE_OFFSET = 4,
+             MODEL_VER_ITEMS = 2,
+             MODEL_VER_OFFSET = 8,
+             LOCATION_VEC_ITEMS = 2,
+             LOCATION_VEC_OFFSET = 16,
+             UV_ITEMS = 2,
+             UV_OFFSET = 24,
+             VELOCITY_ITEMS = 2,
+             VELOCITY_OFFSET = 32;
 
-return markerData; });
+let markerDataWorker = new Worker("/static/js/markerDataWorker.js");
+
+export let makeData = (override, callback) => {
+    let state = markerMapPosition.getCurrentState();
+    state.push(NUMBER_OF_PARTICLES);
+    state.push(override);
+    markerDataWorker.postMessage(state); 
+    markerDataWorker.onmessage = e => {
+        callback(e.data);
+    };
+}; 

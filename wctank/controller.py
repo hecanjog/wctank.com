@@ -26,7 +26,7 @@ def getvimeodata():
     return url
  
 # query database for posts within visible bounds
-@app.route('/<swk>/<swa>/<nek>/<nea>')
+@app.route('/posts/<swk>/<swa>/<nek>/<nea>')
 def getposts(swk, swa, nek, nea):
     records = models.Post.query.filter(models.Post.lat >= swk) \
         .filter(models.Post.lng >= swa) \
