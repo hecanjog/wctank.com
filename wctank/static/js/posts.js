@@ -2,13 +2,14 @@
  * @module posts
  */ 
 
-import {$} from "jquery";
-import * as div from "div";
-import * as gMap from "gMap";
-import loading_img from "../assets/loading_cur.svg";
+import $ from "jquery";
+import * as div from "./div";
+import * as gMap from "./gMap";
+import loading_img from "../assets/loading_cur.svg!systemjs/plugin-text";
 
 
-export let renderTemplate = (post, template) => {
+export function renderTemplate(post, template)
+{
     let content = '';
     if(typeof post.title !== 'undefined') {
         if(post.type === "link") {
@@ -55,14 +56,16 @@ export let renderTemplate = (post, template) => {
     });
     
     return rendered;
-};
+}
 
 
 let throttle = false,
     throttle_interval = 500,
     text_posts = ['text', 'audio', 'link', 'quote'];
 
-export let get = (visibleBounds, callback) => {
+
+export function get(visibleBounds, callback)
+{
     let sw = visibleBounds.getSouthWest(),
         ne = visibleBounds.getNorthEast(),
         url = `/posts/${sw.lat()}/${sw.lng()}/${ne.lat()}/${ne.lng()}`;
@@ -89,7 +92,7 @@ export let get = (visibleBounds, callback) => {
             callback(data);
         });
     }
-};
+}
 
 
 // everything below this point manages post display behavior
@@ -121,7 +124,8 @@ let marker_clicked = false,
     width = 0;
 
 
-export let display = (post) => {
+export function display(post)
+{
     let small_swap_time = 130;  // fade duration for content swaps
     
     if (div.$overlay.is(':hidden')) {
@@ -180,7 +184,7 @@ export let display = (post) => {
     window.setTimeout(function() {
         marker_clicked = false;
     }, 200);
-};
+}
 
 
 // Close overlay when user clicks on the X

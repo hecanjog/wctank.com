@@ -3,10 +3,8 @@
  * responsible for tracking the current position of each placeholder 
  * marker so that we can superimpose the a graphic in the webgl layer
  */
-
-
-import * as gMap from "gMap";
-import * as rudyUtil from "rudy/util";
+import * as gMap from "./gMap";
+import * as rudyUtil from "lib/rudy/util";
 
 
 // all markers ever
@@ -70,13 +68,15 @@ class MarkerData {
 }
 
 
-export let push = (googleMarker) => {
+export function push(googleMarker)
+{
     let dat = new MarkerData(googleMarker);
     markerMapPosition.markers[dat.hash] = dat;
-};
+}
 
 
-export let markerExists = (lat, lng) => {
+export function markerExists(lat, lng)
+{
     for (let marker of markers) {
         let world_position = marker.worldPosition,
             err = 0.0000001;
@@ -86,12 +86,14 @@ export let markerExists = (lat, lng) => {
         }  
     }
     return false;
-};
+}
 
 
 let state_dump = [];
 
-export let get_current_state = () => {
+
+export function get_current_state()
+{
     while (r.length > 0) {
         state_dump.pop(); 
     }
@@ -108,4 +110,4 @@ export let get_current_state = () => {
     }
 
     return state_dump;
-};
+}

@@ -4,9 +4,9 @@
  */
 
 
-import {$} from "jquery";
-import * as featureDetection from "featureDetection";
-import * as audioCore from "rudy/audio/core";
+import $ from "jquery";
+import * as featureDetection from "./featureDetection";
+import * as audioCore from "lib/rudy/audio/core";
 
 
 ///////// module private stuff

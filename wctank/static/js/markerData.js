@@ -2,9 +2,7 @@
  * @module markerData
  * serves as an interface to the markerDataWorker
  */ 
-
-
-import * as markerMapPosition from "markerMapPosition";
+import * as markerMapPosition from "./markerMapPosition";
 
 
 /*
@@ -35,9 +33,12 @@ export const NUMBER_OF_PARTICLES = 20,
              VELOCITY_ITEMS = 2,
              VELOCITY_OFFSET = 32;
 
+
 let markerDataWorker = new Worker("/static/js/markerDataWorker.js");
 
-export let makeData = (override, callback) => {
+
+export function makeData(override, callback)
+{
     let state = markerMapPosition.getCurrentState();
     state.push(NUMBER_OF_PARTICLES);
     state.push(override);
@@ -45,4 +46,4 @@ export let makeData = (override, callback) => {
     markerDataWorker.onmessage = e => {
         callback(e.data);
     };
-}; 
+} 

@@ -3,15 +3,14 @@
  * contains subclasses of rudy.visualCore.Effect that implement
  * different visual effects.
  */
-
-import {$} from "lib/jquery";
-import {$f} from "lib/froogaloop2";
-import * as rudy from "lib/rudy";
+import $ from "jquery";
+import $f from "froogaloop2";
+import "lib/rudy/rudy";
 
 import * as tableux from "./tableux";
 import * as div from "./div";
 import * as gMap from "./gMap";
-import filterXML from "assets/map_filters.xml!";
+import filterXML from "assets/map_filters.xml!systemjs/plugin-text";
 
 
 // first, render the filter xml in the document so it is available via css selectors

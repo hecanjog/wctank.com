@@ -3,17 +3,13 @@
  */
 
 
-import {$} from "jquery";
-import {google} from "google-maps";
+import $ from "jquery";
+import google from "google-maps";
 
 
 //////// module private stuff
 let events_added = false;
 
-// locale: {
-//  event_name: [...callbacks...]
-//  ...
-// }
 let event_locales = {
     map: {},
     marker: {}
@@ -101,7 +97,8 @@ export const events =
 };
 
 
-export let init = () => {
+export function init()
+{
     let mapOptions = {
         center: new google.maps.LatLng(43.1, -87.107180),
         zoom: 11,
@@ -117,18 +114,20 @@ export let init = () => {
     gMap.pxOverlay = new google.maps.OverlayView();
     gMap.pxOverlay.draw = () => {};
     gMap.pxOverlay.setMap(gMap.map);
-};
+}
 
 
 // mostly for dbug
-export let logMapStats = () => {
+export function logMapStats()
+{
     console.log(gMap.map.center.lat()+" "+gMap.map.center.lng());
     console.log(gMap.map.zoom);
-};
+}
 
 
 // goTo a location/zoom
-export let goTo = (lat_or_latLng, lng_or_zoom, zoom) => {
+export function goTo(lat_or_latLng, lng_or_zoom, zoom)
+{
     if (('lat' in lat_or_latLng) && ('lng' in lat_or_latLng)) {
         gMap.map.setCenter(lat_or_latLng);
         gMap.map.setZoom(lng_or_zoom);
@@ -136,15 +135,16 @@ export let goTo = (lat_or_latLng, lng_or_zoom, zoom) => {
         gMap.map.setCenter(new google.maps.LatLng(lat_or_latLng, lng_or_zoom));
         gMap.map.setZoom(zoom);
     }
-};
+}
 
 
 ////////////////////// zoom controls
 
-export let zoomControlsVisible = (b) => {
+export function zoomControlsVisible(b)
+{
     let $zoomCtl = $(".gmnoprint").not(".gm-style-cc");
     b ? $zoomCtl.show() : $zoomCtl.hide();
-};
+}
 
 
 let zoom_plus = document.getElementById("zoom-in"),
