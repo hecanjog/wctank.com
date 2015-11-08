@@ -672,7 +672,7 @@
 (function() {
 var _removeDefine = $__System.get("@@amd-helpers").createDefine();
 define("2", [], function() {
-  return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n<defs>\n\n\n<filter id=\"caustic-glow\">\n    <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"0\" result=\"gray\"></feColorMatrix>\n    <feComponentTransfer in=\"SourceGraphic\">\n        <feFuncR type=\"discrete\" tableValues=\"0\"></feFuncR>\n        <feFuncG id=\"caustic-glow-green-exponent\" type=\"gamma\" amplitude=\"2\" exponent=\"3.1\"></feFuncG>\n        <feFuncB type=\"discrete\" tableValues=\"0\"></feFuncB>\n    </feComponentTransfer>   \n    <feComponentTransfer result=\"caustics\">\n        <feFuncG type=\"linear\" slope=\"100\" intercept=\"0\"></feFuncG>\n    </feComponentTransfer>\n    <feColorMatrix in=\"caustics\" type=\"luminanceToAlpha\" result=\"alphamap\"></feColorMatrix>\n    <feComposite in=\"caustics\" in2=\"alphamap\" operator=\"in\"></feComposite>\n    <feGaussianBlur id=\"cg-glow-radius\" stdDeviation=\"10.6\" result=\"glow\"></feGaussianBlur>   \n    <feComposite in=\"gray\" in2=\"glow\" operator=\"xor\"></feComposite>\n    \n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0\"></feFuncA>\n    </feComponentTransfer>\n\n    <feGaussianBlur in=\"alphamap\" id=\"caustic-glow-post-blur\" stdDeviation=\"0\">\n        <animate id=\"caustic-glow-post-blur-animate\" attributeName=\"stdDeviation\" \n            values=\"\" calcMode=\"linear\" dur=\"1000ms\" repeatCount=\"indefinite\">\n        </animate>\n    </feGaussianBlur> \n</filter>\n\n\n<filter id=\"animated-blur\">\n    <feGaussianBlur id=\"animated-blur-feGaussianBlur\" stdDeviation=\"0\">\n        <animate id=\"animated-blur-animate-node\" attributeName=\"stdDeviation\" \n            values=\"\" calcMode=\"linear\" dur=\"1000ms\" repeatCount=\"indefinite\">\n        </animate>\n    </feGaussianBlur> \n</filter>\n\n</defs>\n</svg>\n";
+  return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n<defs>\n\n<filter id=\"print-analog\">\n    <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"4.6\"></feColorMatrix>\n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0.93\"></feFuncA>\n    </feComponentTransfer>\n    <feOffset dx=\"2\" dy=\"1\" result=\"offset\"></feOffset>\n    \n    <!-- EDGE DETECTION -->\n        <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"0\"></feColorMatrix>\n        <feGaussianBlur id=\"pa-denoise\" stdDeviation=\"1.16\"></feGaussianBlur>\n        <feConvolveMatrix   \n            kernelMatrix=\"-1 -1 -1 \n                          -1 8 -1 \n                          -1 -1 -1\"\n            preserveAlpha=\"true\">\n        </feConvolveMatrix>\n        <feComponentTransfer result=\"flip\">\n            <feFuncR type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncR>\n            <feFuncG type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncG>\n            <feFuncB type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncB>\n        </feComponentTransfer> \n        <feMorphology operator=\"erode\" radius=\"0.001\" result=\"thick\"></feMorphology>\n    <!-- /EDGE DETECTION -->\n    \n    <feBlend id=\"pa-bypass\" in=\"offset\" in2=\"flip\" mode=\"multiply\" result=\"out\"></feBlend>\n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0.75\"></feFuncA>\n    </feComponentTransfer> \n\n</filter>\n\n<filter id=\"animated-blur\">\n    <feGaussianBlur id=\"animated-blur-feGaussianBlur\" stdDeviation=\"0\">\n        <animate id=\"animated-blur-animate-node\" attributeName=\"stdDeviation\" \n            values=\"\" calcMode=\"linear\" dur=\"1000ms\" repeatCount=\"indefinite\">\n        </animate>\n    </feGaussianBlur> \n</filter>\n\n</defs>\n</svg>\n";
 });
 
 _removeDefine();
@@ -8987,7 +8987,7 @@ $__System.register("4", ["6", "7", "8", "5d"], function (_export) {
             };
 
             addSingleEvent = function addSingleEvent(event, callback, once, marker) {
-                var locale = marker ? marker : gMap.map;
+                var locale = marker ? marker : map;
                 var add_fn = once ? google.maps.event.addListenerOnce : google.maps.event.addListener;
                 add_fn(locale, event, callback);
             };
@@ -9021,10 +9021,11 @@ $__System.register("4", ["6", "7", "8", "5d"], function (_export) {
                 initQueuedEvents: function initQueuedEvents(locale, marker) {
                     // assume the event is attached to the map if the locale is not specified
                     var event_set = locale ? event_locales[locale] : event_groups.map;
+                    var caller = marker ? marker : map;
 
                     var checked_locale = (function () {
                         if (locale === 'map') {
-                            return gMap.map;
+                            return map;
                         } else if (locale === 'marker' && marker) {
                             return marker;
                         } else if (locale === 'marker') {
@@ -9051,8 +9052,8 @@ $__System.register("4", ["6", "7", "8", "5d"], function (_export) {
                                 for (_iterator2 = _getIterator(event_set[event_name]); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                                     var callback = _step2.value;
 
-                                    var push_fn = callback.once ? once.push : always.push;
-                                    push_fn(callback.fn);
+                                    var fn = callback.fn;
+                                    callback.once ? once.push(fn) : always.push(fn);
                                 }
                             } catch (err) {
                                 _didIteratorError2 = true;
@@ -9159,7 +9160,7 @@ $__System.register("4", ["6", "7", "8", "5d"], function (_export) {
 
             _export("events", events);
 
-            zoom_plus = document.getElementById("zoom-in");
+            window.logMapStats = logMapStats;zoom_plus = document.getElementById("zoom-in");
             zoom_minus = document.getElementById("zoom-out");
 
             randHex = function randHex() {
@@ -16716,6 +16717,88 @@ $__System.registerDynamic("74", [], true, function(req, exports, module) {
   return module.exports;
 });
 
+$__System.registerDynamic("d", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var core = module.exports = {version: '1.2.5'};
+  if (typeof __e == 'number')
+    __e = core;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("36", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var global = module.exports = typeof window != 'undefined' && window.Math == Math ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
+  if (typeof __g == 'number')
+    __g = global;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("4c", ["36", "d"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var global = req('36'),
+      core = req('d'),
+      PROTOTYPE = 'prototype';
+  var ctx = function(fn, that) {
+    return function() {
+      return fn.apply(that, arguments);
+    };
+  };
+  var $def = function(type, name, source) {
+    var key,
+        own,
+        out,
+        exp,
+        isGlobal = type & $def.G,
+        isProto = type & $def.P,
+        target = isGlobal ? global : type & $def.S ? global[name] : (global[name] || {})[PROTOTYPE],
+        exports = isGlobal ? core : core[name] || (core[name] = {});
+    if (isGlobal)
+      source = name;
+    for (key in source) {
+      own = !(type & $def.F) && target && key in target;
+      if (own && key in exports)
+        continue;
+      out = own ? target[key] : source[key];
+      if (isGlobal && typeof target[key] != 'function')
+        exp = source[key];
+      else if (type & $def.B && own)
+        exp = ctx(out, global);
+      else if (type & $def.W && target[key] == out)
+        !function(C) {
+          exp = function(param) {
+            return this instanceof C ? new C(param) : C(param);
+          };
+          exp[PROTOTYPE] = C[PROTOTYPE];
+        }(out);
+      else
+        exp = isProto && typeof out == 'function' ? ctx(Function.call, out) : out;
+      exports[key] = exp;
+      if (isProto)
+        (exports[PROTOTYPE] || (exports[PROTOTYPE] = {}))[key] = out;
+    }
+  };
+  $def.F = 1;
+  $def.G = 2;
+  $def.S = 4;
+  $def.P = 8;
+  $def.B = 16;
+  $def.W = 32;
+  module.exports = $def;
+  global.define = __define;
+  return module.exports;
+});
+
 $__System.registerDynamic("b", ["4c", "d", "74"], true, function(req, exports, module) {
   ;
   var global = this,
@@ -16901,7 +16984,7 @@ $__System.registerDynamic("11", ["15"], true, function(req, exports, module) {
 });
 
 $__System.register("81", ["2", "3", "4", "6", "11", "12", "13", "14", "57", "5d", "6d", "6b", "5e"], function (_export) {
-    var filterXML, tableux, gMap, _classCallCheck, _get, _inherits, _createClass, _Symbol, rudy, posts, div, filters, __css_class__, __name__, CssEffect, __gauss_std_deviation__, __gauss_blur_element__, __blur_radius_value__, __blur_animation_duration__, __blur_animation_element__, __luma_exponent_value__, __luma_element__, __vimeo_player__, __vimeo_player_ready__, __mouse_interval_id__, __caustic_bg_elem__, CausticGlow;
+    var filterXML, tableux, gMap, _classCallCheck, _get, _inherits, _createClass, _Symbol, rudy, posts, div, filters, __css_class__, __name__, CssEffect, PrintAnalog;
 
     return {
         setters: [function (_9) {
@@ -16988,139 +17071,27 @@ $__System.register("81", ["2", "3", "4", "6", "11", "12", "13", "14", "57", "5d"
                 return CssEffect;
             })(rudy.visualCore.Effect);
 
-            __gauss_std_deviation__ = _Symbol();
-            __gauss_blur_element__ = _Symbol();
-            __blur_radius_value__ = _Symbol();
-            __blur_animation_duration__ = _Symbol();
-            __blur_animation_element__ = _Symbol();
-            __luma_exponent_value__ = _Symbol();
-            __luma_element__ = _Symbol();
-            __vimeo_player__ = _Symbol();
-            __vimeo_player_ready__ = _Symbol();
-            __mouse_interval_id__ = _Symbol();
-            __caustic_bg_elem__ = _Symbol();
+            PrintAnalog = (function (_CssEffect) {
+                _inherits(PrintAnalog, _CssEffect);
 
-            CausticGlow = (function (_CssEffect) {
-                _inherits(CausticGlow, _CssEffect);
+                function PrintAnalog() {
+                    _classCallCheck(this, PrintAnalog);
 
-                function CausticGlow() {
-                    var _this2 = this;
-
-                    _classCallCheck(this, CausticGlow);
-
-                    _get(Object.getPrototypeOf(CausticGlow.prototype), "constructor", this).call(this, "CausticGlow", "caustic-glow");
-
-                    // prepare background video
-                    this[__caustic_bg_elem__] = document.createElement("div");
-                    this[__caustic_bg_elem__].setAttribute("id", "caustic-glow-back");
-
-                    var vid_id = "100763590",
-                        player_elem = document.createElement("iframe");
-                    player_elem.setAttribute("id", "vimeo-background-player");
-                    player_elem.src = "https://player.vimeo.com/video/" + vid_id + "?api=1&player_id=vimeo-background-player&autopause=0&loop=1";
-                    this[__caustic_bg_elem__].appendChild(player_elem);
-
-                    document.body.appendChild(this[__caustic_bg_elem__]);
-                    this[__vimeo_player__] = window.$f(player_elem);
-                    window.fuck_you = this[__vimeo_player__];
-                    this[__vimeo_player_ready__] = false;
-                    this[__mouse_interval_id__] = null;
-
-                    this[__vimeo_player__].addEvent('ready', function () {
-                        _this2[__vimeo_player_ready__] = true;
-                        _this2[__vimeo_player__].api("setVolume", 0);
-                        _this2[__vimeo_player__].api('pause');
-
-                        // the second part of the nasty hack from posts.js
-                        // this is, I think, the worst bit of code I've ever written.
-                        // ... it only completely works about 50 - 60% of the time
-                        // .. although, it's kinda neat in a deconstructive sort of way...
-                        window.addEventListener('overlay_iframe_mouse', function (e) {
-                            if (e.detail.status === 'mouseover') {
-                                _this2[__mouse_interval_id__] = window.setInterval(function () {
-                                    _this2[__vimeo_player__].api('setVolume', 0);
-                                }, 1); // floors at ca. 8 - 14
-                            } else if (e.detail.status === 'mouseout') {
-                                    window.clearInterval(_this2[__mouse_interval_id__]);
-                                }
-                        });
-                    });
-
-                    this[__gauss_std_deviation__] = 10.6;
-                    this[__gauss_blur_element__] = document.getElementById("cg-glow-radius");
-
-                    this[__blur_radius_value__] = 0;
-                    this[__blur_animation_duration__] = 1000;
-                    this[__blur_animation_element__] = document.getElementById('caustic-glow-post-blur-animate');
-
-                    this[__luma_exponent_value__] = 3.1;
-                    this[__luma_element__] = document.getElementById('caustic-glow-green-exponent');
+                    _get(Object.getPrototypeOf(PrintAnalog.prototype), "constructor", this).call(this, "PrintAnalog", "print-analog");
                 }
 
-                _createClass(CausticGlow, [{
+                _createClass(PrintAnalog, [{
                     key: "init",
-                    value: function init() {
-                        var _this3 = this;
-
-                        console.log("init called");
-                        if (this[__vimeo_player_ready__]) {
-                            console.log("fuck you serious");
-                            this[__caustic_bg_elem__].style.visibility = "visible";
-                            this[__vimeo_player__].api("play");
-                        } else {
-                            window.setTimeout(function () {
-                                _this3.init();
-                            }, 250);
-                        }
-                    }
+                    value: function init() {}
                 }, {
                     key: "teardown",
-                    value: function teardown() {
-                        this[__vimeo_player__].api("pause");
-                        this[__caustic_bg_elem__].style.visibility = "hidden";
-                    }
-                }, {
-                    key: "alpha_blur_radius",
-                    get: function get() {
-                        return this[__gauss_std_deviation__];
-                    },
-                    set: function set(v) {
-                        this[__gauss_std_deviation__] = v;
-                        this[__gauss_blur_element__].setAttribute('stdDeviation', this[__gauss_std_deviation__].toString());
-                    }
-                }, {
-                    key: "animated_post_blur_radius",
-                    get: function get() {
-                        return this[__blur_radius_value__];
-                    },
-                    set: function set(v) {
-                        this[__blur_radius_value__] = v;
-                        this[__blur_animation_element__].setAttribute("values", "0 0;" + v + " 0;0 0");
-                    }
-                }, {
-                    key: "animated_post_blur_duration",
-                    get: function get() {
-                        return this[__blur_animation_duration__];
-                    },
-                    set: function set(v) {
-                        this[__blur_animation_duration__] = v;
-                        this[__blur_animation_element__].setAttribute('dur', v.toString() + "ms");
-                    }
-                }, {
-                    key: "luma_exponent",
-                    get: function get() {
-                        return this[__luma_exponent_value__];
-                    },
-                    set: function set(v) {
-                        this[__luma_exponent_value__] = v;
-                        this[__luma_element__].setAttribute('exponent', v.toString());
-                    }
+                    value: function teardown() {}
                 }]);
 
-                return CausticGlow;
+                return PrintAnalog;
             })(CssEffect);
 
-            _export("CausticGlow", CausticGlow);
+            _export("PrintAnalog", PrintAnalog);
         }
     };
 });
@@ -17247,181 +17218,53 @@ $__System.register('55', [], function (_export) {
         }
     };
 });
-$__System.registerDynamic("d", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var core = module.exports = {version: '1.2.5'};
-  if (typeof __e == 'number')
-    __e = core;
-  global.define = __define;
-  return module.exports;
-});
+$__System.register("82", ["3", "4", "55", "81"], function (_export) {
 
-$__System.registerDynamic("36", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var global = module.exports = typeof window != 'undefined' && window.Math == Math ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
-  if (typeof __g == 'number')
-    __g = global;
-  global.define = __define;
-  return module.exports;
-});
+    // visuals
+    "use strict";
 
-$__System.registerDynamic("4c", ["36", "d"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var global = req('36'),
-      core = req('d'),
-      PROTOTYPE = 'prototype';
-  var ctx = function(fn, that) {
-    return function() {
-      return fn.apply(that, arguments);
-    };
-  };
-  var $def = function(type, name, source) {
-    var key,
-        own,
-        out,
-        exp,
-        isGlobal = type & $def.G,
-        isProto = type & $def.P,
-        target = isGlobal ? global : type & $def.S ? global[name] : (global[name] || {})[PROTOTYPE],
-        exports = isGlobal ? core : core[name] || (core[name] = {});
-    if (isGlobal)
-      source = name;
-    for (key in source) {
-      own = !(type & $def.F) && target && key in target;
-      if (own && key in exports)
-        continue;
-      out = own ? target[key] : source[key];
-      if (isGlobal && typeof target[key] != 'function')
-        exp = source[key];
-      else if (type & $def.B && own)
-        exp = ctx(out, global);
-      else if (type & $def.W && target[key] == out)
-        !function(C) {
-          exp = function(param) {
-            return this instanceof C ? new C(param) : C(param);
-          };
-          exp[PROTOTYPE] = C[PROTOTYPE];
-        }(out);
-      else
-        exp = isProto && typeof out == 'function' ? ctx(Function.call, out) : out;
-      exports[key] = exp;
-      if (isProto)
-        (exports[PROTOTYPE] || (exports[PROTOTYPE] = {}))[key] = out;
-    }
-  };
-  $def.F = 1;
-  $def.G = 2;
-  $def.S = 4;
-  $def.P = 8;
-  $def.B = 16;
-  $def.W = 32;
-  module.exports = $def;
-  global.define = __define;
-  return module.exports;
-});
+    var tableux, gMap, renderLoop, PrintAnalog, glow, flags, stock_list;
 
-$__System.registerDynamic("82", ["4c"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $def = req('4c');
-  $def($def.S, 'Math', {log10: function log10(x) {
-      return Math.log(x) / Math.LN10;
-    }});
-  global.define = __define;
-  return module.exports;
-});
+    _export("start", start);
 
-$__System.registerDynamic("83", ["82", "d"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  req('82');
-  module.exports = req('d').Math.log10;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("84", ["83"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = {
-    "default": req('83'),
-    __esModule: true
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.register("85", ["3", "4", "55", "81", "84"], function (_export) {
-    var tableux, gMap, renderLoop, CausticGlow, _Math$log10, glow, flags, stock_list;
+    /*
+    gMap.events.queue('map', 'zoom_changed', function() {
+        let zoom = gMap.map.getZoom(),
+            thresh = 0,
+            scale = thresh - zoom,
+            do_blur = zoom > thresh;
+    
+        glow.animated_post_blur_duration = do_blur ? 0 : scale * 100 + 100;
+        glow.animated_post_blur_radius = do_blur ? 0 : Math.log10(scale) * 12;
+    });
+    */
 
     function start() {
         tableux.pushData(stock_list);
-        console.log(glow);
         glow.operate(true);
         tableux.select(glow);
     }
 
     return {
-        setters: [function (_5) {
-            tableux = _5;
-        }, function (_4) {
-            gMap = _4;
-        }, function (_2) {
-            renderLoop = _2;
+        setters: [function (_4) {
+            tableux = _4;
         }, function (_3) {
-            CausticGlow = _3.CausticGlow;
+            gMap = _3;
         }, function (_) {
-            _Math$log10 = _["default"];
+            renderLoop = _;
+        }, function (_2) {
+            PrintAnalog = _2.PrintAnalog;
         }],
         execute: function () {
-
-            // visuals
-            "use strict";
-
-            _export("start", start);
-
-            glow = new CausticGlow();
+            glow = new PrintAnalog();
             flags = tableux.flags;
             stock_list = [
-            // try a different highway one
-            new tableux.TableuxData(42.70103069787964, -87.99994131176345, 18, flags.CausticGlow),
-            // 1/2 404 - try another 404 filled one?
-            new tableux.TableuxData(41.73787991072762, -87.47784991638764, 16, flags.CausticGlow),
-            // runway 32
-            new tableux.TableuxData(41.351808897930226, -89.22587973528789, 16, flags.CausticGlow),
-            // rows of houses
-            new tableux.TableuxData(42.99286263118931, -87.97206972615822, 18, flags.CausticGlow),
-            // industrial agriculture - these are nice
-            new tableux.TableuxData(50.677401244851545, -111.73200775079476, 18, flags.CausticGlow), new tableux.TableuxData(50.683246001156895, -111.7443836219054, 16, flags.CausticGlow)];
-
-            gMap.events.queue('map', 'zoom_changed', function () {
-                var zoom = gMap.map.getZoom(),
-                    thresh = 0,
-                    scale = thresh - zoom,
-                    do_blur = zoom > thresh;
-
-                glow.animated_post_blur_duration = do_blur ? 0 : scale * 100 + 100;
-                glow.animated_post_blur_radius = do_blur ? 0 : _Math$log10(scale) * 12;
-            });
+            // colorful building
+            new tableux.TableuxData(43.04003854259038 - 87.91071553604706, 19, flags.PrintAnalog), new tableux.TableuxData(43.04786791144118, -87.90162418859109, 19, flags.PrintAnalog)];
         }
     };
 });
-$__System.register("1", ["4", "85"], function (_export) {
+$__System.register("1", ["4", "82"], function (_export) {
     //import * as featureDetection from "./featureDetection";
 
     //import { audio_scene_init } from "./audioScene";
@@ -17447,7 +17290,7 @@ $__System.register("1", ["4", "85"], function (_export) {
 
             visualSceneStart();
 
-            //gMap.events.initQueuedEvents('map');
+            gMap.events.initQueuedEvents('map');
 
             // suddenly remove loading screen - no transition!
             loading = document.getElementById("loading-container");

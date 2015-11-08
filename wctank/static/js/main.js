@@ -21,8 +21,8 @@ overlay.setMap(gMap.map);
 
 visualSceneStart();
 
-//gMap.events.initQueuedEvents('map');
+gMap.events.initQueuedEvents('map');
 
 // suddenly remove loading screen - no transition!
-var loading = document.getElementById("loading-container");
-document.body.removeChild(loading);
+    var loading = document.getElementById("loading-container");
+    document.body.removeChild(loading);   

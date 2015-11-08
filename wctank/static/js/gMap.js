@@ -21,7 +21,7 @@ class registeredEventCallback {
 }
 
 let addSingleEvent = (event, callback, once, marker) => {
-    let locale = marker ? marker : gMap.map;
+    let locale = marker ? marker : map;
     let add_fn = once ? 
                  google.maps.event.addListenerOnce :
                  google.maps.event.addListener;
@@ -55,10 +55,11 @@ export const events =
     {
         // assume the event is attached to the map if the locale is not specified
         let event_set = locale ? event_locales[locale] : event_groups.map;
-    
+        let caller = marker ? marker : map; 
+
         let checked_locale = (() => {
             if (locale === 'map') {
-                return gMap.map;
+                return map;
             } else if ((locale === 'marker') && marker) {
                 return marker;
             } else if (locale === 'marker') {
@@ -72,8 +73,8 @@ export const events =
             let once = [];
             
             for (let callback of event_set[event_name]) {
-                let push_fn = callback.once ? once.push : always.push;
-                push_fn(callback.fn);
+                let fn = callback.fn;
+                callback.once ? once.push(fn) : always.push(fn);
             }
 
             if (always.length > 0) {
@@ -121,7 +122,7 @@ export function logMapStats()
     console.log(map.center.lat()+" "+map.center.lng());
     console.log(map.zoom);
 }
-
+window.logMapStats = logMapStats;
 
 // goTo a location/zoom
 export function goTo(lat_or_latLng, lng_or_zoom, zoom)
