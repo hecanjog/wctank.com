@@ -1,13 +1,12 @@
-import google from "google-maps";
 import * as gMap from "./gMap";
 import * as renderLoop from "lib/rudy/renderLoop";
 import * as featureDetection from "./featureDetection";
 import * as instruments from "./instruments";
 import * as audioCore from "lib/rudy/audio/core";
 import * as util from "lib/rudy/util";
-import "lib/rudy/audio/modules/Convolution";
-import "lib/rudy/rhythm/Clock";
-import "lib/rudy/rhythm/Generator";
+import { Convolution } from "lib/rudy/audio/modules/Convolution";
+import { Clock } from "lib/rudy/rhythm/Clock";
+import { Generator } from "lib/rudy/rhythm/Generator";
 
 
 // everything in here can only be executed if webaudio exists,

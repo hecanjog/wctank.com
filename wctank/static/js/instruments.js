@@ -5,17 +5,17 @@
  */
 
 
-import * as featureDetection from "./featureDetection";
-import "lib/rudy/instrument/Instrument";
-import "lib/rudy/instrument/ParameterizedAction";
-import "lib/rudy/audio/modules/SamplePlayer";
-import "lib/rudy/audio/modules/MediaElementPlayer";
-import "lib/rudy/audio/modules/Bandpass";
-import "lib/rudy/audio/modules/Noise";
+import { Instrument } from "lib/rudy/instrument/Instrument";
+import { ParameterizedAction } from "lib/rudy/instrument/ParameterizedAction";
+import { SamplePlayer } from "lib/rudy/audio/modules/SamplePlayer";
+import { MediaElementPlayer } from "lib/rudy/audio/modules/MediaElementPlayer";
+import { Bandpass } from "lib/rudy/audio/modules/Bandpass";
+import { Noise } from "lib/rudy/audio/modules/Noise";
 import * as moduleExtensions from "lib/rudy/audio/moduleExtensions";
 import * as audioNodes from "lib/rudy/audio/nodes";
 import * as envelopeAsdr from "lib/rudy/rhythm/envelope/asdr";
 import * as envelopeCore from "lib/rudy/rhythm/envelope/core";
+import * as featureDetection from "./featureDetection";
 
 
 export class BigEarEnviron extends Instrument

@@ -8,8 +8,7 @@ var fs = require('fs'),
 
 cli.parse({
     production: ['p', 'builds minified and mangled static resources to ./dist'],
-    debug: ['d', 'builds static resources to ./dist'],
-    serve: ['s', 'runs a test server, which can be handy for debugging']
+    debug: ['d', 'builds static resources to ./dist']
 });
 
  
@@ -33,9 +32,9 @@ function doBuild(minify)
 {
     console.log("compiling js...");
     jspm.setPackagePath('.');
-    jspm.bundleSFX("js/main", "dist/main.js", {minify: minify, mangle: minify}).then(function() {
+    jspm.bundleSFX("js/main", "dist/main.js", {minify: minify, mangle: minify}).then(function(err) {
+        if (err) throw err;
         console.log("done compiling js."); 
-
     });
 
     compile_less(
@@ -50,18 +49,6 @@ function doBuild(minify)
         "compiling styles less...", 
         "done compiling styles less."
     );
-}
-
-function doServe()
-{
-    console.log("starting static server...");
-    var server = new static.Server('.');
-    require('http').createServer(function(req, res) {
-        req.addListener('end', function() {
-            server.serve(req, res);
-        }).resume();
-    }).listen(8080);
-    console.log("server listening on port 8080.");
 }
 
 

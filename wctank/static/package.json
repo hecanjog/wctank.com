@@ -6,7 +6,6 @@
     "dependencies": {
       "froogaloop2": "npm:vimeo-froogaloop@^0.1.0",
       "jquery": "github:components/jquery@^2.1.4",
-      "systemjs-googlemaps": "github:HeinrichFilter/systemjs-plugin-googlemaps@master",
       "systemjs/plugin-json": "github:systemjs/plugin-json@^0.1.0",
       "systemjs/plugin-text": "github:systemjs/plugin-text@^0.0.3"
     },
@@ -19,7 +18,6 @@
   "dependencies": {
     "cli": "^0.11.1",
     "jspm": "^0.16.14",
-    "less": "^2.5.3",
-    "node-static": "^0.7.7"
+    "less": "^2.5.3"
   }
 }

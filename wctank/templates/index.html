@@ -7,7 +7,7 @@
         <link href="/static/less/styles.less" type="text/css" rel="stylesheet/less">
         <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
     {% else %}        
-        <link href="/static/dist/styles-min.css" type="text/css" rel="stylesheet">
+        <link href="/static/dist/styles.css" type="text/css" rel="stylesheet">
     {% endif %}
     <meta http-equiv="cache-control" content="max-age=0" />
     <meta http-equiv="cache-control" content="no-cache" />
@@ -49,12 +49,17 @@
         <div class="~!type">~!content</div>
         <div class="permalink"><a href="~!link" target="_blank"><p>view on tumblr</p></a></div>
     </script>
-  
-    {% if dev_template %} 
-        <script data-main="/static/js/main" src="/static/lib/require.js"></script>
-    {% else %}
-        <script src="/static/dist/main.js"></script>
-    {% endif %}
-    
+    <script type="text/javascript">
+        function load_main()
+        {
+            var s = document.createElement('script'); 
+            s.type = 'text/javascript'; 
+            s.async = true; 
+            s.src = "/static/dist/main.js";
+            var t = document.getElementsByTagName('script')[0]; 
+            t.parentNode.insertBefore(s,t);
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ&callback=load_main"></script>
     </body>
 </html>

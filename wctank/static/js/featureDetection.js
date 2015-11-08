@@ -4,8 +4,7 @@
  * on the client, hard fail in certain circumstances
  */ 
 import $ from "jquery";
-import Modernizr from "lib/modernizer";
-
+import Modernizr from "lib/modernizr";
 
 export const audioext = Modernizr.audio.ogg ? '.ogg' :
                         Modernizr.audio.mp3 ? '.mp3' : false;

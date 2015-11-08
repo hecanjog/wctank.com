@@ -4,8 +4,6 @@
 
 
 import $ from "jquery";
-import google from "google-maps";
-
 
 //////// module private stuff
 let events_added = false;
@@ -34,7 +32,7 @@ let addSingleEvent = (event, callback, once, marker) => {
 
 // on init, holds ref to google.maps.Map obj
 export let map = null;
-
+export let overlay = null;
 
 export const events = 
 {
@@ -42,10 +40,10 @@ export const events =
     {
         let real_once = once ? once : false;
         if ((events_added && locale === "marker") || !events_added ) {
-            if (!event_groups[locale].hasOwnProperty(event)) {
-                event_groups[loc][event] = [];
+            if (!event_locales[locale].hasOwnProperty(event)) {
+                event_locales[locale][event] = [];
             }
-            event_locales[locale].push(new registeredEventCallback(callback, real_once));
+            event_locales[locale][event].push(new registeredEventCallback(callback, real_once));
         } else {
             addSingleEvent(event, callback, real_once);
         }
@@ -109,19 +107,19 @@ export function init()
             position: google.maps.ControlPosition.LEFT_BOTTOM
         }
     };
-    gMap.map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+    map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 
-    gMap.pxOverlay = new google.maps.OverlayView();
-    gMap.pxOverlay.draw = () => {};
-    gMap.pxOverlay.setMap(gMap.map);
+    overlay = new google.maps.OverlayView();
+    overlay.draw = () => {};
+    overlay.setMap(map);
 }
 
 
 // mostly for dbug
 export function logMapStats()
 {
-    console.log(gMap.map.center.lat()+" "+gMap.map.center.lng());
-    console.log(gMap.map.zoom);
+    console.log(map.center.lat()+" "+map.center.lng());
+    console.log(map.zoom);
 }
 
 
@@ -129,11 +127,11 @@ export function logMapStats()
 export function goTo(lat_or_latLng, lng_or_zoom, zoom)
 {
     if (('lat' in lat_or_latLng) && ('lng' in lat_or_latLng)) {
-        gMap.map.setCenter(lat_or_latLng);
-        gMap.map.setZoom(lng_or_zoom);
+        map.setCenter(lat_or_latLng);
+        map.setZoom(lng_or_zoom);
     } else {   
-        gMap.map.setCenter(new google.maps.LatLng(lat_or_latLng, lng_or_zoom));
-        gMap.map.setZoom(zoom);
+        map.setCenter(new google.maps.LatLng(lat_or_latLng, lng_or_zoom));
+        map.setZoom(zoom);
     }
 }
 
@@ -146,7 +144,6 @@ export function zoomControlsVisible(b)
     b ? $zoomCtl.show() : $zoomCtl.hide();
 }
 
-
 let zoom_plus = document.getElementById("zoom-in"),
     zoom_minus = document.getElementById("zoom-out");
 
@@ -158,8 +155,8 @@ let plus_last = "#fff";
 
 zoom_plus.addEventListener("click", function() {
     try {
-        let z = gMap.map.getZoom();
-        gMap.map.setZoom(++z);
+        let z = map.getZoom();
+        map.setZoom(++z);
         plus_last = randHex();
         zoom_plus.style.color = plus_last;
     } catch(e) {
@@ -179,8 +176,8 @@ let minus_last = "#fff";
 
 zoom_minus.addEventListener("click", function() {
     try {
-        let z = gMap.map.getZoom();
-        gMap.map.setZoom(--z);
+        let z = map.getZoom();
+        map.setZoom(--z);
         minus_last = randHex();
         zoom_minus.style.color = minus_last;
     } catch (e) {}

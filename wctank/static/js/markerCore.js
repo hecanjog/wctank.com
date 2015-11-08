@@ -2,7 +2,6 @@
  * @module markerCore
  * init marker data, export some useful functionality, attach to map/marker events
  */ 
-import google from "google-maps";
 import * as rudy from "lih/rudy/rudy";
 import * as markerMapPosition from "./markerMapPosition";
 import * as markerData from "./markerData";

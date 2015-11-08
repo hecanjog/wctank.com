@@ -11,23 +11,13 @@ System.config({
   paths: {
     "github:*": "jspm_packages/github/*",
     "npm:*": "jspm_packages/npm/*",
-    "google-maps": "https://maps.googleapis.com/maps/api/js?key=AIzaSyCBYz-Rg_pR_L56O4h2k8Nr31VidEjtfAQ"
   },
-
-  meta: {
-    "google-maps": {
-      "build": false,
-      "loader": "systemjs-googlemaps"
-    }
-  },
-
   map: {
     "babel": "npm:babel-core@5.8.33",
     "babel-runtime": "npm:babel-runtime@5.8.29",
     "core-js": "npm:core-js@1.2.5",
     "froogaloop2": "npm:vimeo-froogaloop@0.1.0",
     "jquery": "github:components/jquery@2.1.4",
-    "systemjs-googlemaps": "github:HeinrichFilter/systemjs-plugin-googlemaps@master",
     "systemjs/plugin-json": "github:systemjs/plugin-json@0.1.0",
     "systemjs/plugin-text": "github:systemjs/plugin-text@0.0.3",
     "tween": "npm:tween.js@16.3.1",

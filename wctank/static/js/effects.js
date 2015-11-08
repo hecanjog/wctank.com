@@ -3,9 +3,10 @@
  * contains subclasses of rudy.visualCore.Effect that implement
  * different visual effects.
  */
-import $ from "jquery";
-import $f from "froogaloop2";
-import "lib/rudy/rudy";
+import "jquery"; 
+import "froogaloop2";
+import * as posts from "./posts";
+import * as rudy from "lib/rudy/rudy";
 
 import * as tableux from "./tableux";
 import * as div from "./div";
@@ -77,20 +78,20 @@ export class CausticGlow extends CssEffect
         this[__caustic_bg_elem__] = document.createElement("div");
         this[__caustic_bg_elem__].setAttribute("id", "caustic-glow-back");  
     
-        let vid_id = "107871876",
+        let vid_id = "100763590",
             player_elem = document.createElement("iframe");
         player_elem.setAttribute("id", "vimeo-background-player");
         player_elem.src = 
-            `//player.vimeo.com/video/${vid_id}?api=1&player_id=vimeo-background-player&autopause=0&loop=1`;
+            `https://player.vimeo.com/video/${vid_id}?api=1&player_id=vimeo-background-player&autopause=0&loop=1`;
         this[__caustic_bg_elem__].appendChild(player_elem);
          
         document.body.appendChild(this[__caustic_bg_elem__]);
-
-        this[__vimeo_player__] = $f($('#vimeo-background-player')[0]);
+        this[__vimeo_player__] = window.$f(player_elem);
+        window.fuck_you = this[__vimeo_player__];
         this[__vimeo_player_ready__] = false;
         this[__mouse_interval_id__] = null;
-        
-        player.addEvent('ready', () => {
+       
+        this[__vimeo_player__].addEvent('ready', () => {
             this[__vimeo_player_ready__] = true;
             this[__vimeo_player__].api("setVolume", 0);
             this[__vimeo_player__].api('pause');
@@ -109,7 +110,7 @@ export class CausticGlow extends CssEffect
                 }
             });
         });
-
+        
         this[__gauss_std_deviation__] = 10.6;
         this[__gauss_blur_element__] = document.getElementById("cg-glow-radius");
 
@@ -124,12 +125,12 @@ export class CausticGlow extends CssEffect
     init() 
     {
         if (this[__vimeo_player_ready__]) {
+            this[__caustic_bg_elem__].style.visibility = "visible";
             this[__vimeo_player__].api("play");
         } else {
             window.setTimeout(() => {
-                init();
+                this.init();
             }, 250);
-            this[__caustic_bg_elem__].style.visibility = "visible";
         }
     }
    

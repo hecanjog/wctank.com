@@ -4,7 +4,7 @@
 import $ from "jquery";
 
 export let $overlay = $('#overlay');
-export let $map = $("$map-canvas");
+export let $map = $("#map-canvas");
 
 // useful css selectors
 export const selectors = {
