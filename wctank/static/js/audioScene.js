@@ -12,8 +12,10 @@ import { Generator } from "lib/rudy/rhythm/Generator";
 // everything in here can only be executed if webaudio exists,
 // and es6 modules don't support conditional imports,
 // so... this is a big method.
-export function audio_scene_init() 
+export function init() 
 {
+    audioCore.init();
+    
     // this just plays a field recording
     let environ = new instruments.BigEarEnviron();
     environ.link(audioCore.out);
@@ -32,7 +34,7 @@ export function audio_scene_init()
         } else {
             gain = 1 - (15 - zoom) * 0.067;
         }
-        environ.outGain.gain.linearRampToValueAtTime(gain, audioCore.ctx.currentTime + 0.5);
+        environ.player.gain.linearRampToValueAtTime(gain, audioCore.ctx.currentTime + 0.5);
     });
 
 
@@ -41,7 +43,7 @@ export function audio_scene_init()
     organ.gain.value = 0.8;
 
     // convolve the organ with an ir for reverb
-    let organ_convo = Convolution(`/static/assets/york-minster${featureDetection.audioext}`);
+    let organ_convo = new Convolution(`/static/assets/york-minster${featureDetection.audioext}`);
     organ_convo.wetDry(100);
     organ_convo.gain.value = 0.68;
 
@@ -75,15 +77,15 @@ export function audio_scene_init()
             1: {
                 subd: 1,
                 val: {
-                    atk: {voice: 1, is_attack: 'asdr', dur: {subd: 1, clock: organ_clock}},
-                    freq: {voice: 1, frequency: 262}
+                    attack: {voice: 1, is_attack: 'asdr', dur: {subd: 1, clock: ostinato_clock}},
+                    frequency: {voice: 1, frequency: 262}
                 }
             },
             2: {
                 subd: 1,
                 val: {
-                    atk: {voice: 2, is_attack: 'asdr', dur: {subd: 1, clock: organ_clock}},
-                    freq: {voice: 2, frequency: 262}
+                    attack: {voice: 2, is_attack: 'asdr', dur: {subd: 1, clock: ostinato_clock}},
+                    frequency: {voice: 2, frequency: 262}
                 } 
             }
         },
@@ -94,23 +96,23 @@ export function audio_scene_init()
                 ostinato_params.opt.loop = true;
                 ostinato_rhythm.parseConfig(ostinato_params);
                 ostinato_rhythm.execute();
-
-                // start tenor
-                ostinato_rhythm.parseConfig(ostinato_params);
-                ostinato_rhythm.execute();
+                tenor_clock.start();
+                tenor_rhythm.execute();
             }
+            ostinato_rhythm.parseConfig(ostinato_params);
+            ostinato_rhythm.execute();
         }
     };
 
     // will generate the ostinato rhythmic sequence
-    let ostinato_rhythm = Generator(ostinato_clock, ostinato_params);
+    let ostinato_rhythm = new Generator(ostinato_clock, ostinato_params);
 
     // the tenor voice will return to this periodically
     let tonal_center_gesture = {
         0: {
             subd: Math.PI,
             val: {
-                atk: {voice: 3, is_attack: 'asdr', dur: {subd: Math.PI, clock: organ_clock}},
+                atk: {voice: 3, is_attack: 'asdr', dur: {subd: Math.PI, clock: ostinato_clock}},
                 freq: {voice: 3, frequency: 689}
             }
         },
@@ -262,11 +264,11 @@ export function audio_scene_init()
     let alto_rhythm = new Generator(tenor_clock, alto_params);
 
     ostinato_rhythm.execute();
-    organ_clock.start();
+    ostinato_clock.start();
 
     gMap.events.queue('map', 'zoom_changed', () => {
         let zoom = gMap.map.getZoom();
-        organ_clock.bpm = 50 - (25 - zoom * 1.25);
+        ostinato_clock.bpm = 50 - (25 - zoom * 1.25);
         let gain = (() => {
             if (zoom >= 18) {
                 return 0.02;   

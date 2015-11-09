@@ -789,672 +789,408 @@
 })(typeof self != 'undefined' ? self : global);
 
 "bundle";
-(function() {
-var _removeDefine = $__System.get("@@amd-helpers").createDefine();
-define("2", [], function() {
-  return "@@ vertex shader\nprecision lowp int;\n\n//IDs\nattribute float a_hash;\nattribute float a_type;\n\n//coordinates\nattribute vec2 a_model;\nattribute vec2 a_container;\nattribute vec2 a_uv;\n\n//for cloud particles\nattribute vec2 a_velocity;\n\nuniform vec2 u_translate;\nuniform vec2 u_viewport; // viewport size in pixels\nuniform int u_clock;\n\nvarying float v_clock;\nvarying float v_hash;\nvarying float v_type;\nvarying vec2 vUv;\n\nfloat angle(float velocity, int clock) \n{\n    float pi = 3.1415927;\n    return sin((mod(float(clock), 2500.0) / 2500.0) * (2.0 * pi) * velocity);\n}\n\nvoid main() \n{\n    v_hash = a_hash;\n    v_type = a_type;\n    vUv = a_uv;\n    v_clock = float(u_clock);\n\n    vec4 position = vec4(a_model + a_container + u_translate, 0, 1);\n    position.x = ((position.x / u_viewport.x) * 2.0) - 1.0;\n    position.y = (((position.y - 25.0) / u_viewport.y) * -2.0) + 1.0;\n    \n    // if this vertex is part of a cloud, translate depending on u_clock\n    if ( (a_type > 2.9) && (a_type < 3.1) ) {\n        position.x += 0.02 * angle(a_velocity.x, u_clock); \n        position.y += 0.01 * angle(a_velocity.y, u_clock);\n    }\n\n    gl_Position = position;\n}\nEND\n\n@@ fragment shader\nprecision highp float;\nprecision lowp int;\n\nuniform sampler2D u_stumble;\nuniform sampler2D u_video;\nuniform sampler2D u_random;\nuniform sampler2D u_cloud;\nuniform int u_beNoise;\nuniform int u_beColoredNoise;\n\nvarying float v_clock;\nvarying float v_hash;\nvarying float v_type;\nvarying vec2 vUv;\n\nfloat rand(vec2 co)\n{\n    float a = 1.9898;\n    float b = 78.233;\n    float c = 43758.5453;\n    float dt = dot(co.xy, vec2(a, b));\n    float sn = mod(dt, 3.14);\n    return fract(sin(sn) * c);\n}\n\n\nvoid main()\n{\n    mediump vec4 color;\n    \n    // select appropriate texture\n    if (v_type < 0.1) { \n        color = texture2D(u_random, vUv);\n    } else if ((v_type > 0.9) && (v_type < 1.1)) {\n        color = texture2D(u_video, vUv);\n    } else if ((v_type > 1.9) && (v_type < 2.1)) {\n        color = texture2D(u_stumble, vUv);\n    } else if ((v_type > 2.9 && v_type < 3.1)) {\n        color = texture2D(u_cloud, vUv);\n    }\n\n    // global activities\n    float r = rand(vec2(v_clock, 1.2)) * 10000.0;\n    int select = int(rand(gl_FragCoord.xy) * 3.0);\n    if (int(mod(v_clock, r)) == 0) {\n        if (select == 0) color = vec4(1, 0, 0, 1);\n        if (select == 1) color = vec4(0, 1, 0, 1);\n        if (select == 2) color = vec4(0, 0, 1, 1);\n    }\n    // limit to 15000\n    if (u_beNoise == 1 && color.w > 0.0) {\n        float n = rand(vec2(v_clock * gl_FragCoord.x, (2.0 / v_clock) * gl_FragCoord.y));\n        if (n > 0.5) {\n            color = vec4(0, 0, 0, 1);\n        } else {\n            color = vec4(0.2, 0.2, 0.2, 1);\n        }\n        if (u_beColoredNoise == 1) {\n            if (n < 0.33) {\n                color = vec4(1.0, 0.0, 0.0, 1);\n            } else if (n > 0.33 && n < 0.66) {\n                color = vec4(0.0, 1.0, 0.0, 1);\n            } else {\n                color = vec4(0.0, 0.0, 1.0, 1);\n            }\n        }\n    }\n\n    gl_FragColor = color;\n}\nEND\n";
-});
-
-_removeDefine();
-})();
-$__System.registerDynamic("3", [], false, function(__require, __exports, __module) {
-  var _retrieveGlobal = $__System.get("@@global-helpers").prepareGlobal(__module.id, null, null);
-  (function() {
-    ;
-    window.Modernizr = function(a, b, c) {
-      function t(a) {
-        i.cssText = a;
-      }
-      function u(a, b) {
-        return t(prefixes.join(a + ";") + (b || ""));
-      }
-      function v(a, b) {
-        return typeof a === b;
-      }
-      function w(a, b) {
-        return !!~("" + a).indexOf(b);
-      }
-      function x(a, b, d) {
-        for (var e in a) {
-          var f = b[a[e]];
-          if (f !== c)
-            return d === !1 ? a[e] : v(f, "function") ? f.bind(d || b) : f;
-        }
-        return !1;
-      }
-      var d = "2.8.3",
-          e = {},
-          f = b.documentElement,
-          g = "modernizr",
-          h = b.createElement(g),
-          i = h.style,
-          j,
-          k = {}.toString,
-          l = {},
-          m = {},
-          n = {},
-          o = [],
-          p = o.slice,
-          q,
-          r = {}.hasOwnProperty,
-          s;
-      !v(r, "undefined") && !v(r.call, "undefined") ? s = function(a, b) {
-        return r.call(a, b);
-      } : s = function(a, b) {
-        return b in a && v(a.constructor.prototype[b], "undefined");
-      }, Function.prototype.bind || (Function.prototype.bind = function(b) {
-        var c = this;
-        if (typeof c != "function")
-          throw new TypeError;
-        var d = p.call(arguments, 1),
-            e = function() {
-              if (this instanceof e) {
-                var a = function() {};
-                a.prototype = c.prototype;
-                var f = new a,
-                    g = c.apply(f, d.concat(p.call(arguments)));
-                return Object(g) === g ? g : f;
-              }
-              return c.apply(b, d.concat(p.call(arguments)));
-            };
-        return e;
-      }), l.webgl = function() {
-        return !!a.WebGLRenderingContext;
-      }, l.audio = function() {
-        var a = b.createElement("audio"),
-            c = !1;
-        try {
-          if (c = !!a.canPlayType)
-            c = new Boolean(c), c.ogg = a.canPlayType('audio/ogg; codecs="vorbis"').replace(/^no$/, ""), c.mp3 = a.canPlayType("audio/mpeg;").replace(/^no$/, ""), c.wav = a.canPlayType('audio/wav; codecs="1"').replace(/^no$/, ""), c.m4a = (a.canPlayType("audio/x-m4a;") || a.canPlayType("audio/aac;")).replace(/^no$/, "");
-        } catch (d) {}
-        return c;
-      }, l.webworkers = function() {
-        return !!a.Worker;
-      };
-      for (var y in l)
-        s(l, y) && (q = y.toLowerCase(), e[q] = l[y](), o.push((e[q] ? "" : "no-") + q));
-      return e.addTest = function(a, b) {
-        if (typeof a == "object")
-          for (var d in a)
-            s(a, d) && e.addTest(d, a[d]);
-        else {
-          a = a.toLowerCase();
-          if (e[a] !== c)
-            return e;
-          b = typeof b == "function" ? b() : b, typeof enableClasses != "undefined" && enableClasses && (f.className += " " + (b ? "" : "no-") + a), e[a] = b;
-        }
-        return e;
-      }, t(""), h = j = null, e._version = d, e;
-    }(this, this.document), Modernizr.addTest("webaudio", !!window.webkitAudioContext || !!window.AudioContext);
-  })();
-  return _retrieveGlobal();
-});
-
-$__System.register("4", ["3", "5"], function (_export) {
-  /**
-   * @module featureDetection
-   * detect status of webgl, webaudio, and webworkers
-   * on the client, hard fail in certain circumstances
-   */
-  "use strict";
-
-  var Modernizr, $, audioext, webaudio;
-
-  _export("redirect_fatal", redirect_fatal);
-
-  function redirect_fatal(mess) {
-    window.location.replace("feature-fail/" + mess);
-  }
-
-  return {
-    setters: [function (_2) {
-      Modernizr = _2["default"];
-    }, function (_) {
-      $ = _["default"];
-    }],
-    execute: function () {
-      audioext = Modernizr.audio.ogg ? '.ogg' : Modernizr.audio.mp3 ? '.mp3' : false;
-
-      _export("audioext", audioext);
-
-      webaudio = !!(Modernizr.webaudio && audioext);
-
-      _export("webaudio", webaudio);
-
-      if (!Modernizr.webgl) redirect_fatal('webgl');
-      if (!Modernizr.webworkers) redirect_fatal('webworkers');
-    }
-  };
-});
-
-$__System.register("6", ["7"], function (_export) {
-  /**
-   * @module markerData
-   * serves as an interface to the markerDataWorker
-   */
-
-  /*
-   * interleaved block structure: (f = 32 bit float)
-   * marker hash, texture, model ver, location vec, UV   velocity
-   * f            f        f, f       f, f          f, f  f, f
-   *
-   * marker hash: unique ID
-   * texture: what image to use, enum'd in worker
-   * model coord: vertex coordinates (in pixels) where (0, 0) is the center of each marker.
-   * container coord: absolute location of marker in container pixels
-   * UV: texture coordinates
-   * velocity: angular velocity (x, y) in radians (for cloud particles)
-   */
-  "use strict";
-
-  var markerMapPosition, NUMBER_OF_PARTICLES, BLOCK_ITEMS, BLOCK_SIZE, HASH_ITEMS, HASH_OFFSET, TYPE_ITEMS, TYPE_OFFSET, MODEL_VER_ITEMS, MODEL_VER_OFFSET, LOCATION_VEC_ITEMS, LOCATION_VEC_OFFSET, UV_ITEMS, UV_OFFSET, VELOCITY_ITEMS, VELOCITY_OFFSET, markerDataWorker;
-
-  _export("makeData", makeData);
-
-  function makeData(override, callback) {
-    var state = markerMapPosition.getCurrentState();
-    state.push(NUMBER_OF_PARTICLES);
-    state.push(override);
-    markerDataWorker.postMessage(state);
-    markerDataWorker.onmessage = function (e) {
-      callback(e.data);
-    };
-  }
-
-  return {
-    setters: [function (_) {
-      markerMapPosition = _;
-    }],
-    execute: function () {
-      NUMBER_OF_PARTICLES = 20;
-      BLOCK_ITEMS = 10;
-      BLOCK_SIZE = 40;
-      HASH_ITEMS = 1;
-      HASH_OFFSET = 0;
-      TYPE_ITEMS = 1;
-      TYPE_OFFSET = 4;
-      MODEL_VER_ITEMS = 2;
-      MODEL_VER_OFFSET = 8;
-      LOCATION_VEC_ITEMS = 2;
-      LOCATION_VEC_OFFSET = 16;
-      UV_ITEMS = 2;
-      UV_OFFSET = 24;
-      VELOCITY_ITEMS = 2;
-      VELOCITY_OFFSET = 32;
-
-      _export("NUMBER_OF_PARTICLES", NUMBER_OF_PARTICLES);
-
-      _export("BLOCK_ITEMS", BLOCK_ITEMS);
-
-      _export("BLOCK_SIZE", BLOCK_SIZE);
-
-      _export("HASH_ITEMS", HASH_ITEMS);
-
-      _export("HASH_OFFSET", HASH_OFFSET);
-
-      _export("TYPE_ITEMS", TYPE_ITEMS);
-
-      _export("TYPE_OFFSET", TYPE_OFFSET);
-
-      _export("MODEL_VER_ITEMS", MODEL_VER_ITEMS);
-
-      _export("MODEL_VER_OFFSET", MODEL_VER_OFFSET);
-
-      _export("LOCATION_VEC_ITEMS", LOCATION_VEC_ITEMS);
-
-      _export("LOCATION_VEC_OFFSET", LOCATION_VEC_OFFSET);
-
-      _export("UV_ITEMS", UV_ITEMS);
-
-      _export("UV_OFFSET", UV_OFFSET);
-
-      _export("VELOCITY_ITEMS", VELOCITY_ITEMS);
-
-      _export("VELOCITY_OFFSET", VELOCITY_OFFSET);
-
-      markerDataWorker = new Worker("/static/js/markerDataWorker.js");
-    }
-  };
-});
-
-$__System.register("7", ["8", "9", "a", "b", "c", "d"], function (_export) {
-    var gMap, rudyUtil, _classCallCheck, _createClass, _getIterator, _Object$keys, markers, livingKeys, overflow, projection, DrawingData, MarkerData, state_dump;
-
-    function push(googleMarker) {
-        var dat = new MarkerData(googleMarker);
-        markers[dat.hash] = dat;
-    }
-
-    function markerExists(lat, lng) {
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-            for (var _iterator = _getIterator(_Object$keys(markers)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var hash = _step.value;
-
-                var marker = markers[hash];
-                var world_position = marker.world_position,
-                    err = 0.0000001;
-                if (world_position.lat() > lat - err && world_position.lat() < lat + err && world_position.lng() > lng - err && world_position.lng() < lng + err) {
-                    return true;
-                }
-            }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator["return"]) {
-                    _iterator["return"]();
-                }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    function getCurrentState() {
-        while (state_dump.length > 0) {
-            state_dump.pop();
-        }
-        while (livingKeys.length > 0) {
-            livingKeys.pop();
-        }
-        var _iteratorNormalCompletion2 = true;
-        var _didIteratorError2 = false;
-        var _iteratorError2 = undefined;
-
-        try {
-            for (var _iterator2 = _getIterator(_Object$keys(markers)), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                var hash = _step2.value;
-
-                var marker = markers[hash];
-                marker.update();
-                if (marker.is_alive) {
-                    state_dump.push(marker.getDrawingData());
-                    livingKeys.push(hash);
-                }
-            }
-        } catch (err) {
-            _didIteratorError2 = true;
-            _iteratorError2 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion2 && _iterator2["return"]) {
-                    _iterator2["return"]();
-                }
-            } finally {
-                if (_didIteratorError2) {
-                    throw _iteratorError2;
-                }
-            }
-        }
-
-        return state_dump;
-    }
+$__System.register("2", ["3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "e", "f", "a", "b", "c", "d"], function (_export) {
+    var Instrument, ParameterizedAction, SamplePlayer, MediaElementPlayer, Bandpass, Noise, moduleExtensions, _classCallCheck, _createClass, _Symbol, _get, _inherits, audioNodes, envelopeAsdr, envelopeCore, featureDetection, BigEarEnviron, bpBank, OrganVoice, SubtractiveOrgan;
 
     return {
-        setters: [function (_) {
-            gMap = _;
+        setters: [function (_4) {
+            Instrument = _4.Instrument;
+        }, function (_5) {
+            ParameterizedAction = _5.ParameterizedAction;
+        }, function (_6) {
+            SamplePlayer = _6.SamplePlayer;
+        }, function (_7) {
+            MediaElementPlayer = _7.MediaElementPlayer;
+        }, function (_8) {
+            Bandpass = _8.Bandpass;
+        }, function (_9) {
+            Noise = _9.Noise;
+        }, function (_10) {
+            moduleExtensions = _10;
+        }, function (_) {
+            _classCallCheck = _["default"];
         }, function (_2) {
-            rudyUtil = _2;
+            _createClass = _2["default"];
+        }, function (_3) {
+            _Symbol = _3["default"];
+        }, function (_e) {
+            _get = _e["default"];
+        }, function (_f) {
+            _inherits = _f["default"];
         }, function (_a) {
-            _classCallCheck = _a["default"];
+            audioNodes = _a;
         }, function (_b) {
-            _createClass = _b["default"];
+            envelopeAsdr = _b;
         }, function (_c) {
-            _getIterator = _c["default"];
+            envelopeCore = _c;
         }, function (_d) {
-            _Object$keys = _d["default"];
+            featureDetection = _d;
         }],
         execute: function () {
             /**
-             * @module markerMapPosition
-             * responsible for tracking the current position of each placeholder 
-             * marker so that we can superimpose the a graphic in the webgl layer
+             * Instruments we're using in our sound enviornment.
+             * All subclass lib/rudy/rudy/instrument/Instrument
+             * @module instruments
              */
 
-            // all markers ever
             "use strict";
 
-            _export("push", push);
+            BigEarEnviron = (function (_Instrument) {
+                _inherits(BigEarEnviron, _Instrument);
 
-            _export("markerExists", markerExists);
+                function BigEarEnviron() {
+                    _classCallCheck(this, BigEarEnviron);
 
-            _export("getCurrentState", getCurrentState);
+                    _get(Object.getPrototypeOf(BigEarEnviron.prototype), "constructor", this).call(this);
 
-            markers = {};
+                    this.player = new MediaElementPlayer("/streaming/bigearsample.6" + featureDetection.audioext);
 
-            _export("markers", markers);
+                    this.player.loop = true;
+                    this.player.autoplay = true;
 
-            // keys of markers that should be visible
-            livingKeys = [];
+                    this._link_alias_out = this.player;
+                }
 
-            _export("livingKeys", livingKeys);
+                return BigEarEnviron;
+            })(Instrument);
 
-            // is this being used?
+            _export("BigEarEnviron", BigEarEnviron);
 
-            overflow = 20;
-            projection = null;
+            bpBank = _Symbol();
 
-            DrawingData = function DrawingData(hash, type, x, y) {
-                _classCallCheck(this, DrawingData);
+            OrganVoice = (function (_Instrument2) {
+                _inherits(OrganVoice, _Instrument2);
 
-                this.hash = hash;
-                this.type = type;
-                this.x = x;
-                this.y = y;
-            };
+                function OrganVoice(partials, q) {
+                    var _this = this;
 
-            MarkerData = (function () {
-                _createClass(MarkerData, [{
-                    key: "update",
-                    value: function update() {
-                        if (!projection) projection = gMap.overlay.getProjection();
-                        var pnt = projection.fromLatLngToContainerPixel(this.world_position);
+                    _classCallCheck(this, OrganVoice);
 
-                        this.container_position = pnt.x < -overflow || pnt.y < -overflow || pnt.x > window.innerWidth + overflow || pnt.y > window.innerHeight + overflow ? null : pnt;
+                    _get(Object.getPrototypeOf(OrganVoice.prototype), "constructor", this).call(this);
 
-                        this.is_alive = !!this.container_position;
+                    var sigIn = audioNodes.Gain(),
+                        sigOut = audioNodes.Gain();
 
-                        if (this.is_alive) {
-                            this.drawing_data.x = this.container_position.x;
-                            this.drawing_data.y = this.container_position.y;
+                    this[bpBank] = [];
+
+                    this.gain = sigOut.gain;
+                    this.gain.value = 0;
+
+                    for (var i = 0; i < partials; i++) {
+                        var bp = new Bandpass(100, q);
+                        this[bpBank].push(bp);
+                        sigIn.link(bp).link(sigOut);
+                    }
+
+                    this._link_alias_in = sigIn;
+                    this._link_alias_out = sigOut;
+
+                    this.attackTarget = new ParameterizedAction(this.gain);
+                    this.attackTarget.createEnvelope = function (env) {
+                        _this.attackTarget.envelope = env;
+                        _this.attackTarget.execute();
+                    };
+                }
+
+                // an instrument that drives a bank of high-q bandpass filters
+                // with a noise generator
+
+                _createClass(OrganVoice, [{
+                    key: "setFrequency",
+                    value: function setFrequency(freq) {
+                        for (var i = 0; i < this[bpBank].length; i++) {
+                            this[bpBank][i].setFrequency(freq + freq * i);
+                            var gain = 1 / (i + 1);
+                            if ((i + 1) % 3 === 0) gain += 0.1;
+                            this[bpBank][i].setGain(gain);
                         }
                     }
                 }]);
 
-                function MarkerData(googleMarker) {
-                    _classCallCheck(this, MarkerData);
+                return OrganVoice;
+            })(Instrument);
 
-                    this.marker = googleMarker;
-                    this.type = googleMarker.markerType;
-                    this.world_position = googleMarker.getPosition();
-                    this.container_position = null;
-                    this.is_alive = null;
-                    this.hash = rudyUtil.hashCode(this.type + this.world_position.lat().toString() + this.world_position.lng().toString());
-                    this.drawing_data = new DrawingData(this.hash, this.type, 0, 0);
+            SubtractiveOrgan = (function (_Instrument3) {
+                _inherits(SubtractiveOrgan, _Instrument3);
 
-                    this.update();
+                function SubtractiveOrgan(max_voices, partials_per_voice, q_value) {
+                    _classCallCheck(this, SubtractiveOrgan);
+
+                    _get(Object.getPrototypeOf(SubtractiveOrgan.prototype), "constructor", this).call(this);
+
+                    var m_voices = max_voices ? max_voices : 10,
+                        partials = partials_per_voice >= 0 ? partials_per_voice : 10,
+                        q = q_value >= 0 ? q_value : 250;
+
+                    var atten = audioNodes.Gain(),
+                        sigOut = audioNodes.Gain();
+                    atten.link(sigOut);
+
+                    this.gain = sigOut.gain;
+                    this._link_alias_out = sigOut;
+
+                    // noise driver
+                    var noise = new Noise();
+                    moduleExtensions.startStopThese(this, noise);
+
+                    var voices = [];
+
+                    for (var i = 0; i < m_voices; i++) {
+                        var v = new OrganVoice(partials, q);
+                        noise.link(v).link(atten);
+                        voices.push(v);
+                    }
+
+                    // action to change pitch of individual voices
+                    // the form of the pitchTarget paramObj is:
+                    //      {
+                    //          voice: {number} - idx of voice
+                    //          frequency: {number} - freq of indicated voice
+                    //      }
+                    this.pitchTarget = new ParameterizedAction(function (params) {
+                        return voices[params.voice].setFrequency(params.frequency);
+                    });
+
+                    var ptargEnv = new envelopeCore.Envelope();
+                    ptargEnv.duration = 25;
+                    ptargEnv.interpolationType = "none";
+
+                    this.pitchTarget.createEnvelope = function (params) {
+                        ptargEnv.valueSequence = new envelopeCore.EnvelopeValue(params, 0);
+                        return ptargEnv.toAbsolute();
+                    };
+
+                    var attackAsdr = new envelopeAsdr.Generator({
+                        a: {
+                            dur: 200,
+                            inter: { type: 'exponential' },
+                            val: [0.01, 0, 1, 99]
+                        },
+                        s: {
+                            dur: 100,
+                            val: 1
+                        },
+                        d: {
+                            dur: 50,
+                            inter: { type: 'linear' },
+                            val: [1, 0, 0.7, 99]
+                        },
+                        r: {
+                            dur: 50,
+                            inter: { type: 'linear' },
+                            val: [0.7, 0, 0.5, 99]
+                        }
+                    });
+
+                    // the form of the attackTarget paramObj is:
+                    //
+                    //      {
+                    //          isAttack: {boolean | String} true for attack, false for release,
+                    //                  'asdr' for full envelope
+                    //          voices: [array of voice idxs to trigger]
+                    //          dur: {
+                    //              subd: if 'asdr', provide duration
+                    //              clock: clock ref
+                    //          }
+                    //      }
+                    this.attackTarget = new ParameterizedAction(function (params) {
+                        var createEnvelope = voices[params.voice].attackTarget.createEnvelope;
+
+                        if (params.is_attack === 'asdr') {
+                            var dur = params.dur.subd * params.dur.clock.beatLength,
+                                sus_len = dur - (attackAsdr.attack.duration + attackAsdr.decay.duration + attackAsdr.release.duration);
+                            createEnvelope(attackAsdr.getASDR(sus_len));
+                        } else if (params.is_attack) {
+                            createEnvelope(attackAsdr.getAS());
+                        } else {
+                            createEnvelope(attackAsdr.getDR());
+                        }
+                    });
+
+                    var atargEnv = new envelopeCore.Envelope();
+                    atargEnv.duration = 50;
+                    atargEnv.interpolationType = 'none';
+
+                    this.attackTarget.createEnvelope = function (params) {
+                        atargEnv.valueSequence = new envelopeCore.EnvelopeValue(params, 0);
+                        return atargEnv.toAbsolute();
+                    };
                 }
 
-                _createClass(MarkerData, [{
-                    key: "getDrawingData",
-                    value: function getDrawingData() {
-                        return this.drawing_data;
-                    }
-                }]);
+                return SubtractiveOrgan;
+            })(Instrument);
 
-                return MarkerData;
-            })();
-
-            state_dump = [];
+            _export("SubtractiveOrgan", SubtractiveOrgan);
         }
     };
 });
 
-$__System.register("e", ["2", "4", "6", "7", "8", "9", "10", "a", "c", "f"], function (_export) {
-    var markershaders, featureDetection, markerData, markerMapPosition, gMap, util, posts, _classCallCheck, _getIterator, rudy, marker_canvas, projection, z, updateViewport, buffer, clock, be_noise, beColoredNoise, a_hash, a_type, a_model, a_container, a_uv, a_velocity, Texture, textures, u_viewport, u_clock, u_translate, u_beNoise, u_beColoredNoise, vertices, current_anchor, start, delta, zeroPositions, queryMarkerPosition, updateDelta, updateStart, data32Arr, blank, getDataArray, glDataUpdate, markerPositionFailsafe, updateMarkers;
+$__System.register("13", ["2", "14", "15", "16", "17", "18", "19", "1b", "1c", "1d", "d", "1a"], function (_export) {
+    var instruments, gMap, renderLoop, audioCore, util, Convolution, Clock, _Object$create, _Object$keys, _getIterator, featureDetection, Generator;
 
-    ///////////////////////////////////////////////////////////////////////////////
+    // everything in here can only be executed if webaudio exists,
+    // and es6 modules don't support conditional imports,
+    // so... this is a big method.
 
-    // update uniforms, interleaved array on each frame
+    function init() {
+        audioCore.init();
 
-    function draw() {
-        z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
-        z.gl.uniform2f(u_viewport, window.innerWidth, window.innerHeight);
-        z.gl.uniform2f(u_translate, delta.x, delta.y);
-        z.gl.uniform1i(u_clock, clock++);
-        z.gl.uniform1i(u_beNoise, be_noise);
-        z.gl.uniform1i(u_beColoredNoise, beColoredNoise);
-        z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices);
-    }
+        // this just plays a field recording
+        var environ = new instruments.BigEarEnviron();
+        environ.link(audioCore.out);
 
-    // only call update data when histories are different
-
-    function tryDataUpdate() {
-        markerData.makeData(false, function (data) {
-            if (data) {
-                glDataUpdate(data);
+        // closeup, play the field recording at full volume
+        // far away, don't
+        // in between, scale the amplitude with the zoom level
+        gMap.events.queue('map', 'zoom_changed', function () {
+            var zoom = gMap.map.getZoom(),
+                gain;
+            if (zoom >= 18) {
+                gain = 1;
+            } else if (zoom <= 3) {
+                gain = 0;
+            } else {
+                gain = 1 - (15 - zoom) * 0.067;
             }
+            environ.player.gain.linearRampToValueAtTime(gain, audioCore.ctx.currentTime + 0.5);
         });
-        draw();
-    }
 
-    function forceDataUpdate() {
-        markerData.makeData(true, function (data) {
-            glDataUpdate(data);
-        });
-        draw();
-    }
+        // main instrument for bass ostinato, 'alto' and 'tenor' voices
+        var organ = new instruments.SubtractiveOrgan(18, 10, 250);
+        organ.gain.value = 0.8;
 
-    function setVisibility(bool) {
-        marker_canvas.style.visibility = bool ? 'visible' : 'hidden';
-    }
+        // convolve the organ with an ir for reverb
+        var organ_convo = new Convolution("/static/assets/york-minster" + featureDetection.audioext);
+        organ_convo.wetDry(100);
+        organ_convo.gain.value = 0.68;
 
-    function beNoise(bool, isColored) {
-        be_noise = bool;
-        beColoredNoise = isColored;
-    }
+        organ.link(organ_convo).link(audioCore.out);
 
-    /////////// tie data updates to map UI events
+        // a clock just for the ostinato
+        var ostinato_clock = new Clock(50, 3);
 
-    /* do nothing */
-    function markersStart() {
-        rudy.renderLoop.add(draw);
-    }
+        // ostinato parameters
+        var ostinato_loop_count = 0;
+        var ostinato_params = {
+            opt: {
+                // execute callback after each loop
+                loop: 1
+            },
+            targets: {
+                attack: organ.attackTarget,
+                frequency: organ.pitchTarget
+            },
 
-    return {
-        setters: [function (_7) {
-            markershaders = _7["default"];
-        }, function (_3) {
-            featureDetection = _3;
-        }, function (_2) {
-            markerData = _2;
-        }, function (_) {
-            markerMapPosition = _;
-        }, function (_5) {
-            gMap = _5;
-        }, function (_6) {
-            util = _6;
-        }, function (_4) {
-            posts = _4;
-        }, function (_a) {
-            _classCallCheck = _a["default"];
-        }, function (_c) {
-            _getIterator = _c["default"];
-        }, function (_f) {
-            rudy = _f;
-        }],
-        execute: function () {
-            /**
-             * @module markerCore
-             * init marker data, export some useful functionality, attach to map/marker events
-             */
+            // TODO: this probably should just be an array?
+            // or was there a reason seq was an object?
+            seq: {
+                0: {
+                    subd: 1,
+                    val: {
+                        attack: { voice: 0, isAttack: true },
+                        frequency: { voice: 0, frequency: 330 }
+                    }
+                },
+                1: {
+                    subd: 1,
+                    val: {
+                        attack: { voice: 1, is_attack: 'asdr', dur: { subd: 1, clock: ostinato_clock } },
+                        frequency: { voice: 1, frequency: 262 }
+                    }
+                },
+                2: {
+                    subd: 1,
+                    val: {
+                        attack: { voice: 2, is_attack: 'asdr', dur: { subd: 1, clock: ostinato_clock } },
+                        frequency: { voice: 2, frequency: 262 }
+                    }
+                }
+            },
 
-            //////////////////////////////////////////////////////////////// module private and init
+            callbacks: function callbacks() {
+                if (ostinato_loop_count++ === 10) {
+                    // switch to an infinite loop sans callbacks
+                    ostinato_params.opt.loop = true;
+                    ostinato_rhythm.parseConfig(ostinato_params);
+                    ostinato_rhythm.execute();
+                    tenor_clock.start();
+                    tenor_rhythm.execute();
+                }
+                ostinato_rhythm.parseConfig(ostinato_params);
+                ostinato_rhythm.execute();
+            }
+        };
 
-            "use strict";
+        // will generate the ostinato rhythmic sequence
+        var ostinato_rhythm = new Generator(ostinato_clock, ostinato_params);
 
-            _export("draw", draw);
+        // the tenor voice will return to this periodically
+        var tonal_center_gesture = {
+            0: {
+                subd: Math.PI,
+                val: {
+                    atk: { voice: 3, is_attack: 'asdr', dur: { subd: Math.PI, clock: ostinato_clock } },
+                    freq: { voice: 3, frequency: 689 }
+                }
+            },
+            1: {
+                subd: 0.875,
+                val: {
+                    atk: { voice: 3, is_attack: true, smudge: 75 },
+                    freq: { voice: 3, frequency: 661 }
+                }
+            }
+        };
 
-            _export("tryDataUpdate", tryDataUpdate);
+        var tenor_params = {
+            opt: {
+                loop: 1
+            },
+            targets: {
+                atk: organ.attackTarget,
+                freq: organ.pitchTarget
+            },
+            seq: _Object$create(tonal_center_gesture),
+            callbacks: function voice() {
+                var len = _Object$keys(tenor_params.seq).length;
+                var freq = util.smudgeNumber(tenor_params.seq[len - 1].val.freq.frequency, 10);
 
-            _export("forceDataUpdate", forceDataUpdate);
+                // worm aroud frequency-wise
+                if (freq < 400) {
+                    freq += 10;
+                } else if (freq > 1200) {
+                    freq -= 10;
+                }
 
-            _export("setVisibility", setVisibility);
-
-            _export("beNoise", beNoise);
-
-            _export("markersStart", markersStart);
-
-            marker_canvas = document.getElementById("markers");
-            projection = null;
-            z = rudy.visualCore.webglSetup(marker_canvas, markershaders, false, true);
-
-            /*
-             * The modernizer webgl test is 'soft', i.e., if the ability to create a context
-             * exists, then it passes. However, this excludes situations where using webgl may 
-             * not be enabled for other reasons, e.g., if it is not enabled in the browser, 
-             * misbehaving drivers, etc. webgl.setup not returning at this point turns out to be 
-             * a good determinant of whether or not using webgl is possible.
-             */
-            if (typeof z === 'undefined') featureDetection.redirect_fatal('webgl');
-
-            updateViewport = function updateViewport() {
-                marker_canvas.width = window.innerWidth;
-                marker_canvas.height = window.innerHeight;
-                z.gl.viewport(0, 0, window.innerWidth, window.innerHeight);
-            };
-
-            window.addEventListener('resize', updateViewport);
-            updateViewport();
-
-            z.gl.blendFunc(z.gl.SRC_ALPHA, z.gl.ONE);
-            z.gl.disable(z.gl.DEPTH_TEST);
-            z.gl.enable(z.gl.BLEND);
-
-            buffer = z.gl.createBuffer();
-            clock = 0;
-            be_noise = 0;
-            beColoredNoise = 0;
-
-            z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
-
-            ///////////// setup attributes that are drawn from our interleaved buffer
-
-            // id associating this block with a particular marker
-            a_hash = z.gl.getAttribLocation(z.program, 'a_hash');
-
-            // what image to use
-            a_type = z.gl.getAttribLocation(z.program, 'a_type');
-
-            // vertex coordinates for each marker relative to 0, 0
-            a_model = z.gl.getAttribLocation(z.program, 'a_model');
-
-            // location of marker relative to container
-            a_container = z.gl.getAttribLocation(z.program, 'a_container');
-
-            // texture coordinates
-            a_uv = z.gl.getAttribLocation(z.program, 'a_uv');
-
-            // angular velocity (used for cloud particles)
-            a_velocity = z.gl.getAttribLocation(z.program, 'a_velocity');
-
-            // setup attribute pointers
-            z.gl.vertexAttribPointer(a_hash, markerData.HASH_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, 0);
-            z.gl.enableVertexAttribArray(a_hash);
-
-            z.gl.vertexAttribPointer(a_type, markerData.TYPE_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.TYPE_OFFSET);
-            z.gl.enableVertexAttribArray(a_type);
-
-            z.gl.vertexAttribPointer(a_model, markerData.MODEL_VER_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.MODEL_VER_OFFSET);
-            z.gl.enableVertexAttribArray(a_model);
-
-            z.gl.vertexAttribPointer(a_container, markerData.LOCATION_VEC_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.LOCATION_VEC_OFFSET);
-            z.gl.enableVertexAttribArray(a_container);
-
-            z.gl.vertexAttribPointer(a_uv, markerData.UV_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.UV_OFFSET);
-            z.gl.enableVertexAttribArray(a_uv);
-
-            z.gl.vertexAttribPointer(a_velocity, markerData.VELOCITY_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.VELOCITY_OFFSET);
-            z.gl.enableVertexAttribArray(a_velocity);
-
-            // buffer image in a canvas element,
-            // bind texture to webgl contect
-
-            Texture = function Texture(name, path, texture_id, index) {
-                var _this = this;
-
-                _classCallCheck(this, Texture);
-
-                this.image = null;
-                this.texture = null;
-
-                var img = new Image();
-                img.src = path;
-                img.onload = function () {
-                    var canv = document.createElement('canvas');
-                    canv.width = img.height;
-                    canv.width = img.width;
-                    canv.height = img.height;
-                    var ctx = canv.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    _this.image = canv;
-
-                    _this.texture = z.gl.createTexture();
-                    z.gl.activeTexture(texture_id);
-                    z.gl.bindTexture(z.gl.TEXTURE_2D, _this.texture);
-                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MIN_FILTER, z.gl.LINEAR);
-                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_S, z.gl.CLAMP_TO_EDGE);
-                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_T, z.gl.CLAMP_TO_EDGE);
-                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MAG_FILTER, z.gl.NEAREST);
-                    z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, canv);
-                    z.gl.uniform1i(z.gl.getUniformLocation(z.program, name), index);
+                // append new step to len
+                tenor_params.seq[len] = {
+                    subd: Math.random() * 0.20,
+                    val: {
+                        atk: { voice: 3, is_attack: true, smudge: 10 },
+                        freq: { voice: 3, frequency: freq }
+                    }
                 };
-            };
 
-            textures = {
-                u_stumble: new Texture('u_stumble', 'static/assets/cat.png', z.gl.TEXTURE0, 0),
-                u_video: new Texture('u_video', 'static/assets/colorbars.png', z.gl.TEXTURE1, 1),
-                u_random: new Texture('u_random', 'static/assets/warning.png', z.gl.TEXTURE2, 2),
-                u_cloud: new Texture('u_cloud', 'static/assets/cloud.png', z.gl.TEXTURE3, 3)
-            };
+                // ko some steps after we reach a certain sequence length
+                var filter_start_len = 10;
+                if (len > filter_start_len) {
+                    var i = len - filter_start_len + Math.random() * len * 0.5 | 0;
+                    while (i--) {
+                        delete tenor_params.seq[Math.random() * filter_start_len | 0];
+                    }
 
-            // dimensions of the window
-            u_viewport = z.gl.getUniformLocation(z.program, 'u_viewport');
-
-            // counter we increment on each frame
-            u_clock = z.gl.getUniformLocation(z.program, 'u_clock');
-
-            // delta x, y of the markers
-            u_translate = z.gl.getUniformLocation(z.program, 'u_translate');
-
-            // 1 or 0 depending on if we want to markers to be shaded with white noise
-            u_beNoise = z.gl.getUniformLocation(z.program, 'u_beNoise');
-
-            // 1 or 0 depending on if we want the markers to be shaded with colored noise
-            u_beColoredNoise = z.gl.getUniformLocation(z.program, 'u_beColoredNoise');
-
-            // total number of living vertices
-            vertices = 0;
-
-            // a ref to the current marker that we are using
-            // to track the current delta <x, y> of all
-            // markers on screen
-            current_anchor = null;
-            start = { x: 0, y: 0 };
-            delta = { x: 0, y: 0 };
-
-            zeroPositions = function zeroPositions() {
-                start.x = start.y = 0;
-                delta.x = delta.y = 0;
-            };
-
-            queryMarkerPosition = function queryMarkerPosition() {
-                if (!current_anchor) {
-                    var markers = markerMapPosition.markers,
-                        keys = markerMapPosition.livingKeys;
-
+                    // reenumerate object
+                    // TODO: again, why isn't this an array again?
+                    var j = 0;
                     var _iteratorNormalCompletion = true;
                     var _didIteratorError = false;
                     var _iteratorError = undefined;
 
                     try {
-                        for (var _iterator = _getIterator(keys), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                            var key = _step.value;
+                        for (var _iterator = _getIterator(tenor_params.seq), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var prop = _step.value;
 
-                            markers[key].update();
-                            if (markers[key].is_alive) {
-                                current_anchor = markers[key];
-                                break;
-                            }
+                            tenor_params.seq[j++] = prop;
                         }
                     } catch (err) {
                         _didIteratorError = true;
@@ -1470,163 +1206,163 @@ $__System.register("e", ["2", "4", "6", "7", "8", "9", "10", "a", "c", "f"], fun
                             }
                         }
                     }
+                }
 
-                    if (current_anchor) {
-                        return queryMarkerPosition();
-                    } else {
-                        return false;
+                // if the sequence exceeds a max length, ko some steps
+                var max_length = util.smudgeNumber(80, 15) | 0;
+                if (len > max_length) {
+                    var k = len + Math.random() * len * 0.25 - max_length | 0;
+                    while (k--) {
+                        delete tenor_params.seq[Math.random() * max_length | 0];
                     }
+                    tenor_params.seq = util.enumerate(tenor_params.seq);
+                }
+
+                if (Math.random() < 0.5) {
+                    // sometimes, do this again!
+                    voice();
                 } else {
-                    current_anchor.update();
-                    if (current_anchor.is_alive) {
-                        return current_anchor.getDrawingData();
-                    } else {
-                        current_anchor = null;
-                        return queryMarkerPosition();
+                    tenor_rhythm.parseConfig(tenor_params);
+                    tenor_rhythm.execute();
+                }
+
+                // at a certain point, start the alto voice
+                if (len >= 20) {
+                    alto_rhythm.execute();
+                }
+            }
+        };
+        var tenor_clock = new Clock(55),
+            tenor_rhythm = new Generator(tenor_clock, tenor_params);
+
+        var alto_count = 0;
+
+        // the frequencies we're going to base the alto voice on
+        var alto_mode = [480, 490, 500, 510, 520];
+
+        var make_alto_freq = function make_alto_freq() {
+            var freq = util.getRndItem(alto_mode);
+            if (alto_count++ % 3 === 0) {
+                freq += 0.2 * (alto_count / 3);
+            }
+            return freq;
+        };
+
+        var alto_params = {
+            opt: {
+                loop: 1
+            },
+            targets: {
+                atk: organ.attackTarget,
+                freq: organ.pitchTarget
+            },
+            seq: {
+                0: {
+                    subd: 8.123,
+                    val: {
+                        atk: { voice: 4, is_attack: true },
+                        freq: { voice: 4, frequency: 494 }
+                    }
+                },
+                1: {
+                    subd: 8.123,
+                    val: {
+                        atk: { voice: 4, is_attack: true },
+                        freq: { voice: 4, frequency: 518 }
                     }
                 }
-            };
+            },
+            callbacks: function callbacks() {
+                var len = _Object$keys(alto_params.seq.length);
 
-            updateDelta = function updateDelta() {
-                var pos = queryMarkerPosition();
-                if (pos) {
-                    delta.x = pos.x - start.x;
-                    delta.y = pos.y - start.y;
+                alto_params.seq[len] = {
+                    subd: alto_params.seq[len - 1].subd,
+                    val: {
+                        atk: { voice: 4, is_attack: true, smudge: 10 },
+                        freq: { voice: 4, frequency: make_alto_freq() }
+                    }
+                };
+
+                // cap length of alto sequence to 20
+                var max_length = 20;
+                if (len > max_length) {
+                    var i = len - max_length;
+                    while (i--) {
+                        delete alto_params.seq[0];
+                        alto_params.seq = util.enumerate(alto_params.seq);
+                    }
                 }
-            };
 
-            updateStart = function updateStart() {
-                var pos = queryMarkerPosition();
-                if (pos) {
-                    start.x = pos.x;
-                    start.y = pos.y;
-                }
-            };
+                alto_rhythm.parseConfig(alto_params);
+                alto_rhythm.execute();
+            }
+        };
 
-            //// gl data updating
+        var alto_rhythm = new Generator(tenor_clock, alto_params);
 
-            // transfer data from a normal js list
-            // into a typed array
-            data32Arr = undefined;
-            blank = new Float32Array([0]);
+        ostinato_rhythm.execute();
+        ostinato_clock.start();
 
-            getDataArray = function getDataArray(data) {
-                if (!data32Arr || data.length > data32Arr.length) {
-                    data32Arr = new Float32Array(data);
-                    return data32Arr;
-                } else if (data.length > 0 && data.length <= data32Arr.length) {
-                    data32Arr.set(data);
-                    return data32Arr.subarray(0, data.length);
+        gMap.events.queue('map', 'zoom_changed', function () {
+            var zoom = gMap.map.getZoom();
+            ostinato_clock.bpm = 50 - (25 - zoom * 1.25);
+            var gain = (function () {
+                if (zoom >= 18) {
+                    return 0.02;
                 } else {
-                    return blank;
+                    return 0.45 + (18 - zoom) * 0.0306;
                 }
-            };
+            })();
+            organ_convo.gain.linearRampToValueAtTime(gain, audioCore.ctx.currentTime + 1);
+        });
 
-            glDataUpdate = function glDataUpdate(data) {
-                zeroPositions();
-                updateStart();
-                vertices = data.length / markerData.BLOCK_ITEMS;
-                z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
-                z.gl.bufferData(z.gl.ARRAY_BUFFER, getDataArray(data), z.gl.DYNAMIC_DRAW);
-            };
+        ////////// secondary audio elements
+    }
 
-            // basically force the markers to reload if something goes awry
+    return {
+        setters: [function (_3) {
+            instruments = _3;
+        }, function (_) {
+            gMap = _;
+        }, function (_2) {
+            renderLoop = _2;
+        }, function (_4) {
+            audioCore = _4;
+        }, function (_5) {
+            util = _5;
+        }, function (_6) {
+            Convolution = _6.Convolution;
+        }, function (_7) {
+            Clock = _7.Clock;
+        }, function (_b) {
+            _Object$create = _b["default"];
+        }, function (_c) {
+            _Object$keys = _c["default"];
+        }, function (_d) {
+            _getIterator = _d["default"];
+        }, function (_d2) {
+            featureDetection = _d2;
+        }, function (_a) {
+            Generator = _a.Generator;
+        }],
+        execute: function () {
+            "use strict";
 
-            markerPositionFailsafe = function markerPositionFailsafe() {
-                var pos = queryMarkerPosition();
-                if (pos) {
-                    var mark_x = delta.x + start.x,
-                        mark_y = delta.y + start.y;
-
-                    var err = 1.75;
-                    if (pos.x > mark_x + err || pos.x < mark_x - err || pos.y > mark_y + err || pos.y < mark_y - err) {
-                        forceDataUpdate();
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-            };
-
-            updateMarkers = function updateMarkers() {
-                posts.get(gMap.map.getBounds(), function (data) {
-                    data.forEach(function (post) {
-                        if (!markerMapPosition.markerExists(post.lat, post.long)) {
-                            var loc = new google.maps.LatLng(post.lat, post.long);
-                            var m = new google.maps.Marker({
-                                position: loc,
-                                map: gMap.map,
-                                icon: "static/assets/blank.png"
-                            });
-                            m.markerType = post.markerType;
-                            markerMapPosition.push(m);
-                            gMap.events.initQueuedEvents('marker', m);
-                            google.maps.event.addListener(m, 'click', function () {
-                                posts.display(post);
-                            });
-                        }
-                    });
-                });
-                tryDataUpdate();
-            };
-
-            window.forceData = forceDataUpdate;
-            gMap.events.queue('map', 'dragstart', function () {
-                rudy.renderLoop.add(updateDelta);
-                rudy.renderLoop.add(tryDataUpdate);
-            });
-
-            gMap.events.queue('map', 'dragend', function () {
-                for (var i = 100; i <= 400; i += 100) {
-                    window.setTimeout(markerPositionFailsafe, i);
-                }
-
-                for (var j = 500; i <= 2000; i += 100) {
-                    window.setTimeout(function () {
-                        if (markerPositionFailsafe()) {
-                            beNoise(true, true);
-                            window.setTimeout(beNoise, util.smudgeNumber(30, 20));
-                        }
-                    }, i);
-                }
-
-                window.setTimeout(function () {
-                    rudy.renderLoop.remove(updateDelta);
-                    rudy.renderLoop.remove(tryDataUpdate);
-                }, 500);
-
-                window.setTimeout(updateMarkers, 200);
-            });
-
-            // turn to white noise when a post is displayed
-            document.addEventListener('post_overlay', function (e) {
-                beNoise(e.detail.visible);
-            });
-
-            gMap.events.queue('map', 'tilesloaded', updateMarkers);
-            gMap.events.queue('map', 'zoom_changed', function () {
-                // apparently there's a period of time between when the map seems 'ready'
-                // and actually being able to get projections, and the tableux select
-                // can fire during this time, so swallow that error.
-                forceDataUpdate();
-                try {
-                    updateMarkers();
-                } catch (e) {}
-            });
+            _export("init", init);
         }
     };
 });
 
 (function() {
 var _removeDefine = $__System.get("@@amd-helpers").createDefine();
-define("11", [], function() {
-  return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n<defs>\n\n<filter id=\"print-analog\">\n    <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"4.6\"></feColorMatrix>\n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0.93\"></feFuncA>\n    </feComponentTransfer>\n    <feOffset dx=\"2\" dy=\"1\" result=\"offset\"></feOffset>\n    \n    <!-- EDGE DETECTION -->\n        <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"0\"></feColorMatrix>\n        <feGaussianBlur id=\"pa-denoise\" stdDeviation=\"1.16\">\n            <animate id=\"print-analog-denoise-animate\" attributeName=\"stdDeviation\"\n                values=\"1.2;0.6;1.2;1.8;1.2\" calcMode=\"linear\" dur=\"8000ms\" repeatCount=\"indefinite\"> \n            </animate>\n        </feGaussianBlur>\n        <feConvolveMatrix   \n            kernelMatrix=\"-1 -1 -1 \n                          -1 8 -1 \n                          -1 -1 -1\"\n            preserveAlpha=\"true\">\n        </feConvolveMatrix>\n        <feComponentTransfer result=\"flip\">\n            <feFuncR type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncR>\n            <feFuncG type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncG>\n            <feFuncB type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncB>\n        </feComponentTransfer> \n        <feMorphology operator=\"erode\" radius=\"0.001\" result=\"thick\"></feMorphology>\n    <!-- /EDGE DETECTION -->\n    \n    <feBlend id=\"pa-bypass\" in=\"offset\" in2=\"flip\" mode=\"multiply\" result=\"out\"></feBlend>\n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0.75\"></feFuncA>\n    </feComponentTransfer> \n</filter>\n\n</defs>\n</svg>\n";
+define("1e", [], function() {
+  return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n<defs>\n\n<filter id=\"print-analog\">\n    <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"4.6\"></feColorMatrix>\n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0.93\"></feFuncA>\n    </feComponentTransfer>\n    <feOffset dx=\"2\" dy=\"1\" result=\"offset\"></feOffset>\n    \n    <!-- EDGE DETECTION -->\n        <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"0\"></feColorMatrix>\n        <feGaussianBlur id=\"pa-denoise\" stdDeviation=\"1.16\">\n            <animate id=\"print-analog-denoise-animate\" attributeName=\"stdDeviation\"\n                values=\"0.9;0.4;0.9\" calcMode=\"linear\" dur=\"2500ms\" repeatCount=\"indefinite\"> \n            </animate>\n        </feGaussianBlur>\n        <feConvolveMatrix   \n            kernelMatrix=\"-1 -1 -1 \n                          -1 8 -1 \n                          -1 -1 -1\"\n            preserveAlpha=\"true\">\n        </feConvolveMatrix>\n        <feComponentTransfer result=\"flip\">\n            <feFuncR type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncR>\n            <feFuncG type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncG>\n            <feFuncB type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncB>\n        </feComponentTransfer> \n        <feMorphology operator=\"erode\" radius=\"0.001\" result=\"thick\"></feMorphology>\n    <!-- /EDGE DETECTION -->\n    \n    <feBlend id=\"pa-bypass\" in=\"offset\" in2=\"flip\" mode=\"multiply\" result=\"out\"></feBlend>\n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0.8\"></feFuncA>\n    </feComponentTransfer> \n</filter>\n\n</defs>\n</svg>\n";
 });
 
 _removeDefine();
 })();
-$__System.register("12", ["8", "9", "a", "c", "d"], function (_export) {
-    var goTo, hasBit, _classCallCheck, _getIterator, _Object$keys, flags, bit, TableuxData, sets;
+$__System.register("1f", ["10", "14", "17", "1d", "1c"], function (_export) {
+    var _classCallCheck, goTo, hasBit, _getIterator, _Object$keys, flags, bit, TableuxData, sets;
 
     function registerEffect(name) {
         flags[name] = bit;
@@ -1719,15 +1455,15 @@ $__System.register("12", ["8", "9", "a", "c", "d"], function (_export) {
 
     return {
         setters: [function (_) {
-            goTo = _.goTo;
+            _classCallCheck = _["default"];
         }, function (_2) {
-            hasBit = _2.hasBit;
-        }, function (_a) {
-            _classCallCheck = _a["default"];
-        }, function (_c) {
-            _getIterator = _c["default"];
+            goTo = _2.goTo;
+        }, function (_3) {
+            hasBit = _3.hasBit;
         }, function (_d) {
-            _Object$keys = _d["default"];
+            _getIterator = _d["default"];
+        }, function (_c) {
+            _Object$keys = _c["default"];
         }],
         execute: function () {
             /**
@@ -1767,13 +1503,890 @@ $__System.register("12", ["8", "9", "a", "c", "d"], function (_export) {
     };
 });
 
-$__System.registerDynamic("13", ["14", "15"], true, function(req, exports, module) {
+$__System.registerDynamic("20", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var isObject = req('14');
-  req('15')('freeze', function($freeze) {
+  "format cjs";
+  var Froogaloop = (function() {
+    function Froogaloop(iframe) {
+      return new Froogaloop.fn.init(iframe);
+    }
+    var eventCallbacks = {},
+        hasWindowEvent = false,
+        isReady = false,
+        slice = Array.prototype.slice,
+        playerDomain = '';
+    Froogaloop.fn = Froogaloop.prototype = {
+      element: null,
+      init: function(iframe) {
+        if (typeof iframe === "string") {
+          iframe = document.getElementById(iframe);
+        }
+        this.element = iframe;
+        playerDomain = getDomainFromUrl(this.element.getAttribute('src'));
+        return this;
+      },
+      api: function(method, valueOrCallback) {
+        if (!this.element || !method) {
+          return false;
+        }
+        var self = this,
+            element = self.element,
+            target_id = element.id !== '' ? element.id : null,
+            params = !isFunction(valueOrCallback) ? valueOrCallback : null,
+            callback = isFunction(valueOrCallback) ? valueOrCallback : null;
+        if (callback) {
+          storeCallback(method, callback, target_id);
+        }
+        postMessage(method, params, element);
+        return self;
+      },
+      addEvent: function(eventName, callback) {
+        if (!this.element) {
+          return false;
+        }
+        var self = this,
+            element = self.element,
+            target_id = element.id !== '' ? element.id : null;
+        storeCallback(eventName, callback, target_id);
+        if (eventName != 'ready') {
+          postMessage('addEventListener', eventName, element);
+        } else if (eventName == 'ready' && isReady) {
+          callback.call(null, target_id);
+        }
+        return self;
+      },
+      removeEvent: function(eventName) {
+        if (!this.element) {
+          return false;
+        }
+        var self = this,
+            element = self.element,
+            target_id = element.id !== '' ? element.id : null,
+            removed = removeCallback(eventName, target_id);
+        if (eventName != 'ready' && removed) {
+          postMessage('removeEventListener', eventName, element);
+        }
+      }
+    };
+    function postMessage(method, params, target) {
+      if (!target.contentWindow.postMessage) {
+        return false;
+      }
+      var url = target.getAttribute('src').split('?')[0],
+          data = JSON.stringify({
+            method: method,
+            value: params
+          });
+      if (url.substr(0, 2) === '//') {
+        url = window.location.protocol + url;
+      }
+      target.contentWindow.postMessage(data, url);
+    }
+    function onMessageReceived(event) {
+      var data,
+          method;
+      try {
+        data = JSON.parse(event.data);
+        method = data.event || data.method;
+      } catch (e) {}
+      if (method == 'ready' && !isReady) {
+        isReady = true;
+      }
+      if (event.origin != playerDomain) {
+        return false;
+      }
+      var value = data.value,
+          eventData = data.data,
+          target_id = target_id === '' ? null : data.player_id,
+          callback = getCallback(method, target_id),
+          params = [];
+      if (!callback) {
+        return false;
+      }
+      if (value !== undefined) {
+        params.push(value);
+      }
+      if (eventData) {
+        params.push(eventData);
+      }
+      if (target_id) {
+        params.push(target_id);
+      }
+      return params.length > 0 ? callback.apply(null, params) : callback.call();
+    }
+    function storeCallback(eventName, callback, target_id) {
+      if (target_id) {
+        if (!eventCallbacks[target_id]) {
+          eventCallbacks[target_id] = {};
+        }
+        eventCallbacks[target_id][eventName] = callback;
+      } else {
+        eventCallbacks[eventName] = callback;
+      }
+    }
+    function getCallback(eventName, target_id) {
+      if (target_id) {
+        return eventCallbacks[target_id][eventName];
+      } else {
+        return eventCallbacks[eventName];
+      }
+    }
+    function removeCallback(eventName, target_id) {
+      if (target_id && eventCallbacks[target_id]) {
+        if (!eventCallbacks[target_id][eventName]) {
+          return false;
+        }
+        eventCallbacks[target_id][eventName] = null;
+      } else {
+        if (!eventCallbacks[eventName]) {
+          return false;
+        }
+        eventCallbacks[eventName] = null;
+      }
+      return true;
+    }
+    function getDomainFromUrl(url) {
+      if (url.substr(0, 2) === '//') {
+        url = window.location.protocol + url;
+      }
+      var url_pieces = url.split('/'),
+          domain_str = '';
+      for (var i = 0,
+          length = url_pieces.length; i < length; i++) {
+        if (i < 3) {
+          domain_str += url_pieces[i];
+        } else {
+          break;
+        }
+        if (i < 2) {
+          domain_str += '/';
+        }
+      }
+      return domain_str;
+    }
+    function isFunction(obj) {
+      return !!(obj && obj.constructor && obj.call && obj.apply);
+    }
+    function isArray(obj) {
+      return toString.call(obj) === '[object Array]';
+    }
+    Froogaloop.fn.init.prototype = Froogaloop.fn;
+    if (window.addEventListener) {
+      window.addEventListener('message', onMessageReceived, false);
+    } else {
+      window.attachEvent('onmessage', onMessageReceived);
+    }
+    return (window.Froogaloop = window.$f = Froogaloop);
+  })();
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("21", ["20"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = req('20');
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.register("22", ["10", "11", "12", "14", "21", "23", "24", "25", "26", "e", "f", "1f", "1e"], function (_export) {
+    var _classCallCheck, _createClass, _Symbol, gMap, posts, rudy, div, _get, _inherits, tableux, filterXML, filters, __css_class__, __name__, CssEffect, PrintAnalog;
+
+    return {
+        setters: [function (_2) {
+            _classCallCheck = _2["default"];
+        }, function (_) {
+            _createClass = _["default"];
+        }, function (_3) {
+            _Symbol = _3["default"];
+        }, function (_9) {
+            gMap = _9;
+        }, function (_5) {}, function (_4) {}, function (_6) {
+            posts = _6;
+        }, function (_7) {
+            rudy = _7;
+        }, function (_8) {
+            div = _8;
+        }, function (_e) {
+            _get = _e["default"];
+        }, function (_f) {
+            _inherits = _f["default"];
+        }, function (_f2) {
+            tableux = _f2;
+        }, function (_e2) {
+            filterXML = _e2["default"];
+        }],
+        execute: function () {
+            /**
+             * @module effects
+             * contains subclasses of rudy.visualCore.Effect that implement
+             * different visual effects.
+             */
+
+            // first, render the filter xml in the document so it is available via css selectors
+            "use strict";
+
+            filters = document.createElement("svg_filters");
+            // will function basically like a div
+            filters.style.position = "fixed";
+            filters.style.bottom = 0;
+            filters.style.zIndex = -99999999;
+            document.body.appendChild(filters);
+            filters.innerHTML = filterXML;
+
+            __css_class__ = _Symbol();
+            __name__ = _Symbol();
+
+            CssEffect = (function (_rudy$visualCore$Effect) {
+                _inherits(CssEffect, _rudy$visualCore$Effect);
+
+                function CssEffect(name, css_class) {
+                    _classCallCheck(this, CssEffect);
+
+                    _get(Object.getPrototypeOf(CssEffect.prototype), "constructor", this).call(this);
+                    this[__css_class__] = css_class;
+                    this[__name__] = name;
+                    tableux.registerEffect(this[__name__]);
+                }
+
+                _createClass(CssEffect, [{
+                    key: "operate",
+                    value: function operate(stage) {
+                        var _this = this;
+
+                        var hook_op = stage ? "addClass" : "removeClass";
+                        _get(Object.getPrototypeOf(CssEffect.prototype), "operate", this).call(this, stage, [{
+                            address: 1,
+                            fn: function fn() {
+                                return div.$map[hook_op](_this.css_class);
+                            }
+                        }]);
+                    }
+                }, {
+                    key: "name",
+                    get: function get() {
+                        return this[__name__];
+                    }
+                }, {
+                    key: "css_class",
+                    get: function get() {
+                        return this[__css_class__];
+                    }
+                }]);
+
+                return CssEffect;
+            })(rudy.visualCore.Effect);
+
+            PrintAnalog = (function (_CssEffect) {
+                _inherits(PrintAnalog, _CssEffect);
+
+                function PrintAnalog() {
+                    _classCallCheck(this, PrintAnalog);
+
+                    _get(Object.getPrototypeOf(PrintAnalog.prototype), "constructor", this).call(this, "PrintAnalog", "print-analog");
+                }
+
+                _createClass(PrintAnalog, [{
+                    key: "init",
+                    value: function init() {}
+                }, {
+                    key: "teardown",
+                    value: function teardown() {}
+                }]);
+
+                return PrintAnalog;
+            })(CssEffect);
+
+            _export("PrintAnalog", PrintAnalog);
+        }
+    };
+});
+
+(function() {
+var _removeDefine = $__System.get("@@amd-helpers").createDefine();
+define("27", [], function() {
+  return "@@ vertex shader\nprecision lowp int;\n\n//IDs\nattribute float a_hash;\nattribute float a_type;\n\n//coordinates\nattribute vec2 a_model;\nattribute vec2 a_container;\nattribute vec2 a_uv;\n\n//for cloud particles\nattribute vec2 a_velocity;\n\nuniform vec2 u_translate;\nuniform vec2 u_viewport; // viewport size in pixels\nuniform int u_clock;\n\nvarying float v_clock;\nvarying float v_hash;\nvarying float v_type;\nvarying vec2 vUv;\n\nfloat angle(float velocity, int clock) \n{\n    float pi = 3.1415927;\n    return sin((mod(float(clock), 2500.0) / 2500.0) * (2.0 * pi) * velocity);\n}\n\nvoid main() \n{\n    v_hash = a_hash;\n    v_type = a_type;\n    vUv = a_uv;\n    v_clock = float(u_clock);\n\n    vec4 position = vec4(a_model + a_container + u_translate, 0, 1);\n    position.x = ((position.x / u_viewport.x) * 2.0) - 1.0;\n    position.y = (((position.y - 25.0) / u_viewport.y) * -2.0) + 1.0;\n    \n    // if this vertex is part of a cloud, translate depending on u_clock\n    if ( (a_type > 2.9) && (a_type < 3.1) ) {\n        position.x += 0.02 * angle(a_velocity.x, u_clock); \n        position.y += 0.01 * angle(a_velocity.y, u_clock);\n    }\n\n    gl_Position = position;\n}\nEND\n\n@@ fragment shader\nprecision highp float;\nprecision lowp int;\n\nuniform sampler2D u_stumble;\nuniform sampler2D u_video;\nuniform sampler2D u_random;\nuniform sampler2D u_cloud;\nuniform int u_beNoise;\nuniform int u_beColoredNoise;\n\nvarying float v_clock;\nvarying float v_hash;\nvarying float v_type;\nvarying vec2 vUv;\n\nfloat rand(vec2 co)\n{\n    float a = 1.9898;\n    float b = 78.233;\n    float c = 43758.5453;\n    float dt = dot(co.xy, vec2(a, b));\n    float sn = mod(dt, 3.14);\n    return fract(sin(sn) * c);\n}\n\n\nvoid main()\n{\n    mediump vec4 color;\n    \n    // select appropriate texture\n    if (v_type < 0.1) { \n        color = texture2D(u_random, vUv);\n    } else if ((v_type > 0.9) && (v_type < 1.1)) {\n        color = texture2D(u_video, vUv);\n    } else if ((v_type > 1.9) && (v_type < 2.1)) {\n        color = texture2D(u_stumble, vUv);\n    } else if ((v_type > 2.9 && v_type < 3.1)) {\n        color = texture2D(u_cloud, vUv);\n    }\n\n    // global activities\n    float r = rand(vec2(v_clock, 1.2)) * 10000.0;\n    int select = int(rand(gl_FragCoord.xy) * 3.0);\n    if (int(mod(v_clock, r)) == 0) {\n        if (select == 0) color = vec4(1, 0, 0, 1);\n        if (select == 1) color = vec4(0, 1, 0, 1);\n        if (select == 2) color = vec4(0, 0, 1, 1);\n    }\n    // limit to 15000\n    if (u_beNoise == 1 && color.w > 0.0) {\n        float n = rand(vec2(v_clock * gl_FragCoord.x, (2.0 / v_clock) * gl_FragCoord.y));\n        if (n > 0.5) {\n            color = vec4(0, 0, 0, 1);\n        } else {\n            color = vec4(0.2, 0.2, 0.2, 1);\n        }\n        if (u_beColoredNoise == 1) {\n            if (n < 0.33) {\n                color = vec4(1.0, 0.0, 0.0, 1);\n            } else if (n > 0.33 && n < 0.66) {\n                color = vec4(0.0, 1.0, 0.0, 1);\n            } else {\n                color = vec4(0.0, 0.0, 1.0, 1);\n            }\n        }\n    }\n\n    gl_FragColor = color;\n}\nEND\n";
+});
+
+_removeDefine();
+})();
+(function() {
+var _removeDefine = $__System.get("@@amd-helpers").createDefine();
+define("28", [], function() {
+  return "<svg id=\"loading\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 480\">\n <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->\n <g>\n  <path d=\"m5.77504,97.71085c0,0 -0.21238,0.59723 0,1.10997c0.30036,0.72513 0.99658,2.27054 2.77494,6.10486c1.04429,2.25159 6.79895,8.22893 11.65474,12.20972c7.73743,6.34319 18.91081,11.53794 22.19949,12.76473c16.31963,6.08775 26.69567,11.4669 51.05884,18.86955c11.46306,3.483 33.84477,6.38229 46.06394,6.65985c5.54845,0.12604 10.48146,-1.79634 14.98466,-3.88492c3.83434,-1.77835 14.91391,-8.81285 22.19949,-14.98465c6.58759,-5.58054 7.49716,-8.12646 10.54477,-12.76472c2.45706,-3.73947 4.34467,-7.31006 2.77492,-8.87979c-0.39243,-0.39243 -2.77492,0 -14.98465,0c-4.99487,0 -14.09891,1.89337 -16.64961,3.8849c-4.33047,3.38115 -6.82564,8.22551 -7.76984,9.98977c-3.40437,6.36115 -5.09332,13.21967 -5.54988,26.08441c-0.67038,18.89032 3.19806,28.30994 2.77495,44.39902c-0.27759,10.55568 -4.38696,20.99365 -13.3197,32.18927c-4.16805,5.22386 -16.14017,15.74826 -23.30946,19.97955c-10.48233,6.18658 -25.4575,16.40646 -36.07418,12.76468c-15.22387,-5.22214 -11.58913,-29.02753 6.65984,-38.29413c17.28419,-8.77669 29.16979,-5.21512 41.06907,0c16.59619,7.27365 37.12262,12.68515 46.06395,7.76984c10.12018,-5.56335 21.38835,-16.94397 32.18927,-26.08441c8.13799,-6.88689 11.09975,-7.76984 12.20972,-7.76984c2.21996,0 5.29938,1.53729 6.10487,3.88492c1.83681,5.35342 2.21994,10.54477 2.21994,16.64963c0,3.88492 -2.78296,9.25638 -8.87979,12.20972c-5.21466,2.526 -13.87679,4.92747 -23.30948,-3.88492c-7.44478,-6.95522 -0.26758,-19.71057 12.76471,-31.63428c4.35268,-3.98239 8.39864,-5.95557 12.20972,-2.77495c8.52185,7.11217 8.58424,11.29881 11.65472,15.53966c2.54201,3.51096 13.84366,12.5126 32.18933,6.10486c7.85919,-2.74506 13.89117,-13.32178 13.31967,-17.75958c-0.38174,-2.96423 -17.34029,-7.99332 -24.41946,6.10484c-6.16103,12.26965 12.75174,30.84282 21.64453,23.30949c7.72751,-6.5462 0.03256,-20.18723 -2.77493,-27.19441c-0.46155,-1.15195 -0.83154,-0.58942 -1.10999,2.77495c-0.41196,4.97786 4.38,19.7746 24.97443,26.6394c6.86481,2.28827 14.05795,-3.25928 20.53455,-9.43478c5.237,-4.99356 4.43988,-12.20972 4.43988,-14.42969c0,-6.10486 0.39246,-7.37738 0,-7.76981c-0.39243,-0.39246 -1.1568,-0.08511 -2.21994,0.55499c-4.09006,2.46255 -8.15955,5.53355 -10.54474,10.54472c-1.96689,4.13237 -2.81641,9.16228 0.55496,13.87471c2.77786,3.88284 5.2692,3.76093 7.21484,2.21994c3.39795,-2.69119 7.31442,-15.54364 6.65985,-30.52429c-0.78131,-17.88074 -4.3187,-34.95326 -2.77496,-52.72382c2.40924,-27.73357 0.73657,-36.47363 -1.66495,-33.85423c-4.05679,4.42488 -6.90164,6.04694 -12.76468,17.7596c-13.75348,27.4754 -7.51511,51.18133 1.66495,73.25835c10.21259,24.56021 21.56229,45.65002 27.19437,48.83885c0.96591,0.54692 1.66495,0 2.21994,0c0.55499,0 0.55499,-0.55495 1.11002,-0.55495c0.55499,0 0.62097,-0.67456 1.66495,-3.88492c0.76755,-2.36037 1.40619,-2.27361 2.21994,-5.5499c2.96136,-11.92288 4.65158,-40.01331 8.3248,-62.15857c1.01532,-6.12131 1.10999,-4.9949 1.10999,-3.88492c0,3.88492 -0.39383,10.01642 -1.66495,17.20462c-0.98557,5.5733 -0.83459,10.5545 -1.10999,14.42966c-0.2782,3.91449 -1.67535,8.77228 -2.77493,16.09464c-1.1568,7.70325 -1.22452,11.16776 -0.55499,14.42967c0.84985,4.14032 2.21997,4.99489 3.32993,4.99489c0.55499,0 1.10999,0 1.66495,0c1.66498,0 3.47223,-0.99637 6.10489,-4.4399c4.11453,-5.38182 6.76932,-11.04131 9.98975,-17.20461c4.59769,-8.79918 7.46347,-16.34186 11.09976,-20.53455c4.62827,-5.3364 7.24207,-6.88547 12.76471,-6.10486c5.91858,0.83656 6.72449,2.74493 7.21484,3.88492c2.56674,5.96733 2.66898,9.96461 1.66495,14.42964c-0.62085,2.76097 -2.76953,5.43349 -3.3299,9.43483c-0.61581,4.39697 4.02588,13.57942 11.65472,20.53452c9.56573,8.72092 19.24088,7.28975 28.85934,3.88492c31.11905,-11.01587 61.57883,-17.40758 62.71356,-22.75449c0.11523,-0.54291 -0.32187,-1.54495 1.10999,-3.32993c2.32959,-2.90405 9.00653,-2.45192 9.98975,2.21996c2.80206,13.31404 -6.92838,21.72958 -8.87976,20.53453c-6.31439,-3.8671 -2.99661,-19.87244 2.21994,-19.42456c14.09756,1.21042 12.6749,20.56522 2.77487,36.62918c-18.17694,29.49432 -67.15341,44.39899 -97.12274,37.18414l34.9642,-9.43478l138.19183,0l43.289,-4.99487\"/>\n  <path d=\"m349.75903,144.09641c-0.60242,0 -1.02017,-0.2764 -1.80725,-0.60242c-0.55655,-0.23051 -1.98367,-0.17642 -2.40964,-0.60242c-0.42596,-0.42596 0,-1.2048 0.60242,-1.2048c0.60242,0 1.25067,-0.23051 1.80722,0c0.78708,0.32602 1.38129,0.77884 1.80725,1.2048c0.42596,0.42599 0.42596,1.38126 0,1.80725c-0.42596,0.42598 -0.60242,0.60239 -1.20483,0.60239c-0.60242,0 -1.2048,0 -1.80722,0c-0.60242,0 -1.20483,0 -1.80722,0c-0.60242,0 -0.37189,-0.64824 -0.60242,-1.2048c-0.32602,-0.78708 -0.60242,-1.20483 0,-1.20483c1.2048,0 1.80722,0 2.40964,0c0.60242,0 1.38126,-0.42596 1.80722,0c0.42596,0.42599 0,1.20483 0,1.80725c0,1.2048 0.42596,1.98364 0,2.40962c-0.42596,0.42598 -1.2048,0 -1.80722,0c-0.60242,0 -0.60242,-0.60242 -0.60242,-1.20482c0,-0.60242 0,-1.2048 0,-1.80722c0,-0.60242 0.41772,-0.87881 1.20483,-1.20483c0.55652,-0.23053 1.80722,0 2.40964,0c0.60239,0 1.2048,0 1.2048,0.60242c0,0.60242 -1.70105,1.49774 -3.01205,1.80722c-0.58627,0.13841 -1.2048,0 -1.2048,-0.60239c0,-0.60242 0.77884,-0.77887 1.2048,-1.20483c0.42596,-0.42596 0.60242,-0.60242 1.20483,-0.60242l0.60242,0\"/>\n </g>\n</svg>";
+});
+
+_removeDefine();
+})();
+$__System.register("26", ["23"], function (_export) {
+  /**
+   * @module div
+   */
+  "use strict";
+
+  var $overlay, $map, selectors;
+  return {
+    setters: [function (_) {}],
+    execute: function () {
+      $overlay = $('#overlay');
+
+      _export("$overlay", $overlay);
+
+      $map = $("#map-canvas");
+
+      _export("$map", $map);
+
+      // useful css selectors
+      selectors = {
+        $_map_imgs: "#map-canvas :nth-child(1) :nth-child(1)" + ":nth-child(1) :nth-child(5) :nth-child(1) > div"
+      };
+
+      _export("selectors", selectors);
+    }
+  };
+});
+
+$__System.register("24", ["14", "23", "26", "28", "1d"], function (_export) {
+    var gMap, div, loading_img, _getIterator, throttle, throttle_interval, text_posts, display_status, statusInvisible, post_event, iframeMouseStatus, overlay_iframe_mouse, marker_clicked, width;
+
+    function renderTemplate(post, $template) {
+        var content = '';
+        if (typeof post.title !== 'undefined') {
+            if (post.type === "link") {
+                content += "<a target='_blank' href=\"" + post.url + "\">" + post.title + "</a></div>";
+            } else {
+                content += "<div class='post-title'>" + post.title + "</div>";
+            }
+        }
+        if (typeof post.body !== 'undefined') {
+            content += "<div class='post-body'>" + post.body + "</div>";
+        }
+        if (typeof post.photos !== 'undefined') {
+            content += "<img src=\"" + post.photos[0].alt_sizes[0].url + "\"/>";
+        }
+        if (typeof post.text !== 'undefined') {
+            content += "<div class='post-text'>" + post.text + "</div>";
+        }
+        if (typeof post.player !== 'undefined') {
+            content += Array.isArray(post.player) ? post.player[0].embed_code : post.player;
+        }
+        if (typeof post.description !== 'undefined') {
+            content += "<div class='post-description'>" + post.description + "</div>";
+        }
+        if (typeof post.caption !== 'undefined') {
+            content += "<div class='post-caption'>" + post.caption + "</div>";
+        }
+        if (typeof post.source !== 'undefined') {
+            content += post.source;
+        }
+
+        var post_data = {
+            'type': post.type,
+            'date': post.date,
+            'link': post.short_url,
+            'content': content
+        };
+
+        var rendered = $template.html();
+
+        $.each(post_data, function (i, v) {
+            var rg = "~!" + i;
+            var r = new RegExp(rg, "g");
+            rendered = rendered.replace(r, v);
+        });
+
+        return rendered;
+    }
+
+    function get(visibleBounds, callback) {
+        var sw = visibleBounds.getSouthWest(),
+            ne = visibleBounds.getNorthEast(),
+            url = "/posts/" + sw.lat() + "/" + sw.lng() + "/" + ne.lat() + "/" + ne.lng();
+
+        if (!throttle) {
+            $.getJSON(url, function (data) {
+                throttle = true;
+                window.setTimeout(function () {
+                    throttle = false;
+                }, throttle_interval);
+
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    var _loop = function () {
+                        var post = _step.value;
+
+                        post.markerType = (function () {
+                            if (post.tags.find(function (x) {
+                                return x === "videos";
+                            })) {
+                                return 'video';
+                                // TODO: generic audio tag
+                            } else if (post.tags.find(function (x) {
+                                    return x === "stumblesome";
+                                })) {
+                                    return 'stumble';
+                                } else {
+                                    return 'random';
+                                }
+                        })();
+
+                        post.isTextPost = text_posts.find(function (x) {
+                            return x === post.type;
+                        });
+                    };
+
+                    for (var _iterator = _getIterator(data), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        _loop();
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator["return"]) {
+                            _iterator["return"]();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
+                }
+
+                callback(data);
+            });
+        }
+    }
+
+    // everything below this point manages post display behavior
+
+    function display(post) {
+        var small_swap_time = 130; // fade duration for content swaps
+
+        if (div.$overlay.is(':hidden')) {
+            div.$overlay.fadeIn('fast');
+
+            // c.f. '@small' in styles
+            // 'auto' fills screen when @small
+            var mm = window.matchMedia("screen and (max-width: 31em)");
+            width = mm.matches ? 'auto' : div.$overlay.css('min-width');
+        } else {
+            width = div.$overlay.css("width");
+        }
+        div.$overlay.find("*").fadeOut(small_swap_time).remove();
+
+        var $post = renderTemplate(post, $('#post-template'));
+        div.$overlay.html($post).removeClass().addClass(post.type);
+
+        var $contents = div.$overlay.find("*"),
+            waiting = true,
+            $loading = null;
+
+        if (!post.isTextPost) {
+            div.$overlay.css("width", width);
+            $contents.hide();
+
+            window.setTimeout(function () {
+                if (waiting) $loading = div.$overlay.append(loading_img).find("#loading");
+            }, 300);
+
+            $contents.load(function () {
+                if ($loading) $loading.fadeOut(small_swap_time).remove();
+                div.$overlay.css("width", "auto");
+                $contents.fadeIn(small_swap_time);
+                waiting = false;
+
+                var $iframe = $contents.find('iframe');
+                $iframe.mouseover(function () {
+                    iframeMouseStatus.status = 'mouseover';
+                    window.dispatchEvent(overlay_iframe_mouse);
+                });
+                $iframe.mouseout(function () {
+                    iframeMouseStatus.status = 'mouseout';
+                    window.dispatchEvent(overlay_iframe_mouse);
+                });
+            });
+        } else {
+            $contents.fadeIn(small_swap_time); // for now, just fade in if text ...or instagram
+        }
+
+        display_status.visible = true;
+        display_status.postType = post.type;
+        display_status.content = $post;
+        document.dispatchEvent(post_event);
+
+        marker_clicked = true;
+        window.setTimeout(function () {
+            marker_clicked = false;
+        }, 200);
+    }
+
+    // Close overlay when user clicks on the X
+    return {
+        setters: [function (_3) {
+            gMap = _3;
+        }, function (_) {}, function (_2) {
+            div = _2;
+        }, function (_4) {
+            loading_img = _4["default"];
+        }, function (_d) {
+            _getIterator = _d["default"];
+        }],
+        execute: function () {
+            /**
+             * @module posts
+             */
+
+            "use strict";
+
+            _export("renderTemplate", renderTemplate);
+
+            _export("get", get);
+
+            _export("display", display);
+
+            throttle = false;
+            throttle_interval = 500;
+            text_posts = ['text', 'audio', 'link', 'quote'];
+            display_status = {
+                visible: false,
+                postType: null,
+                content: null
+            };
+
+            statusInvisible = function statusInvisible() {
+                display_status.visible = false;
+                display_status.postType = null;
+                display_status.content = "";
+            };
+
+            post_event = new CustomEvent('post_overlay', {
+                "bubbles": false,
+                "cancelable": true,
+                "detail": display_status
+            });
+            iframeMouseStatus = { status: null };
+            overlay_iframe_mouse = new CustomEvent('overlay_iframe_mouse', {
+                "bubbles": false,
+                "cancelable": true,
+                "detail": iframeMouseStatus
+            });
+            marker_clicked = false;
+            width = 0;
+            $(document).on('click', '.close-post', function (e) {
+                e.preventDefault();
+                width = 'auto';
+                window.$(this).parent().fadeOut('fast', function () {
+                    $(this).find("*").html("");
+                });
+                statusInvisible();
+                document.dispatchEvent(post_event);
+            });
+
+            // Close overlay on mousedown over map, i.e., to move it.
+            div.$map.mousedown(function () {
+                window.setTimeout(function () {
+                    if (div.$overlay.is(':visible') && div.$overlay.css('opacity') === '1' && marker_clicked === false) {
+                        div.$overlay.fadeOut('fast', function () {
+                            $(this).find("*").html("");
+                        });
+                        statusInvisible();
+                        document.dispatchEvent(post_event);
+                    }
+                }, 150);
+            });
+        }
+    };
+});
+
+$__System.register("29", ["2a"], function (_export) {
+  /**
+   * @module markerData
+   * serves as an interface to the markerDataWorker
+   */
+
+  /*
+   * interleaved block structure: (f = 32 bit float)
+   * marker hash, texture, model ver, location vec, UV   velocity
+   * f            f        f, f       f, f          f, f  f, f
+   *
+   * marker hash: unique ID
+   * texture: what image to use, enum'd in worker
+   * model coord: vertex coordinates (in pixels) where (0, 0) is the center of each marker.
+   * container coord: absolute location of marker in container pixels
+   * UV: texture coordinates
+   * velocity: angular velocity (x, y) in radians (for cloud particles)
+   */
+  "use strict";
+
+  var markerMapPosition, NUMBER_OF_PARTICLES, BLOCK_ITEMS, BLOCK_SIZE, HASH_ITEMS, HASH_OFFSET, TYPE_ITEMS, TYPE_OFFSET, MODEL_VER_ITEMS, MODEL_VER_OFFSET, LOCATION_VEC_ITEMS, LOCATION_VEC_OFFSET, UV_ITEMS, UV_OFFSET, VELOCITY_ITEMS, VELOCITY_OFFSET, markerDataWorker;
+
+  _export("makeData", makeData);
+
+  function makeData(override, callback) {
+    var state = markerMapPosition.getCurrentState();
+    state.push(NUMBER_OF_PARTICLES);
+    state.push(override);
+    markerDataWorker.postMessage(state);
+    markerDataWorker.onmessage = function (e) {
+      callback(e.data);
+    };
+  }
+
+  return {
+    setters: [function (_a) {
+      markerMapPosition = _a;
+    }],
+    execute: function () {
+      NUMBER_OF_PARTICLES = 20;
+      BLOCK_ITEMS = 10;
+      BLOCK_SIZE = 40;
+      HASH_ITEMS = 1;
+      HASH_OFFSET = 0;
+      TYPE_ITEMS = 1;
+      TYPE_OFFSET = 4;
+      MODEL_VER_ITEMS = 2;
+      MODEL_VER_OFFSET = 8;
+      LOCATION_VEC_ITEMS = 2;
+      LOCATION_VEC_OFFSET = 16;
+      UV_ITEMS = 2;
+      UV_OFFSET = 24;
+      VELOCITY_ITEMS = 2;
+      VELOCITY_OFFSET = 32;
+
+      _export("NUMBER_OF_PARTICLES", NUMBER_OF_PARTICLES);
+
+      _export("BLOCK_ITEMS", BLOCK_ITEMS);
+
+      _export("BLOCK_SIZE", BLOCK_SIZE);
+
+      _export("HASH_ITEMS", HASH_ITEMS);
+
+      _export("HASH_OFFSET", HASH_OFFSET);
+
+      _export("TYPE_ITEMS", TYPE_ITEMS);
+
+      _export("TYPE_OFFSET", TYPE_OFFSET);
+
+      _export("MODEL_VER_ITEMS", MODEL_VER_ITEMS);
+
+      _export("MODEL_VER_OFFSET", MODEL_VER_OFFSET);
+
+      _export("LOCATION_VEC_ITEMS", LOCATION_VEC_ITEMS);
+
+      _export("LOCATION_VEC_OFFSET", LOCATION_VEC_OFFSET);
+
+      _export("UV_ITEMS", UV_ITEMS);
+
+      _export("UV_OFFSET", UV_OFFSET);
+
+      _export("VELOCITY_ITEMS", VELOCITY_ITEMS);
+
+      _export("VELOCITY_OFFSET", VELOCITY_OFFSET);
+
+      markerDataWorker = new Worker("/static/js/markerDataWorker.js");
+    }
+  };
+});
+
+$__System.register("2a", ["10", "11", "14", "17", "1d", "1c"], function (_export) {
+    var _classCallCheck, _createClass, gMap, rudyUtil, _getIterator, _Object$keys, markers, livingKeys, overflow, projection, DrawingData, MarkerData, state_dump;
+
+    function push(googleMarker) {
+        var dat = new MarkerData(googleMarker);
+        markers[dat.hash] = dat;
+    }
+
+    function markerExists(lat, lng) {
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = _getIterator(_Object$keys(markers)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var hash = _step.value;
+
+                var marker = markers[hash];
+                var world_position = marker.world_position,
+                    err = 0.0000001;
+                if (world_position.lat() > lat - err && world_position.lat() < lat + err && world_position.lng() > lng - err && world_position.lng() < lng + err) {
+                    return true;
+                }
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator["return"]) {
+                    _iterator["return"]();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    function getCurrentState() {
+        while (state_dump.length > 0) {
+            state_dump.pop();
+        }
+        while (livingKeys.length > 0) {
+            livingKeys.pop();
+        }
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+            for (var _iterator2 = _getIterator(_Object$keys(markers)), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                var hash = _step2.value;
+
+                var marker = markers[hash];
+                marker.update();
+                if (marker.is_alive) {
+                    state_dump.push(marker.getDrawingData());
+                    livingKeys.push(hash);
+                }
+            }
+        } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion2 && _iterator2["return"]) {
+                    _iterator2["return"]();
+                }
+            } finally {
+                if (_didIteratorError2) {
+                    throw _iteratorError2;
+                }
+            }
+        }
+
+        return state_dump;
+    }
+
+    return {
+        setters: [function (_) {
+            _classCallCheck = _["default"];
+        }, function (_2) {
+            _createClass = _2["default"];
+        }, function (_3) {
+            gMap = _3;
+        }, function (_4) {
+            rudyUtil = _4;
+        }, function (_d) {
+            _getIterator = _d["default"];
+        }, function (_c) {
+            _Object$keys = _c["default"];
+        }],
+        execute: function () {
+            /**
+             * @module markerMapPosition
+             * responsible for tracking the current position of each placeholder 
+             * marker so that we can superimpose the a graphic in the webgl layer
+             */
+
+            // all markers ever
+            "use strict";
+
+            _export("push", push);
+
+            _export("markerExists", markerExists);
+
+            _export("getCurrentState", getCurrentState);
+
+            markers = {};
+
+            _export("markers", markers);
+
+            // keys of markers that should be visible
+            livingKeys = [];
+
+            _export("livingKeys", livingKeys);
+
+            // is this being used?
+
+            overflow = 20;
+            projection = null;
+
+            DrawingData = function DrawingData(hash, type, x, y) {
+                _classCallCheck(this, DrawingData);
+
+                this.hash = hash;
+                this.type = type;
+                this.x = x;
+                this.y = y;
+            };
+
+            MarkerData = (function () {
+                _createClass(MarkerData, [{
+                    key: "update",
+                    value: function update() {
+                        if (!projection) projection = gMap.overlay.getProjection();
+                        var pnt = projection.fromLatLngToContainerPixel(this.world_position);
+
+                        this.container_position = pnt.x < -overflow || pnt.y < -overflow || pnt.x > window.innerWidth + overflow || pnt.y > window.innerHeight + overflow ? null : pnt;
+
+                        this.is_alive = !!this.container_position;
+
+                        if (this.is_alive) {
+                            this.drawing_data.x = this.container_position.x;
+                            this.drawing_data.y = this.container_position.y;
+                        }
+                    }
+                }]);
+
+                function MarkerData(googleMarker) {
+                    _classCallCheck(this, MarkerData);
+
+                    this.marker = googleMarker;
+                    this.type = googleMarker.markerType;
+                    this.world_position = googleMarker.getPosition();
+                    this.container_position = null;
+                    this.is_alive = null;
+                    this.hash = rudyUtil.hashCode(this.type + this.world_position.lat().toString() + this.world_position.lng().toString());
+                    this.drawing_data = new DrawingData(this.hash, this.type, 0, 0);
+
+                    this.update();
+                }
+
+                _createClass(MarkerData, [{
+                    key: "getDrawingData",
+                    value: function getDrawingData() {
+                        return this.drawing_data;
+                    }
+                }]);
+
+                return MarkerData;
+            })();
+
+            state_dump = [];
+        }
+    };
+});
+
+$__System.registerDynamic("2b", ["2c", "2d"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var isObject = req('2c');
+  req('2d')('freeze', function($freeze) {
     return function freeze(it) {
       return $freeze && isObject(it) ? $freeze(it) : it;
     };
@@ -1782,32 +2395,32 @@ $__System.registerDynamic("13", ["14", "15"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("16", ["13", "17"], true, function(req, exports, module) {
+$__System.registerDynamic("2e", ["2b", "2f"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  req('13');
-  module.exports = req('17').Object.freeze;
+  req('2b');
+  module.exports = req('2f').Object.freeze;
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("18", ["16"], true, function(req, exports, module) {
+$__System.registerDynamic("30", ["2e"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   module.exports = {
-    "default": req('16'),
+    "default": req('2e'),
     __esModule: true
   };
   global.define = __define;
   return module.exports;
 });
 
-$__System.register('19', ['9', '18', '1b', '1c', 'b', 'a', '1d', '1e', '1a'], function (_export) {
-    var util, _Object$freeze, _get, _inherits, _createClass, _classCallCheck, _Symbol, _Object$getOwnPropertyDescriptor, core, compEnvParentAssessors, ComponentEnvelope, sustainVs, sustainCookedVs, sustainCooked, sustainPriorBakeParams, sustainAmplitude, sustainDummy, Sustain, genA, genS, genD, genR, genEnv, genAS, genDR, genChanged, genPriorDuration, genSet, genUpdateEnvs, Generator, presets;
+$__System.register('b', ['10', '11', '12', '17', '30', '31', 'e', 'f', 'c'], function (_export) {
+    var _classCallCheck, _createClass, _Symbol, util, _Object$freeze, _Object$getOwnPropertyDescriptor, _get, _inherits, core, compEnvParentAssessors, ComponentEnvelope, sustainVs, sustainCookedVs, sustainCooked, sustainPriorBakeParams, sustainAmplitude, sustainDummy, Sustain, genA, genS, genD, genR, genEnv, genAS, genDR, genChanged, genPriorDuration, genSet, genUpdateEnvs, Generator, presets;
 
     function clipValueSequence(env) {
         env.valueSequence.forEach(function (v) {
@@ -1818,23 +2431,23 @@ $__System.register('19', ['9', '18', '1b', '1c', 'b', 'a', '1d', '1e', '1a'], fu
     // a collection of useful param objs to construct envelopeAsdr.Generators with
     return {
         setters: [function (_2) {
-            util = _2;
+            _classCallCheck = _2['default'];
         }, function (_) {
-            _Object$freeze = _['default'];
-        }, function (_b) {
-            _get = _b['default'];
-        }, function (_c) {
-            _inherits = _c['default'];
-        }, function (_b2) {
-            _createClass = _b2['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
-        }, function (_d) {
-            _Symbol = _d['default'];
+            _createClass = _['default'];
+        }, function (_3) {
+            _Symbol = _3['default'];
+        }, function (_6) {
+            util = _6;
+        }, function (_5) {
+            _Object$freeze = _5['default'];
+        }, function (_4) {
+            _Object$getOwnPropertyDescriptor = _4['default'];
         }, function (_e) {
-            _Object$getOwnPropertyDescriptor = _e['default'];
-        }, function (_a2) {
-            core = _a2;
+            _get = _e['default'];
+        }, function (_f) {
+            _inherits = _f['default'];
+        }, function (_c) {
+            core = _c;
         }],
         execute: function () {
             'use strict';
@@ -2139,28 +2752,28 @@ $__System.register('19', ['9', '18', '1b', '1c', 'b', 'a', '1d', '1e', '1a'], fu
     };
 });
 
-$__System.register('1f', ['9', '20', '21', 'b', 'a', 'c', 'd', '1d', '1a'], function (_export) {
-    var util, ParameterizedAction, Clock, _createClass, _classCallCheck, _getIterator, _Object$keys, _Symbol, envelopeCore, Rval, flr, floatingLoopReinitializer, genClock, genTarget, genSequence, genCbks, genLoop, genWasLooping, genLoopCount, genLocked, genRangeError, genPropError, genTypeError, genIsFunction, genQueue, genPriorTime, genAddCancelable, genTriggerCancelables, genClockFunctions, genReinitId, genConfig, Generator;
+$__System.register('1a', ['4', '10', '11', '12', '17', '19', '1d', '1c', 'c'], function (_export) {
+    var ParameterizedAction, _classCallCheck, _createClass, _Symbol, util, Clock, _getIterator, _Object$keys, envelopeCore, Rval, flr, floatingLoopReinitializer, genClock, genTarget, genSequence, genCbks, genLoop, genWasLooping, genLoopCount, genLocked, genRangeError, genPropError, genTypeError, genIsFunction, genQueue, genPriorTime, genAddCancelable, genTriggerCancelables, genClockFunctions, genReinitId, genConfig, Generator;
 
     return {
-        setters: [function (_) {
-            util = _;
+        setters: [function (_5) {
+            ParameterizedAction = _5.ParameterizedAction;
         }, function (_2) {
-            ParameterizedAction = _2['default'];
+            _classCallCheck = _2['default'];
+        }, function (_) {
+            _createClass = _['default'];
         }, function (_3) {
-            Clock = _3['default'];
-        }, function (_b) {
-            _createClass = _b['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
-        }, function (_c) {
-            _getIterator = _c['default'];
+            _Symbol = _3['default'];
+        }, function (_4) {
+            util = _4;
+        }, function (_6) {
+            Clock = _6.Clock;
         }, function (_d) {
-            _Object$keys = _d['default'];
-        }, function (_d2) {
-            _Symbol = _d2['default'];
-        }, function (_a2) {
-            envelopeCore = _a2;
+            _getIterator = _d['default'];
+        }, function (_c) {
+            _Object$keys = _c['default'];
+        }, function (_c2) {
+            envelopeCore = _c2;
         }],
         execute: function () {
             /**
@@ -2532,6 +3145,7 @@ $__System.register('1f', ['9', '20', '21', 'b', 'a', 'c', 'd', '1d', '1a'], func
                                     while (repeats-- > 0) {
                                         var time = typeof sumdge === 'number' ? util.smudgeNumber(this[genPriorTime], smudge) : this[genPriorTime];
 
+                                        // TODO: add undef checks all over this place
                                         if (rsStep.val) {
                                             var _iteratorNormalCompletion5 = true;
                                             var _didIteratorError5 = false;
@@ -2932,22 +3546,22 @@ $__System.register('1f', ['9', '20', '21', 'b', 'a', 'c', 'd', '1d', '1a'], func
     };
 });
 
-$__System.register('21', ['9', 'b', 'a', '1d', 'c', 'd'], function (_export) {
-    var util, _createClass, _classCallCheck, _Symbol, _getIterator, _Object$keys, clkQueue, clkSmudge, clkBpm, clkLast, clkNext, clkLen, clkIsOn, clkCycles, clkId, clkWasPaused, clkBeatStart, clkBeatRemaining, clkMachine, clkParamException, Clock;
+$__System.register('19', ['10', '11', '12', '17', '1d', '1c'], function (_export) {
+    var _classCallCheck, _createClass, _Symbol, util, _getIterator, _Object$keys, clkQueue, clkSmudge, clkBpm, clkLast, clkNext, clkLen, clkIsOn, clkCycles, clkId, clkWasPaused, clkBeatStart, clkBeatRemaining, clkMachine, clkParamException, Clock;
 
     return {
-        setters: [function (_) {
-            util = _;
-        }, function (_b) {
-            _createClass = _b['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
+        setters: [function (_2) {
+            _classCallCheck = _2['default'];
+        }, function (_) {
+            _createClass = _['default'];
+        }, function (_3) {
+            _Symbol = _3['default'];
+        }, function (_4) {
+            util = _4;
         }, function (_d) {
-            _Symbol = _d['default'];
+            _getIterator = _d['default'];
         }, function (_c) {
-            _getIterator = _c['default'];
-        }, function (_d2) {
-            _Object$keys = _d2['default'];
+            _Object$keys = _c['default'];
         }],
         execute: function () {
             /**
@@ -3229,8 +3843,8 @@ $__System.register('21', ['9', 'b', 'a', '1d', 'c', 'd'], function (_export) {
     };
 });
 
-$__System.register('1a', ['9', '22', '23', '24', 'b', 'a', '1b', '1c', '1d'], function (_export) {
-    var util, audioCore, audioUtil, TWEEN, _createClass, _classCallCheck, _get, _inherits, _Symbol, envelopeValueThrowException, envelopeValueValidateTimeRange, envelopeValueValue, envelopeValueTime, EnvelopeValue, envDuration, envInterpolationType, envInterpolationArgs, envValueSequence, envCheckEnvelopeValue, Envelope, AbsoluteEnvelopeValue, absEnvValueSequence, AbsoluteEnvelope, interpolation, cancelableTarg, cancelableFresh, cancelableSpoil, Cancelable, audioFatalFns, audioFatal;
+$__System.register('c', ['10', '11', '12', '16', '17', '32', '33', 'e', 'f'], function (_export) {
+    var _classCallCheck, _createClass, _Symbol, audioCore, util, audioUtil, TWEEN, _get, _inherits, envelopeValueThrowException, envelopeValueValidateTimeRange, envelopeValueValue, envelopeValueTime, EnvelopeValue, envDuration, envInterpolationType, envInterpolationArgs, envValueSequence, envCheckEnvelopeValue, Envelope, AbsoluteEnvelopeValue, absEnvValueSequence, AbsoluteEnvelope, interpolation, cancelableTarg, cancelableFresh, cancelableSpoil, Cancelable, audioFatalFns, audioFatal;
 
     function concat() {
         var targets = [],
@@ -3400,24 +4014,24 @@ $__System.register('1a', ['9', '22', '23', '24', 'b', 'a', '1b', '1c', '1d'], fu
     }
 
     return {
-        setters: [function (_) {
-            util = _;
-        }, function (_2) {
-            audioCore = _2;
+        setters: [function (_2) {
+            _classCallCheck = _2['default'];
+        }, function (_) {
+            _createClass = _['default'];
         }, function (_3) {
-            audioUtil = _3;
+            _Symbol = _3['default'];
+        }, function (_5) {
+            audioCore = _5;
         }, function (_4) {
-            TWEEN = _4['default'];
-        }, function (_b) {
-            _createClass = _b['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
-        }, function (_b2) {
-            _get = _b2['default'];
-        }, function (_c) {
-            _inherits = _c['default'];
-        }, function (_d) {
-            _Symbol = _d['default'];
+            util = _4;
+        }, function (_6) {
+            audioUtil = _6;
+        }, function (_7) {
+            TWEEN = _7['default'];
+        }, function (_e) {
+            _get = _e['default'];
+        }, function (_f) {
+            _inherits = _f['default'];
         }],
         execute: function () {
             'use strict';
@@ -3432,6 +4046,8 @@ $__System.register('1a', ['9', '22', '23', '24', 'b', 'a', '1b', '1c', '1d'], fu
             envelopeValueValidateTimeRange = _Symbol();
             envelopeValueValue = _Symbol();
             envelopeValueTime = _Symbol();
+
+            console.log(TWEEN);
 
             EnvelopeValue = (function () {
                 function EnvelopeValue(value, time) {
@@ -3813,7 +4429,7 @@ $__System.register('1a', ['9', '22', '23', '24', 'b', 'a', '1b', '1c', '1d'], fu
                             audioUtil.tween.stopTweens();
                         } else if (this[cancelableTarg] instanceof AudioParam) {
                             this[cancelableTarg].cancelScheduledValues(audioCore.ctx.currentTime);
-                        } else if (Array.isArray(targ)) {
+                        } else if (Array.isArray(this[cancelableTarg])) {
                             this[cancelableTarg].forEach(function (v) {
                                 return window.clearTimeout(v);
                             });
@@ -3861,19 +4477,19 @@ $__System.register('1a', ['9', '22', '23', '24', 'b', 'a', '1b', '1c', '1d'], fu
     };
 });
 
-$__System.register('20', ['b', 'a', '1d', '1a'], function (_export) {
-  var _createClass, _classCallCheck, _Symbol, apply, AbsoluteEnvelope, paTarget, paEnv, paType, paError, ParameterizedAction;
+$__System.register('4', ['10', '11', '12', 'c'], function (_export) {
+  var _classCallCheck, _createClass, _Symbol, apply, AbsoluteEnvelope, paTarget, paEnv, paType, paError, ParameterizedAction;
 
   return {
-    setters: [function (_b) {
-      _createClass = _b['default'];
-    }, function (_a) {
-      _classCallCheck = _a['default'];
-    }, function (_d) {
-      _Symbol = _d['default'];
-    }, function (_a2) {
-      apply = _a2.apply;
-      AbsoluteEnvelope = _a2.AbsoluteEnvelope;
+    setters: [function (_2) {
+      _classCallCheck = _2['default'];
+    }, function (_) {
+      _createClass = _['default'];
+    }, function (_3) {
+      _Symbol = _3['default'];
+    }, function (_c) {
+      apply = _c.apply;
+      AbsoluteEnvelope = _c.AbsoluteEnvelope;
     }],
     execute: function () {
       /**
@@ -4013,18 +4629,18 @@ $__System.register('20', ['b', 'a', '1d', '1a'], function (_export) {
   };
 });
 
-$__System.register('25', ['22', '1b', '1c', 'a'], function (_export) {
-  var AudioModule, _get, _inherits, _classCallCheck, Instrument;
+$__System.register('3', ['10', '16', 'e', 'f'], function (_export) {
+  var _classCallCheck, AudioModule, _get, _inherits, Instrument;
 
   return {
     setters: [function (_) {
-      AudioModule = _.AudioModule;
-    }, function (_b) {
-      _get = _b['default'];
-    }, function (_c) {
-      _inherits = _c['default'];
-    }, function (_a) {
-      _classCallCheck = _a['default'];
+      _classCallCheck = _['default'];
+    }, function (_2) {
+      AudioModule = _2.AudioModule;
+    }, function (_e) {
+      _get = _e['default'];
+    }, function (_f) {
+      _inherits = _f['default'];
     }],
     execute: function () {
       /**
@@ -4067,28 +4683,28 @@ $__System.register('25', ['22', '1b', '1c', 'a'], function (_export) {
   };
 });
 
-$__System.register("26", ["9", "22", "23", "27", "1b", "1c", "b", "a", "1d"], function (_export) {
-    var util, ctx, parseSpriteIntervals, MediaElementPlayer, _get, _inherits, _createClass, _classCallCheck, _Symbol, envelopeSprite, spriteList, ptoid, SpritePlayer;
+$__System.register("34", ["6", "10", "11", "12", "16", "17", "32", "e", "f"], function (_export) {
+    var MediaElementPlayer, _classCallCheck, _createClass, _Symbol, ctx, util, parseSpriteIntervals, _get, _inherits, envelopeSprite, spriteList, ptoid, SpritePlayer;
 
     return {
         setters: [function (_4) {
-            util = _4;
-        }, function (_3) {
-            ctx = _3.ctx;
+            MediaElementPlayer = _4.MediaElementPlayer;
         }, function (_2) {
-            parseSpriteIntervals = _2.parseSpriteIntervals;
+            _classCallCheck = _2["default"];
         }, function (_) {
-            MediaElementPlayer = _.MediaElementPlayer;
-        }, function (_b) {
-            _get = _b["default"];
-        }, function (_c) {
-            _inherits = _c["default"];
-        }, function (_b2) {
-            _createClass = _b2["default"];
-        }, function (_a) {
-            _classCallCheck = _a["default"];
-        }, function (_d) {
-            _Symbol = _d["default"];
+            _createClass = _["default"];
+        }, function (_3) {
+            _Symbol = _3["default"];
+        }, function (_6) {
+            ctx = _6.ctx;
+        }, function (_7) {
+            util = _7;
+        }, function (_5) {
+            parseSpriteIntervals = _5.parseSpriteIntervals;
+        }, function (_e) {
+            _get = _e["default"];
+        }, function (_f) {
+            _inherits = _f["default"];
         }],
         execute: function () {
             /**
@@ -4185,27 +4801,27 @@ $__System.register("26", ["9", "22", "23", "27", "1b", "1c", "b", "a", "1d"], fu
     };
 });
 
-$__System.register('28', ['22', '29', '1b', '1c', 'a', 'b', '1d', '2a'], function (_export) {
-    var AudioModule, ctx, audioNodes, _get, _inherits, _classCallCheck, _createClass, _Symbol, moduleExtensions, AllPass, FeedbackCombFilter, schroederComb1, schroederComb2, schroederComb3, schroederComb4, schroederFeedbackCoeffMultiplier, schroederPAR_A_GAIN, schroederPAR_B_GAIN, schroederPAR_C_GAIN, schroederPAR_D_GAIN, SchroederReverb;
+$__System.register('35', ['9', '10', '11', '12', '16', 'e', 'f', 'a'], function (_export) {
+    var moduleExtensions, _classCallCheck, _createClass, _Symbol, AudioModule, ctx, _get, _inherits, audioNodes, AllPass, FeedbackCombFilter, schroederComb1, schroederComb2, schroederComb3, schroederComb4, schroederFeedbackCoeffMultiplier, schroederPAR_A_GAIN, schroederPAR_B_GAIN, schroederPAR_C_GAIN, schroederPAR_D_GAIN, SchroederReverb;
 
     return {
-        setters: [function (_2) {
-            AudioModule = _2.AudioModule;
-            ctx = _2.ctx;
+        setters: [function (_5) {
+            moduleExtensions = _5;
         }, function (_) {
-            audioNodes = _;
-        }, function (_b) {
-            _get = _b['default'];
-        }, function (_c) {
-            _inherits = _c['default'];
+            _classCallCheck = _['default'];
+        }, function (_2) {
+            _createClass = _2['default'];
+        }, function (_3) {
+            _Symbol = _3['default'];
+        }, function (_4) {
+            AudioModule = _4.AudioModule;
+            ctx = _4.ctx;
+        }, function (_e) {
+            _get = _e['default'];
+        }, function (_f) {
+            _inherits = _f['default'];
         }, function (_a) {
-            _classCallCheck = _a['default'];
-        }, function (_b2) {
-            _createClass = _b2['default'];
-        }, function (_d) {
-            _Symbol = _d['default'];
-        }, function (_a2) {
-            moduleExtensions = _a2;
+            audioNodes = _a;
         }],
         execute: function () {
             /**
@@ -4409,34 +5025,34 @@ $__System.register('28', ['22', '29', '1b', '1c', 'a', 'b', '1d', '2a'], functio
     };
 });
 
-$__System.register('2b', ['9', '22', '23', '1b', '1c', 'b', 'a', '1d', '2c', 'c', 'd'], function (_export) {
-    var util, AudioModule, ctx, parseSpriteIntervals, taffyFactory, _get, _inherits, _createClass, _classCallCheck, _Symbol, _Promise, _getIterator, _Object$keys, sampleBuffer, gainNode, breakpoints, livingNodes, sampleDb, readyFn, SamplePlayer;
+$__System.register('5', ['10', '11', '12', '16', '17', '32', '36', 'e', 'f', '1d', '1c'], function (_export) {
+    var _classCallCheck, _createClass, _Symbol, AudioModule, ctx, util, parseSpriteIntervals, taffyFactory, _Promise, _get, _inherits, _getIterator, _Object$keys, sampleBuffer, gainNode, breakpoints, livingNodes, sampleDb, readyFn, SamplePlayer;
 
     return {
-        setters: [function (_3) {
-            util = _3;
+        setters: [function (_2) {
+            _classCallCheck = _2['default'];
         }, function (_) {
-            AudioModule = _.AudioModule;
-            ctx = _.ctx;
-        }, function (_2) {
-            parseSpriteIntervals = _2.parseSpriteIntervals;
-            taffyFactory = _2.taffyFactory;
-        }, function (_b) {
-            _get = _b['default'];
-        }, function (_c) {
-            _inherits = _c['default'];
-        }, function (_b2) {
-            _createClass = _b2['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
+            _createClass = _['default'];
+        }, function (_3) {
+            _Symbol = _3['default'];
+        }, function (_5) {
+            AudioModule = _5.AudioModule;
+            ctx = _5.ctx;
+        }, function (_7) {
+            util = _7;
+        }, function (_6) {
+            parseSpriteIntervals = _6.parseSpriteIntervals;
+            taffyFactory = _6.taffyFactory;
+        }, function (_4) {
+            _Promise = _4['default'];
+        }, function (_e) {
+            _get = _e['default'];
+        }, function (_f) {
+            _inherits = _f['default'];
         }, function (_d) {
-            _Symbol = _d['default'];
-        }, function (_c2) {
-            _Promise = _c2['default'];
-        }, function (_c3) {
-            _getIterator = _c3['default'];
-        }, function (_d2) {
-            _Object$keys = _d2['default'];
+            _getIterator = _d['default'];
+        }, function (_c) {
+            _Object$keys = _c['default'];
         }],
         execute: function () {
             /**
@@ -4629,21 +5245,21 @@ $__System.register('2b', ['9', '22', '23', '1b', '1c', 'b', 'a', '1d', '2c', 'c'
     };
 });
 
-$__System.register('2d', ['22', '1b', '1c', 'a', '2a'], function (_export) {
-  var AudioModule, ctx, _get, _inherits, _classCallCheck, moduleExtensions, Osc;
+$__System.register('37', ['9', '10', '16', 'e', 'f'], function (_export) {
+  var moduleExtensions, _classCallCheck, AudioModule, ctx, _get, _inherits, Osc;
 
   return {
-    setters: [function (_) {
-      AudioModule = _.AudioModule;
-      ctx = _.ctx;
-    }, function (_b) {
-      _get = _b['default'];
-    }, function (_c) {
-      _inherits = _c['default'];
-    }, function (_a) {
-      _classCallCheck = _a['default'];
-    }, function (_a2) {
-      moduleExtensions = _a2;
+    setters: [function (_3) {
+      moduleExtensions = _3;
+    }, function (_) {
+      _classCallCheck = _['default'];
+    }, function (_2) {
+      AudioModule = _2.AudioModule;
+      ctx = _2.ctx;
+    }, function (_e) {
+      _get = _e['default'];
+    }, function (_f) {
+      _inherits = _f['default'];
     }],
     execute: function () {
       /**
@@ -4746,27 +5362,27 @@ $__System.register('2d', ['22', '1b', '1c', 'a', '2a'], function (_export) {
   };
 });
 
-$__System.register('2e', ['22', '29', '1b', '1c', 'b', 'a', '1d', '2a'], function (_export) {
-  var AudioModule, ctx, audioNodes, _get, _inherits, _createClass, _classCallCheck, _Symbol, moduleExtensions, buffer, srDivisor, calcBuffer, Noise;
+$__System.register('8', ['9', '10', '11', '12', '16', 'e', 'f', 'a'], function (_export) {
+  var moduleExtensions, _classCallCheck, _createClass, _Symbol, AudioModule, ctx, _get, _inherits, audioNodes, buffer, srDivisor, calcBuffer, Noise;
 
   return {
-    setters: [function (_) {
-      AudioModule = _.AudioModule;
-      ctx = _.ctx;
+    setters: [function (_5) {
+      moduleExtensions = _5;
     }, function (_2) {
-      audioNodes = _2;
-    }, function (_b) {
-      _get = _b['default'];
-    }, function (_c) {
-      _inherits = _c['default'];
-    }, function (_b2) {
-      _createClass = _b2['default'];
+      _classCallCheck = _2['default'];
+    }, function (_) {
+      _createClass = _['default'];
+    }, function (_3) {
+      _Symbol = _3['default'];
+    }, function (_4) {
+      AudioModule = _4.AudioModule;
+      ctx = _4.ctx;
+    }, function (_e) {
+      _get = _e['default'];
+    }, function (_f) {
+      _inherits = _f['default'];
     }, function (_a) {
-      _classCallCheck = _a['default'];
-    }, function (_d) {
-      _Symbol = _d['default'];
-    }, function (_a2) {
-      moduleExtensions = _a2;
+      audioNodes = _a;
     }],
     execute: function () {
       /**
@@ -4882,23 +5498,23 @@ $__System.register('2e', ['22', '29', '1b', '1c', 'b', 'a', '1d', '2a'], functio
   };
 });
 
-$__System.register('27', ['22', '1b', '1c', 'b', 'a', '1d'], function (_export) {
-    var AudioModule, ctx, _get, _inherits, _createClass, _classCallCheck, _Symbol, mediaElementPlayerPath, mediaElement, canPlay, canPlayFn, canPlayHasFired, loadFile, isPlaying, disableRangeReq, MediaElementPlayer;
+$__System.register('6', ['10', '11', '12', '16', 'e', 'f'], function (_export) {
+    var _classCallCheck, _createClass, _Symbol, AudioModule, ctx, _get, _inherits, mediaElementPlayerPath, mediaElement, canPlay, canPlayFn, canPlayHasFired, loadFile, isPlaying, disableRangeReq, MediaElementPlayer;
 
     return {
-        setters: [function (_) {
-            AudioModule = _.AudioModule;
-            ctx = _.ctx;
-        }, function (_b) {
-            _get = _b['default'];
-        }, function (_c) {
-            _inherits = _c['default'];
-        }, function (_b2) {
-            _createClass = _b2['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
-        }, function (_d) {
-            _Symbol = _d['default'];
+        setters: [function (_2) {
+            _classCallCheck = _2['default'];
+        }, function (_) {
+            _createClass = _['default'];
+        }, function (_3) {
+            _Symbol = _3['default'];
+        }, function (_4) {
+            AudioModule = _4.AudioModule;
+            ctx = _4.ctx;
+        }, function (_e) {
+            _get = _e['default'];
+        }, function (_f) {
+            _inherits = _f['default'];
         }],
         execute: function () {
             /**
@@ -5150,23 +5766,23 @@ $__System.register('27', ['22', '1b', '1c', 'b', 'a', '1d'], function (_export) 
     };
 });
 
-$__System.register('2f', ['22', '29', '1b', '1c', 'a', '2a'], function (_export) {
-  var AudioModule, ctx, audioNodes, _get, _inherits, _classCallCheck, moduleExtensions, Convolution;
+$__System.register('18', ['9', '10', '16', 'e', 'f', 'a'], function (_export) {
+  var moduleExtensions, _classCallCheck, AudioModule, ctx, _get, _inherits, audioNodes, Convolution;
 
   return {
-    setters: [function (_2) {
+    setters: [function (_3) {
+      moduleExtensions = _3;
+    }, function (_) {
+      _classCallCheck = _['default'];
+    }, function (_2) {
       AudioModule = _2.AudioModule;
       ctx = _2.ctx;
-    }, function (_) {
-      audioNodes = _;
-    }, function (_b) {
-      _get = _b['default'];
-    }, function (_c) {
-      _inherits = _c['default'];
+    }, function (_e) {
+      _get = _e['default'];
+    }, function (_f) {
+      _inherits = _f['default'];
     }, function (_a) {
-      _classCallCheck = _a['default'];
-    }, function (_a2) {
-      moduleExtensions = _a2;
+      audioNodes = _a;
     }],
     execute: function () {
       /**
@@ -5213,7 +5829,7 @@ $__System.register('2f', ['22', '29', '1b', '1c', 'a', '2a'], function (_export)
           req.open("GET", path_to_audio, true);
           req.responseType = "arraybuffer";
           req.onload = function () {
-            audioCore.ctx.decodeAudioData(req.response, function (audioBuffer) {
+            ctx.decodeAudioData(req.response, function (audioBuffer) {
               conv.buffer = audioBuffer;
             });
           };
@@ -5240,7 +5856,7 @@ $__System.register('2f', ['22', '29', '1b', '1c', 'a', '2a'], function (_export)
            * @param {number} time - milliseconds over which to linearly envelope wet/dry percentage
            * @default 50
            */
-          audioCore.moduleExtensions.linearCrossfade(this, dryGain, wetGain, 'wetDry');
+          moduleExtensions.linearCrossfade(this, dryGain, wetGain, 'wetDry');
           this.wetDry(50);
         }
 
@@ -5252,29 +5868,29 @@ $__System.register('2f', ['22', '29', '1b', '1c', 'a', '2a'], function (_export)
   };
 });
 
-$__System.register('30', ['9', '22', '24', '1b', '1c', 'b', 'a', '1d', '2a'], function (_export) {
-    var util, AudioModule, ctx, TWEEN, _get, _inherits, _createClass, _classCallCheck, _Symbol, moduleExtensions, params, updateFrequency, updateQ, updateGain, Bandpass;
+$__System.register('7', ['9', '10', '11', '12', '16', '17', '33', 'e', 'f'], function (_export) {
+    var moduleExtensions, _classCallCheck, _createClass, _Symbol, AudioModule, ctx, util, TWEEN, _get, _inherits, params, updateFrequency, updateQ, updateGain, Bandpass;
 
     return {
-        setters: [function (_2) {
-            util = _2;
+        setters: [function (_5) {
+            moduleExtensions = _5;
+        }, function (_2) {
+            _classCallCheck = _2['default'];
         }, function (_) {
-            AudioModule = _.AudioModule;
-            ctx = _.ctx;
+            _createClass = _['default'];
         }, function (_3) {
-            TWEEN = _3['default'];
-        }, function (_b) {
-            _get = _b['default'];
-        }, function (_c) {
-            _inherits = _c['default'];
-        }, function (_b2) {
-            _createClass = _b2['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
-        }, function (_d) {
-            _Symbol = _d['default'];
-        }, function (_a2) {
-            moduleExtensions = _a2;
+            _Symbol = _3['default'];
+        }, function (_4) {
+            AudioModule = _4.AudioModule;
+            ctx = _4.ctx;
+        }, function (_6) {
+            util = _6;
+        }, function (_7) {
+            TWEEN = _7['default'];
+        }, function (_e) {
+            _get = _e['default'];
+        }, function (_f) {
+            _inherits = _f['default'];
         }],
         execute: function () {
             /**
@@ -5476,7 +6092,7 @@ $__System.register('30', ['9', '22', '24', '1b', '1c', 'b', 'a', '1d', '2a'], fu
     };
 });
 
-$__System.register('29', ['22', '23'], function (_export) {
+$__System.register('a', ['16', '32'], function (_export) {
   /**
    * Contains helper functions for getting AudioNodes prewrapped with AuddioModule.link
    * @module audio.nodes
@@ -5596,28 +6212,489 @@ $__System.register('29', ['22', '23'], function (_export) {
   };
 });
 
-$__System.register('31', ['22', '29', '1b', '1c', 'b', 'a', '1d', 'c', 'd'], function (_export) {
-    var AudioModule, Gain, _get, _inherits, _createClass, _classCallCheck, _Symbol, _getIterator, _Object$keys, soloCount, soloEvent, trkDestroy, trkContents, trkEndpoint, trkCommand, trkSoloed, trkMuted, trkLastGain, Track, busTracks, busInput, busOutput, busChain, busTrkCount, busCommand, Bus;
+$__System.registerDynamic("38", ["39"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var cof = req('39');
+  module.exports = Array.isArray || function(arg) {
+    return cof(arg) == 'Array';
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("3a", ["3b"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var $ = req('3b');
+  module.exports = function(it) {
+    var keys = $.getKeys(it),
+        getSymbols = $.getSymbols;
+    if (getSymbols) {
+      var symbols = getSymbols(it),
+          isEnum = $.isEnum,
+          i = 0,
+          key;
+      while (symbols.length > i)
+        if (isEnum.call(it, key = symbols[i++]))
+          keys.push(key);
+    }
+    return keys;
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("3c", ["3d", "3b"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var toString = {}.toString,
+      toIObject = req('3d'),
+      getNames = req('3b').getNames;
+  var windowNames = typeof window == 'object' && Object.getOwnPropertyNames ? Object.getOwnPropertyNames(window) : [];
+  var getWindowNames = function(it) {
+    try {
+      return getNames(it);
+    } catch (e) {
+      return windowNames.slice();
+    }
+  };
+  module.exports.get = function getOwnPropertyNames(it) {
+    if (windowNames && toString.call(it) == '[object Window]')
+      return getWindowNames(it);
+    return getNames(toIObject(it));
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("3e", ["3b", "3d"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var $ = req('3b'),
+      toIObject = req('3d');
+  module.exports = function(object, el) {
+    var O = toIObject(object),
+        keys = $.getKeys(O),
+        length = keys.length,
+        index = 0,
+        key;
+    while (length > index)
+      if (O[key = keys[index++]] === el)
+        return key;
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("3f", ["3b", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "3e", "3c", "3a", "38", "4a", "3d", "4b", "4c"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  'use strict';
+  var $ = req('3b'),
+      global = req('40'),
+      has = req('41'),
+      DESCRIPTORS = req('42'),
+      $def = req('43'),
+      $redef = req('44'),
+      $fails = req('45'),
+      shared = req('46'),
+      setToStringTag = req('47'),
+      uid = req('48'),
+      wks = req('49'),
+      keyOf = req('3e'),
+      $names = req('3c'),
+      enumKeys = req('3a'),
+      isArray = req('38'),
+      anObject = req('4a'),
+      toIObject = req('3d'),
+      createDesc = req('4b'),
+      getDesc = $.getDesc,
+      setDesc = $.setDesc,
+      _create = $.create,
+      getNames = $names.get,
+      $Symbol = global.Symbol,
+      $JSON = global.JSON,
+      _stringify = $JSON && $JSON.stringify,
+      setter = false,
+      HIDDEN = wks('_hidden'),
+      isEnum = $.isEnum,
+      SymbolRegistry = shared('symbol-registry'),
+      AllSymbols = shared('symbols'),
+      useNative = typeof $Symbol == 'function',
+      ObjectProto = Object.prototype;
+  var setSymbolDesc = DESCRIPTORS && $fails(function() {
+    return _create(setDesc({}, 'a', {get: function() {
+        return setDesc(this, 'a', {value: 7}).a;
+      }})).a != 7;
+  }) ? function(it, key, D) {
+    var protoDesc = getDesc(ObjectProto, key);
+    if (protoDesc)
+      delete ObjectProto[key];
+    setDesc(it, key, D);
+    if (protoDesc && it !== ObjectProto)
+      setDesc(ObjectProto, key, protoDesc);
+  } : setDesc;
+  var wrap = function(tag) {
+    var sym = AllSymbols[tag] = _create($Symbol.prototype);
+    sym._k = tag;
+    DESCRIPTORS && setter && setSymbolDesc(ObjectProto, tag, {
+      configurable: true,
+      set: function(value) {
+        if (has(this, HIDDEN) && has(this[HIDDEN], tag))
+          this[HIDDEN][tag] = false;
+        setSymbolDesc(this, tag, createDesc(1, value));
+      }
+    });
+    return sym;
+  };
+  var isSymbol = function(it) {
+    return typeof it == 'symbol';
+  };
+  var $defineProperty = function defineProperty(it, key, D) {
+    if (D && has(AllSymbols, key)) {
+      if (!D.enumerable) {
+        if (!has(it, HIDDEN))
+          setDesc(it, HIDDEN, createDesc(1, {}));
+        it[HIDDEN][key] = true;
+      } else {
+        if (has(it, HIDDEN) && it[HIDDEN][key])
+          it[HIDDEN][key] = false;
+        D = _create(D, {enumerable: createDesc(0, false)});
+      }
+      return setSymbolDesc(it, key, D);
+    }
+    return setDesc(it, key, D);
+  };
+  var $defineProperties = function defineProperties(it, P) {
+    anObject(it);
+    var keys = enumKeys(P = toIObject(P)),
+        i = 0,
+        l = keys.length,
+        key;
+    while (l > i)
+      $defineProperty(it, key = keys[i++], P[key]);
+    return it;
+  };
+  var $create = function create(it, P) {
+    return P === undefined ? _create(it) : $defineProperties(_create(it), P);
+  };
+  var $propertyIsEnumerable = function propertyIsEnumerable(key) {
+    var E = isEnum.call(this, key);
+    return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key] ? E : true;
+  };
+  var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key) {
+    var D = getDesc(it = toIObject(it), key);
+    if (D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key]))
+      D.enumerable = true;
+    return D;
+  };
+  var $getOwnPropertyNames = function getOwnPropertyNames(it) {
+    var names = getNames(toIObject(it)),
+        result = [],
+        i = 0,
+        key;
+    while (names.length > i)
+      if (!has(AllSymbols, key = names[i++]) && key != HIDDEN)
+        result.push(key);
+    return result;
+  };
+  var $getOwnPropertySymbols = function getOwnPropertySymbols(it) {
+    var names = getNames(toIObject(it)),
+        result = [],
+        i = 0,
+        key;
+    while (names.length > i)
+      if (has(AllSymbols, key = names[i++]))
+        result.push(AllSymbols[key]);
+    return result;
+  };
+  var $stringify = function stringify(it) {
+    if (it === undefined || isSymbol(it))
+      return;
+    var args = [it],
+        i = 1,
+        $$ = arguments,
+        replacer,
+        $replacer;
+    while ($$.length > i)
+      args.push($$[i++]);
+    replacer = args[1];
+    if (typeof replacer == 'function')
+      $replacer = replacer;
+    if ($replacer || !isArray(replacer))
+      replacer = function(key, value) {
+        if ($replacer)
+          value = $replacer.call(this, key, value);
+        if (!isSymbol(value))
+          return value;
+      };
+    args[1] = replacer;
+    return _stringify.apply($JSON, args);
+  };
+  var buggyJSON = $fails(function() {
+    var S = $Symbol();
+    return _stringify([S]) != '[null]' || _stringify({a: S}) != '{}' || _stringify(Object(S)) != '{}';
+  });
+  if (!useNative) {
+    $Symbol = function Symbol() {
+      if (isSymbol(this))
+        throw TypeError('Symbol is not a constructor');
+      return wrap(uid(arguments.length > 0 ? arguments[0] : undefined));
+    };
+    $redef($Symbol.prototype, 'toString', function toString() {
+      return this._k;
+    });
+    isSymbol = function(it) {
+      return it instanceof $Symbol;
+    };
+    $.create = $create;
+    $.isEnum = $propertyIsEnumerable;
+    $.getDesc = $getOwnPropertyDescriptor;
+    $.setDesc = $defineProperty;
+    $.setDescs = $defineProperties;
+    $.getNames = $names.get = $getOwnPropertyNames;
+    $.getSymbols = $getOwnPropertySymbols;
+    if (DESCRIPTORS && !req('4c')) {
+      $redef(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
+    }
+  }
+  var symbolStatics = {
+    'for': function(key) {
+      return has(SymbolRegistry, key += '') ? SymbolRegistry[key] : SymbolRegistry[key] = $Symbol(key);
+    },
+    keyFor: function keyFor(key) {
+      return keyOf(SymbolRegistry, key);
+    },
+    useSetter: function() {
+      setter = true;
+    },
+    useSimple: function() {
+      setter = false;
+    }
+  };
+  $.each.call(('hasInstance,isConcatSpreadable,iterator,match,replace,search,' + 'species,split,toPrimitive,toStringTag,unscopables').split(','), function(it) {
+    var sym = wks(it);
+    symbolStatics[it] = useNative ? sym : wrap(sym);
+  });
+  setter = true;
+  $def($def.G + $def.W, {Symbol: $Symbol});
+  $def($def.S, 'Symbol', symbolStatics);
+  $def($def.S + $def.F * !useNative, 'Object', {
+    create: $create,
+    defineProperty: $defineProperty,
+    defineProperties: $defineProperties,
+    getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
+    getOwnPropertyNames: $getOwnPropertyNames,
+    getOwnPropertySymbols: $getOwnPropertySymbols
+  });
+  $JSON && $def($def.S + $def.F * (!useNative || buggyJSON), 'JSON', {stringify: $stringify});
+  setToStringTag($Symbol, 'Symbol');
+  setToStringTag(Math, 'Math', true);
+  setToStringTag(global.JSON, 'JSON', true);
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("4d", ["3f", "4e", "2f"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  req('3f');
+  req('4e');
+  module.exports = req('2f').Symbol;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("4f", ["4d"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = req('4d');
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("12", ["4f"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = {
+    "default": req('4f'),
+    __esModule: true
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("50", ["43", "51"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var $def = req('43');
+  $def($def.S, 'Object', {setPrototypeOf: req('51').set});
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("52", ["50", "2f"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  req('50');
+  module.exports = req('2f').Object.setPrototypeOf;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("53", ["52"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = {
+    "default": req('52'),
+    __esModule: true
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("54", ["3b"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var $ = req('3b');
+  module.exports = function create(P, D) {
+    return $.create(P, D);
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("1b", ["54"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = {
+    "default": req('54'),
+    __esModule: true
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("f", ["1b", "53"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  "use strict";
+  var _Object$create = req('1b')["default"];
+  var _Object$setPrototypeOf = req('53')["default"];
+  exports["default"] = function(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+    subClass.prototype = _Object$create(superClass && superClass.prototype, {constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }});
+    if (superClass)
+      _Object$setPrototypeOf ? _Object$setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  };
+  exports.__esModule = true;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("e", ["31"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  "use strict";
+  var _Object$getOwnPropertyDescriptor = req('31')["default"];
+  exports["default"] = function get(_x, _x2, _x3) {
+    var _again = true;
+    _function: while (_again) {
+      var object = _x,
+          property = _x2,
+          receiver = _x3;
+      _again = false;
+      if (object === null)
+        object = Function.prototype;
+      var desc = _Object$getOwnPropertyDescriptor(object, property);
+      if (desc === undefined) {
+        var parent = Object.getPrototypeOf(object);
+        if (parent === null) {
+          return undefined;
+        } else {
+          _x = parent;
+          _x2 = property;
+          _x3 = receiver;
+          _again = true;
+          desc = parent = undefined;
+          continue _function;
+        }
+      } else if ("value" in desc) {
+        return desc.value;
+      } else {
+        var getter = desc.get;
+        if (getter === undefined) {
+          return undefined;
+        }
+        return getter.call(receiver);
+      }
+    }
+  };
+  exports.__esModule = true;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.register('55', ['10', '11', '12', '16', 'e', 'f', '1d', '1c', 'a'], function (_export) {
+    var _classCallCheck, _createClass, _Symbol, AudioModule, _get, _inherits, _getIterator, _Object$keys, Gain, soloCount, soloEvent, trkDestroy, trkContents, trkEndpoint, trkCommand, trkSoloed, trkMuted, trkLastGain, Track, busTracks, busInput, busOutput, busChain, busTrkCount, busCommand, Bus;
 
     return {
-        setters: [function (_) {
-            AudioModule = _.AudioModule;
-        }, function (_2) {
-            Gain = _2.Gain;
-        }, function (_b) {
-            _get = _b['default'];
-        }, function (_c) {
-            _inherits = _c['default'];
-        }, function (_b2) {
-            _createClass = _b2['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
+        setters: [function (_2) {
+            _classCallCheck = _2['default'];
+        }, function (_) {
+            _createClass = _['default'];
+        }, function (_3) {
+            _Symbol = _3['default'];
+        }, function (_4) {
+            AudioModule = _4.AudioModule;
+        }, function (_e) {
+            _get = _e['default'];
+        }, function (_f) {
+            _inherits = _f['default'];
         }, function (_d) {
-            _Symbol = _d['default'];
-        }, function (_c2) {
-            _getIterator = _c2['default'];
-        }, function (_d2) {
-            _Object$keys = _d2['default'];
+            _getIterator = _d['default'];
+        }, function (_c) {
+            _Object$keys = _c['default'];
+        }, function (_a) {
+            Gain = _a.Gain;
         }],
         execute: function () {
             /**
@@ -6119,7 +7196,7 @@ $__System.register('31', ['22', '29', '1b', '1c', 'b', 'a', '1d', 'c', 'd'], fun
     };
 });
 
-$__System.registerDynamic("32", [], true, function(req, exports, module) {
+$__System.registerDynamic("56", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -7428,12 +8505,12 @@ $__System.registerDynamic("32", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("33", ["34"], true, function(req, exports, module) {
+$__System.registerDynamic("57", ["49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var ITERATOR = req('34')('iterator'),
+  var ITERATOR = req('49')('iterator'),
       SAFE_CLOSING = false;
   try {
     var riter = [7][ITERATOR]();
@@ -7465,16 +8542,16 @@ $__System.registerDynamic("33", ["34"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("35", ["17", "36", "37", "34"], true, function(req, exports, module) {
+$__System.registerDynamic("58", ["2f", "3b", "42", "49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   'use strict';
-  var core = req('17'),
-      $ = req('36'),
-      DESCRIPTORS = req('37'),
-      SPECIES = req('34')('species');
+  var core = req('2f'),
+      $ = req('3b'),
+      DESCRIPTORS = req('42'),
+      SPECIES = req('49')('species');
   module.exports = function(KEY) {
     var C = core[KEY];
     if (DESCRIPTORS && C && !C[SPECIES])
@@ -7489,12 +8566,12 @@ $__System.registerDynamic("35", ["17", "36", "37", "34"], true, function(req, ex
   return module.exports;
 });
 
-$__System.registerDynamic("38", ["39"], true, function(req, exports, module) {
+$__System.registerDynamic("59", ["44"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var $redef = req('39');
+  var $redef = req('44');
   module.exports = function(target, src) {
     for (var key in src)
       $redef(target, key, src[key]);
@@ -7504,7 +8581,7 @@ $__System.registerDynamic("38", ["39"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("3a", [], true, function(req, exports, module) {
+$__System.registerDynamic("5a", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -7596,43 +8673,43 @@ $__System.registerDynamic("3a", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("3b", ["3a"], true, function(req, exports, module) {
+$__System.registerDynamic("5b", ["5a"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  module.exports = req('3a');
+  module.exports = req('5a');
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("3c", ["3b"], true, function(req, exports, module) {
+$__System.registerDynamic("5c", ["5b"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  module.exports = $__System._nodeRequire ? process : req('3b');
+  module.exports = $__System._nodeRequire ? process : req('5b');
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("3d", ["3c"], true, function(req, exports, module) {
+$__System.registerDynamic("5d", ["5c"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  module.exports = req('3c');
+  module.exports = req('5c');
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("3e", ["14", "3f"], true, function(req, exports, module) {
+$__System.registerDynamic("5e", ["2c", "40"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var isObject = req('14'),
-      document = req('3f').document,
+  var isObject = req('2c'),
+      document = req('40').document,
       is = isObject(document) && isObject(document.createElement);
   module.exports = function(it) {
     return is ? document.createElement(it) : {};
@@ -7641,17 +8718,17 @@ $__System.registerDynamic("3e", ["14", "3f"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("40", ["3f"], true, function(req, exports, module) {
+$__System.registerDynamic("5f", ["40"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  module.exports = req('3f').document && document.documentElement;
+  module.exports = req('40').document && document.documentElement;
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("41", [], true, function(req, exports, module) {
+$__System.registerDynamic("60", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -7676,18 +8753,18 @@ $__System.registerDynamic("41", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("42", ["43", "41", "40", "3e", "3f", "44", "3d"], true, function(req, exports, module) {
+$__System.registerDynamic("61", ["62", "60", "5f", "5e", "40", "39", "5d"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   (function(process) {
     'use strict';
-    var ctx = req('43'),
-        invoke = req('41'),
-        html = req('40'),
-        cel = req('3e'),
-        global = req('3f'),
+    var ctx = req('62'),
+        invoke = req('60'),
+        html = req('5f'),
+        cel = req('5e'),
+        global = req('40'),
         process = global.process,
         setTask = global.setImmediate,
         clearTask = global.clearImmediate,
@@ -7724,7 +8801,7 @@ $__System.registerDynamic("42", ["43", "41", "40", "3e", "3f", "44", "3d"], true
       clearTask = function clearImmediate(id) {
         delete queue[id];
       };
-      if (req('44')(process) == 'process') {
+      if (req('39')(process) == 'process') {
         defer = function(id) {
           process.nextTick(ctx(run, id, 1));
         };
@@ -7755,22 +8832,22 @@ $__System.registerDynamic("42", ["43", "41", "40", "3e", "3f", "44", "3d"], true
       set: setTask,
       clear: clearTask
     };
-  })(req('3d'));
+  })(req('5d'));
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("45", ["3f", "42", "44", "3d"], true, function(req, exports, module) {
+$__System.registerDynamic("63", ["40", "61", "39", "5d"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   (function(process) {
-    var global = req('3f'),
-        macrotask = req('42').set,
+    var global = req('40'),
+        macrotask = req('61').set,
         Observer = global.MutationObserver || global.WebKitMutationObserver,
         process = global.process,
-        isNode = req('44')(process) == 'process',
+        isNode = req('39')(process) == 'process',
         head,
         last,
         notify;
@@ -7824,19 +8901,19 @@ $__System.registerDynamic("45", ["3f", "42", "44", "3d"], true, function(req, ex
       }
       last = task;
     };
-  })(req('3d'));
+  })(req('5d'));
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("46", ["47", "48", "34"], true, function(req, exports, module) {
+$__System.registerDynamic("64", ["4a", "65", "49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var anObject = req('47'),
-      aFunction = req('48'),
-      SPECIES = req('34')('species');
+  var anObject = req('4a'),
+      aFunction = req('65'),
+      SPECIES = req('49')('species');
   module.exports = function(O, D) {
     var C = anObject(O).constructor,
         S;
@@ -7846,7 +8923,7 @@ $__System.registerDynamic("46", ["47", "48", "34"], true, function(req, exports,
   return module.exports;
 });
 
-$__System.registerDynamic("49", [], true, function(req, exports, module) {
+$__System.registerDynamic("66", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -7858,12 +8935,49 @@ $__System.registerDynamic("49", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("4a", ["4b"], true, function(req, exports, module) {
+$__System.registerDynamic("51", ["3b", "2c", "4a", "62"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var toInteger = req('4b'),
+  var getDesc = req('3b').getDesc,
+      isObject = req('2c'),
+      anObject = req('4a');
+  var check = function(O, proto) {
+    anObject(O);
+    if (!isObject(proto) && proto !== null)
+      throw TypeError(proto + ": can't set as prototype!");
+  };
+  module.exports = {
+    set: Object.setPrototypeOf || ('__proto__' in {} ? function(test, buggy, set) {
+      try {
+        set = req('62')(Function.call, getDesc(Object.prototype, '__proto__').set, 2);
+        set(test, []);
+        buggy = !(test instanceof Array);
+      } catch (e) {
+        buggy = true;
+      }
+      return function setPrototypeOf(O, proto) {
+        check(O, proto);
+        if (buggy)
+          O.__proto__ = proto;
+        else
+          set(O, proto);
+        return O;
+      };
+    }({}, false) : undefined),
+    check: check
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("67", ["68"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var toInteger = req('68'),
       min = Math.min;
   module.exports = function(it) {
     return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0;
@@ -7872,13 +8986,13 @@ $__System.registerDynamic("4a", ["4b"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("4c", ["4d", "34"], true, function(req, exports, module) {
+$__System.registerDynamic("69", ["6a", "49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var Iterators = req('4d'),
-      ITERATOR = req('34')('iterator'),
+  var Iterators = req('6a'),
+      ITERATOR = req('49')('iterator'),
       ArrayProto = Array.prototype;
   module.exports = function(it) {
     return (Iterators.Array || ArrayProto[ITERATOR]) === it;
@@ -7887,12 +9001,12 @@ $__System.registerDynamic("4c", ["4d", "34"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("4e", ["47"], true, function(req, exports, module) {
+$__System.registerDynamic("6b", ["4a"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var anObject = req('47');
+  var anObject = req('4a');
   module.exports = function(iterator, fn, value, entries) {
     try {
       return entries ? fn(anObject(value)[0], value[1]) : fn(value);
@@ -7907,17 +9021,17 @@ $__System.registerDynamic("4e", ["47"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("4f", ["43", "4e", "4c", "47", "4a", "50"], true, function(req, exports, module) {
+$__System.registerDynamic("6c", ["62", "6b", "69", "4a", "67", "6d"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var ctx = req('43'),
-      call = req('4e'),
-      isArrayIter = req('4c'),
-      anObject = req('47'),
-      toLength = req('4a'),
-      getIterFn = req('50');
+  var ctx = req('62'),
+      call = req('6b'),
+      isArrayIter = req('69'),
+      anObject = req('4a'),
+      toLength = req('67'),
+      getIterFn = req('6d');
   module.exports = function(iterable, entries, fn, that) {
     var iterFn = getIterFn(iterable),
         f = ctx(fn, that, entries ? 2 : 1),
@@ -7940,7 +9054,7 @@ $__System.registerDynamic("4f", ["43", "4e", "4c", "47", "4a", "50"], true, func
   return module.exports;
 });
 
-$__System.registerDynamic("51", [], true, function(req, exports, module) {
+$__System.registerDynamic("6e", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -7954,30 +9068,76 @@ $__System.registerDynamic("51", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("52", ["36", "53", "3f", "43", "54", "55", "14", "47", "48", "51", "4f", "56", "49", "34", "46", "57", "45", "37", "38", "58", "35", "17", "33", "3d"], true, function(req, exports, module) {
+$__System.registerDynamic("65", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = function(it) {
+    if (typeof it != 'function')
+      throw TypeError(it + ' is not a function!');
+    return it;
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("62", ["65"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var aFunction = req('65');
+  module.exports = function(fn, that, length) {
+    aFunction(fn);
+    if (that === undefined)
+      return fn;
+    switch (length) {
+      case 1:
+        return function(a) {
+          return fn.call(that, a);
+        };
+      case 2:
+        return function(a, b) {
+          return fn.call(that, a, b);
+        };
+      case 3:
+        return function(a, b, c) {
+          return fn.call(that, a, b, c);
+        };
+    }
+    return function() {
+      return fn.apply(that, arguments);
+    };
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("6f", ["3b", "4c", "40", "62", "70", "43", "2c", "4a", "65", "6e", "6c", "51", "66", "49", "64", "48", "63", "42", "59", "47", "58", "2f", "57", "5d"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   (function(process) {
     'use strict';
-    var $ = req('36'),
-        LIBRARY = req('53'),
-        global = req('3f'),
-        ctx = req('43'),
-        classof = req('54'),
-        $def = req('55'),
-        isObject = req('14'),
-        anObject = req('47'),
-        aFunction = req('48'),
-        strictNew = req('51'),
-        forOf = req('4f'),
-        setProto = req('56').set,
-        same = req('49'),
-        SPECIES = req('34')('species'),
-        speciesConstructor = req('46'),
-        RECORD = req('57')('record'),
-        asap = req('45'),
+    var $ = req('3b'),
+        LIBRARY = req('4c'),
+        global = req('40'),
+        ctx = req('62'),
+        classof = req('70'),
+        $def = req('43'),
+        isObject = req('2c'),
+        anObject = req('4a'),
+        aFunction = req('65'),
+        strictNew = req('6e'),
+        forOf = req('6c'),
+        setProto = req('51').set,
+        same = req('66'),
+        SPECIES = req('49')('species'),
+        speciesConstructor = req('64'),
+        RECORD = req('48')('record'),
+        asap = req('63'),
         PROMISE = 'Promise',
         process = global.process,
         isNode = classof(process) == 'process',
@@ -8003,7 +9163,7 @@ $__System.registerDynamic("52", ["36", "53", "3f", "43", "54", "55", "14", "47",
         if (!(P2.resolve(5).then(function() {}) instanceof P2)) {
           works = false;
         }
-        if (works && req('37')) {
+        if (works && req('42')) {
           var thenableThenGotten = false;
           P.resolve($.setDesc({}, 'then', {get: function() {
               thenableThenGotten = true;
@@ -8163,7 +9323,7 @@ $__System.registerDynamic("52", ["36", "53", "3f", "43", "54", "55", "14", "47",
           $reject.call(record, err);
         }
       };
-      req('38')(P.prototype, {
+      req('59')(P.prototype, {
         then: function then(onFulfilled, onRejected) {
           var react = {
             ok: typeof onFulfilled == 'function' ? onFulfilled : true,
@@ -8189,9 +9349,9 @@ $__System.registerDynamic("52", ["36", "53", "3f", "43", "54", "55", "14", "47",
       });
     }
     $def($def.G + $def.W + $def.F * !useNative, {Promise: P});
-    req('58')(P, PROMISE);
-    req('35')(PROMISE);
-    Wrapper = req('17')[PROMISE];
+    req('47')(P, PROMISE);
+    req('58')(PROMISE);
+    Wrapper = req('2f')[PROMISE];
     $def($def.S + $def.F * !useNative, PROMISE, {reject: function reject(r) {
         return new this(function(res, rej) {
           rej(r);
@@ -8202,7 +9362,7 @@ $__System.registerDynamic("52", ["36", "53", "3f", "43", "54", "55", "14", "47",
           res(x);
         });
       }});
-    $def($def.S + $def.F * !(useNative && req('33')(function(iter) {
+    $def($def.S + $def.F * !(useNative && req('57')(function(iter) {
       P.all(iter)['catch'](function() {});
     })), PROMISE, {
       all: function all(iterable) {
@@ -8232,40 +9392,50 @@ $__System.registerDynamic("52", ["36", "53", "3f", "43", "54", "55", "14", "47",
         });
       }
     });
-  })(req('3d'));
+  })(req('5d'));
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("59", ["5a", "5b", "5c", "52", "17"], true, function(req, exports, module) {
+$__System.registerDynamic("4e", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  req('5a');
-  req('5b');
-  req('5c');
-  req('52');
-  module.exports = req('17').Promise;
+  "format cjs";
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("2c", ["59"], true, function(req, exports, module) {
+$__System.registerDynamic("71", ["4e", "72", "73", "6f", "2f"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  req('4e');
+  req('72');
+  req('73');
+  req('6f');
+  module.exports = req('2f').Promise;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("36", ["71"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   module.exports = {
-    "default": req('59'),
+    "default": req('71'),
     __esModule: true
   };
   global.define = __define;
   return module.exports;
 });
 
-$__System.register('23', ['22', '32', 'b', 'a', '2c', 'c', 'd'], function (_export) {
-    var AudioModule, TAFFY, _createClass, _classCallCheck, _Promise, _getIterator, _Object$keys, units;
+$__System.register('32', ['10', '11', '16', '36', '56', '1d', '1c'], function (_export) {
+    var _classCallCheck, _createClass, AudioModule, _Promise, TAFFY, _getIterator, _Object$keys, units;
 
     /**
      * @method taffyFactory
@@ -8382,20 +9552,20 @@ $__System.register('23', ['22', '32', 'b', 'a', '2c', 'c', 'd'], function (_expo
      * @class units
      */
     return {
-        setters: [function (_) {
-            AudioModule = _.AudioModule;
-        }, function (_2) {
-            TAFFY = _2['default'];
-        }, function (_b) {
-            _createClass = _b['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
-        }, function (_c) {
-            _Promise = _c['default'];
-        }, function (_c2) {
-            _getIterator = _c2['default'];
+        setters: [function (_2) {
+            _classCallCheck = _2['default'];
+        }, function (_) {
+            _createClass = _['default'];
+        }, function (_4) {
+            AudioModule = _4.AudioModule;
+        }, function (_3) {
+            _Promise = _3['default'];
+        }, function (_5) {
+            TAFFY = _5['default'];
         }, function (_d) {
-            _Object$keys = _d['default'];
+            _getIterator = _d['default'];
+        }, function (_c) {
+            _Object$keys = _c['default'];
         }],
         execute: function () {
             /**
@@ -8463,7 +9633,7 @@ $__System.register('23', ['22', '32', 'b', 'a', '2c', 'c', 'd'], function (_expo
     };
 });
 
-$__System.register('2a', ['22', '23', '24'], function (_export) {
+$__System.register('9', ['16', '32', '33'], function (_export) {
     /**
      * Includes functions, usually called in an AudioModule's constructor,
      * that append commonly required methods onto it.
@@ -8615,8 +9785,8 @@ $__System.register('2a', ['22', '23', '24'], function (_export) {
     };
 });
 
-$__System.register('22', ['b', 'a'], function (_export) {
-    var _createClass, _classCallCheck, ctx, out, AudioModule;
+$__System.register('16', ['10', '11'], function (_export) {
+    var _classCallCheck, _createClass, ctx, out, AudioModule;
 
     /**
      * Initalize the audioContext rudy will use, and the master gain node, rudy/audio.out;
@@ -8648,10 +9818,10 @@ $__System.register('22', ['b', 'a'], function (_export) {
      * @constructor
      */
     return {
-        setters: [function (_b) {
-            _createClass = _b['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
+        setters: [function (_2) {
+            _classCallCheck = _2['default'];
+        }, function (_) {
+            _createClass = _['default'];
         }],
         execute: function () {
             /**
@@ -8798,8 +9968,8 @@ $__System.register('22', ['b', 'a'], function (_export) {
     };
 });
 
-$__System.register("5d", ["b", "a", "5e"], function (_export) {
-    var _createClass, _classCallCheck, renderLoop, Effect;
+$__System.register("74", ["10", "11", "15"], function (_export) {
+    var _classCallCheck, _createClass, renderLoop, Effect;
 
     /**
      * Does what is says on the label.
@@ -8921,12 +10091,12 @@ $__System.register("5d", ["b", "a", "5e"], function (_export) {
      * @constructor
      */
     return {
-        setters: [function (_b) {
-            _createClass = _b["default"];
-        }, function (_a) {
-            _classCallCheck = _a["default"];
-        }, function (_e) {
-            renderLoop = _e;
+        setters: [function (_2) {
+            _classCallCheck = _2["default"];
+        }, function (_) {
+            _createClass = _["default"];
+        }, function (_3) {
+            renderLoop = _3;
         }],
         execute: function () {
             "use strict";
@@ -9036,7 +10206,7 @@ $__System.register("5d", ["b", "a", "5e"], function (_export) {
     };
 });
 
-$__System.registerDynamic("24", [], true, function(req, exports, module) {
+$__System.registerDynamic("33", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -9349,8 +10519,107 @@ $__System.registerDynamic("24", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.register('9', ['24', 'b', 'a', '1e', '5f', 'd', '5e'], function (_export) {
-    var TWEEN, _createClass, _classCallCheck, _Object$getOwnPropertyDescriptor, _Object$defineProperty, _Object$keys, renderLoop, time, easing_keys, interpolation_keys, tween;
+$__System.registerDynamic("75", ["3d", "2d"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var toIObject = req('3d');
+  req('2d')('getOwnPropertyDescriptor', function($getOwnPropertyDescriptor) {
+    return function getOwnPropertyDescriptor(it, key) {
+      return $getOwnPropertyDescriptor(toIObject(it), key);
+    };
+  });
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("76", ["3b", "75"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var $ = req('3b');
+  req('75');
+  module.exports = function getOwnPropertyDescriptor(it, key) {
+    return $.getDesc(it, key);
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("31", ["76"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = {
+    "default": req('76'),
+    __esModule: true
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("77", ["3b"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var $ = req('3b');
+  module.exports = function defineProperty(it, key, desc) {
+    return $.setDesc(it, key, desc);
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("78", ["77"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = {
+    "default": req('77'),
+    __esModule: true
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("11", ["78"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  "use strict";
+  var _Object$defineProperty = req('78')["default"];
+  exports["default"] = (function() {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor)
+          descriptor.writable = true;
+        _Object$defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+    return function(Constructor, protoProps, staticProps) {
+      if (protoProps)
+        defineProperties(Constructor.prototype, protoProps);
+      if (staticProps)
+        defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  })();
+  exports.__esModule = true;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.register('17', ['10', '11', '15', '31', '33', '78', '1c'], function (_export) {
+    var _classCallCheck, _createClass, renderLoop, _Object$getOwnPropertyDescriptor, TWEEN, _Object$defineProperty, _Object$keys, time, easing_keys, interpolation_keys, tween;
 
     /**
      * .call on an object to define a static 'length' prop
@@ -9568,20 +10837,20 @@ $__System.register('9', ['24', 'b', 'a', '1e', '5f', 'd', '5e'], function (_expo
      * @class time
      */
     return {
-        setters: [function (_) {
-            TWEEN = _['default'];
-        }, function (_b) {
-            _createClass = _b['default'];
-        }, function (_a) {
-            _classCallCheck = _a['default'];
-        }, function (_e) {
-            _Object$getOwnPropertyDescriptor = _e['default'];
-        }, function (_f) {
-            _Object$defineProperty = _f['default'];
-        }, function (_d) {
-            _Object$keys = _d['default'];
-        }, function (_e2) {
-            renderLoop = _e2;
+        setters: [function (_2) {
+            _classCallCheck = _2['default'];
+        }, function (_) {
+            _createClass = _['default'];
+        }, function (_6) {
+            renderLoop = _6;
+        }, function (_3) {
+            _Object$getOwnPropertyDescriptor = _3['default'];
+        }, function (_5) {
+            TWEEN = _5['default'];
+        }, function (_4) {
+            _Object$defineProperty = _4['default'];
+        }, function (_c) {
+            _Object$keys = _c['default'];
         }],
         execute: function () {
             /**
@@ -9721,7 +10990,131 @@ $__System.register('9', ['24', 'b', 'a', '1e', '5f', 'd', '5e'], function (_expo
     };
 });
 
-$__System.register("f", ["9", "19", "20", "21", "22", "23", "25", "26", "27", "28", "29", "30", "31", "5e", "5d", "2a", "2f", "2e", "2d", "2b", "1f", "1a"], function (_export) {
+$__System.register('15', [], function (_export) {
+    /**
+     * Contains utilities for managing visual-rate updates.
+     * renderLoop calls createAnimationFrame to start the loop,
+     * and maintains a private queue of functions that is executed
+     * on each frame.
+     * @module renderLoop
+     */
+
+    /**
+     * The function queue.
+     * @property {array} queue
+     * @for renderLoop
+     * @private
+     * @static
+     */
+    'use strict';
+
+    var queue, id, rendering;
+
+    /**
+     * Stops the render loop by calling cancelAnimationFrame
+     * @method stop
+     * @for renderLoop
+     * @static
+     */
+
+    _export('start', start);
+
+    /**
+     * Add a function to the rendering queue.
+     * @method add
+     *@for renderLoop
+     * @static
+     * @param {function} fn - the function to queue
+     */
+
+    _export('stop', stop);
+
+    /**
+     * Remove a function from the rendering queue.
+     * @method remove
+     * @for renderLoop
+     * @static
+     * @param {function} fn - a reference to the function to remove
+     */
+
+    _export('add', add);
+
+    /** 
+     * Check whether or not a function is in the queue, or if the queue has any 
+     * functions in it. If provided a reference to a function, will return its index 
+     * in the queue if it exists, or false if not. If called with no arguments, returns
+     * the length of the queue.
+     * @method has
+     * @for renderLoop
+     * @static
+     * @param {void | function} fn - optional reference to function
+     * @return {number | boolean} - index of function, length of queue, or false.
+     */
+
+    _export('remove', remove);
+
+    _export('has', has);
+
+    /**
+     * Starts the render loop by calling requestAnimationFrame
+     * @method start
+     * @for renderLoop
+     * @static
+     */
+
+    function start() {
+        _export('rendering', rendering = true);
+        queue.forEach(function (fn) {
+            fn();
+        });
+        id = window.requestAnimationFrame(start);
+    }
+
+    function stop() {
+        _export('rendering', rendering = false);
+        window.cancelAnimationFrame(id);
+    }
+
+    function add(fn) {
+        queue.push(fn);
+        if (!rendering) start();
+    }
+
+    function remove(fn) {
+        var idx = queue.indexOf(fn);
+        if (idx !== -1) queue.splice(idx, 1);
+        if (queue.length === 0) stop();
+    }
+
+    function has(fn) {
+        if (typeof fn === 'function') {
+            var idx = queue.indexOf(fn);
+            return idx !== -1 ? idx : false;
+        } else {
+            return queue.length > 0;
+        }
+    }
+
+    return {
+        setters: [],
+        execute: function () {
+            queue = [];
+            id = undefined;
+
+            /**
+             * Indicates whether or not the render loop is running.
+             * @property {boolean} rendering 
+             * @for renderLoop
+             * @static
+             */
+            rendering = false;
+
+            _export('rendering', rendering);
+        }
+    };
+});
+
+$__System.register("25", ["3", "4", "5", "6", "7", "8", "9", "15", "16", "17", "18", "19", "32", "34", "35", "37", "55", "74", "a", "1a", "c", "b"], function (_export) {
     /**
      * Here as a convenience, although generally,
      * importing single modules is preferable.
@@ -9729,52 +11122,52 @@ $__System.register("f", ["9", "19", "20", "21", "22", "23", "25", "26", "27", "2
      */
     "use strict";
 
-    var util, asdr, ParameterizedAction, Clock, audioCore, audioUtil, Instrument, SpritePlayer, MediaElementPlayer, SchroederReverb, nodes, Bandpass, mixer, renderLoop, visualCore, moduleExtensions, Convolution, Noise, Osc, SamplePlayer, Generator, envelopeCore, audio, init, instrument, rhythm;
+    var Instrument, ParameterizedAction, SamplePlayer, MediaElementPlayer, Bandpass, Noise, moduleExtensions, renderLoop, audioCore, util, Convolution, Clock, audioUtil, SpritePlayer, SchroederReverb, Osc, mixer, visualCore, nodes, Generator, envelopeCore, asdr, audio, init, instrument, rhythm;
     return {
-        setters: [function (_) {
-            util = _;
+        setters: [function (_16) {
+            Instrument = _16.Instrument;
+        }, function (_17) {
+            ParameterizedAction = _17.ParameterizedAction;
         }, function (_13) {
-            asdr = _13;
-        }, function (_11) {
-            ParameterizedAction = _11.ParameterizedAction;
-        }, function (_12) {
-            Clock = _12.Clock;
-        }, function (_2) {
-            audioCore = _2;
-        }, function (_5) {
-            audioUtil = _5;
+            SamplePlayer = _13.SamplePlayer;
         }, function (_10) {
-            Instrument = _10.Instrument;
-        }, function (_9) {
-            SpritePlayer = _9.SpritePlayer;
-        }, function (_7) {
-            MediaElementPlayer = _7.MediaElementPlayer;
+            MediaElementPlayer = _10.MediaElementPlayer;
         }, function (_8) {
-            SchroederReverb = _8.SchroederReverb;
+            Bandpass = _8.Bandpass;
+        }, function (_11) {
+            Noise = _11.Noise;
+        }, function (_5) {
+            moduleExtensions = _5;
+        }, function (_) {
+            renderLoop = _;
         }, function (_4) {
-            nodes = _4;
+            audioCore = _4;
+        }, function (_2) {
+            util = _2;
+        }, function (_9) {
+            Convolution = _9.Convolution;
+        }, function (_18) {
+            Clock = _18.Clock;
+        }, function (_7) {
+            audioUtil = _7;
+        }, function (_15) {
+            SpritePlayer = _15.SpritePlayer;
+        }, function (_14) {
+            SchroederReverb = _14.SchroederReverb;
+        }, function (_12) {
+            Osc = _12.Osc;
         }, function (_6) {
-            Bandpass = _6.Bandpass;
+            mixer = _6;
         }, function (_3) {
-            mixer = _3;
-        }, function (_e) {
-            renderLoop = _e;
-        }, function (_d) {
-            visualCore = _d;
+            visualCore = _3;
         }, function (_a) {
-            moduleExtensions = _a;
-        }, function (_f) {
-            Convolution = _f.Convolution;
-        }, function (_e2) {
-            Noise = _e2.Noise;
-        }, function (_d2) {
-            Osc = _d2.Osc;
-        }, function (_b) {
-            SamplePlayer = _b.SamplePlayer;
-        }, function (_f2) {
-            Generator = _f2.Generator;
+            nodes = _a;
         }, function (_a2) {
-            envelopeCore = _a2;
+            Generator = _a2.Generator;
+        }, function (_c) {
+            envelopeCore = _c;
+        }, function (_b) {
+            asdr = _b;
         }],
         execute: function () {
             _export("renderLoop", renderLoop);
@@ -9829,20 +11222,451 @@ $__System.register("f", ["9", "19", "20", "21", "22", "23", "25", "26", "27", "2
     };
 });
 
-(function() {
-var _removeDefine = $__System.get("@@amd-helpers").createDefine();
-define("60", [], function() {
-  return "<svg id=\"loading\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 480\">\n <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->\n <g>\n  <path d=\"m5.77504,97.71085c0,0 -0.21238,0.59723 0,1.10997c0.30036,0.72513 0.99658,2.27054 2.77494,6.10486c1.04429,2.25159 6.79895,8.22893 11.65474,12.20972c7.73743,6.34319 18.91081,11.53794 22.19949,12.76473c16.31963,6.08775 26.69567,11.4669 51.05884,18.86955c11.46306,3.483 33.84477,6.38229 46.06394,6.65985c5.54845,0.12604 10.48146,-1.79634 14.98466,-3.88492c3.83434,-1.77835 14.91391,-8.81285 22.19949,-14.98465c6.58759,-5.58054 7.49716,-8.12646 10.54477,-12.76472c2.45706,-3.73947 4.34467,-7.31006 2.77492,-8.87979c-0.39243,-0.39243 -2.77492,0 -14.98465,0c-4.99487,0 -14.09891,1.89337 -16.64961,3.8849c-4.33047,3.38115 -6.82564,8.22551 -7.76984,9.98977c-3.40437,6.36115 -5.09332,13.21967 -5.54988,26.08441c-0.67038,18.89032 3.19806,28.30994 2.77495,44.39902c-0.27759,10.55568 -4.38696,20.99365 -13.3197,32.18927c-4.16805,5.22386 -16.14017,15.74826 -23.30946,19.97955c-10.48233,6.18658 -25.4575,16.40646 -36.07418,12.76468c-15.22387,-5.22214 -11.58913,-29.02753 6.65984,-38.29413c17.28419,-8.77669 29.16979,-5.21512 41.06907,0c16.59619,7.27365 37.12262,12.68515 46.06395,7.76984c10.12018,-5.56335 21.38835,-16.94397 32.18927,-26.08441c8.13799,-6.88689 11.09975,-7.76984 12.20972,-7.76984c2.21996,0 5.29938,1.53729 6.10487,3.88492c1.83681,5.35342 2.21994,10.54477 2.21994,16.64963c0,3.88492 -2.78296,9.25638 -8.87979,12.20972c-5.21466,2.526 -13.87679,4.92747 -23.30948,-3.88492c-7.44478,-6.95522 -0.26758,-19.71057 12.76471,-31.63428c4.35268,-3.98239 8.39864,-5.95557 12.20972,-2.77495c8.52185,7.11217 8.58424,11.29881 11.65472,15.53966c2.54201,3.51096 13.84366,12.5126 32.18933,6.10486c7.85919,-2.74506 13.89117,-13.32178 13.31967,-17.75958c-0.38174,-2.96423 -17.34029,-7.99332 -24.41946,6.10484c-6.16103,12.26965 12.75174,30.84282 21.64453,23.30949c7.72751,-6.5462 0.03256,-20.18723 -2.77493,-27.19441c-0.46155,-1.15195 -0.83154,-0.58942 -1.10999,2.77495c-0.41196,4.97786 4.38,19.7746 24.97443,26.6394c6.86481,2.28827 14.05795,-3.25928 20.53455,-9.43478c5.237,-4.99356 4.43988,-12.20972 4.43988,-14.42969c0,-6.10486 0.39246,-7.37738 0,-7.76981c-0.39243,-0.39246 -1.1568,-0.08511 -2.21994,0.55499c-4.09006,2.46255 -8.15955,5.53355 -10.54474,10.54472c-1.96689,4.13237 -2.81641,9.16228 0.55496,13.87471c2.77786,3.88284 5.2692,3.76093 7.21484,2.21994c3.39795,-2.69119 7.31442,-15.54364 6.65985,-30.52429c-0.78131,-17.88074 -4.3187,-34.95326 -2.77496,-52.72382c2.40924,-27.73357 0.73657,-36.47363 -1.66495,-33.85423c-4.05679,4.42488 -6.90164,6.04694 -12.76468,17.7596c-13.75348,27.4754 -7.51511,51.18133 1.66495,73.25835c10.21259,24.56021 21.56229,45.65002 27.19437,48.83885c0.96591,0.54692 1.66495,0 2.21994,0c0.55499,0 0.55499,-0.55495 1.11002,-0.55495c0.55499,0 0.62097,-0.67456 1.66495,-3.88492c0.76755,-2.36037 1.40619,-2.27361 2.21994,-5.5499c2.96136,-11.92288 4.65158,-40.01331 8.3248,-62.15857c1.01532,-6.12131 1.10999,-4.9949 1.10999,-3.88492c0,3.88492 -0.39383,10.01642 -1.66495,17.20462c-0.98557,5.5733 -0.83459,10.5545 -1.10999,14.42966c-0.2782,3.91449 -1.67535,8.77228 -2.77493,16.09464c-1.1568,7.70325 -1.22452,11.16776 -0.55499,14.42967c0.84985,4.14032 2.21997,4.99489 3.32993,4.99489c0.55499,0 1.10999,0 1.66495,0c1.66498,0 3.47223,-0.99637 6.10489,-4.4399c4.11453,-5.38182 6.76932,-11.04131 9.98975,-17.20461c4.59769,-8.79918 7.46347,-16.34186 11.09976,-20.53455c4.62827,-5.3364 7.24207,-6.88547 12.76471,-6.10486c5.91858,0.83656 6.72449,2.74493 7.21484,3.88492c2.56674,5.96733 2.66898,9.96461 1.66495,14.42964c-0.62085,2.76097 -2.76953,5.43349 -3.3299,9.43483c-0.61581,4.39697 4.02588,13.57942 11.65472,20.53452c9.56573,8.72092 19.24088,7.28975 28.85934,3.88492c31.11905,-11.01587 61.57883,-17.40758 62.71356,-22.75449c0.11523,-0.54291 -0.32187,-1.54495 1.10999,-3.32993c2.32959,-2.90405 9.00653,-2.45192 9.98975,2.21996c2.80206,13.31404 -6.92838,21.72958 -8.87976,20.53453c-6.31439,-3.8671 -2.99661,-19.87244 2.21994,-19.42456c14.09756,1.21042 12.6749,20.56522 2.77487,36.62918c-18.17694,29.49432 -67.15341,44.39899 -97.12274,37.18414l34.9642,-9.43478l138.19183,0l43.289,-4.99487\"/>\n  <path d=\"m349.75903,144.09641c-0.60242,0 -1.02017,-0.2764 -1.80725,-0.60242c-0.55655,-0.23051 -1.98367,-0.17642 -2.40964,-0.60242c-0.42596,-0.42596 0,-1.2048 0.60242,-1.2048c0.60242,0 1.25067,-0.23051 1.80722,0c0.78708,0.32602 1.38129,0.77884 1.80725,1.2048c0.42596,0.42599 0.42596,1.38126 0,1.80725c-0.42596,0.42598 -0.60242,0.60239 -1.20483,0.60239c-0.60242,0 -1.2048,0 -1.80722,0c-0.60242,0 -1.20483,0 -1.80722,0c-0.60242,0 -0.37189,-0.64824 -0.60242,-1.2048c-0.32602,-0.78708 -0.60242,-1.20483 0,-1.20483c1.2048,0 1.80722,0 2.40964,0c0.60242,0 1.38126,-0.42596 1.80722,0c0.42596,0.42599 0,1.20483 0,1.80725c0,1.2048 0.42596,1.98364 0,2.40962c-0.42596,0.42598 -1.2048,0 -1.80722,0c-0.60242,0 -0.60242,-0.60242 -0.60242,-1.20482c0,-0.60242 0,-1.2048 0,-1.80722c0,-0.60242 0.41772,-0.87881 1.20483,-1.20483c0.55652,-0.23053 1.80722,0 2.40964,0c0.60239,0 1.2048,0 1.2048,0.60242c0,0.60242 -1.70105,1.49774 -3.01205,1.80722c-0.58627,0.13841 -1.2048,0 -1.2048,-0.60239c0,-0.60242 0.77884,-0.77887 1.2048,-1.20483c0.42596,-0.42596 0.60242,-0.60242 1.20483,-0.60242l0.60242,0\"/>\n </g>\n</svg>";
+$__System.register("79", ["10", "14", "17", "24", "25", "27", "29", "1d", "2a", "d"], function (_export) {
+    var _classCallCheck, gMap, util, posts, rudy, markershaders, markerData, _getIterator, markerMapPosition, featureDetection, marker_canvas, projection, z, updateViewport, buffer, clock, be_noise, beColoredNoise, a_hash, a_type, a_model, a_container, a_uv, a_velocity, Texture, textures, u_viewport, u_clock, u_translate, u_beNoise, u_beColoredNoise, vertices, current_anchor, start, delta, zeroPositions, queryMarkerPosition, updateDelta, updateStart, data32Arr, blank, getDataArray, glDataUpdate, markerPositionFailsafe, updateMarkers;
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // update uniforms, interleaved array on each frame
+
+    function draw() {
+        z.gl.clear(z.gl.COLOR_BUFFER_BIT | z.gl.DEPTH_BUFFER_BIT);
+        z.gl.uniform2f(u_viewport, window.innerWidth, window.innerHeight);
+        z.gl.uniform2f(u_translate, delta.x, delta.y);
+        z.gl.uniform1i(u_clock, clock++);
+        z.gl.uniform1i(u_beNoise, be_noise);
+        z.gl.uniform1i(u_beColoredNoise, beColoredNoise);
+        z.gl.drawArrays(z.gl.TRIANGLES, 0, vertices);
+    }
+
+    // only call update data when histories are different
+
+    function tryDataUpdate() {
+        markerData.makeData(false, function (data) {
+            if (data) {
+                glDataUpdate(data);
+            }
+        });
+        draw();
+    }
+
+    function forceDataUpdate() {
+        markerData.makeData(true, function (data) {
+            glDataUpdate(data);
+        });
+        draw();
+    }
+
+    function setVisibility(bool) {
+        marker_canvas.style.visibility = bool ? 'visible' : 'hidden';
+    }
+
+    function beNoise(bool, isColored) {
+        be_noise = bool;
+        beColoredNoise = isColored;
+    }
+
+    /////////// tie data updates to map UI events
+
+    /* do nothing */
+    function markersStart() {
+        rudy.renderLoop.add(draw);
+    }
+
+    return {
+        setters: [function (_) {
+            _classCallCheck = _["default"];
+        }, function (_5) {
+            gMap = _5;
+        }, function (_6) {
+            util = _6;
+        }, function (_4) {
+            posts = _4;
+        }, function (_2) {
+            rudy = _2;
+        }, function (_7) {
+            markershaders = _7["default"];
+        }, function (_3) {
+            markerData = _3;
+        }, function (_d) {
+            _getIterator = _d["default"];
+        }, function (_a) {
+            markerMapPosition = _a;
+        }, function (_d2) {
+            featureDetection = _d2;
+        }],
+        execute: function () {
+            /**
+             * @module markerCore
+             * init marker data, export some useful functionality, attach to map/marker events
+             */
+
+            //////////////////////////////////////////////////////////////// module private and init
+
+            "use strict";
+
+            _export("draw", draw);
+
+            _export("tryDataUpdate", tryDataUpdate);
+
+            _export("forceDataUpdate", forceDataUpdate);
+
+            _export("setVisibility", setVisibility);
+
+            _export("beNoise", beNoise);
+
+            _export("markersStart", markersStart);
+
+            marker_canvas = document.getElementById("markers");
+            projection = null;
+            z = rudy.visualCore.webglSetup(marker_canvas, markershaders, false, true);
+
+            /*
+             * The modernizer webgl test is 'soft', i.e., if the ability to create a context
+             * exists, then it passes. However, this excludes situations where using webgl may 
+             * not be enabled for other reasons, e.g., if it is not enabled in the browser, 
+             * misbehaving drivers, etc. webgl.setup not returning at this point turns out to be 
+             * a good determinant of whether or not using webgl is possible.
+             */
+            if (typeof z === 'undefined') featureDetection.redirect_fatal('webgl');
+
+            updateViewport = function updateViewport() {
+                marker_canvas.width = window.innerWidth;
+                marker_canvas.height = window.innerHeight;
+                z.gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+            };
+
+            window.addEventListener('resize', updateViewport);
+            updateViewport();
+
+            z.gl.blendFunc(z.gl.SRC_ALPHA, z.gl.ONE);
+            z.gl.disable(z.gl.DEPTH_TEST);
+            z.gl.enable(z.gl.BLEND);
+
+            buffer = z.gl.createBuffer();
+            clock = 0;
+            be_noise = 0;
+            beColoredNoise = 0;
+
+            z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
+
+            ///////////// setup attributes that are drawn from our interleaved buffer
+
+            // id associating this block with a particular marker
+            a_hash = z.gl.getAttribLocation(z.program, 'a_hash');
+
+            // what image to use
+            a_type = z.gl.getAttribLocation(z.program, 'a_type');
+
+            // vertex coordinates for each marker relative to 0, 0
+            a_model = z.gl.getAttribLocation(z.program, 'a_model');
+
+            // location of marker relative to container
+            a_container = z.gl.getAttribLocation(z.program, 'a_container');
+
+            // texture coordinates
+            a_uv = z.gl.getAttribLocation(z.program, 'a_uv');
+
+            // angular velocity (used for cloud particles)
+            a_velocity = z.gl.getAttribLocation(z.program, 'a_velocity');
+
+            // setup attribute pointers
+            z.gl.vertexAttribPointer(a_hash, markerData.HASH_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, 0);
+            z.gl.enableVertexAttribArray(a_hash);
+
+            z.gl.vertexAttribPointer(a_type, markerData.TYPE_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.TYPE_OFFSET);
+            z.gl.enableVertexAttribArray(a_type);
+
+            z.gl.vertexAttribPointer(a_model, markerData.MODEL_VER_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.MODEL_VER_OFFSET);
+            z.gl.enableVertexAttribArray(a_model);
+
+            z.gl.vertexAttribPointer(a_container, markerData.LOCATION_VEC_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.LOCATION_VEC_OFFSET);
+            z.gl.enableVertexAttribArray(a_container);
+
+            z.gl.vertexAttribPointer(a_uv, markerData.UV_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.UV_OFFSET);
+            z.gl.enableVertexAttribArray(a_uv);
+
+            z.gl.vertexAttribPointer(a_velocity, markerData.VELOCITY_ITEMS, z.gl.FLOAT, false, markerData.BLOCK_SIZE, markerData.VELOCITY_OFFSET);
+            z.gl.enableVertexAttribArray(a_velocity);
+
+            // buffer image in a canvas element,
+            // bind texture to webgl contect
+
+            Texture = function Texture(name, path, texture_id, index) {
+                var _this = this;
+
+                _classCallCheck(this, Texture);
+
+                this.image = null;
+                this.texture = null;
+
+                var img = new Image();
+                img.src = path;
+                img.onload = function () {
+                    var canv = document.createElement('canvas');
+                    canv.width = img.height;
+                    canv.width = img.width;
+                    canv.height = img.height;
+                    var ctx = canv.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    _this.image = canv;
+
+                    _this.texture = z.gl.createTexture();
+                    z.gl.activeTexture(texture_id);
+                    z.gl.bindTexture(z.gl.TEXTURE_2D, _this.texture);
+                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MIN_FILTER, z.gl.LINEAR);
+                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_S, z.gl.CLAMP_TO_EDGE);
+                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_T, z.gl.CLAMP_TO_EDGE);
+                    z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MAG_FILTER, z.gl.NEAREST);
+                    z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, canv);
+                    z.gl.uniform1i(z.gl.getUniformLocation(z.program, name), index);
+                };
+            };
+
+            textures = {
+                u_stumble: new Texture('u_stumble', 'static/assets/cat.png', z.gl.TEXTURE0, 0),
+                u_video: new Texture('u_video', 'static/assets/colorbars.png', z.gl.TEXTURE1, 1),
+                u_random: new Texture('u_random', 'static/assets/warning.png', z.gl.TEXTURE2, 2),
+                u_cloud: new Texture('u_cloud', 'static/assets/cloud.png', z.gl.TEXTURE3, 3)
+            };
+
+            // dimensions of the window
+            u_viewport = z.gl.getUniformLocation(z.program, 'u_viewport');
+
+            // counter we increment on each frame
+            u_clock = z.gl.getUniformLocation(z.program, 'u_clock');
+
+            // delta x, y of the markers
+            u_translate = z.gl.getUniformLocation(z.program, 'u_translate');
+
+            // 1 or 0 depending on if we want to markers to be shaded with white noise
+            u_beNoise = z.gl.getUniformLocation(z.program, 'u_beNoise');
+
+            // 1 or 0 depending on if we want the markers to be shaded with colored noise
+            u_beColoredNoise = z.gl.getUniformLocation(z.program, 'u_beColoredNoise');
+
+            // total number of living vertices
+            vertices = 0;
+
+            // a ref to the current marker that we are using
+            // to track the current delta <x, y> of all
+            // markers on screen
+            current_anchor = null;
+            start = { x: 0, y: 0 };
+            delta = { x: 0, y: 0 };
+
+            zeroPositions = function zeroPositions() {
+                start.x = start.y = 0;
+                delta.x = delta.y = 0;
+            };
+
+            queryMarkerPosition = function queryMarkerPosition() {
+                if (!current_anchor) {
+                    var markers = markerMapPosition.markers,
+                        keys = markerMapPosition.livingKeys;
+
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = _getIterator(keys), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var key = _step.value;
+
+                            markers[key].update();
+                            if (markers[key].is_alive) {
+                                current_anchor = markers[key];
+                                break;
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator["return"]) {
+                                _iterator["return"]();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+
+                    if (current_anchor) {
+                        return queryMarkerPosition();
+                    } else {
+                        return false;
+                    }
+                } else {
+                    current_anchor.update();
+                    if (current_anchor.is_alive) {
+                        return current_anchor.getDrawingData();
+                    } else {
+                        current_anchor = null;
+                        return queryMarkerPosition();
+                    }
+                }
+            };
+
+            updateDelta = function updateDelta() {
+                var pos = queryMarkerPosition();
+                if (pos) {
+                    delta.x = pos.x - start.x;
+                    delta.y = pos.y - start.y;
+                }
+            };
+
+            updateStart = function updateStart() {
+                var pos = queryMarkerPosition();
+                if (pos) {
+                    start.x = pos.x;
+                    start.y = pos.y;
+                }
+            };
+
+            //// gl data updating
+
+            // transfer data from a normal js list
+            // into a typed array
+            data32Arr = undefined;
+            blank = new Float32Array([0]);
+
+            getDataArray = function getDataArray(data) {
+                if (!data32Arr || data.length > data32Arr.length) {
+                    data32Arr = new Float32Array(data);
+                    return data32Arr;
+                } else if (data.length > 0 && data.length <= data32Arr.length) {
+                    data32Arr.set(data);
+                    return data32Arr.subarray(0, data.length);
+                } else {
+                    return blank;
+                }
+            };
+
+            glDataUpdate = function glDataUpdate(data) {
+                zeroPositions();
+                updateStart();
+                vertices = data.length / markerData.BLOCK_ITEMS;
+                z.gl.bindBuffer(z.gl.ARRAY_BUFFER, buffer);
+                z.gl.bufferData(z.gl.ARRAY_BUFFER, getDataArray(data), z.gl.DYNAMIC_DRAW);
+            };
+
+            // basically force the markers to reload if something goes awry
+
+            markerPositionFailsafe = function markerPositionFailsafe() {
+                var pos = queryMarkerPosition();
+                if (pos) {
+                    var mark_x = delta.x + start.x,
+                        mark_y = delta.y + start.y;
+
+                    var err = 1.75;
+                    if (pos.x > mark_x + err || pos.x < mark_x - err || pos.y > mark_y + err || pos.y < mark_y - err) {
+                        forceDataUpdate();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            };
+
+            updateMarkers = function updateMarkers() {
+                posts.get(gMap.map.getBounds(), function (data) {
+                    data.forEach(function (post) {
+                        if (!markerMapPosition.markerExists(post.lat, post.long)) {
+                            var loc = new google.maps.LatLng(post.lat, post.long);
+                            var m = new google.maps.Marker({
+                                position: loc,
+                                map: gMap.map,
+                                icon: "static/assets/blank.png"
+                            });
+                            m.markerType = post.markerType;
+                            markerMapPosition.push(m);
+                            gMap.events.initQueuedEvents('marker', m);
+                            google.maps.event.addListener(m, 'click', function () {
+                                posts.display(post);
+                            });
+                        }
+                    });
+                });
+                tryDataUpdate();
+            };
+
+            window.forceData = forceDataUpdate;
+            gMap.events.queue('map', 'dragstart', function () {
+                rudy.renderLoop.add(updateDelta);
+                rudy.renderLoop.add(tryDataUpdate);
+            });
+
+            gMap.events.queue('map', 'dragend', function () {
+                for (var i = 100; i <= 400; i += 100) {
+                    window.setTimeout(markerPositionFailsafe, i);
+                }
+
+                for (var j = 500; i <= 2000; i += 100) {
+                    window.setTimeout(function () {
+                        if (markerPositionFailsafe()) {
+                            beNoise(true, true);
+                            window.setTimeout(beNoise, util.smudgeNumber(30, 20));
+                        }
+                    }, i);
+                }
+
+                window.setTimeout(function () {
+                    rudy.renderLoop.remove(updateDelta);
+                    rudy.renderLoop.remove(tryDataUpdate);
+                }, 500);
+
+                window.setTimeout(updateMarkers, 200);
+            });
+
+            // turn to white noise when a post is displayed
+            document.addEventListener('post_overlay', function (e) {
+                beNoise(e.detail.visible);
+            });
+
+            gMap.events.queue('map', 'tilesloaded', updateMarkers);
+            gMap.events.queue('map', 'zoom_changed', function () {
+                // apparently there's a period of time between when the map seems 'ready'
+                // and actually being able to get projections, and the tableux select
+                // can fire during this time, so swallow that error.
+                forceDataUpdate();
+                try {
+                    updateMarkers();
+                } catch (e) {}
+            });
+        }
+    };
 });
 
-_removeDefine();
-})();
-$__System.registerDynamic("61", ["62"], true, function(req, exports, module) {
+$__System.registerDynamic("2d", ["43", "2f", "45"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var defined = req('62');
+  var $def = req('43'),
+      core = req('2f'),
+      fails = req('45');
+  module.exports = function(KEY, exec) {
+    var $def = req('43'),
+        fn = (core.Object || {})[KEY] || Object[KEY],
+        exp = {};
+    exp[KEY] = exec(fn);
+    $def($def.S + $def.F * fails(function() {
+      fn(1);
+    }), 'Object', exp);
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("7a", ["7b"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var defined = req('7b');
   module.exports = function(it) {
     return Object(defined(it));
   };
@@ -9850,13 +11674,13 @@ $__System.registerDynamic("61", ["62"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("63", ["61", "15"], true, function(req, exports, module) {
+$__System.registerDynamic("7c", ["7a", "2d"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var toObject = req('61');
-  req('15')('keys', function($keys) {
+  var toObject = req('7a');
+  req('2d')('keys', function($keys) {
     return function keys(it) {
       return $keys(toObject(it));
     };
@@ -9865,31 +11689,721 @@ $__System.registerDynamic("63", ["61", "15"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("64", ["63", "17"], true, function(req, exports, module) {
+$__System.registerDynamic("7d", ["7c", "2f"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  req('63');
-  module.exports = req('17').Object.keys;
+  req('7c');
+  module.exports = req('2f').Object.keys;
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("d", ["64"], true, function(req, exports, module) {
+$__System.registerDynamic("1c", ["7d"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   module.exports = {
-    "default": req('64'),
+    "default": req('7d'),
     __esModule: true
   };
   global.define = __define;
   return module.exports;
 });
 
-$__System.register("8", ["5", "a", "c", "d"], function (_export) {
+$__System.registerDynamic("70", ["39", "49"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var cof = req('39'),
+      TAG = req('49')('toStringTag'),
+      ARG = cof(function() {
+        return arguments;
+      }()) == 'Arguments';
+  module.exports = function(it) {
+    var O,
+        T,
+        B;
+    return it === undefined ? 'Undefined' : it === null ? 'Null' : typeof(T = (O = Object(it))[TAG]) == 'string' ? T : ARG ? cof(O) : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("6d", ["70", "49", "6a", "2f"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var classof = req('70'),
+      ITERATOR = req('49')('iterator'),
+      Iterators = req('6a');
+  module.exports = req('2f').getIteratorMethod = function(it) {
+    if (it != undefined)
+      return it[ITERATOR] || it['@@iterator'] || Iterators[classof(it)];
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("2c", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = function(it) {
+    return typeof it === 'object' ? it !== null : typeof it === 'function';
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("4a", ["2c"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var isObject = req('2c');
+  module.exports = function(it) {
+    if (!isObject(it))
+      throw TypeError(it + ' is not an object!');
+    return it;
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("7e", ["4a", "6d", "2f"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var anObject = req('4a'),
+      get = req('6d');
+  module.exports = req('2f').getIterator = function(it) {
+    var iterFn = get(it);
+    if (typeof iterFn != 'function')
+      throw TypeError(it + ' is not iterable!');
+    return anObject(iterFn.call(it));
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("68", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var ceil = Math.ceil,
+      floor = Math.floor;
+  module.exports = function(it) {
+    return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("7f", ["68", "7b"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var toInteger = req('68'),
+      defined = req('7b');
+  module.exports = function(TO_STRING) {
+    return function(that, pos) {
+      var s = String(defined(that)),
+          i = toInteger(pos),
+          l = s.length,
+          a,
+          b;
+      if (i < 0 || i >= l)
+        return TO_STRING ? '' : undefined;
+      a = s.charCodeAt(i);
+      return a < 0xd800 || a > 0xdbff || i + 1 === l || (b = s.charCodeAt(i + 1)) < 0xdc00 || b > 0xdfff ? TO_STRING ? s.charAt(i) : a : TO_STRING ? s.slice(i, i + 2) : (a - 0xd800 << 10) + (b - 0xdc00) + 0x10000;
+    };
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("72", ["7f", "80"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  'use strict';
+  var $at = req('7f')(true);
+  req('80')(String, 'String', function(iterated) {
+    this._t = String(iterated);
+    this._i = 0;
+  }, function() {
+    var O = this._t,
+        index = this._i,
+        point;
+    if (index >= O.length)
+      return {
+        value: undefined,
+        done: true
+      };
+    point = $at(O, index);
+    this._i += point.length;
+    return {
+      value: point,
+      done: false
+    };
+  });
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("47", ["3b", "41", "49"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var def = req('3b').setDesc,
+      has = req('41'),
+      TAG = req('49')('toStringTag');
+  module.exports = function(it, tag, stat) {
+    if (it && !has(it = stat ? it : it.prototype, TAG))
+      def(it, TAG, {
+        configurable: true,
+        value: tag
+      });
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("81", ["3b", "4b", "47", "82", "49"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  'use strict';
+  var $ = req('3b'),
+      descriptor = req('4b'),
+      setToStringTag = req('47'),
+      IteratorPrototype = {};
+  req('82')(IteratorPrototype, req('49')('iterator'), function() {
+    return this;
+  });
+  module.exports = function(Constructor, NAME, next) {
+    Constructor.prototype = $.create(IteratorPrototype, {next: descriptor(1, next)});
+    setToStringTag(Constructor, NAME + ' Iterator');
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("48", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var id = 0,
+      px = Math.random();
+  module.exports = function(key) {
+    return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("46", ["40"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var global = req('40'),
+      SHARED = '__core-js_shared__',
+      store = global[SHARED] || (global[SHARED] = {});
+  module.exports = function(key) {
+    return store[key] || (store[key] = {});
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("49", ["46", "48", "40"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var store = req('46')('wks'),
+      uid = req('48'),
+      Symbol = req('40').Symbol;
+  module.exports = function(name) {
+    return store[name] || (store[name] = Symbol && Symbol[name] || (Symbol || uid)('Symbol.' + name));
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("41", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var hasOwnProperty = {}.hasOwnProperty;
+  module.exports = function(it, key) {
+    return hasOwnProperty.call(it, key);
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("45", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = function(exec) {
+    try {
+      return !!exec();
+    } catch (e) {
+      return true;
+    }
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("42", ["45"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = !req('45')(function() {
+    return Object.defineProperty({}, 'a', {get: function() {
+        return 7;
+      }}).a != 7;
+  });
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("4b", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = function(bitmap, value) {
+    return {
+      enumerable: !(bitmap & 1),
+      configurable: !(bitmap & 2),
+      writable: !(bitmap & 4),
+      value: value
+    };
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("3b", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var $Object = Object;
+  module.exports = {
+    create: $Object.create,
+    getProto: $Object.getPrototypeOf,
+    isEnum: {}.propertyIsEnumerable,
+    getDesc: $Object.getOwnPropertyDescriptor,
+    setDesc: $Object.defineProperty,
+    setDescs: $Object.defineProperties,
+    getKeys: $Object.keys,
+    getNames: $Object.getOwnPropertyNames,
+    getSymbols: $Object.getOwnPropertySymbols,
+    each: [].forEach
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("82", ["3b", "4b", "42"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var $ = req('3b'),
+      createDesc = req('4b');
+  module.exports = req('42') ? function(object, key, value) {
+    return $.setDesc(object, key, createDesc(1, value));
+  } : function(object, key, value) {
+    object[key] = value;
+    return object;
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("44", ["82"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = req('82');
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("2f", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var core = module.exports = {version: '1.2.5'};
+  if (typeof __e == 'number')
+    __e = core;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("40", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var global = module.exports = typeof window != 'undefined' && window.Math == Math ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
+  if (typeof __g == 'number')
+    __g = global;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("43", ["40", "2f"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var global = req('40'),
+      core = req('2f'),
+      PROTOTYPE = 'prototype';
+  var ctx = function(fn, that) {
+    return function() {
+      return fn.apply(that, arguments);
+    };
+  };
+  var $def = function(type, name, source) {
+    var key,
+        own,
+        out,
+        exp,
+        isGlobal = type & $def.G,
+        isProto = type & $def.P,
+        target = isGlobal ? global : type & $def.S ? global[name] : (global[name] || {})[PROTOTYPE],
+        exports = isGlobal ? core : core[name] || (core[name] = {});
+    if (isGlobal)
+      source = name;
+    for (key in source) {
+      own = !(type & $def.F) && target && key in target;
+      if (own && key in exports)
+        continue;
+      out = own ? target[key] : source[key];
+      if (isGlobal && typeof target[key] != 'function')
+        exp = source[key];
+      else if (type & $def.B && own)
+        exp = ctx(out, global);
+      else if (type & $def.W && target[key] == out)
+        !function(C) {
+          exp = function(param) {
+            return this instanceof C ? new C(param) : C(param);
+          };
+          exp[PROTOTYPE] = C[PROTOTYPE];
+        }(out);
+      else
+        exp = isProto && typeof out == 'function' ? ctx(Function.call, out) : out;
+      exports[key] = exp;
+      if (isProto)
+        (exports[PROTOTYPE] || (exports[PROTOTYPE] = {}))[key] = out;
+    }
+  };
+  $def.F = 1;
+  $def.G = 2;
+  $def.S = 4;
+  $def.P = 8;
+  $def.B = 16;
+  $def.W = 32;
+  module.exports = $def;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("4c", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = true;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("80", ["4c", "43", "44", "82", "41", "49", "6a", "81", "47", "3b"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  'use strict';
+  var LIBRARY = req('4c'),
+      $def = req('43'),
+      $redef = req('44'),
+      hide = req('82'),
+      has = req('41'),
+      SYMBOL_ITERATOR = req('49')('iterator'),
+      Iterators = req('6a'),
+      $iterCreate = req('81'),
+      setToStringTag = req('47'),
+      getProto = req('3b').getProto,
+      BUGGY = !([].keys && 'next' in [].keys()),
+      FF_ITERATOR = '@@iterator',
+      KEYS = 'keys',
+      VALUES = 'values';
+  var returnThis = function() {
+    return this;
+  };
+  module.exports = function(Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE) {
+    $iterCreate(Constructor, NAME, next);
+    var getMethod = function(kind) {
+      if (!BUGGY && kind in proto)
+        return proto[kind];
+      switch (kind) {
+        case KEYS:
+          return function keys() {
+            return new Constructor(this, kind);
+          };
+        case VALUES:
+          return function values() {
+            return new Constructor(this, kind);
+          };
+      }
+      return function entries() {
+        return new Constructor(this, kind);
+      };
+    };
+    var TAG = NAME + ' Iterator',
+        proto = Base.prototype,
+        _native = proto[SYMBOL_ITERATOR] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT],
+        _default = _native || getMethod(DEFAULT),
+        methods,
+        key;
+    if (_native) {
+      var IteratorPrototype = getProto(_default.call(new Base));
+      setToStringTag(IteratorPrototype, TAG, true);
+      if (!LIBRARY && has(proto, FF_ITERATOR))
+        hide(IteratorPrototype, SYMBOL_ITERATOR, returnThis);
+    }
+    if ((!LIBRARY || FORCE) && (BUGGY || !(SYMBOL_ITERATOR in proto))) {
+      hide(proto, SYMBOL_ITERATOR, _default);
+    }
+    Iterators[NAME] = _default;
+    Iterators[TAG] = returnThis;
+    if (DEFAULT) {
+      methods = {
+        values: DEFAULT == VALUES ? _default : getMethod(VALUES),
+        keys: IS_SET ? _default : getMethod(KEYS),
+        entries: DEFAULT != VALUES ? _default : getMethod('entries')
+      };
+      if (FORCE)
+        for (key in methods) {
+          if (!(key in proto))
+            $redef(proto, key, methods[key]);
+        }
+      else
+        $def($def.P + $def.F * BUGGY, NAME, methods);
+    }
+    return methods;
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("7b", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = function(it) {
+    if (it == undefined)
+      throw TypeError("Can't call method on  " + it);
+    return it;
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("39", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var toString = {}.toString;
+  module.exports = function(it) {
+    return toString.call(it).slice(8, -1);
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("83", ["39"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var cof = req('39');
+  module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it) {
+    return cof(it) == 'String' ? it.split('') : Object(it);
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("3d", ["83", "7b"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var IObject = req('83'),
+      defined = req('7b');
+  module.exports = function(it) {
+    return IObject(defined(it));
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("6a", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = {};
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("84", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = function(done, value) {
+    return {
+      value: value,
+      done: !!done
+    };
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("85", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = function() {};
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("86", ["85", "84", "6a", "3d", "80"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  'use strict';
+  var addToUnscopables = req('85'),
+      step = req('84'),
+      Iterators = req('6a'),
+      toIObject = req('3d');
+  module.exports = req('80')(Array, 'Array', function(iterated, kind) {
+    this._t = toIObject(iterated);
+    this._i = 0;
+    this._k = kind;
+  }, function() {
+    var O = this._t,
+        kind = this._k,
+        index = this._i++;
+    if (!O || index >= O.length) {
+      this._t = undefined;
+      return step(1);
+    }
+    if (kind == 'keys')
+      return step(0, index);
+    if (kind == 'values')
+      return step(0, O[index]);
+    return step(0, [index, O[index]]);
+  }, 'values');
+  Iterators.Arguments = Iterators.Array;
+  addToUnscopables('keys');
+  addToUnscopables('values');
+  addToUnscopables('entries');
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("73", ["86", "6a"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  req('86');
+  var Iterators = req('6a');
+  Iterators.NodeList = Iterators.HTMLCollection = Iterators.Array;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("87", ["73", "72", "7e"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  req('73');
+  req('72');
+  module.exports = req('7e');
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("1d", ["87"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = {
+    "default": req('87'),
+    __esModule: true
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("10", [], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  "use strict";
+  exports["default"] = function(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  };
+  exports.__esModule = true;
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.register("14", ["10", "23", "1d", "1c"], function (_export) {
     var _classCallCheck, _getIterator, _Object$keys, events_added, event_locales, registeredEventCallback, addSingleEvent, map, overlay, events, zoom_plus, zoom_minus, randHex, plus_last, minus_last;
 
     function init() {
@@ -9937,12 +12451,12 @@ $__System.register("8", ["5", "a", "c", "d"], function (_export) {
     }
 
     return {
-        setters: [function (_) {}, function (_a) {
-            _classCallCheck = _a["default"];
+        setters: [function (_) {
+            _classCallCheck = _["default"];
+        }, function (_2) {}, function (_d) {
+            _getIterator = _d["default"];
         }, function (_c) {
-            _getIterator = _c["default"];
-        }, function (_d) {
-            _Object$keys = _d["default"];
+            _Object$keys = _c["default"];
         }],
         execute: function () {
             /**
@@ -10197,809 +12711,97 @@ $__System.register("8", ["5", "a", "c", "d"], function (_export) {
     };
 });
 
-$__System.register("65", ["5"], function (_export) {
-  /**
-   * @module div
-   */
-  "use strict";
-
-  var $overlay, $map, selectors;
-  return {
-    setters: [function (_) {}],
-    execute: function () {
-      $overlay = $('#overlay');
-
-      _export("$overlay", $overlay);
-
-      $map = $("#map-canvas");
-
-      _export("$map", $map);
-
-      // useful css selectors
-      selectors = {
-        $_map_imgs: "#map-canvas :nth-child(1) :nth-child(1)" + ":nth-child(1) :nth-child(5) :nth-child(1) > div"
-      };
-
-      _export("selectors", selectors);
-    }
-  };
-});
-
-$__System.registerDynamic("54", ["44", "34"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var cof = req('44'),
-      TAG = req('34')('toStringTag'),
-      ARG = cof(function() {
-        return arguments;
-      }()) == 'Arguments';
-  module.exports = function(it) {
-    var O,
-        T,
-        B;
-    return it === undefined ? 'Undefined' : it === null ? 'Null' : typeof(T = (O = Object(it))[TAG]) == 'string' ? T : ARG ? cof(O) : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("50", ["54", "34", "4d", "17"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var classof = req('54'),
-      ITERATOR = req('34')('iterator'),
-      Iterators = req('4d');
-  module.exports = req('17').getIteratorMethod = function(it) {
-    if (it != undefined)
-      return it[ITERATOR] || it['@@iterator'] || Iterators[classof(it)];
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("66", ["47", "50", "17"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var anObject = req('47'),
-      get = req('50');
-  module.exports = req('17').getIterator = function(it) {
-    var iterFn = get(it);
-    if (typeof iterFn != 'function')
-      throw TypeError(it + ' is not iterable!');
-    return anObject(iterFn.call(it));
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("4b", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var ceil = Math.ceil,
-      floor = Math.floor;
-  module.exports = function(it) {
-    return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("67", ["4b", "62"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var toInteger = req('4b'),
-      defined = req('62');
-  module.exports = function(TO_STRING) {
-    return function(that, pos) {
-      var s = String(defined(that)),
-          i = toInteger(pos),
-          l = s.length,
-          a,
-          b;
-      if (i < 0 || i >= l)
-        return TO_STRING ? '' : undefined;
-      a = s.charCodeAt(i);
-      return a < 0xd800 || a > 0xdbff || i + 1 === l || (b = s.charCodeAt(i + 1)) < 0xdc00 || b > 0xdfff ? TO_STRING ? s.charAt(i) : a : TO_STRING ? s.slice(i, i + 2) : (a - 0xd800 << 10) + (b - 0xdc00) + 0x10000;
-    };
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("5b", ["67", "68"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  'use strict';
-  var $at = req('67')(true);
-  req('68')(String, 'String', function(iterated) {
-    this._t = String(iterated);
-    this._i = 0;
-  }, function() {
-    var O = this._t,
-        index = this._i,
-        point;
-    if (index >= O.length)
-      return {
-        value: undefined,
-        done: true
-      };
-    point = $at(O, index);
-    this._i += point.length;
-    return {
-      value: point,
-      done: false
-    };
-  });
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("69", ["36", "6a", "58", "6b", "34"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  'use strict';
-  var $ = req('36'),
-      descriptor = req('6a'),
-      setToStringTag = req('58'),
-      IteratorPrototype = {};
-  req('6b')(IteratorPrototype, req('34')('iterator'), function() {
-    return this;
-  });
-  module.exports = function(Constructor, NAME, next) {
-    Constructor.prototype = $.create(IteratorPrototype, {next: descriptor(1, next)});
-    setToStringTag(Constructor, NAME + ' Iterator');
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("68", ["53", "55", "39", "6b", "6c", "34", "4d", "69", "58", "36"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  'use strict';
-  var LIBRARY = req('53'),
-      $def = req('55'),
-      $redef = req('39'),
-      hide = req('6b'),
-      has = req('6c'),
-      SYMBOL_ITERATOR = req('34')('iterator'),
-      Iterators = req('4d'),
-      $iterCreate = req('69'),
-      setToStringTag = req('58'),
-      getProto = req('36').getProto,
-      BUGGY = !([].keys && 'next' in [].keys()),
-      FF_ITERATOR = '@@iterator',
-      KEYS = 'keys',
-      VALUES = 'values';
-  var returnThis = function() {
-    return this;
-  };
-  module.exports = function(Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE) {
-    $iterCreate(Constructor, NAME, next);
-    var getMethod = function(kind) {
-      if (!BUGGY && kind in proto)
-        return proto[kind];
-      switch (kind) {
-        case KEYS:
-          return function keys() {
-            return new Constructor(this, kind);
-          };
-        case VALUES:
-          return function values() {
-            return new Constructor(this, kind);
-          };
+$__System.registerDynamic("88", [], false, function(__require, __exports, __module) {
+  var _retrieveGlobal = $__System.get("@@global-helpers").prepareGlobal(__module.id, null, null);
+  (function() {
+    ;
+    window.Modernizr = function(a, b, c) {
+      function t(a) {
+        i.cssText = a;
       }
-      return function entries() {
-        return new Constructor(this, kind);
-      };
-    };
-    var TAG = NAME + ' Iterator',
-        proto = Base.prototype,
-        _native = proto[SYMBOL_ITERATOR] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT],
-        _default = _native || getMethod(DEFAULT),
-        methods,
-        key;
-    if (_native) {
-      var IteratorPrototype = getProto(_default.call(new Base));
-      setToStringTag(IteratorPrototype, TAG, true);
-      if (!LIBRARY && has(proto, FF_ITERATOR))
-        hide(IteratorPrototype, SYMBOL_ITERATOR, returnThis);
-    }
-    if ((!LIBRARY || FORCE) && (BUGGY || !(SYMBOL_ITERATOR in proto))) {
-      hide(proto, SYMBOL_ITERATOR, _default);
-    }
-    Iterators[NAME] = _default;
-    Iterators[TAG] = returnThis;
-    if (DEFAULT) {
-      methods = {
-        values: DEFAULT == VALUES ? _default : getMethod(VALUES),
-        keys: IS_SET ? _default : getMethod(KEYS),
-        entries: DEFAULT != VALUES ? _default : getMethod('entries')
-      };
-      if (FORCE)
-        for (key in methods) {
-          if (!(key in proto))
-            $redef(proto, key, methods[key]);
+      function u(a, b) {
+        return t(prefixes.join(a + ";") + (b || ""));
+      }
+      function v(a, b) {
+        return typeof a === b;
+      }
+      function w(a, b) {
+        return !!~("" + a).indexOf(b);
+      }
+      function x(a, b, d) {
+        for (var e in a) {
+          var f = b[a[e]];
+          if (f !== c)
+            return d === !1 ? a[e] : v(f, "function") ? f.bind(d || b) : f;
         }
-      else
-        $def($def.P + $def.F * BUGGY, NAME, methods);
-    }
-    return methods;
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("4d", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = {};
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("6d", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = function(done, value) {
-    return {
-      value: value,
-      done: !!done
-    };
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("6e", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = function() {};
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("6f", ["6e", "6d", "4d", "70", "68"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  'use strict';
-  var addToUnscopables = req('6e'),
-      step = req('6d'),
-      Iterators = req('4d'),
-      toIObject = req('70');
-  module.exports = req('68')(Array, 'Array', function(iterated, kind) {
-    this._t = toIObject(iterated);
-    this._i = 0;
-    this._k = kind;
-  }, function() {
-    var O = this._t,
-        kind = this._k,
-        index = this._i++;
-    if (!O || index >= O.length) {
-      this._t = undefined;
-      return step(1);
-    }
-    if (kind == 'keys')
-      return step(0, index);
-    if (kind == 'values')
-      return step(0, O[index]);
-    return step(0, [index, O[index]]);
-  }, 'values');
-  Iterators.Arguments = Iterators.Array;
-  addToUnscopables('keys');
-  addToUnscopables('values');
-  addToUnscopables('entries');
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("5c", ["6f", "4d"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  req('6f');
-  var Iterators = req('4d');
-  Iterators.NodeList = Iterators.HTMLCollection = Iterators.Array;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("71", ["5c", "5b", "66"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  req('5c');
-  req('5b');
-  module.exports = req('66');
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("c", ["71"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = {
-    "default": req('71'),
-    __esModule: true
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.register("10", ["5", "8", "60", "65", "c"], function (_export) {
-    var gMap, loading_img, div, _getIterator, throttle, throttle_interval, text_posts, display_status, statusInvisible, post_event, iframeMouseStatus, overlay_iframe_mouse, marker_clicked, width;
-
-    function renderTemplate(post, $template) {
-        var content = '';
-        if (typeof post.title !== 'undefined') {
-            if (post.type === "link") {
-                content += "<a target='_blank' href=\"" + post.url + "\">" + post.title + "</a></div>";
-            } else {
-                content += "<div class='post-title'>" + post.title + "</div>";
-            }
-        }
-        if (typeof post.body !== 'undefined') {
-            content += "<div class='post-body'>" + post.body + "</div>";
-        }
-        if (typeof post.photos !== 'undefined') {
-            content += "<img src=\"" + post.photos[0].alt_sizes[0].url + "\"/>";
-        }
-        if (typeof post.text !== 'undefined') {
-            content += "<div class='post-text'>" + post.text + "</div>";
-        }
-        if (typeof post.player !== 'undefined') {
-            content += Array.isArray(post.player) ? post.player[0].embed_code : post.player;
-        }
-        if (typeof post.description !== 'undefined') {
-            content += "<div class='post-description'>" + post.description + "</div>";
-        }
-        if (typeof post.caption !== 'undefined') {
-            content += "<div class='post-caption'>" + post.caption + "</div>";
-        }
-        if (typeof post.source !== 'undefined') {
-            content += post.source;
-        }
-
-        var post_data = {
-            'type': post.type,
-            'date': post.date,
-            'link': post.short_url,
-            'content': content
-        };
-
-        var rendered = $template.html();
-
-        $.each(post_data, function (i, v) {
-            var rg = "~!" + i;
-            var r = new RegExp(rg, "g");
-            rendered = rendered.replace(r, v);
-        });
-
-        return rendered;
-    }
-
-    function get(visibleBounds, callback) {
-        var sw = visibleBounds.getSouthWest(),
-            ne = visibleBounds.getNorthEast(),
-            url = "/posts/" + sw.lat() + "/" + sw.lng() + "/" + ne.lat() + "/" + ne.lng();
-
-        if (!throttle) {
-            $.getJSON(url, function (data) {
-                throttle = true;
-                window.setTimeout(function () {
-                    throttle = false;
-                }, throttle_interval);
-
-                var _iteratorNormalCompletion = true;
-                var _didIteratorError = false;
-                var _iteratorError = undefined;
-
-                try {
-                    var _loop = function () {
-                        var post = _step.value;
-
-                        post.markerType = (function () {
-                            if (post.tags.find(function (x) {
-                                return x === "videos";
-                            })) {
-                                return 'video';
-                                // TODO: generic audio tag
-                            } else if (post.tags.find(function (x) {
-                                    return x === "stumblesome";
-                                })) {
-                                    return 'stumble';
-                                } else {
-                                    return 'random';
-                                }
-                        })();
-
-                        post.isTextPost = text_posts.find(function (x) {
-                            return x === post.type;
-                        });
-                    };
-
-                    for (var _iterator = _getIterator(data), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                        _loop();
-                    }
-                } catch (err) {
-                    _didIteratorError = true;
-                    _iteratorError = err;
-                } finally {
-                    try {
-                        if (!_iteratorNormalCompletion && _iterator["return"]) {
-                            _iterator["return"]();
-                        }
-                    } finally {
-                        if (_didIteratorError) {
-                            throw _iteratorError;
-                        }
-                    }
-                }
-
-                callback(data);
-            });
-        }
-    }
-
-    // everything below this point manages post display behavior
-
-    function display(post) {
-        var small_swap_time = 130; // fade duration for content swaps
-
-        if (div.$overlay.is(':hidden')) {
-            div.$overlay.fadeIn('fast');
-
-            // c.f. '@small' in styles
-            // 'auto' fills screen when @small
-            var mm = window.matchMedia("screen and (max-width: 31em)");
-            width = mm.matches ? 'auto' : div.$overlay.css('min-width');
-        } else {
-            width = div.$overlay.css("width");
-        }
-        div.$overlay.find("*").fadeOut(small_swap_time).remove();
-
-        var $post = renderTemplate(post, $('#post-template'));
-        div.$overlay.html($post).removeClass().addClass(post.type);
-
-        var $contents = div.$overlay.find("*"),
-            waiting = true,
-            $loading = null;
-
-        if (!post.isTextPost) {
-            div.$overlay.css("width", width);
-            $contents.hide();
-
-            window.setTimeout(function () {
-                if (waiting) $loading = div.$overlay.append(loading_img).find("#loading");
-            }, 300);
-
-            $contents.load(function () {
-                if ($loading) $loading.fadeOut(small_swap_time).remove();
-                div.$overlay.css("width", "auto");
-                $contents.fadeIn(small_swap_time);
-                waiting = false;
-
-                var $iframe = $contents.find('iframe');
-                $iframe.mouseover(function () {
-                    iframeMouseStatus.status = 'mouseover';
-                    window.dispatchEvent(overlay_iframe_mouse);
-                });
-                $iframe.mouseout(function () {
-                    iframeMouseStatus.status = 'mouseout';
-                    window.dispatchEvent(overlay_iframe_mouse);
-                });
-            });
-        } else {
-            $contents.fadeIn(small_swap_time); // for now, just fade in if text ...or instagram
-        }
-
-        display_status.visible = true;
-        display_status.postType = post.type;
-        display_status.content = $post;
-        document.dispatchEvent(post_event);
-
-        marker_clicked = true;
-        window.setTimeout(function () {
-            marker_clicked = false;
-        }, 200);
-    }
-
-    // Close overlay when user clicks on the X
-    return {
-        setters: [function (_) {}, function (_3) {
-            gMap = _3;
-        }, function (_4) {
-            loading_img = _4["default"];
-        }, function (_2) {
-            div = _2;
-        }, function (_c) {
-            _getIterator = _c["default"];
-        }],
-        execute: function () {
-            /**
-             * @module posts
-             */
-
-            "use strict";
-
-            _export("renderTemplate", renderTemplate);
-
-            _export("get", get);
-
-            _export("display", display);
-
-            throttle = false;
-            throttle_interval = 500;
-            text_posts = ['text', 'audio', 'link', 'quote'];
-            display_status = {
-                visible: false,
-                postType: null,
-                content: null
+        return !1;
+      }
+      var d = "2.8.3",
+          e = {},
+          f = b.documentElement,
+          g = "modernizr",
+          h = b.createElement(g),
+          i = h.style,
+          j,
+          k = {}.toString,
+          l = {},
+          m = {},
+          n = {},
+          o = [],
+          p = o.slice,
+          q,
+          r = {}.hasOwnProperty,
+          s;
+      !v(r, "undefined") && !v(r.call, "undefined") ? s = function(a, b) {
+        return r.call(a, b);
+      } : s = function(a, b) {
+        return b in a && v(a.constructor.prototype[b], "undefined");
+      }, Function.prototype.bind || (Function.prototype.bind = function(b) {
+        var c = this;
+        if (typeof c != "function")
+          throw new TypeError;
+        var d = p.call(arguments, 1),
+            e = function() {
+              if (this instanceof e) {
+                var a = function() {};
+                a.prototype = c.prototype;
+                var f = new a,
+                    g = c.apply(f, d.concat(p.call(arguments)));
+                return Object(g) === g ? g : f;
+              }
+              return c.apply(b, d.concat(p.call(arguments)));
             };
-
-            statusInvisible = function statusInvisible() {
-                display_status.visible = false;
-                display_status.postType = null;
-                display_status.content = "";
-            };
-
-            post_event = new CustomEvent('post_overlay', {
-                "bubbles": false,
-                "cancelable": true,
-                "detail": display_status
-            });
-            iframeMouseStatus = { status: null };
-            overlay_iframe_mouse = new CustomEvent('overlay_iframe_mouse', {
-                "bubbles": false,
-                "cancelable": true,
-                "detail": iframeMouseStatus
-            });
-            marker_clicked = false;
-            width = 0;
-            $(document).on('click', '.close-post', function (e) {
-                e.preventDefault();
-                width = 'auto';
-                window.$(this).parent().fadeOut('fast', function () {
-                    $(this).find("*").html("");
-                });
-                statusInvisible();
-                document.dispatchEvent(post_event);
-            });
-
-            // Close overlay on mousedown over map, i.e., to move it.
-            div.$map.mousedown(function () {
-                window.setTimeout(function () {
-                    if (div.$overlay.is(':visible') && div.$overlay.css('opacity') === '1' && marker_clicked === false) {
-                        div.$overlay.fadeOut('fast', function () {
-                            $(this).find("*").html("");
-                        });
-                        statusInvisible();
-                        document.dispatchEvent(post_event);
-                    }
-                }, 150);
-            });
+        return e;
+      }), l.webgl = function() {
+        return !!a.WebGLRenderingContext;
+      }, l.audio = function() {
+        var a = b.createElement("audio"),
+            c = !1;
+        try {
+          if (c = !!a.canPlayType)
+            c = new Boolean(c), c.ogg = a.canPlayType('audio/ogg; codecs="vorbis"').replace(/^no$/, ""), c.mp3 = a.canPlayType("audio/mpeg;").replace(/^no$/, ""), c.wav = a.canPlayType('audio/wav; codecs="1"').replace(/^no$/, ""), c.m4a = (a.canPlayType("audio/x-m4a;") || a.canPlayType("audio/aac;")).replace(/^no$/, "");
+        } catch (d) {}
+        return c;
+      }, l.webworkers = function() {
+        return !!a.Worker;
+      };
+      for (var y in l)
+        s(l, y) && (q = y.toLowerCase(), e[q] = l[y](), o.push((e[q] ? "" : "no-") + q));
+      return e.addTest = function(a, b) {
+        if (typeof a == "object")
+          for (var d in a)
+            s(a, d) && e.addTest(d, a[d]);
+        else {
+          a = a.toLowerCase();
+          if (e[a] !== c)
+            return e;
+          b = typeof b == "function" ? b() : b, typeof enableClasses != "undefined" && enableClasses && (f.className += " " + (b ? "" : "no-") + a), e[a] = b;
         }
-    };
-});
-
-$__System.registerDynamic("72", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  "format cjs";
-  var Froogaloop = (function() {
-    function Froogaloop(iframe) {
-      return new Froogaloop.fn.init(iframe);
-    }
-    var eventCallbacks = {},
-        hasWindowEvent = false,
-        isReady = false,
-        slice = Array.prototype.slice,
-        playerDomain = '';
-    Froogaloop.fn = Froogaloop.prototype = {
-      element: null,
-      init: function(iframe) {
-        if (typeof iframe === "string") {
-          iframe = document.getElementById(iframe);
-        }
-        this.element = iframe;
-        playerDomain = getDomainFromUrl(this.element.getAttribute('src'));
-        return this;
-      },
-      api: function(method, valueOrCallback) {
-        if (!this.element || !method) {
-          return false;
-        }
-        var self = this,
-            element = self.element,
-            target_id = element.id !== '' ? element.id : null,
-            params = !isFunction(valueOrCallback) ? valueOrCallback : null,
-            callback = isFunction(valueOrCallback) ? valueOrCallback : null;
-        if (callback) {
-          storeCallback(method, callback, target_id);
-        }
-        postMessage(method, params, element);
-        return self;
-      },
-      addEvent: function(eventName, callback) {
-        if (!this.element) {
-          return false;
-        }
-        var self = this,
-            element = self.element,
-            target_id = element.id !== '' ? element.id : null;
-        storeCallback(eventName, callback, target_id);
-        if (eventName != 'ready') {
-          postMessage('addEventListener', eventName, element);
-        } else if (eventName == 'ready' && isReady) {
-          callback.call(null, target_id);
-        }
-        return self;
-      },
-      removeEvent: function(eventName) {
-        if (!this.element) {
-          return false;
-        }
-        var self = this,
-            element = self.element,
-            target_id = element.id !== '' ? element.id : null,
-            removed = removeCallback(eventName, target_id);
-        if (eventName != 'ready' && removed) {
-          postMessage('removeEventListener', eventName, element);
-        }
-      }
-    };
-    function postMessage(method, params, target) {
-      if (!target.contentWindow.postMessage) {
-        return false;
-      }
-      var url = target.getAttribute('src').split('?')[0],
-          data = JSON.stringify({
-            method: method,
-            value: params
-          });
-      if (url.substr(0, 2) === '//') {
-        url = window.location.protocol + url;
-      }
-      target.contentWindow.postMessage(data, url);
-    }
-    function onMessageReceived(event) {
-      var data,
-          method;
-      try {
-        data = JSON.parse(event.data);
-        method = data.event || data.method;
-      } catch (e) {}
-      if (method == 'ready' && !isReady) {
-        isReady = true;
-      }
-      if (event.origin != playerDomain) {
-        return false;
-      }
-      var value = data.value,
-          eventData = data.data,
-          target_id = target_id === '' ? null : data.player_id,
-          callback = getCallback(method, target_id),
-          params = [];
-      if (!callback) {
-        return false;
-      }
-      if (value !== undefined) {
-        params.push(value);
-      }
-      if (eventData) {
-        params.push(eventData);
-      }
-      if (target_id) {
-        params.push(target_id);
-      }
-      return params.length > 0 ? callback.apply(null, params) : callback.call();
-    }
-    function storeCallback(eventName, callback, target_id) {
-      if (target_id) {
-        if (!eventCallbacks[target_id]) {
-          eventCallbacks[target_id] = {};
-        }
-        eventCallbacks[target_id][eventName] = callback;
-      } else {
-        eventCallbacks[eventName] = callback;
-      }
-    }
-    function getCallback(eventName, target_id) {
-      if (target_id) {
-        return eventCallbacks[target_id][eventName];
-      } else {
-        return eventCallbacks[eventName];
-      }
-    }
-    function removeCallback(eventName, target_id) {
-      if (target_id && eventCallbacks[target_id]) {
-        if (!eventCallbacks[target_id][eventName]) {
-          return false;
-        }
-        eventCallbacks[target_id][eventName] = null;
-      } else {
-        if (!eventCallbacks[eventName]) {
-          return false;
-        }
-        eventCallbacks[eventName] = null;
-      }
-      return true;
-    }
-    function getDomainFromUrl(url) {
-      if (url.substr(0, 2) === '//') {
-        url = window.location.protocol + url;
-      }
-      var url_pieces = url.split('/'),
-          domain_str = '';
-      for (var i = 0,
-          length = url_pieces.length; i < length; i++) {
-        if (i < 3) {
-          domain_str += url_pieces[i];
-        } else {
-          break;
-        }
-        if (i < 2) {
-          domain_str += '/';
-        }
-      }
-      return domain_str;
-    }
-    function isFunction(obj) {
-      return !!(obj && obj.constructor && obj.call && obj.apply);
-    }
-    function isArray(obj) {
-      return toString.call(obj) === '[object Array]';
-    }
-    Froogaloop.fn.init.prototype = Froogaloop.fn;
-    if (window.addEventListener) {
-      window.addEventListener('message', onMessageReceived, false);
-    } else {
-      window.attachEvent('onmessage', onMessageReceived);
-    }
-    return (window.Froogaloop = window.$f = Froogaloop);
+        return e;
+      }, t(""), h = j = null, e._version = d, e;
+    }(this, this.document), Modernizr.addTest("webaudio", !!window.webkitAudioContext || !!window.AudioContext);
   })();
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("73", ["72"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = req('72');
-  global.define = __define;
-  return module.exports;
+  return _retrieveGlobal();
 });
 
 (function() {
@@ -16903,7 +18705,7 @@ var _removeDefine = $__System.get("@@amd-helpers").createDefine();
   };
   jQuery.fn.andSelf = jQuery.fn.addBack;
   if (typeof define === "function" && define.amd) {
-    define("74", [], function() {
+    define("89", [], function() {
       return jQuery;
     });
   }
@@ -16928,1336 +18730,71 @@ _removeDefine();
 })();
 (function() {
 var _removeDefine = $__System.get("@@amd-helpers").createDefine();
-define("5", ["74"], function(main) {
+define("23", ["89"], function(main) {
   return main;
 });
 
 _removeDefine();
 })();
-$__System.registerDynamic("5a", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  "format cjs";
-  global.define = __define;
-  return module.exports;
-});
+$__System.register("d", ["23", "88"], function (_export) {
+  /**
+   * @module featureDetection
+   * detect status of webgl, webaudio, and webworkers
+   * on the client, hard fail in certain circumstances
+   */
+  "use strict";
 
-$__System.registerDynamic("53", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = true;
-  global.define = __define;
-  return module.exports;
-});
+  var $, Modernizr, audioext, webaudio;
 
-$__System.registerDynamic("75", ["44"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var cof = req('44');
-  module.exports = Array.isArray || function(arg) {
-    return cof(arg) == 'Array';
-  };
-  global.define = __define;
-  return module.exports;
-});
+  _export("redirect_fatal", redirect_fatal);
 
-$__System.registerDynamic("76", ["36"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $ = req('36');
-  module.exports = function(it) {
-    var keys = $.getKeys(it),
-        getSymbols = $.getSymbols;
-    if (getSymbols) {
-      var symbols = getSymbols(it),
-          isEnum = $.isEnum,
-          i = 0,
-          key;
-      while (symbols.length > i)
-        if (isEnum.call(it, key = symbols[i++]))
-          keys.push(key);
-    }
-    return keys;
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("77", ["70", "36"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var toString = {}.toString,
-      toIObject = req('70'),
-      getNames = req('36').getNames;
-  var windowNames = typeof window == 'object' && Object.getOwnPropertyNames ? Object.getOwnPropertyNames(window) : [];
-  var getWindowNames = function(it) {
-    try {
-      return getNames(it);
-    } catch (e) {
-      return windowNames.slice();
-    }
-  };
-  module.exports.get = function getOwnPropertyNames(it) {
-    if (windowNames && toString.call(it) == '[object Window]')
-      return getWindowNames(it);
-    return getNames(toIObject(it));
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("78", ["36", "70"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $ = req('36'),
-      toIObject = req('70');
-  module.exports = function(object, el) {
-    var O = toIObject(object),
-        keys = $.getKeys(O),
-        length = keys.length,
-        index = 0,
-        key;
-    while (length > index)
-      if (O[key = keys[index++]] === el)
-        return key;
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("57", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var id = 0,
-      px = Math.random();
-  module.exports = function(key) {
-    return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("34", ["79", "57", "3f"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var store = req('79')('wks'),
-      uid = req('57'),
-      Symbol = req('3f').Symbol;
-  module.exports = function(name) {
-    return store[name] || (store[name] = Symbol && Symbol[name] || (Symbol || uid)('Symbol.' + name));
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("58", ["36", "6c", "34"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var def = req('36').setDesc,
-      has = req('6c'),
-      TAG = req('34')('toStringTag');
-  module.exports = function(it, tag, stat) {
-    if (it && !has(it = stat ? it : it.prototype, TAG))
-      def(it, TAG, {
-        configurable: true,
-        value: tag
-      });
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("79", ["3f"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var global = req('3f'),
-      SHARED = '__core-js_shared__',
-      store = global[SHARED] || (global[SHARED] = {});
-  module.exports = function(key) {
-    return store[key] || (store[key] = {});
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("6a", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = function(bitmap, value) {
-    return {
-      enumerable: !(bitmap & 1),
-      configurable: !(bitmap & 2),
-      writable: !(bitmap & 4),
-      value: value
-    };
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("6b", ["36", "6a", "37"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $ = req('36'),
-      createDesc = req('6a');
-  module.exports = req('37') ? function(object, key, value) {
-    return $.setDesc(object, key, createDesc(1, value));
-  } : function(object, key, value) {
-    object[key] = value;
-    return object;
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("39", ["6b"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = req('6b');
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("37", ["7a"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = !req('7a')(function() {
-    return Object.defineProperty({}, 'a', {get: function() {
-        return 7;
-      }}).a != 7;
-  });
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("6c", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var hasOwnProperty = {}.hasOwnProperty;
-  module.exports = function(it, key) {
-    return hasOwnProperty.call(it, key);
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("7b", ["36", "3f", "6c", "37", "55", "39", "7a", "79", "58", "57", "34", "78", "77", "76", "75", "47", "70", "6a", "53"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  'use strict';
-  var $ = req('36'),
-      global = req('3f'),
-      has = req('6c'),
-      DESCRIPTORS = req('37'),
-      $def = req('55'),
-      $redef = req('39'),
-      $fails = req('7a'),
-      shared = req('79'),
-      setToStringTag = req('58'),
-      uid = req('57'),
-      wks = req('34'),
-      keyOf = req('78'),
-      $names = req('77'),
-      enumKeys = req('76'),
-      isArray = req('75'),
-      anObject = req('47'),
-      toIObject = req('70'),
-      createDesc = req('6a'),
-      getDesc = $.getDesc,
-      setDesc = $.setDesc,
-      _create = $.create,
-      getNames = $names.get,
-      $Symbol = global.Symbol,
-      $JSON = global.JSON,
-      _stringify = $JSON && $JSON.stringify,
-      setter = false,
-      HIDDEN = wks('_hidden'),
-      isEnum = $.isEnum,
-      SymbolRegistry = shared('symbol-registry'),
-      AllSymbols = shared('symbols'),
-      useNative = typeof $Symbol == 'function',
-      ObjectProto = Object.prototype;
-  var setSymbolDesc = DESCRIPTORS && $fails(function() {
-    return _create(setDesc({}, 'a', {get: function() {
-        return setDesc(this, 'a', {value: 7}).a;
-      }})).a != 7;
-  }) ? function(it, key, D) {
-    var protoDesc = getDesc(ObjectProto, key);
-    if (protoDesc)
-      delete ObjectProto[key];
-    setDesc(it, key, D);
-    if (protoDesc && it !== ObjectProto)
-      setDesc(ObjectProto, key, protoDesc);
-  } : setDesc;
-  var wrap = function(tag) {
-    var sym = AllSymbols[tag] = _create($Symbol.prototype);
-    sym._k = tag;
-    DESCRIPTORS && setter && setSymbolDesc(ObjectProto, tag, {
-      configurable: true,
-      set: function(value) {
-        if (has(this, HIDDEN) && has(this[HIDDEN], tag))
-          this[HIDDEN][tag] = false;
-        setSymbolDesc(this, tag, createDesc(1, value));
-      }
-    });
-    return sym;
-  };
-  var isSymbol = function(it) {
-    return typeof it == 'symbol';
-  };
-  var $defineProperty = function defineProperty(it, key, D) {
-    if (D && has(AllSymbols, key)) {
-      if (!D.enumerable) {
-        if (!has(it, HIDDEN))
-          setDesc(it, HIDDEN, createDesc(1, {}));
-        it[HIDDEN][key] = true;
-      } else {
-        if (has(it, HIDDEN) && it[HIDDEN][key])
-          it[HIDDEN][key] = false;
-        D = _create(D, {enumerable: createDesc(0, false)});
-      }
-      return setSymbolDesc(it, key, D);
-    }
-    return setDesc(it, key, D);
-  };
-  var $defineProperties = function defineProperties(it, P) {
-    anObject(it);
-    var keys = enumKeys(P = toIObject(P)),
-        i = 0,
-        l = keys.length,
-        key;
-    while (l > i)
-      $defineProperty(it, key = keys[i++], P[key]);
-    return it;
-  };
-  var $create = function create(it, P) {
-    return P === undefined ? _create(it) : $defineProperties(_create(it), P);
-  };
-  var $propertyIsEnumerable = function propertyIsEnumerable(key) {
-    var E = isEnum.call(this, key);
-    return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key] ? E : true;
-  };
-  var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key) {
-    var D = getDesc(it = toIObject(it), key);
-    if (D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key]))
-      D.enumerable = true;
-    return D;
-  };
-  var $getOwnPropertyNames = function getOwnPropertyNames(it) {
-    var names = getNames(toIObject(it)),
-        result = [],
-        i = 0,
-        key;
-    while (names.length > i)
-      if (!has(AllSymbols, key = names[i++]) && key != HIDDEN)
-        result.push(key);
-    return result;
-  };
-  var $getOwnPropertySymbols = function getOwnPropertySymbols(it) {
-    var names = getNames(toIObject(it)),
-        result = [],
-        i = 0,
-        key;
-    while (names.length > i)
-      if (has(AllSymbols, key = names[i++]))
-        result.push(AllSymbols[key]);
-    return result;
-  };
-  var $stringify = function stringify(it) {
-    if (it === undefined || isSymbol(it))
-      return;
-    var args = [it],
-        i = 1,
-        $$ = arguments,
-        replacer,
-        $replacer;
-    while ($$.length > i)
-      args.push($$[i++]);
-    replacer = args[1];
-    if (typeof replacer == 'function')
-      $replacer = replacer;
-    if ($replacer || !isArray(replacer))
-      replacer = function(key, value) {
-        if ($replacer)
-          value = $replacer.call(this, key, value);
-        if (!isSymbol(value))
-          return value;
-      };
-    args[1] = replacer;
-    return _stringify.apply($JSON, args);
-  };
-  var buggyJSON = $fails(function() {
-    var S = $Symbol();
-    return _stringify([S]) != '[null]' || _stringify({a: S}) != '{}' || _stringify(Object(S)) != '{}';
-  });
-  if (!useNative) {
-    $Symbol = function Symbol() {
-      if (isSymbol(this))
-        throw TypeError('Symbol is not a constructor');
-      return wrap(uid(arguments.length > 0 ? arguments[0] : undefined));
-    };
-    $redef($Symbol.prototype, 'toString', function toString() {
-      return this._k;
-    });
-    isSymbol = function(it) {
-      return it instanceof $Symbol;
-    };
-    $.create = $create;
-    $.isEnum = $propertyIsEnumerable;
-    $.getDesc = $getOwnPropertyDescriptor;
-    $.setDesc = $defineProperty;
-    $.setDescs = $defineProperties;
-    $.getNames = $names.get = $getOwnPropertyNames;
-    $.getSymbols = $getOwnPropertySymbols;
-    if (DESCRIPTORS && !req('53')) {
-      $redef(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
-    }
+  function redirect_fatal(mess) {
+    window.location.replace("feature-fail/" + mess);
   }
-  var symbolStatics = {
-    'for': function(key) {
-      return has(SymbolRegistry, key += '') ? SymbolRegistry[key] : SymbolRegistry[key] = $Symbol(key);
-    },
-    keyFor: function keyFor(key) {
-      return keyOf(SymbolRegistry, key);
-    },
-    useSetter: function() {
-      setter = true;
-    },
-    useSimple: function() {
-      setter = false;
+
+  return {
+    setters: [function (_) {
+      $ = _["default"];
+    }, function (_2) {
+      Modernizr = _2["default"];
+    }],
+    execute: function () {
+      audioext = Modernizr.audio.ogg ? '.ogg' : Modernizr.audio.mp3 ? '.mp3' : false;
+
+      _export("audioext", audioext);
+
+      webaudio = !!(Modernizr.webaudio && audioext);
+
+      _export("webaudio", webaudio);
+
+      if (!Modernizr.webgl) redirect_fatal('webgl');
+      if (!Modernizr.webworkers) redirect_fatal('webworkers');
     }
   };
-  $.each.call(('hasInstance,isConcatSpreadable,iterator,match,replace,search,' + 'species,split,toPrimitive,toStringTag,unscopables').split(','), function(it) {
-    var sym = wks(it);
-    symbolStatics[it] = useNative ? sym : wrap(sym);
-  });
-  setter = true;
-  $def($def.G + $def.W, {Symbol: $Symbol});
-  $def($def.S, 'Symbol', symbolStatics);
-  $def($def.S + $def.F * !useNative, 'Object', {
-    create: $create,
-    defineProperty: $defineProperty,
-    defineProperties: $defineProperties,
-    getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
-    getOwnPropertyNames: $getOwnPropertyNames,
-    getOwnPropertySymbols: $getOwnPropertySymbols
-  });
-  $JSON && $def($def.S + $def.F * (!useNative || buggyJSON), 'JSON', {stringify: $stringify});
-  setToStringTag($Symbol, 'Symbol');
-  setToStringTag(Math, 'Math', true);
-  setToStringTag(global.JSON, 'JSON', true);
-  global.define = __define;
-  return module.exports;
 });
 
-$__System.registerDynamic("7c", ["7b", "5a", "17"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  req('7b');
-  req('5a');
-  module.exports = req('17').Symbol;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("7d", ["7c"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = req('7c');
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("1d", ["7d"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = {
-    "default": req('7d'),
-    __esModule: true
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("a", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  "use strict";
-  exports["default"] = function(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  };
-  exports.__esModule = true;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("7e", ["36"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $ = req('36');
-  module.exports = function defineProperty(it, key, desc) {
-    return $.setDesc(it, key, desc);
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("5f", ["7e"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = {
-    "default": req('7e'),
-    __esModule: true
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("b", ["5f"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  "use strict";
-  var _Object$defineProperty = req('5f')["default"];
-  exports["default"] = (function() {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor)
-          descriptor.writable = true;
-        _Object$defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-    return function(Constructor, protoProps, staticProps) {
-      if (protoProps)
-        defineProperties(Constructor.prototype, protoProps);
-      if (staticProps)
-        defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  })();
-  exports.__esModule = true;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("48", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = function(it) {
-    if (typeof it != 'function')
-      throw TypeError(it + ' is not a function!');
-    return it;
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("43", ["48"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var aFunction = req('48');
-  module.exports = function(fn, that, length) {
-    aFunction(fn);
-    if (that === undefined)
-      return fn;
-    switch (length) {
-      case 1:
-        return function(a) {
-          return fn.call(that, a);
-        };
-      case 2:
-        return function(a, b) {
-          return fn.call(that, a, b);
-        };
-      case 3:
-        return function(a, b, c) {
-          return fn.call(that, a, b, c);
-        };
-    }
-    return function() {
-      return fn.apply(that, arguments);
-    };
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("47", ["14"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var isObject = req('14');
-  module.exports = function(it) {
-    if (!isObject(it))
-      throw TypeError(it + ' is not an object!');
-    return it;
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("14", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = function(it) {
-    return typeof it === 'object' ? it !== null : typeof it === 'function';
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("56", ["36", "14", "47", "43"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var getDesc = req('36').getDesc,
-      isObject = req('14'),
-      anObject = req('47');
-  var check = function(O, proto) {
-    anObject(O);
-    if (!isObject(proto) && proto !== null)
-      throw TypeError(proto + ": can't set as prototype!");
-  };
-  module.exports = {
-    set: Object.setPrototypeOf || ('__proto__' in {} ? function(test, buggy, set) {
-      try {
-        set = req('43')(Function.call, getDesc(Object.prototype, '__proto__').set, 2);
-        set(test, []);
-        buggy = !(test instanceof Array);
-      } catch (e) {
-        buggy = true;
-      }
-      return function setPrototypeOf(O, proto) {
-        check(O, proto);
-        if (buggy)
-          O.__proto__ = proto;
-        else
-          set(O, proto);
-        return O;
-      };
-    }({}, false) : undefined),
-    check: check
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("7f", ["55", "56"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $def = req('55');
-  $def($def.S, 'Object', {setPrototypeOf: req('56').set});
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("80", ["7f", "17"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  req('7f');
-  module.exports = req('17').Object.setPrototypeOf;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("81", ["80"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = {
-    "default": req('80'),
-    __esModule: true
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("82", ["36"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $ = req('36');
-  module.exports = function create(P, D) {
-    return $.create(P, D);
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("83", ["82"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = {
-    "default": req('82'),
-    __esModule: true
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("1c", ["83", "81"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  "use strict";
-  var _Object$create = req('83')["default"];
-  var _Object$setPrototypeOf = req('81')["default"];
-  exports["default"] = function(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-    subClass.prototype = _Object$create(superClass && superClass.prototype, {constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }});
-    if (superClass)
-      _Object$setPrototypeOf ? _Object$setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  };
-  exports.__esModule = true;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("7a", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = function(exec) {
-    try {
-      return !!exec();
-    } catch (e) {
-      return true;
-    }
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("17", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var core = module.exports = {version: '1.2.5'};
-  if (typeof __e == 'number')
-    __e = core;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("3f", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var global = module.exports = typeof window != 'undefined' && window.Math == Math ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
-  if (typeof __g == 'number')
-    __g = global;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("55", ["3f", "17"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var global = req('3f'),
-      core = req('17'),
-      PROTOTYPE = 'prototype';
-  var ctx = function(fn, that) {
-    return function() {
-      return fn.apply(that, arguments);
-    };
-  };
-  var $def = function(type, name, source) {
-    var key,
-        own,
-        out,
-        exp,
-        isGlobal = type & $def.G,
-        isProto = type & $def.P,
-        target = isGlobal ? global : type & $def.S ? global[name] : (global[name] || {})[PROTOTYPE],
-        exports = isGlobal ? core : core[name] || (core[name] = {});
-    if (isGlobal)
-      source = name;
-    for (key in source) {
-      own = !(type & $def.F) && target && key in target;
-      if (own && key in exports)
-        continue;
-      out = own ? target[key] : source[key];
-      if (isGlobal && typeof target[key] != 'function')
-        exp = source[key];
-      else if (type & $def.B && own)
-        exp = ctx(out, global);
-      else if (type & $def.W && target[key] == out)
-        !function(C) {
-          exp = function(param) {
-            return this instanceof C ? new C(param) : C(param);
-          };
-          exp[PROTOTYPE] = C[PROTOTYPE];
-        }(out);
-      else
-        exp = isProto && typeof out == 'function' ? ctx(Function.call, out) : out;
-      exports[key] = exp;
-      if (isProto)
-        (exports[PROTOTYPE] || (exports[PROTOTYPE] = {}))[key] = out;
-    }
-  };
-  $def.F = 1;
-  $def.G = 2;
-  $def.S = 4;
-  $def.P = 8;
-  $def.B = 16;
-  $def.W = 32;
-  module.exports = $def;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("15", ["55", "17", "7a"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $def = req('55'),
-      core = req('17'),
-      fails = req('7a');
-  module.exports = function(KEY, exec) {
-    var $def = req('55'),
-        fn = (core.Object || {})[KEY] || Object[KEY],
-        exp = {};
-    exp[KEY] = exec(fn);
-    $def($def.S + $def.F * fails(function() {
-      fn(1);
-    }), 'Object', exp);
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("62", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = function(it) {
-    if (it == undefined)
-      throw TypeError("Can't call method on  " + it);
-    return it;
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("44", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var toString = {}.toString;
-  module.exports = function(it) {
-    return toString.call(it).slice(8, -1);
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("84", ["44"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var cof = req('44');
-  module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it) {
-    return cof(it) == 'String' ? it.split('') : Object(it);
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("70", ["84", "62"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var IObject = req('84'),
-      defined = req('62');
-  module.exports = function(it) {
-    return IObject(defined(it));
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("85", ["70", "15"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var toIObject = req('70');
-  req('15')('getOwnPropertyDescriptor', function($getOwnPropertyDescriptor) {
-    return function getOwnPropertyDescriptor(it, key) {
-      return $getOwnPropertyDescriptor(toIObject(it), key);
-    };
-  });
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("36", [], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $Object = Object;
-  module.exports = {
-    create: $Object.create,
-    getProto: $Object.getPrototypeOf,
-    isEnum: {}.propertyIsEnumerable,
-    getDesc: $Object.getOwnPropertyDescriptor,
-    setDesc: $Object.defineProperty,
-    setDescs: $Object.defineProperties,
-    getKeys: $Object.keys,
-    getNames: $Object.getOwnPropertyNames,
-    getSymbols: $Object.getOwnPropertySymbols,
-    each: [].forEach
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("86", ["36", "85"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $ = req('36');
-  req('85');
-  module.exports = function getOwnPropertyDescriptor(it, key) {
-    return $.getDesc(it, key);
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("1e", ["86"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = {
-    "default": req('86'),
-    __esModule: true
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("1b", ["1e"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  "use strict";
-  var _Object$getOwnPropertyDescriptor = req('1e')["default"];
-  exports["default"] = function get(_x, _x2, _x3) {
-    var _again = true;
-    _function: while (_again) {
-      var object = _x,
-          property = _x2,
-          receiver = _x3;
-      _again = false;
-      if (object === null)
-        object = Function.prototype;
-      var desc = _Object$getOwnPropertyDescriptor(object, property);
-      if (desc === undefined) {
-        var parent = Object.getPrototypeOf(object);
-        if (parent === null) {
-          return undefined;
-        } else {
-          _x = parent;
-          _x2 = property;
-          _x3 = receiver;
-          _again = true;
-          desc = parent = undefined;
-          continue _function;
-        }
-      } else if ("value" in desc) {
-        return desc.value;
-      } else {
-        var getter = desc.get;
-        if (getter === undefined) {
-          return undefined;
-        }
-        return getter.call(receiver);
-      }
-    }
-  };
-  exports.__esModule = true;
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.register("87", ["5", "8", "10", "11", "12", "65", "73", "1b", "1c", "b", "a", "1d", "f"], function (_export) {
-    var gMap, posts, filterXML, tableux, div, _get, _inherits, _createClass, _classCallCheck, _Symbol, rudy, filters, __css_class__, __name__, CssEffect, PrintAnalog;
-
-    return {
-        setters: [function (_) {}, function (_6) {
-            gMap = _6;
-        }, function (_3) {
-            posts = _3;
-        }, function (_7) {
-            filterXML = _7["default"];
-        }, function (_4) {
-            tableux = _4;
-        }, function (_5) {
-            div = _5;
-        }, function (_2) {}, function (_b) {
-            _get = _b["default"];
-        }, function (_c) {
-            _inherits = _c["default"];
-        }, function (_b2) {
-            _createClass = _b2["default"];
-        }, function (_a) {
-            _classCallCheck = _a["default"];
-        }, function (_d) {
-            _Symbol = _d["default"];
-        }, function (_f) {
-            rudy = _f;
-        }],
-        execute: function () {
-            /**
-             * @module effects
-             * contains subclasses of rudy.visualCore.Effect that implement
-             * different visual effects.
-             */
-
-            // first, render the filter xml in the document so it is available via css selectors
-            "use strict";
-
-            filters = document.createElement("svg_filters");
-            // will function basically like a div
-            filters.style.position = "fixed";
-            filters.style.bottom = 0;
-            filters.style.zIndex = -99999999;
-            document.body.appendChild(filters);
-            filters.innerHTML = filterXML;
-
-            __css_class__ = _Symbol();
-            __name__ = _Symbol();
-
-            CssEffect = (function (_rudy$visualCore$Effect) {
-                _inherits(CssEffect, _rudy$visualCore$Effect);
-
-                function CssEffect(name, css_class) {
-                    _classCallCheck(this, CssEffect);
-
-                    _get(Object.getPrototypeOf(CssEffect.prototype), "constructor", this).call(this);
-                    this[__css_class__] = css_class;
-                    this[__name__] = name;
-                    tableux.registerEffect(this[__name__]);
-                }
-
-                _createClass(CssEffect, [{
-                    key: "operate",
-                    value: function operate(stage) {
-                        var _this = this;
-
-                        var hook_op = stage ? "addClass" : "removeClass";
-                        _get(Object.getPrototypeOf(CssEffect.prototype), "operate", this).call(this, stage, [{
-                            address: 1,
-                            fn: function fn() {
-                                return div.$map[hook_op](_this.css_class);
-                            }
-                        }]);
-                    }
-                }, {
-                    key: "name",
-                    get: function get() {
-                        return this[__name__];
-                    }
-                }, {
-                    key: "css_class",
-                    get: function get() {
-                        return this[__css_class__];
-                    }
-                }]);
-
-                return CssEffect;
-            })(rudy.visualCore.Effect);
-
-            PrintAnalog = (function (_CssEffect) {
-                _inherits(PrintAnalog, _CssEffect);
-
-                function PrintAnalog() {
-                    _classCallCheck(this, PrintAnalog);
-
-                    _get(Object.getPrototypeOf(PrintAnalog.prototype), "constructor", this).call(this, "PrintAnalog", "print-analog");
-                }
-
-                _createClass(PrintAnalog, [{
-                    key: "init",
-                    value: function init() {}
-                }, {
-                    key: "teardown",
-                    value: function teardown() {}
-                }]);
-
-                return PrintAnalog;
-            })(CssEffect);
-
-            _export("PrintAnalog", PrintAnalog);
-        }
-    };
-});
-
-$__System.register('5e', [], function (_export) {
-    /**
-     * Contains utilities for managing visual-rate updates.
-     * renderLoop calls createAnimationFrame to start the loop,
-     * and maintains a private queue of functions that is executed
-     * on each frame.
-     * @module renderLoop
-     */
-
-    /**
-     * The function queue.
-     * @property {array} queue
-     * @for renderLoop
-     * @private
-     * @static
-     */
-    'use strict';
-
-    var queue, id, rendering;
-
-    /**
-     * Stops the render loop by calling cancelAnimationFrame
-     * @method stop
-     * @for renderLoop
-     * @static
-     */
-
-    _export('start', start);
-
-    /**
-     * Add a function to the rendering queue.
-     * @method add
-     *@for renderLoop
-     * @static
-     * @param {function} fn - the function to queue
-     */
-
-    _export('stop', stop);
-
-    /**
-     * Remove a function from the rendering queue.
-     * @method remove
-     * @for renderLoop
-     * @static
-     * @param {function} fn - a reference to the function to remove
-     */
-
-    _export('add', add);
-
-    /** 
-     * Check whether or not a function is in the queue, or if the queue has any 
-     * functions in it. If provided a reference to a function, will return its index 
-     * in the queue if it exists, or false if not. If called with no arguments, returns
-     * the length of the queue.
-     * @method has
-     * @for renderLoop
-     * @static
-     * @param {void | function} fn - optional reference to function
-     * @return {number | boolean} - index of function, length of queue, or false.
-     */
-
-    _export('remove', remove);
-
-    _export('has', has);
-
-    /**
-     * Starts the render loop by calling requestAnimationFrame
-     * @method start
-     * @for renderLoop
-     * @static
-     */
-
-    function start() {
-        _export('rendering', rendering = true);
-        queue.forEach(function (fn) {
-            fn();
-        });
-        id = window.requestAnimationFrame(start);
-    }
-
-    function stop() {
-        _export('rendering', rendering = false);
-        window.cancelAnimationFrame(id);
-    }
-
-    function add(fn) {
-        queue.push(fn);
-        if (!rendering) start();
-    }
-
-    function remove(fn) {
-        var idx = queue.indexOf(fn);
-        if (idx !== -1) queue.splice(idx, 1);
-        if (queue.length === 0) stop();
-    }
-
-    function has(fn) {
-        if (typeof fn === 'function') {
-            var idx = queue.indexOf(fn);
-            return idx !== -1 ? idx : false;
-        } else {
-            return queue.length > 0;
-        }
-    }
-
-    return {
-        setters: [],
-        execute: function () {
-            queue = [];
-            id = undefined;
-
-            /**
-             * Indicates whether or not the render loop is running.
-             * @property {boolean} rendering 
-             * @for renderLoop
-             * @static
-             */
-            rendering = false;
-
-            _export('rendering', rendering);
-        }
-    };
-});
-
-$__System.register("88", ["8", "12", "87", "5e"], function (_export) {
-
-    // visuals
-    "use strict";
-
-    var gMap, tableux, PrintAnalog, renderLoop, glow, flags, stock_list;
-
-    _export("visualSceneStart", visualSceneStart);
-
-    function visualSceneStart() {
-        tableux.pushData(stock_list);
-        glow.operate(true);
-        tableux.select(glow);
-    }
-
-    return {
-        setters: [function (_2) {
-            gMap = _2;
-        }, function (_3) {
-            tableux = _3;
-        }, function (_) {
-            PrintAnalog = _.PrintAnalog;
-        }, function (_e) {
-            renderLoop = _e;
-        }],
-        execute: function () {
-            glow = new PrintAnalog();
-            flags = tableux.flags;
-            stock_list = [new tableux.TableuxData(43.00920829994793, -87.90464972035988, 18, flags.PrintAnalog)];
-        }
-    };
-});
-
-$__System.register("1", ["8", "88", "e"], function (_export) {
-    //import * as featureDetection from "./featureDetection";
-
-    //import { audio_scene_init } from "./audioScene";
-    //console.log(google);
-    // init visual scene
+$__System.register("1", ["13", "14", "15", "22", "79", "d", "1f"], function (_export) {
 
     // initalize google map
     "use strict";
 
-    var gMap, visualSceneStart, markersStart, forceDataUpdate, bounds, overlay, loading;
+    var audioScene, gMap, renderLoop, PrintAnalog, markersStart, forceDataUpdate, featureDetection, tableux, bounds, overlay, glow, flags, stock_list, loading;
     return {
-        setters: [function (_2) {
-            gMap = _2;
+        setters: [function (_5) {
+            audioScene = _5;
         }, function (_) {
-            visualSceneStart = _.visualSceneStart;
-        }, function (_e) {
-            markersStart = _e.markersStart;
-            forceDataUpdate = _e.forceDataUpdate;
+            gMap = _;
+        }, function (_3) {
+            renderLoop = _3;
+        }, function (_4) {
+            PrintAnalog = _4.PrintAnalog;
+        }, function (_2) {
+            markersStart = _2.markersStart;
+            forceDataUpdate = _2.forceDataUpdate;
+        }, function (_d) {
+            featureDetection = _d;
+        }, function (_f) {
+            tableux = _f;
         }],
         execute: function () {
             gMap.init();
@@ -18266,8 +18803,22 @@ $__System.register("1", ["8", "88", "e"], function (_export) {
 
             overlay.setMap(gMap.map);
 
-            visualSceneStart();
+            // set up main map skin
+            glow = new PrintAnalog();
+            flags = tableux.flags;
+            stock_list = [new tableux.TableuxData(43.00920829994793, -87.90464972035988, 18, flags.PrintAnalog), new tableux.TableuxData(43.00513089640196, -87.9199973203431, 18, flags.PrintAnalog)];
+
+            tableux.pushData(stock_list);
+            glow.operate(true);
+            tableux.select(glow);
+
+            // start markers!
             markersStart();
+
+            // start audio scene
+            audioScene.init();
+
+            // init delegated events
             gMap.events.initQueuedEvents('map');
 
             // suddenly remove loading screen - no transition!

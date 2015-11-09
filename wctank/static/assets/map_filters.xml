@@ -12,7 +12,7 @@
         <feColorMatrix in="SourceGraphic" type="saturate" values="0"></feColorMatrix>
         <feGaussianBlur id="pa-denoise" stdDeviation="1.16">
             <animate id="print-analog-denoise-animate" attributeName="stdDeviation"
-                values="1.2;0.6;1.2;1.8;1.2" calcMode="linear" dur="8000ms" repeatCount="indefinite"> 
+                values="0.9;0.4;0.9" calcMode="linear" dur="2500ms" repeatCount="indefinite"> 
             </animate>
         </feGaussianBlur>
         <feConvolveMatrix   
@@ -31,7 +31,7 @@
     
     <feBlend id="pa-bypass" in="offset" in2="flip" mode="multiply" result="out"></feBlend>
     <feComponentTransfer>
-        <feFuncA type="discrete" tableValues="0.75"></feFuncA>
+        <feFuncA type="discrete" tableValues="0.8"></feFuncA>
     </feComponentTransfer> 
 </filter>
 

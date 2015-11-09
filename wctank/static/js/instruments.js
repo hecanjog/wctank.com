@@ -25,7 +25,7 @@ export class BigEarEnviron extends Instrument
         super();
 
         this.player = 
-            new MediaElementPlayer(`/streaming/bigearsample.6${featureDetection.audioExt}`);
+            new MediaElementPlayer(`/streaming/bigearsample.6${featureDetection.audioext}`);
 
         this.player.loop = true;
         this.player.autoplay = true;

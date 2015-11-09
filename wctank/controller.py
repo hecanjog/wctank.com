@@ -51,7 +51,7 @@ def after_request(response):
 # to support HTTP 206
 @app.route('/streaming/<fileName>')
 def send_file_partial(fileName):
-    path = os.path.expanduser("~/wctank.com/wctank/static/assets/" + fileName)
+    path = os.path.expanduser("~/Desktop/wctank.com/wctank/static/assets/" + fileName)
 
     range_header = request.headers.get('Range', None)
     if not range_header:
