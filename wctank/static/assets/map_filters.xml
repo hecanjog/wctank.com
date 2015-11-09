@@ -10,7 +10,11 @@
     
     <!-- EDGE DETECTION -->
         <feColorMatrix in="SourceGraphic" type="saturate" values="0"></feColorMatrix>
-        <feGaussianBlur id="pa-denoise" stdDeviation="1.16"></feGaussianBlur>
+        <feGaussianBlur id="pa-denoise" stdDeviation="1.16">
+            <animate id="print-analog-denoise-animate" attributeName="stdDeviation"
+                values="1.10;0.7;1.1;" calcMode="linear" dur="3000ms" repeatCount="indefinite"> 
+            </animate>
+        </feGaussianBlur>
         <feConvolveMatrix   
             kernelMatrix="-1 -1 -1 
                           -1 8 -1 
@@ -29,15 +33,6 @@
     <feComponentTransfer>
         <feFuncA type="discrete" tableValues="0.75"></feFuncA>
     </feComponentTransfer> 
-
-</filter>
-
-<filter id="animated-blur">
-    <feGaussianBlur id="animated-blur-feGaussianBlur" stdDeviation="0">
-        <animate id="animated-blur-animate-node" attributeName="stdDeviation" 
-            values="" calcMode="linear" dur="1000ms" repeatCount="indefinite">
-        </animate>
-    </feGaussianBlur> 
 </filter>
 
 </defs>

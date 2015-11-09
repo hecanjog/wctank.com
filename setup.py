@@ -6,7 +6,7 @@ setup(
     description='wctank.com',
     url='http://wctank.com',
     install_requires=[
-        'flask', 
+        'Flask', 
         'pytumblr',
         'Flask-SQLAlchemy',
         'docopt',

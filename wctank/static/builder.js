@@ -3,8 +3,8 @@
 var fs = require('fs'),
     less = require('less'),
     jspm = require('jspm'),
-    cli = require('cli'),
-    static = require('node-static');
+    cli = require('cli');
+
 
 cli.parse({
     production: ['p', 'builds minified and mangled static resources to ./dist'],
@@ -58,8 +58,5 @@ cli.main(function(args, options) {
     }
     if (options.debug) {
         doBuild(false); 
-    }
-    if (options.serve) {
-        doServe();
     }
 });
