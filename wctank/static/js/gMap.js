@@ -3,7 +3,7 @@
  */
 
 
-import $ from "jquery";
+import "jquery";
 
 //////// module private stuff
 let events_added = false;
@@ -141,7 +141,7 @@ export function goTo(lat_or_latLng, lng_or_zoom, zoom)
 
 export function zoomControlsVisible(b)
 {
-    let $zoomCtl = $(".gmnoprint").not(".gm-style-cc");
+    let $zoomCtl = window.$(".gmnoprint").not(".gm-style-cc");
     b ? $zoomCtl.show() : $zoomCtl.hide();
 }
 

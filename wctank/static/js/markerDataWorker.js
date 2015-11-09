@@ -40,8 +40,7 @@ for (var i = 0; i < rect_vertices.length; i++) {
 }      
 
 var angle = function() {
-    return Math.random() * Math.PI * 2 * 
-        (Math.random() < 0.5 ? -1 : 1 );
+    return Math.random() * Math.PI * 2 * (Math.random() < 0.5 ? -1 : 1);
 };
 
 var x_dimen = 2 * marker_side,
@@ -66,12 +65,12 @@ var pushNewMarkerData = function(MarkerData, targetArr) {
             
         var s = Math.random() * 100;
 
-        if (s < 7) y = y_dimen - (y_bin * 5);
-        else if (s >= 7 && s < 14) y = y_dimen - (y_bin * 4);
-        else if (s >= 14 && s < 30) y = y_dimen - (y_bin * 3);
-        else if (s >= 30 && s < 50) y = y_dimen - (y_bin * 2);
-        else if (s >= 50 && s < 75) y = y_dimen - (y_bin * 1); 
-        else if (s >= 75 && s < 100) y = y_dimen; 
+        if (s < 7) p_vec_y = y_dimen - (y_bin * 5);
+        else if (s >= 7 && s < 14) p_vec_y = y_dimen - (y_bin * 4);
+        else if (s >= 14 && s < 30) p_vec_y = y_dimen - (y_bin * 3);
+        else if (s >= 30 && s < 50) p_vec_y = y_dimen - (y_bin * 2);
+        else if (s >= 50 && s < 75) p_vec_y = y_dimen - (y_bin * 1); 
+        else if (s >= 75 && s < 100) p_vec_y = y_dimen; 
 
         for (var l = 0; l < cloud_sq.length / 2; l++) {
             targetArr.push(MarkerData.hash, markerTypes.CLOUD,

@@ -29,10 +29,10 @@ class DrawingData {
 class MarkerData {
     update() {
         if (!projection)
-            projection = gMap.pxOverlay.getProjection();
-        let point = proj.fromLatLngToContainerPixel(this.worldPosition);
+            projection = gMap.overlay.getProjection();
+        let pnt = projection.fromLatLngToContainerPixel(this.world_position);
         
-        this.containerPosition =
+        this.container_position =
             ( pnt.x < -overflow || 
               pnt.y < -overflow || 
               pnt.x > window.innerWidth + overflow || 
@@ -71,14 +71,15 @@ class MarkerData {
 export function push(googleMarker)
 {
     let dat = new MarkerData(googleMarker);
-    markerMapPosition.markers[dat.hash] = dat;
+    markers[dat.hash] = dat;
 }
 
 
 export function markerExists(lat, lng)
 {
-    for (let marker of markers) {
-        let world_position = marker.worldPosition,
+    for (let hash of Object.keys(markers)) {
+        let marker = markers[hash];
+        let world_position = marker.world_position,
             err = 0.0000001;
         if (world_position.lat() > lat - err && world_position.lat() < lat + err &&
                 world_position.lng() > lng - err && world_position.lng() < lng + err) {
@@ -92,20 +93,20 @@ export function markerExists(lat, lng)
 let state_dump = [];
 
 
-export function get_current_state()
+export function getCurrentState()
 {
-    while (r.length > 0) {
+    while (state_dump.length > 0) {
         state_dump.pop(); 
     }
     while (livingKeys.length > 0) {
         livingKeys.pop();
     }
-
-    for (let marker of markers) {
+    for (let hash of Object.keys(markers)) {
+        let marker = markers[hash];
         marker.update();
         if (marker.is_alive) {
             state_dump.push(marker.getDrawingData());
-            livingKeys.push(marker.hash);
+            livingKeys.push(hash);
         }
     }
 

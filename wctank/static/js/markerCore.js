@@ -2,12 +2,14 @@
  * @module markerCore
  * init marker data, export some useful functionality, attach to map/marker events
  */ 
-import * as rudy from "lih/rudy/rudy";
+import * as rudy from "lib/rudy/rudy";
 import * as markerMapPosition from "./markerMapPosition";
 import * as markerData from "./markerData";
 import * as featureDetection from "./featureDetection";
-import markershaders from "glsl/markershaders!systemjs/plugin-text";
-
+import * as posts from "./posts";
+import * as gMap from "./gMap";
+import * as util from "lib/rudy/util";
+import markershaders from "glsl/markers.glsl!systemjs/plugin-text";
 
 
 //////////////////////////////////////////////////////////////// module private and init
@@ -15,7 +17,7 @@ import markershaders from "glsl/markershaders!systemjs/plugin-text";
 let marker_canvas = document.getElementById("markers"),
     projection = null;
 
-let z = rudy.visualCore.webgl.setup(marker_canvas, markershaders, false, true);
+let z = rudy.visualCore.webglSetup(marker_canvas, markershaders, false, true);
 
 /*
  * The modernizer webgl test is 'soft', i.e., if the ability to create a context
@@ -146,18 +148,18 @@ class Texture
             canv.width = img.height;  
             canv.width = img.width;
             canv.height = img.height;
-            ctx = canv.getContext('2d');
+            let ctx = canv.getContext('2d');
             ctx.drawImage(img, 0, 0);
             this.image = canv;
             
             this.texture = z.gl.createTexture();
-            z.gl.activeTexture(TEXTUREID);
+            z.gl.activeTexture(texture_id);
             z.gl.bindTexture(z.gl.TEXTURE_2D, this.texture);
             z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MIN_FILTER, z.gl.LINEAR);
             z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_S, z.gl.CLAMP_TO_EDGE); 
             z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_WRAP_T, z.gl.CLAMP_TO_EDGE);
             z.gl.texParameteri(z.gl.TEXTURE_2D, z.gl.TEXTURE_MAG_FILTER, z.gl.NEAREST);
-            z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, c);
+            z.gl.texImage2D(z.gl.TEXTURE_2D, 0, z.gl.RGBA, z.gl.RGBA, z.gl.UNSIGNED_BYTE, canv);
             z.gl.uniform1i( z.gl.getUniformLocation(z.program, name), index );
         };
     } 
@@ -294,7 +296,7 @@ let markerPositionFailsafe = () =>
         let err = 1.75;
         if (pos.x > mark_x + err || pos.x < mark_x - err ||
                 pos.y > mark_y + err || pos.y < mark_y - err) {
-            markerCore.forceDataUpdate();
+            forceDataUpdate();
             return true;
         } else {
             return false;
@@ -357,7 +359,7 @@ export function forceDataUpdate()
     });
     draw();
 }
-
+window.forceData = forceDataUpdate;
 export function setVisibility(bool) 
 {
     marker_canvas.style.visibility = bool ? 'visible' : 'hidden'; 
@@ -374,7 +376,7 @@ export function beNoise(bool, isColored)
 
 gMap.events.queue('map', 'dragstart', () => {
     rudy.renderLoop.add(updateDelta);
-    rudy.renderLoop.add(markerCore.tryDataUpdate);
+    rudy.renderLoop.add(tryDataUpdate);
 });
 
 gMap.events.queue('map', 'dragend', () => {
@@ -393,7 +395,7 @@ gMap.events.queue('map', 'dragend', () => {
      
     window.setTimeout(() => {
         rudy.renderLoop.remove(updateDelta);
-        rudy.renderLoop.remove(markerCore.tryDataUpdate);
+        rudy.renderLoop.remove(tryDataUpdate);
     }, 500);
 
     window.setTimeout(updateMarkers, 200);
@@ -415,4 +417,8 @@ gMap.events.queue('map', 'zoom_changed', () => {
     } catch(e) { /* do nothing */ }
 });
 
-rudy.renderLoop.add(draw);
+
+export function markersStart()
+{
+    rudy.renderLoop.add(draw);
+}

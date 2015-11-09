@@ -2,13 +2,13 @@
  * @module posts
  */ 
 
-import $ from "jquery";
+import "jquery";
 import * as div from "./div";
 import * as gMap from "./gMap";
 import loading_img from "../assets/loading_cur.svg!systemjs/plugin-text";
 
 
-export function renderTemplate(post, template)
+export function renderTemplate(post, $template)
 {
     let content = '';
     if(typeof post.title !== 'undefined') {
@@ -52,7 +52,7 @@ export function renderTemplate(post, template)
     $.each(post_data, (i, v) => {
         let rg = "~!" + i;
         let r = new RegExp(rg, "g");
-        rendered = template.replace(r, v);
+        rendered = rendered.replace(r, v);
     });
     
     return rendered;
@@ -156,9 +156,9 @@ export function display(post)
         }, 300);
         
         $contents.load(() => {
-            if ($loading) $loading.fadeOut(trivial).remove(); 
+            if ($loading) $loading.fadeOut(small_swap_time).remove(); 
             div.$overlay.css("width", "auto");
-            $contents.fadeIn(trivial);
+            $contents.fadeIn(small_swap_time);
             waiting = false;
 
             let $iframe = $contents.find('iframe');
@@ -172,12 +172,12 @@ export function display(post)
             });
         });
     } else {
-        $contents.fadeIn(trivial); // for now, just fade in if text ...or instagram
+        $contents.fadeIn(small_swap_time); // for now, just fade in if text ...or instagram
     }
 
-    status.visible = true;
-    status.postType = post.type;        
-    status.content = $post;
+    display_status.visible = true;
+    display_status.postType = post.type;        
+    display_status.content = $post;
     document.dispatchEvent(post_event);
 
     marker_clicked = true;
@@ -191,7 +191,7 @@ export function display(post)
 $(document).on('click', '.close-post', function(e) {
     e.preventDefault();
     width = 'auto';
-    $(this).parent().fadeOut('fast', function() {
+    window.$(this).parent().fadeOut('fast', function() {
         $(this).find("*").html("");
     });
     statusInvisible();

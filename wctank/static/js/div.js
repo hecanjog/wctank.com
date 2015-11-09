@@ -1,7 +1,7 @@
 /**
  * @module div
  */
-import $ from "jquery";
+import "jquery";
 
 export let $overlay = $('#overlay');
 export let $map = $("#map-canvas");

@@ -12,7 +12,7 @@
         <feColorMatrix in="SourceGraphic" type="saturate" values="0"></feColorMatrix>
         <feGaussianBlur id="pa-denoise" stdDeviation="1.16">
             <animate id="print-analog-denoise-animate" attributeName="stdDeviation"
-                values="1.10;0.7;1.1;" calcMode="linear" dur="3000ms" repeatCount="indefinite"> 
+                values="1.2;0.6;1.2;1.8;1.2" calcMode="linear" dur="8000ms" repeatCount="indefinite"> 
             </animate>
         </feGaussianBlur>
         <feConvolveMatrix   
