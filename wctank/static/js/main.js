@@ -1,3 +1,4 @@
+import $ from "jquery";
 import * as featureDetection from "./featureDetection";
 import * as gMap from "./gMap";
 import { markersStart, forceDataUpdate } from "./markerCore";
@@ -54,6 +55,9 @@ if (!featureDetection.webaudio) { // TODO: create a new batch of fallbacks
 gMap.events.initQueuedEvents('map');
 
 // suddenly remove loading screen - no transition!
-var loading = document.getElementById("loading-container");
-document.body.removeChild(loading);
+window.setTimeout(() => {
+    $("#loading-container").fadeOut(1000, 'linear', function() {
+        $(this).remove();
+    });
+}, 5000);
 window.setTimeout(forceDataUpdate, 4000);
