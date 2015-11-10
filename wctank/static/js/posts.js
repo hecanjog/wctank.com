@@ -72,9 +72,7 @@ export function get(visibleBounds, callback)
 
     if (!throttle) {
         $.getJSON(url, (data) => {
-            throttle = true;
             window.setTimeout(() => { throttle = false; }, throttle_interval);
-        
             for (let post of data) {
                 post.markerType = (() => {
                     if(post.tags.find((x) => { return x === "videos"; })) {
@@ -92,6 +90,29 @@ export function get(visibleBounds, callback)
             callback(data);
         });
     }
+}
+
+
+export function getAll(callback) 
+{
+    $.getJSON("/posts/all", data => {
+        window.setTimeout(() => { throttle = false; }, throttle_interval);
+        for (let post of data) {
+            post.markerType = (() => {
+                if(post.tags.find((x) => { return x === "videos"; })) {
+                    return 'video';   
+                   // TODO: generic audio tag 
+                } else if (post.tags.find(x => { return x === "stumblesome"; })) {
+                    return 'stumble';
+                } else {
+                    return 'random';
+                }
+            }());
+           
+            post.isTextPost = text_posts.find(x => { return x === post.type; });
+        }
+        callback(data);
+    });
 }
 
 

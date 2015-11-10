@@ -304,9 +304,12 @@ let markerPositionFailsafe = () =>
     }
 };
 
+///////////////////////////////////////////////////////////////////////////////
 
-let updateMarkers = () => {
-    posts.get(gMap.map.getBounds(), data => {
+// before, we were doing a request for all visible markers when the map moved. 
+// Now, just do one big one, and cache this in memory on the server-side.
+export function initAllMarkers(callback) {
+    posts.getAll(data => {
         data.forEach(post => {
             if (!markerMapPosition.markerExists(post.lat, post.long)) {
                 let loc = new google.maps.LatLng(post.lat, post.long);
@@ -323,11 +326,10 @@ let updateMarkers = () => {
                 });
             }
         });
+        tryDataUpdate();
+        callback();
     });
-    tryDataUpdate();
 };
-
-///////////////////////////////////////////////////////////////////////////////
 
 // update uniforms, interleaved array on each frame
 export function draw() 
@@ -397,8 +399,6 @@ gMap.events.queue('map', 'dragend', () => {
         rudy.renderLoop.remove(updateDelta);
         rudy.renderLoop.remove(tryDataUpdate);
     }, 500);
-
-    window.setTimeout(updateMarkers, 200);
 });
 
 // turn to white noise when a post is displayed
@@ -406,16 +406,7 @@ document.addEventListener('post_overlay', e => {
     beNoise(e.detail.visible);
 });
 
-gMap.events.queue('map', 'tilesloaded', updateMarkers);
-gMap.events.queue('map', 'zoom_changed', () => {
-    // apparently there's a period of time between when the map seems 'ready'
-    // and actually being able to get projections, and the tableux select
-    // can fire during this time, so swallow that error.
-    forceDataUpdate();
-    try {
-        updateMarkers();
-    } catch(e) { /* do nothing */ }
-});
+gMap.events.queue('map', 'zoom_changed', forceDataUpdate);
 
 
 export function markersStart()

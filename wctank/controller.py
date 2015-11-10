@@ -8,14 +8,17 @@ import re
 # flip to true to use raw sources
 dev_template = False
 
+
 @app.route('/')
 def index():
     return render_template('index.html', dev_template=dev_template)
+
 
 # feature detection fatal
 @app.route('/feature-fail/<failure_type>')
 def featureFail(failure_type):
     return render_template('fail.html', type=failure_type, dev_template=dev_template);
+
 
 # used when grabbing raw video for webgl processing
 @app.route('/vimeo_data')
@@ -24,6 +27,17 @@ def getvimeodata():
     vimcdn = re.compile('(http:\/\/pdl\.vimeocdn\.com\/93159\/486\/160286516\.mp4\?token2=.{43})');
     url = vimcdn.findall(page.read())[0]
     return url
+
+
+# get the entire database!
+@app.route('/posts/all')
+def getAllPosts():
+    records = models.Post.query.all()
+    posts = []
+    for i in records:
+        posts.append(i.json)
+    return ' '.join(['[', ','.join(posts), ']'])
+
  
 # query database for posts within visible bounds
 @app.route('/posts/<swk>/<swa>/<nek>/<nea>')
@@ -39,12 +53,14 @@ def getposts(swk, swa, nek, nea):
 
     return ' '.join(['[', ','.join(posts), ']'])
 
+
 @app.after_request
 def after_request(response):
     response.headers.add('Accept-Ranges', 'bytes')
     response.cache_control.max_age = 0
     response.cache_control.public = True
     return response
+
 
 # mostly some copypasto from: 
 # http://blog.asgaard.co.uk/2012/08/03/http-206-partial-content-for-flask-python

@@ -1,7 +1,7 @@
 import $ from "jquery";
 import * as featureDetection from "./featureDetection";
 import * as gMap from "./gMap";
-import { markersStart, forceDataUpdate } from "./markerCore";
+import { markersStart, forceDataUpdate, initAllMarkers } from "./markerCore";
 import * as renderLoop from "lib/rudy/renderLoop";
 import { PrintAnalog } from "./effects";
 import * as tableux from "./tableux";
@@ -22,6 +22,19 @@ var overlay = new google.maps.GroundOverlay(
 );
 overlay.setMap(gMap.map);
 
+google.maps.event.addListenerOnce(gMap.map, 'tilesloaded', () => {
+    // init delegated events
+    gMap.events.initQueuedEvents('map');
+    initAllMarkers(() => {
+        markersStart();
+        window.setTimeout(() => {
+            $("#loading-container").fadeOut(1000, 'linear', function() {
+                $(this).remove();
+            });
+        }, 5000);
+        forceDataUpdate();
+    });
+});
 
 // set up main map skin
 let glow = new PrintAnalog();
@@ -38,10 +51,6 @@ glow.operate(true);
 tableux.select(glow);
 
 
-// start markers!
-markersStart();
-
-
 // if audio fails, reflect error in UI
 if (!featureDetection.webaudio) { // TODO: create a new batch of fallbacks
     audioUI.disableMuteButton(); 
@@ -49,16 +58,3 @@ if (!featureDetection.webaudio) { // TODO: create a new batch of fallbacks
     audioScene.init();
     audioUI.init();
 }
-
-
-// init delegated events
-gMap.events.initQueuedEvents('map');
-
-// suddenly remove loading screen - no transition!
-window.setTimeout(() => {
-    $("#loading-container").fadeOut(1000, 'linear', function() {
-        $(this).remove();
-    });
-}, 5000);
-window.setTimeout(forceDataUpdate, 4000);
-window.setInterval(forceDataUpdate, 15000);
