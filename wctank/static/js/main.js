@@ -61,3 +61,4 @@ window.setTimeout(() => {
     });
 }, 5000);
 window.setTimeout(forceDataUpdate, 4000);
+window.setInterval(forceDataUpdate, 15000);
