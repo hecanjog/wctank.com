@@ -1,5 +1,0 @@
-#!/bin/sh
-
-NAME=$(basename $1 .wav)
-oggenc -q9 $1 -o ${2}${NAME}.ogg
-lame -q0 -b256 $1 ${2}${NAME}.mp3
