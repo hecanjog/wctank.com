@@ -41,14 +41,11 @@ tableux.select(glow);
 markersStart();
 
 
-// start audio scene
-audioScene.init();
-
-// init audioUI
 // if audio fails, reflect error in UI
-if (!featureDetection.audioext && !featureDetection.webaudio) {
+if (!featureDetection.webaudio) { // TODO: create a new batch of fallbacks
     audioUI.disableMuteButton(); 
 } else {
+    audioScene.init();
     audioUI.init();
 }
 
