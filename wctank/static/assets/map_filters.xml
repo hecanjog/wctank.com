@@ -4,15 +4,16 @@
 <filter id="print-analog">
     <feColorMatrix in="SourceGraphic" type="saturate" values="4.6"></feColorMatrix>
     <feComponentTransfer>
-        <feFuncA type="discrete" tableValues="0.93"></feFuncA>
+        <feFuncA type="discrete" tableValues="0.6"></feFuncA>
     </feComponentTransfer>
     <feOffset dx="2" dy="1" result="offset"></feOffset>
+    
     
     <!-- EDGE DETECTION -->
         <feColorMatrix in="SourceGraphic" type="saturate" values="0"></feColorMatrix>
         <feGaussianBlur id="pa-denoise" stdDeviation="1.16">
             <animate id="print-analog-denoise-animate" attributeName="stdDeviation"
-                values="0.9;0.4;0.9" calcMode="linear" dur="2500ms" repeatCount="indefinite"> 
+                values="1.1;0.4;1.1" calcMode="linear" dur="6500ms" repeatCount="indefinite"> 
             </animate>
         </feGaussianBlur>
         <feConvolveMatrix   
@@ -26,13 +27,9 @@
             <feFuncG type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncG>
             <feFuncB type="linear" slope="-30" intercept="1" tableValues="0 1"></feFuncB>
         </feComponentTransfer> 
-        <feMorphology operator="erode" radius="0.001" result="thick"></feMorphology>
     <!-- /EDGE DETECTION -->
     
     <feBlend id="pa-bypass" in="offset" in2="flip" mode="multiply" result="out"></feBlend>
-    <feComponentTransfer>
-        <feFuncA type="discrete" tableValues="0.8"></feFuncA>
-    </feComponentTransfer> 
 </filter>
 
 </defs>

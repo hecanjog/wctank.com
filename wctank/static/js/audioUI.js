@@ -63,65 +63,63 @@ export function disableMuteButton()
 
 ////////////// init button behavior
 
-// if audio fails, reflect error in UI
-if (!featureDetection.audioext && !featureDetection.webaudio) {
-    disableMuteButton(); 
-}
-
-$mute.click(() => {
-    if (!disable_mute_button) {
-        if (last_gain === 1) {
-            toOff();
-            mainGainFade(0, button_fade);
-            manual_mute = true;
-        } else {
-            overlay_mute = false;
-            toUp();
-            mainGainFade(1, button_fade);
-            manual_mute = false;
-        }
-        mute_clicked = true;
-        window.setTimeout(function() {
-            mute_clicked = false;
-        }, button_fade * 1000);
-    }
-});
-
-$mute.mouseenter(() => {
-    let cl = $mute.attr('class');               
-    if (!mute_clicked && !disable_mute_button) {
-        if (last_gain) {
-            if (cl === vol_up) toOff();
-        } else {
-            if (cl === vol_off) toUp();
-        }
-    }
-});
-
-$mute.mouseleave(() => {
-    let cl = $mute.attr('class');
-    if (!mute_clicked && !disable_mute_button) {
-        if (last_gain) {
-            if (cl === vol_off) toUp();
-        } else {
-            if (cl === vol_up) toOff();
-        }
-    }
-});
-
-document.addEventListener('post_overlay', e => {
-    if (!disable_mute_button) {
-        if (!overlay_mute) {
-            if (e.detail.postType === 'video' || e.detail.postType === 'audio' ||
-                    e.detail.content.search("iframe") >= 0) {
-                mainGainFade(0, overlay_fade);
-                toOff(); 
-                overlay_mute = true;
+export function init() 
+{
+    $mute.click(() => {
+        if (!disable_mute_button) {
+            if (last_gain === 1) {
+                toOff();
+                mainGainFade(0, button_fade);
+                manual_mute = true;
+            } else {
+                overlay_mute = false;
+                toUp();
+                mainGainFade(1, button_fade);
+                manual_mute = false;
             }
-        } else if (overlay_mute && !manual_mute) {
-            mainGainFade(1, overlay_fade);
-            toUp();
-            overlay_mute = false;
+            mute_clicked = true;
+            window.setTimeout(function() {
+                mute_clicked = false;
+            }, button_fade * 1000);
         }
-    }
-});
+    });
+
+    $mute.mouseenter(() => {
+        let cl = $mute.attr('class');               
+        if (!mute_clicked && !disable_mute_button) {
+            if (last_gain) {
+                if (cl === vol_up) toOff();
+            } else {
+                if (cl === vol_off) toUp();
+            }
+        }
+    });
+
+    $mute.mouseleave(() => {
+        let cl = $mute.attr('class');
+        if (!mute_clicked && !disable_mute_button) {
+            if (last_gain) {
+                if (cl === vol_off) toUp();
+            } else {
+                if (cl === vol_up) toOff();
+            }
+        }
+    });
+
+    document.addEventListener('post_overlay', e => {
+        if (!disable_mute_button) {
+            if (!overlay_mute) {
+                if (e.detail.postType === 'video' || e.detail.postType === 'audio' ||
+                        e.detail.content.search("iframe") >= 0) {
+                    mainGainFade(0, overlay_fade);
+                    toOff(); 
+                    overlay_mute = true;
+                }
+            } else if (overlay_mute && !manual_mute) {
+                mainGainFade(1, overlay_fade);
+                toUp();
+                overlay_mute = false;
+            }
+        }
+    });
+}

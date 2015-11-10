@@ -5,6 +5,7 @@ import * as renderLoop from "lib/rudy/renderLoop";
 import { PrintAnalog } from "./effects";
 import * as tableux from "./tableux";
 import * as audioScene from "./audioScene"; 
+import * as audioUI from "./audioUI";
 
 
 // initalize google map
@@ -43,6 +44,13 @@ markersStart();
 // start audio scene
 audioScene.init();
 
+// init audioUI
+// if audio fails, reflect error in UI
+if (!featureDetection.audioext && !featureDetection.webaudio) {
+    audioUI.disableMuteButton(); 
+} else {
+    audioUI.init();
+}
 
 
 // init delegated events
@@ -51,4 +59,4 @@ gMap.events.initQueuedEvents('map');
 // suddenly remove loading screen - no transition!
 var loading = document.getElementById("loading-container");
 document.body.removeChild(loading);
-window.setTimeout(forceDataUpdate, 2000);
+window.setTimeout(forceDataUpdate, 4000);

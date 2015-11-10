@@ -7,8 +7,8 @@ var fs = require('fs'),
 
 
 cli.parse({
-    production: ['p', 'builds minified and mangled static resources to ./dist'],
-    debug: ['d', 'builds static resources to ./dist']
+    production: ['p', 'builds production resources in ./dist'],
+    debug: ['d', 'builds unminified resources in ./dist']
 });
 
  

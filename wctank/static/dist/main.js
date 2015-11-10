@@ -789,42 +789,187 @@
 })(typeof self != 'undefined' ? self : global);
 
 "bundle";
-$__System.register("2", ["3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "e", "f", "a", "b", "c", "d"], function (_export) {
-    var Instrument, ParameterizedAction, SamplePlayer, MediaElementPlayer, Bandpass, Noise, moduleExtensions, _classCallCheck, _createClass, _Symbol, _get, _inherits, audioNodes, envelopeAsdr, envelopeCore, featureDetection, BigEarEnviron, bpBank, OrganVoice, SubtractiveOrgan;
+$__System.register("2", ["3", "4", "5"], function (_export) {
+    /**
+     * @module audioUI
+     * basically the mute button
+     */
+
+    ///////// module private stuff
+    "use strict";
+
+    var $, featureDetection, audioCore, $mute, mute_clicked, button_fade, overlay_fade, overlay_mute, manual_mute, disable_mute_button, vol_up, vol_off, toOff, toUp, toError, mute_callbacks, last_gain, mainGainFade;
+
+    _export("muteHook", muteHook);
+
+    ////////////// init button behavior
+
+    // if audio fails, reflect error in UI
+
+    _export("disableMuteButton", disableMuteButton);
+
+    _export("init", init);
+
+    //////////////////////////////
+
+    function muteHook(callback) {
+        mute_callbacks.push(callback);
+    }
+
+    function disableMuteButton() {
+        disable_mute_button = true;
+        if ("out" in audioCore) audioCore.out.gain.value = 0;
+        toError();
+    }
+
+    function init() {
+        $mute.click(function () {
+            if (!disable_mute_button) {
+                if (last_gain === 1) {
+                    toOff();
+                    mainGainFade(0, button_fade);
+                    manual_mute = true;
+                } else {
+                    overlay_mute = false;
+                    toUp();
+                    mainGainFade(1, button_fade);
+                    manual_mute = false;
+                }
+                mute_clicked = true;
+                window.setTimeout(function () {
+                    mute_clicked = false;
+                }, button_fade * 1000);
+            }
+        });
+
+        $mute.mouseenter(function () {
+            var cl = $mute.attr('class');
+            if (!mute_clicked && !disable_mute_button) {
+                if (last_gain) {
+                    if (cl === vol_up) toOff();
+                } else {
+                    if (cl === vol_off) toUp();
+                }
+            }
+        });
+
+        $mute.mouseleave(function () {
+            var cl = $mute.attr('class');
+            if (!mute_clicked && !disable_mute_button) {
+                if (last_gain) {
+                    if (cl === vol_off) toUp();
+                } else {
+                    if (cl === vol_up) toOff();
+                }
+            }
+        });
+
+        document.addEventListener('post_overlay', function (e) {
+            if (!disable_mute_button) {
+                if (!overlay_mute) {
+                    if (e.detail.postType === 'video' || e.detail.postType === 'audio' || e.detail.content.search("iframe") >= 0) {
+                        mainGainFade(0, overlay_fade);
+                        toOff();
+                        overlay_mute = true;
+                    }
+                } else if (overlay_mute && !manual_mute) {
+                    mainGainFade(1, overlay_fade);
+                    toUp();
+                    overlay_mute = false;
+                }
+            }
+        });
+    }
 
     return {
-        setters: [function (_4) {
-            Instrument = _4.Instrument;
-        }, function (_5) {
-            ParameterizedAction = _5.ParameterizedAction;
-        }, function (_6) {
-            SamplePlayer = _6.SamplePlayer;
-        }, function (_7) {
-            MediaElementPlayer = _7.MediaElementPlayer;
-        }, function (_8) {
-            Bandpass = _8.Bandpass;
-        }, function (_9) {
-            Noise = _9.Noise;
-        }, function (_10) {
-            moduleExtensions = _10;
-        }, function (_) {
-            _classCallCheck = _["default"];
+        setters: [function (_) {
+            $ = _["default"];
         }, function (_2) {
-            _createClass = _2["default"];
+            featureDetection = _2;
         }, function (_3) {
-            _Symbol = _3["default"];
-        }, function (_e) {
-            _get = _e["default"];
-        }, function (_f) {
-            _inherits = _f["default"];
+            audioCore = _3;
+        }],
+        execute: function () {
+            $mute = $("#mute-button");
+            mute_clicked = false;
+            button_fade = 0.4;
+            overlay_fade = 1.1;
+            overlay_mute = false;
+            manual_mute = false;
+            disable_mute_button = false;
+            vol_up = "icon-volume-up";
+            vol_off = "icon-volume-off";
+
+            toOff = function toOff() {
+                $mute.removeClass(vol_up).addClass(vol_off);
+            };
+
+            toUp = function toUp() {
+                $mute.removeClass(vol_off).addClass(vol_up);
+            };
+
+            toError = function toError() {
+                $mute.removeClass(vol_off).removeClass(vol_up).addClass('icon-cancel-circled');
+            };
+
+            mute_callbacks = [];
+            last_gain = 1;
+
+            mainGainFade = function mainGainFade(val, time) {
+                last_gain = val;
+                if (!disable_mute_button) {
+                    if (featureDetection.webaudio) {
+                        audioCore.out.gain.linearRampToValueAtTime(val, audioCore.ctx.currentTime + time);
+                    }
+                    mute_callbacks.forEach(function (x) {
+                        x(val, time);
+                    });
+                }
+            };
+
+            if (!featureDetection.audioext && !featureDetection.webaudio) {
+                disableMuteButton();
+            }
+        }
+    };
+});
+
+$__System.register("6", ["4", "7", "8", "9", "10", "11", "12", "13", "14", "15", "a", "b", "c", "d", "e", "f"], function (_export) {
+    var featureDetection, Instrument, ParameterizedAction, SamplePlayer, envelopeCore, _get, _inherits, _classCallCheck, _createClass, _Symbol, MediaElementPlayer, Bandpass, Noise, moduleExtensions, audioNodes, envelopeAsdr, BigEarEnviron, bpBank, OrganVoice, SubtractiveOrgan;
+
+    return {
+        setters: [function (_10) {
+            featureDetection = _10;
+        }, function (_6) {
+            Instrument = _6.Instrument;
+        }, function (_7) {
+            ParameterizedAction = _7.ParameterizedAction;
+        }, function (_8) {
+            SamplePlayer = _8.SamplePlayer;
+        }, function (_9) {
+            envelopeCore = _9;
+        }, function (_) {
+            _get = _["default"];
+        }, function (_2) {
+            _inherits = _2["default"];
+        }, function (_3) {
+            _classCallCheck = _3["default"];
+        }, function (_4) {
+            _createClass = _4["default"];
+        }, function (_5) {
+            _Symbol = _5["default"];
         }, function (_a) {
-            audioNodes = _a;
+            MediaElementPlayer = _a.MediaElementPlayer;
         }, function (_b) {
-            envelopeAsdr = _b;
+            Bandpass = _b.Bandpass;
         }, function (_c) {
-            envelopeCore = _c;
+            Noise = _c.Noise;
         }, function (_d) {
-            featureDetection = _d;
+            moduleExtensions = _d;
+        }, function (_e) {
+            audioNodes = _e;
+        }, function (_f) {
+            envelopeAsdr = _f;
         }],
         execute: function () {
             /**
@@ -1025,56 +1170,39 @@ $__System.register("2", ["3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "e
     };
 });
 
-$__System.register("13", ["2", "14", "15", "16", "17", "18", "19", "1b", "1c", "1d", "d", "1a"], function (_export) {
-    var instruments, gMap, renderLoop, audioCore, util, Convolution, Clock, _Object$create, _Object$keys, _getIterator, featureDetection, Generator;
+$__System.register("16", ["4", "5", "6", "17", "18", "19", "1d", "1a", "1b", "1c"], function (_export) {
+    var featureDetection, audioCore, instruments, gMap, renderLoop, util, _Object$keys, Convolution, Clock, Generator;
 
     // everything in here can only be executed if webaudio exists,
-    // and es6 modules don't support conditional imports,
     // so... this is a big method.
 
     function init() {
         audioCore.init();
 
-        // this just plays a field recording
-        var environ = new instruments.BigEarEnviron();
-        environ.link(audioCore.out);
-
-        // closeup, play the field recording at full volume
-        // far away, don't
-        // in between, scale the amplitude with the zoom level
-        gMap.events.queue('map', 'zoom_changed', function () {
-            var zoom = gMap.map.getZoom(),
-                gain;
-            if (zoom >= 18) {
-                gain = 1;
-            } else if (zoom <= 3) {
-                gain = 0;
-            } else {
-                gain = 1 - (15 - zoom) * 0.067;
-            }
-            environ.player.gain.linearRampToValueAtTime(gain, audioCore.ctx.currentTime + 0.5);
-        });
+        var n_voices = 4,
+            n_partials = 20,
+            q_value = 250;
 
         // main instrument for bass ostinato, 'alto' and 'tenor' voices
-        var organ = new instruments.SubtractiveOrgan(18, 10, 250);
-        organ.gain.value = 0.8;
+        var organ = new instruments.SubtractiveOrgan(n_voices, n_partials, q_value);
+        organ.gain.value = 1;
 
         // convolve the organ with an ir for reverb
         var organ_convo = new Convolution("/static/assets/york-minster" + featureDetection.audioext);
         organ_convo.wetDry(100);
-        organ_convo.gain.value = 0.68;
+        organ_convo.gain.value = 0.4;
 
         organ.link(organ_convo).link(audioCore.out);
 
-        // a clock just for the ostinato
-        var ostinato_clock = new Clock(50, 3);
+        var main_clock = new Clock(50, 3);
 
         // ostinato parameters
-        var ostinato_loop_count = 0;
-        var ostinato_params = {
+        var loop_count = 0;
+        var current_voice = 1;
+        var longest_subdivision = 8;
+        var params = {
             opt: {
-                // execute callback after each loop
-                loop: 1
+                loop: 1 // execute callback after each loop
             },
             targets: {
                 attack: organ.attackTarget,
@@ -1085,265 +1213,131 @@ $__System.register("13", ["2", "14", "15", "16", "17", "18", "19", "1b", "1c", "
             // or was there a reason seq was an object?
             seq: {
                 0: {
-                    subd: 1,
+                    subd: longest_subdivision,
                     val: {
-                        attack: { voice: 0, isAttack: true },
-                        frequency: { voice: 0, frequency: 330 }
-                    }
-                },
-                1: {
-                    subd: 1,
-                    val: {
-                        attack: { voice: 1, is_attack: 'asdr', dur: { subd: 1, clock: ostinato_clock } },
-                        frequency: { voice: 1, frequency: 262 }
-                    }
-                },
-                2: {
-                    subd: 1,
-                    val: {
-                        attack: { voice: 2, is_attack: 'asdr', dur: { subd: 1, clock: ostinato_clock } },
-                        frequency: { voice: 2, frequency: 262 }
+                        attack: { voice: 0, is_attack: true },
+                        frequency: { voice: 0, frequency: 80 }
                     }
                 }
             },
 
             callbacks: function callbacks() {
-                if (ostinato_loop_count++ === 10) {
-                    // switch to an infinite loop sans callbacks
-                    ostinato_params.opt.loop = true;
-                    ostinato_rhythm.parseConfig(ostinato_params);
-                    ostinato_rhythm.execute();
-                    tenor_clock.start();
-                    tenor_rhythm.execute();
+                var len = _Object$keys(params.seq).length;
+
+                params.seq[len] = {};
+
+                params.seq[len].subd = params.seq[len - 1].subd * (Math.random() * 0.2 + 0.8);
+
+                params.seq[len].val = {};
+                var val = params.seq[len].val;
+
+                val.attack = {};
+                val.attack.voice = current_voice;
+                val.attack.is_attack = Math.random() > 0.5 ? 'asdr' : true;
+                val.attack.dur = {};
+                val.attack.dur.subd = val.attack.is_attack === 'asdr' ? params.seq[len].subd * 0.1 : 1;
+                val.attack.dur.clock = main_clock;
+
+                val.frequency = {};
+                val.frequency.voice = current_voice;
+
+                var last_freq = params.seq[len - 1].val.frequency.frequency;
+                loop_count++;
+                val.frequency.frequency = last_freq + last_freq / loop_count - 1 * loop_count;
+
+                current_voice = (current_voice + 1) % n_voices;
+
+                rhythm.parseConfig(params);
+                rhythm.execute();
+
+                if (loop_count % 10 === 0) {
+                    rhythm.shirk();
+                    window.setTimeout(function () {
+                        rhythm.parseConfig(params);
+                        rhythm.execute();
+                    }, 20000);
                 }
-                ostinato_rhythm.parseConfig(ostinato_params);
-                ostinato_rhythm.execute();
             }
         };
 
-        // will generate the ostinato rhythmic sequence
-        var ostinato_rhythm = new Generator(ostinato_clock, ostinato_params);
+        var rhythm = new Generator(main_clock, params);
 
-        // the tenor voice will return to this periodically
-        var tonal_center_gesture = {
-            0: {
-                subd: Math.PI,
-                val: {
-                    atk: { voice: 3, is_attack: 'asdr', dur: { subd: Math.PI, clock: ostinato_clock } },
-                    freq: { voice: 3, frequency: 689 }
-                }
-            },
-            1: {
-                subd: 0.875,
-                val: {
-                    atk: { voice: 3, is_attack: true, smudge: 75 },
-                    freq: { voice: 3, frequency: 661 }
-                }
-            }
+        var getVoice = function getVoice() {
+            return Math.random() * n_voices | 0;
         };
 
-        var tenor_params = {
+        var inital_voice = getVoice();
+
+        var stab_params = {
             opt: {
                 loop: 1
             },
             targets: {
-                atk: organ.attackTarget,
-                freq: organ.pitchTarget
-            },
-            seq: _Object$create(tonal_center_gesture),
-            callbacks: function voice() {
-                var len = _Object$keys(tenor_params.seq).length;
-                var freq = util.smudgeNumber(tenor_params.seq[len - 1].val.freq.frequency, 10);
-
-                // worm aroud frequency-wise
-                if (freq < 400) {
-                    freq += 10;
-                } else if (freq > 1200) {
-                    freq -= 10;
-                }
-
-                // append new step to len
-                tenor_params.seq[len] = {
-                    subd: Math.random() * 0.20,
-                    val: {
-                        atk: { voice: 3, is_attack: true, smudge: 10 },
-                        freq: { voice: 3, frequency: freq }
-                    }
-                };
-
-                // ko some steps after we reach a certain sequence length
-                var filter_start_len = 10;
-                if (len > filter_start_len) {
-                    var i = len - filter_start_len + Math.random() * len * 0.5 | 0;
-                    while (i--) {
-                        delete tenor_params.seq[Math.random() * filter_start_len | 0];
-                    }
-
-                    // reenumerate object
-                    // TODO: again, why isn't this an array again?
-                    var j = 0;
-                    var _iteratorNormalCompletion = true;
-                    var _didIteratorError = false;
-                    var _iteratorError = undefined;
-
-                    try {
-                        for (var _iterator = _getIterator(tenor_params.seq), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                            var prop = _step.value;
-
-                            tenor_params.seq[j++] = prop;
-                        }
-                    } catch (err) {
-                        _didIteratorError = true;
-                        _iteratorError = err;
-                    } finally {
-                        try {
-                            if (!_iteratorNormalCompletion && _iterator["return"]) {
-                                _iterator["return"]();
-                            }
-                        } finally {
-                            if (_didIteratorError) {
-                                throw _iteratorError;
-                            }
-                        }
-                    }
-                }
-
-                // if the sequence exceeds a max length, ko some steps
-                var max_length = util.smudgeNumber(80, 15) | 0;
-                if (len > max_length) {
-                    var k = len + Math.random() * len * 0.25 - max_length | 0;
-                    while (k--) {
-                        delete tenor_params.seq[Math.random() * max_length | 0];
-                    }
-                    tenor_params.seq = util.enumerate(tenor_params.seq);
-                }
-
-                if (Math.random() < 0.5) {
-                    // sometimes, do this again!
-                    voice();
-                } else {
-                    tenor_rhythm.parseConfig(tenor_params);
-                    tenor_rhythm.execute();
-                }
-
-                // at a certain point, start the alto voice
-                if (len >= 20) {
-                    alto_rhythm.execute();
-                }
-            }
-        };
-        var tenor_clock = new Clock(55),
-            tenor_rhythm = new Generator(tenor_clock, tenor_params);
-
-        var alto_count = 0;
-
-        // the frequencies we're going to base the alto voice on
-        var alto_mode = [480, 490, 500, 510, 520];
-
-        var make_alto_freq = function make_alto_freq() {
-            var freq = util.getRndItem(alto_mode);
-            if (alto_count++ % 3 === 0) {
-                freq += 0.2 * (alto_count / 3);
-            }
-            return freq;
-        };
-
-        var alto_params = {
-            opt: {
-                loop: 1
-            },
-            targets: {
-                atk: organ.attackTarget,
-                freq: organ.pitchTarget
+                attack: organ.attackTarget,
+                frequency: organ.pitchTarget
             },
             seq: {
                 0: {
-                    subd: 8.123,
+                    subd: 8,
                     val: {
-                        atk: { voice: 4, is_attack: true },
-                        freq: { voice: 4, frequency: 494 }
+                        attack: { voice: inital_voice, is_attack: 'true' },
+                        frequency: { voice: inital_voice, frequency: 440 }
                     }
                 },
                 1: {
-                    subd: 8.123,
+                    subd: 1,
                     val: {
-                        atk: { voice: 4, is_attack: true },
-                        freq: { voice: 4, frequency: 518 }
+                        attack: {
+                            voice: (inital_voice + 1) % n_voices,
+                            is_attack: 'asdr',
+                            dur: { subd: util.smudgeNumber(1, 50), clock: main_clock }
+                        },
+                        frequency: { voice: inital_voice, frequency: 500 }
                     }
                 }
             },
             callbacks: function callbacks() {
-                var len = _Object$keys(alto_params.seq.length);
-
-                alto_params.seq[len] = {
-                    subd: alto_params.seq[len - 1].subd,
-                    val: {
-                        atk: { voice: 4, is_attack: true, smudge: 10 },
-                        freq: { voice: 4, frequency: make_alto_freq() }
-                    }
-                };
-
-                // cap length of alto sequence to 20
-                var max_length = 20;
-                if (len > max_length) {
-                    var i = len - max_length;
-                    while (i--) {
-                        delete alto_params.seq[0];
-                        alto_params.seq = util.enumerate(alto_params.seq);
-                    }
+                var new_voice = getVoice();
+                for (var i = 0; i < 2; i++) {
+                    var cur_voice = (new_voice + i) % n_voices;
+                    stab_params.seq[i].val.frequency.voice = cur_voice;
+                    stab_params.seq[i].val.attack.voice = cur_voice;
                 }
 
-                alto_rhythm.parseConfig(alto_params);
-                alto_rhythm.execute();
+                stab_rhythm.parseConfig(stab_params);
+                stab_rhythm.execute();
             }
         };
 
-        var alto_rhythm = new Generator(tenor_clock, alto_params);
+        var stab_rhythm = new Generator(main_clock, stab_params);
 
-        ostinato_rhythm.execute();
-        ostinato_clock.start();
-
-        gMap.events.queue('map', 'zoom_changed', function () {
-            var zoom = gMap.map.getZoom();
-            ostinato_clock.bpm = 50 - (25 - zoom * 1.25);
-            var gain = (function () {
-                if (zoom >= 18) {
-                    return 0.02;
-                } else {
-                    return 0.45 + (18 - zoom) * 0.0306;
-                }
-            })();
-            organ_convo.gain.linearRampToValueAtTime(gain, audioCore.ctx.currentTime + 1);
-        });
-
-        ////////// secondary audio elements
+        organ.start();
+        main_clock.start();
+        rhythm.execute();
+        stab_rhythm.execute();
     }
 
     return {
         setters: [function (_3) {
-            instruments = _3;
+            featureDetection = _3;
+        }, function (_5) {
+            audioCore = _5;
+        }, function (_4) {
+            instruments = _4;
         }, function (_) {
             gMap = _;
         }, function (_2) {
             renderLoop = _2;
-        }, function (_4) {
-            audioCore = _4;
-        }, function (_5) {
-            util = _5;
         }, function (_6) {
-            Convolution = _6.Convolution;
-        }, function (_7) {
-            Clock = _7.Clock;
-        }, function (_b) {
-            _Object$create = _b["default"];
-        }, function (_c) {
-            _Object$keys = _c["default"];
+            util = _6;
         }, function (_d) {
-            _getIterator = _d["default"];
-        }, function (_d2) {
-            featureDetection = _d2;
+            _Object$keys = _d["default"];
         }, function (_a) {
-            Generator = _a.Generator;
+            Convolution = _a.Convolution;
+        }, function (_b) {
+            Clock = _b.Clock;
+        }, function (_c) {
+            Generator = _c.Generator;
         }],
         execute: function () {
             "use strict";
@@ -1356,12 +1350,12 @@ $__System.register("13", ["2", "14", "15", "16", "17", "18", "19", "1b", "1c", "
 (function() {
 var _removeDefine = $__System.get("@@amd-helpers").createDefine();
 define("1e", [], function() {
-  return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n<defs>\n\n<filter id=\"print-analog\">\n    <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"4.6\"></feColorMatrix>\n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0.93\"></feFuncA>\n    </feComponentTransfer>\n    <feOffset dx=\"2\" dy=\"1\" result=\"offset\"></feOffset>\n    \n    <!-- EDGE DETECTION -->\n        <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"0\"></feColorMatrix>\n        <feGaussianBlur id=\"pa-denoise\" stdDeviation=\"1.16\">\n            <animate id=\"print-analog-denoise-animate\" attributeName=\"stdDeviation\"\n                values=\"0.9;0.4;0.9\" calcMode=\"linear\" dur=\"2500ms\" repeatCount=\"indefinite\"> \n            </animate>\n        </feGaussianBlur>\n        <feConvolveMatrix   \n            kernelMatrix=\"-1 -1 -1 \n                          -1 8 -1 \n                          -1 -1 -1\"\n            preserveAlpha=\"true\">\n        </feConvolveMatrix>\n        <feComponentTransfer result=\"flip\">\n            <feFuncR type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncR>\n            <feFuncG type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncG>\n            <feFuncB type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncB>\n        </feComponentTransfer> \n        <feMorphology operator=\"erode\" radius=\"0.001\" result=\"thick\"></feMorphology>\n    <!-- /EDGE DETECTION -->\n    \n    <feBlend id=\"pa-bypass\" in=\"offset\" in2=\"flip\" mode=\"multiply\" result=\"out\"></feBlend>\n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0.8\"></feFuncA>\n    </feComponentTransfer> \n</filter>\n\n</defs>\n</svg>\n";
+  return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n<defs>\n\n<filter id=\"print-analog\">\n    <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"4.6\"></feColorMatrix>\n    <feComponentTransfer>\n        <feFuncA type=\"discrete\" tableValues=\"0.6\"></feFuncA>\n    </feComponentTransfer>\n    <feOffset dx=\"2\" dy=\"1\" result=\"offset\"></feOffset>\n    \n    \n    <!-- EDGE DETECTION -->\n        <feColorMatrix in=\"SourceGraphic\" type=\"saturate\" values=\"0\"></feColorMatrix>\n        <feGaussianBlur id=\"pa-denoise\" stdDeviation=\"1.16\">\n            <animate id=\"print-analog-denoise-animate\" attributeName=\"stdDeviation\"\n                values=\"1.1;0.4;1.1\" calcMode=\"linear\" dur=\"6500ms\" repeatCount=\"indefinite\"> \n            </animate>\n        </feGaussianBlur>\n        <feConvolveMatrix   \n            kernelMatrix=\"-1 -1 -1 \n                          -1 8 -1 \n                          -1 -1 -1\"\n            preserveAlpha=\"true\">\n        </feConvolveMatrix>\n        <feComponentTransfer result=\"flip\">\n            <feFuncR type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncR>\n            <feFuncG type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncG>\n            <feFuncB type=\"linear\" slope=\"-30\" intercept=\"1\" tableValues=\"0 1\"></feFuncB>\n        </feComponentTransfer> \n    <!-- /EDGE DETECTION -->\n    \n    <feBlend id=\"pa-bypass\" in=\"offset\" in2=\"flip\" mode=\"multiply\" result=\"out\"></feBlend>\n</filter>\n\n</defs>\n</svg>\n";
 });
 
 _removeDefine();
 })();
-$__System.register("1f", ["10", "14", "17", "1d", "1c"], function (_export) {
+$__System.register("1f", ["13", "17", "19", "20", "1d"], function (_export) {
     var _classCallCheck, goTo, hasBit, _getIterator, _Object$keys, flags, bit, TableuxData, sets;
 
     function registerEffect(name) {
@@ -1456,14 +1450,14 @@ $__System.register("1f", ["10", "14", "17", "1d", "1c"], function (_export) {
     return {
         setters: [function (_) {
             _classCallCheck = _["default"];
-        }, function (_2) {
-            goTo = _2.goTo;
         }, function (_3) {
-            hasBit = _3.hasBit;
+            goTo = _3.goTo;
+        }, function (_4) {
+            hasBit = _4.hasBit;
+        }, function (_2) {
+            _getIterator = _2["default"];
         }, function (_d) {
-            _getIterator = _d["default"];
-        }, function (_c) {
-            _Object$keys = _c["default"];
+            _Object$keys = _d["default"];
         }],
         execute: function () {
             /**
@@ -1503,7 +1497,7 @@ $__System.register("1f", ["10", "14", "17", "1d", "1c"], function (_export) {
     };
 });
 
-$__System.registerDynamic("20", [], true, function(req, exports, module) {
+$__System.registerDynamic("21", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -1685,42 +1679,42 @@ $__System.registerDynamic("20", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("21", ["20"], true, function(req, exports, module) {
+$__System.registerDynamic("22", ["21"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  module.exports = req('20');
+  module.exports = req('21');
   global.define = __define;
   return module.exports;
 });
 
-$__System.register("22", ["10", "11", "12", "14", "21", "23", "24", "25", "26", "e", "f", "1f", "1e"], function (_export) {
-    var _classCallCheck, _createClass, _Symbol, gMap, posts, rudy, div, _get, _inherits, tableux, filterXML, filters, __css_class__, __name__, CssEffect, PrintAnalog;
+$__System.register("23", ["3", "11", "12", "13", "14", "15", "17", "22", "24", "25", "26", "1f", "1e"], function (_export) {
+    var _get, _inherits, _classCallCheck, _createClass, _Symbol, gMap, posts, rudy, div, tableux, filterXML, filters, __css_class__, __name__, CssEffect, PrintAnalog;
 
     return {
-        setters: [function (_2) {
-            _classCallCheck = _2["default"];
-        }, function (_) {
-            _createClass = _["default"];
+        setters: [function (_6) {}, function (_) {
+            _get = _["default"];
+        }, function (_2) {
+            _inherits = _2["default"];
+        }, function (_4) {
+            _classCallCheck = _4["default"];
         }, function (_3) {
-            _Symbol = _3["default"];
+            _createClass = _3["default"];
+        }, function (_5) {
+            _Symbol = _5["default"];
+        }, function (_11) {
+            gMap = _11;
+        }, function (_7) {}, function (_8) {
+            posts = _8;
         }, function (_9) {
-            gMap = _9;
-        }, function (_5) {}, function (_4) {}, function (_6) {
-            posts = _6;
-        }, function (_7) {
-            rudy = _7;
-        }, function (_8) {
-            div = _8;
-        }, function (_e) {
-            _get = _e["default"];
+            rudy = _9;
+        }, function (_10) {
+            div = _10;
         }, function (_f) {
-            _inherits = _f["default"];
-        }, function (_f2) {
-            tableux = _f2;
-        }, function (_e2) {
-            filterXML = _e2["default"];
+            tableux = _f;
+        }, function (_e) {
+            filterXML = _e["default"];
         }],
         execute: function () {
             /**
@@ -1824,7 +1818,7 @@ define("28", [], function() {
 
 _removeDefine();
 })();
-$__System.register("26", ["23"], function (_export) {
+$__System.register("26", ["3"], function (_export) {
   /**
    * @module div
    */
@@ -1852,8 +1846,8 @@ $__System.register("26", ["23"], function (_export) {
   };
 });
 
-$__System.register("24", ["14", "23", "26", "28", "1d"], function (_export) {
-    var gMap, div, loading_img, _getIterator, throttle, throttle_interval, text_posts, display_status, statusInvisible, post_event, iframeMouseStatus, overlay_iframe_mouse, marker_clicked, width;
+$__System.register("24", ["3", "17", "20", "26", "28"], function (_export) {
+    var gMap, _getIterator, div, loading_img, throttle, throttle_interval, text_posts, display_status, statusInvisible, post_event, iframeMouseStatus, overlay_iframe_mouse, marker_clicked, width;
 
     function renderTemplate(post, $template) {
         var content = '';
@@ -2032,14 +2026,14 @@ $__System.register("24", ["14", "23", "26", "28", "1d"], function (_export) {
 
     // Close overlay when user clicks on the X
     return {
-        setters: [function (_3) {
-            gMap = _3;
-        }, function (_) {}, function (_2) {
-            div = _2;
-        }, function (_4) {
-            loading_img = _4["default"];
-        }, function (_d) {
-            _getIterator = _d["default"];
+        setters: [function (_2) {}, function (_4) {
+            gMap = _4;
+        }, function (_) {
+            _getIterator = _["default"];
+        }, function (_3) {
+            div = _3;
+        }, function (_5) {
+            loading_img = _5["default"];
         }],
         execute: function () {
             /**
@@ -2198,7 +2192,7 @@ $__System.register("29", ["2a"], function (_export) {
   };
 });
 
-$__System.register("2a", ["10", "11", "14", "17", "1d", "1c"], function (_export) {
+$__System.register("2a", ["13", "14", "17", "19", "20", "1d"], function (_export) {
     var _classCallCheck, _createClass, gMap, rudyUtil, _getIterator, _Object$keys, markers, livingKeys, overflow, projection, DrawingData, MarkerData, state_dump;
 
     function push(googleMarker) {
@@ -2285,14 +2279,14 @@ $__System.register("2a", ["10", "11", "14", "17", "1d", "1c"], function (_export
             _classCallCheck = _["default"];
         }, function (_2) {
             _createClass = _2["default"];
-        }, function (_3) {
-            gMap = _3;
         }, function (_4) {
-            rudyUtil = _4;
+            gMap = _4;
+        }, function (_5) {
+            rudyUtil = _5;
+        }, function (_3) {
+            _getIterator = _3["default"];
         }, function (_d) {
-            _getIterator = _d["default"];
-        }, function (_c) {
-            _Object$keys = _c["default"];
+            _Object$keys = _d["default"];
         }],
         execute: function () {
             /**
@@ -2419,8 +2413,8 @@ $__System.registerDynamic("30", ["2e"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.register('b', ['10', '11', '12', '17', '30', '31', 'e', 'f', 'c'], function (_export) {
-    var _classCallCheck, _createClass, _Symbol, util, _Object$freeze, _Object$getOwnPropertyDescriptor, _get, _inherits, core, compEnvParentAssessors, ComponentEnvelope, sustainVs, sustainCookedVs, sustainCooked, sustainPriorBakeParams, sustainAmplitude, sustainDummy, Sustain, genA, genS, genD, genR, genEnv, genAS, genDR, genChanged, genPriorDuration, genSet, genUpdateEnvs, Generator, presets;
+$__System.register('f', ['10', '11', '12', '13', '14', '15', '19', '30', '31'], function (_export) {
+    var core, _get, _inherits, _classCallCheck, _createClass, _Symbol, util, _Object$freeze, _Object$getOwnPropertyDescriptor, compEnvParentAssessors, ComponentEnvelope, sustainVs, sustainCookedVs, sustainCooked, sustainPriorBakeParams, sustainAmplitude, sustainDummy, Sustain, genA, genS, genD, genR, genEnv, genAS, genDR, genChanged, genPriorDuration, genSet, genUpdateEnvs, Generator, presets;
 
     function clipValueSequence(env) {
         env.valueSequence.forEach(function (v) {
@@ -2430,24 +2424,24 @@ $__System.register('b', ['10', '11', '12', '17', '30', '31', 'e', 'f', 'c'], fun
 
     // a collection of useful param objs to construct envelopeAsdr.Generators with
     return {
-        setters: [function (_2) {
-            _classCallCheck = _2['default'];
+        setters: [function (_8) {
+            core = _8;
         }, function (_) {
-            _createClass = _['default'];
-        }, function (_3) {
-            _Symbol = _3['default'];
-        }, function (_6) {
-            util = _6;
-        }, function (_5) {
-            _Object$freeze = _5['default'];
+            _get = _['default'];
+        }, function (_2) {
+            _inherits = _2['default'];
         }, function (_4) {
-            _Object$getOwnPropertyDescriptor = _4['default'];
-        }, function (_e) {
-            _get = _e['default'];
-        }, function (_f) {
-            _inherits = _f['default'];
-        }, function (_c) {
-            core = _c;
+            _classCallCheck = _4['default'];
+        }, function (_3) {
+            _createClass = _3['default'];
+        }, function (_5) {
+            _Symbol = _5['default'];
+        }, function (_9) {
+            util = _9;
+        }, function (_7) {
+            _Object$freeze = _7['default'];
+        }, function (_6) {
+            _Object$getOwnPropertyDescriptor = _6['default'];
         }],
         execute: function () {
             'use strict';
@@ -2752,28 +2746,28 @@ $__System.register('b', ['10', '11', '12', '17', '30', '31', 'e', 'f', 'c'], fun
     };
 });
 
-$__System.register('1a', ['4', '10', '11', '12', '17', '19', '1d', '1c', 'c'], function (_export) {
-    var ParameterizedAction, _classCallCheck, _createClass, _Symbol, util, Clock, _getIterator, _Object$keys, envelopeCore, Rval, flr, floatingLoopReinitializer, genClock, genTarget, genSequence, genCbks, genLoop, genWasLooping, genLoopCount, genLocked, genRangeError, genPropError, genTypeError, genIsFunction, genQueue, genPriorTime, genAddCancelable, genTriggerCancelables, genClockFunctions, genReinitId, genConfig, Generator;
+$__System.register('1c', ['8', '10', '13', '14', '15', '19', '20', '1d', '1b'], function (_export) {
+    var ParameterizedAction, envelopeCore, _classCallCheck, _createClass, _Symbol, util, _getIterator, _Object$keys, Clock, Rval, flr, floatingLoopReinitializer, genClock, genTarget, genSequence, genCbks, genLoop, genWasLooping, genLoopCount, genLocked, genRangeError, genPropError, genTypeError, genIsFunction, genQueue, genPriorTime, genAddCancelable, genTriggerCancelables, genClockFunctions, genReinitId, genConfig, Generator;
 
     return {
-        setters: [function (_5) {
-            ParameterizedAction = _5.ParameterizedAction;
+        setters: [function (_7) {
+            ParameterizedAction = _7.ParameterizedAction;
+        }, function (_6) {
+            envelopeCore = _6;
         }, function (_2) {
             _classCallCheck = _2['default'];
         }, function (_) {
             _createClass = _['default'];
-        }, function (_3) {
-            _Symbol = _3['default'];
         }, function (_4) {
-            util = _4;
-        }, function (_6) {
-            Clock = _6.Clock;
+            _Symbol = _4['default'];
+        }, function (_5) {
+            util = _5;
+        }, function (_3) {
+            _getIterator = _3['default'];
         }, function (_d) {
-            _getIterator = _d['default'];
-        }, function (_c) {
-            _Object$keys = _c['default'];
-        }, function (_c2) {
-            envelopeCore = _c2;
+            _Object$keys = _d['default'];
+        }, function (_b) {
+            Clock = _b.Clock;
         }],
         execute: function () {
             /**
@@ -3546,7 +3540,7 @@ $__System.register('1a', ['4', '10', '11', '12', '17', '19', '1d', '1c', 'c'], f
     };
 });
 
-$__System.register('19', ['10', '11', '12', '17', '1d', '1c'], function (_export) {
+$__System.register('1b', ['13', '14', '15', '19', '20', '1d'], function (_export) {
     var _classCallCheck, _createClass, _Symbol, util, _getIterator, _Object$keys, clkQueue, clkSmudge, clkBpm, clkLast, clkNext, clkLen, clkIsOn, clkCycles, clkId, clkWasPaused, clkBeatStart, clkBeatRemaining, clkMachine, clkParamException, Clock;
 
     return {
@@ -3556,12 +3550,12 @@ $__System.register('19', ['10', '11', '12', '17', '1d', '1c'], function (_export
             _createClass = _['default'];
         }, function (_3) {
             _Symbol = _3['default'];
+        }, function (_5) {
+            util = _5;
         }, function (_4) {
-            util = _4;
+            _getIterator = _4['default'];
         }, function (_d) {
-            _getIterator = _d['default'];
-        }, function (_c) {
-            _Object$keys = _c['default'];
+            _Object$keys = _d['default'];
         }],
         execute: function () {
             /**
@@ -3843,8 +3837,8 @@ $__System.register('19', ['10', '11', '12', '17', '1d', '1c'], function (_export
     };
 });
 
-$__System.register('c', ['10', '11', '12', '16', '17', '32', '33', 'e', 'f'], function (_export) {
-    var _classCallCheck, _createClass, _Symbol, audioCore, util, audioUtil, TWEEN, _get, _inherits, envelopeValueThrowException, envelopeValueValidateTimeRange, envelopeValueValue, envelopeValueTime, EnvelopeValue, envDuration, envInterpolationType, envInterpolationArgs, envValueSequence, envCheckEnvelopeValue, Envelope, AbsoluteEnvelopeValue, absEnvValueSequence, AbsoluteEnvelope, interpolation, cancelableTarg, cancelableFresh, cancelableSpoil, Cancelable, audioFatalFns, audioFatal;
+$__System.register('10', ['5', '11', '12', '13', '14', '15', '19', '32', '33'], function (_export) {
+    var audioCore, _get, _inherits, _classCallCheck, _createClass, _Symbol, util, audioUtil, TWEEN, envelopeValueThrowException, envelopeValueValidateTimeRange, envelopeValueValue, envelopeValueTime, EnvelopeValue, envDuration, envInterpolationType, envInterpolationArgs, envValueSequence, envCheckEnvelopeValue, Envelope, AbsoluteEnvelopeValue, absEnvValueSequence, AbsoluteEnvelope, interpolation, cancelableTarg, cancelableFresh, cancelableSpoil, Cancelable, audioFatalFns, audioFatal;
 
     function concat() {
         var targets = [],
@@ -4014,24 +4008,24 @@ $__System.register('c', ['10', '11', '12', '16', '17', '32', '33', 'e', 'f'], fu
     }
 
     return {
-        setters: [function (_2) {
+        setters: [function (_7) {
+            audioCore = _7;
+        }, function (_3) {
+            _get = _3['default'];
+        }, function (_4) {
+            _inherits = _4['default'];
+        }, function (_2) {
             _classCallCheck = _2['default'];
         }, function (_) {
             _createClass = _['default'];
-        }, function (_3) {
-            _Symbol = _3['default'];
         }, function (_5) {
-            audioCore = _5;
-        }, function (_4) {
-            util = _4;
+            _Symbol = _5['default'];
         }, function (_6) {
-            audioUtil = _6;
-        }, function (_7) {
-            TWEEN = _7['default'];
-        }, function (_e) {
-            _get = _e['default'];
-        }, function (_f) {
-            _inherits = _f['default'];
+            util = _6;
+        }, function (_8) {
+            audioUtil = _8;
+        }, function (_9) {
+            TWEEN = _9['default'];
         }],
         execute: function () {
             'use strict';
@@ -4046,8 +4040,6 @@ $__System.register('c', ['10', '11', '12', '16', '17', '32', '33', 'e', 'f'], fu
             envelopeValueValidateTimeRange = _Symbol();
             envelopeValueValue = _Symbol();
             envelopeValueTime = _Symbol();
-
-            console.log(TWEEN);
 
             EnvelopeValue = (function () {
                 function EnvelopeValue(value, time) {
@@ -4477,19 +4469,19 @@ $__System.register('c', ['10', '11', '12', '16', '17', '32', '33', 'e', 'f'], fu
     };
 });
 
-$__System.register('4', ['10', '11', '12', 'c'], function (_export) {
-  var _classCallCheck, _createClass, _Symbol, apply, AbsoluteEnvelope, paTarget, paEnv, paType, paError, ParameterizedAction;
+$__System.register('8', ['10', '13', '14', '15'], function (_export) {
+  var apply, AbsoluteEnvelope, _classCallCheck, _createClass, _Symbol, paTarget, paEnv, paType, paError, ParameterizedAction;
 
   return {
-    setters: [function (_2) {
+    setters: [function (_4) {
+      apply = _4.apply;
+      AbsoluteEnvelope = _4.AbsoluteEnvelope;
+    }, function (_2) {
       _classCallCheck = _2['default'];
     }, function (_) {
       _createClass = _['default'];
     }, function (_3) {
       _Symbol = _3['default'];
-    }, function (_c) {
-      apply = _c.apply;
-      AbsoluteEnvelope = _c.AbsoluteEnvelope;
     }],
     execute: function () {
       /**
@@ -4629,18 +4621,18 @@ $__System.register('4', ['10', '11', '12', 'c'], function (_export) {
   };
 });
 
-$__System.register('3', ['10', '16', 'e', 'f'], function (_export) {
-  var _classCallCheck, AudioModule, _get, _inherits, Instrument;
+$__System.register('7', ['5', '11', '12', '13'], function (_export) {
+  var AudioModule, _get, _inherits, _classCallCheck, Instrument;
 
   return {
-    setters: [function (_) {
-      _classCallCheck = _['default'];
+    setters: [function (_4) {
+      AudioModule = _4.AudioModule;
+    }, function (_) {
+      _get = _['default'];
     }, function (_2) {
-      AudioModule = _2.AudioModule;
-    }, function (_e) {
-      _get = _e['default'];
-    }, function (_f) {
-      _inherits = _f['default'];
+      _inherits = _2['default'];
+    }, function (_3) {
+      _classCallCheck = _3['default'];
     }],
     execute: function () {
       /**
@@ -4683,28 +4675,28 @@ $__System.register('3', ['10', '16', 'e', 'f'], function (_export) {
   };
 });
 
-$__System.register("34", ["6", "10", "11", "12", "16", "17", "32", "e", "f"], function (_export) {
-    var MediaElementPlayer, _classCallCheck, _createClass, _Symbol, ctx, util, parseSpriteIntervals, _get, _inherits, envelopeSprite, spriteList, ptoid, SpritePlayer;
+$__System.register("34", ["5", "11", "12", "13", "14", "15", "19", "32", "a"], function (_export) {
+    var ctx, _get, _inherits, _classCallCheck, _createClass, _Symbol, util, parseSpriteIntervals, MediaElementPlayer, envelopeSprite, spriteList, ptoid, SpritePlayer;
 
     return {
-        setters: [function (_4) {
-            MediaElementPlayer = _4.MediaElementPlayer;
-        }, function (_2) {
-            _classCallCheck = _2["default"];
+        setters: [function (_7) {
+            ctx = _7.ctx;
         }, function (_) {
-            _createClass = _["default"];
+            _get = _["default"];
+        }, function (_2) {
+            _inherits = _2["default"];
+        }, function (_4) {
+            _classCallCheck = _4["default"];
         }, function (_3) {
-            _Symbol = _3["default"];
-        }, function (_6) {
-            ctx = _6.ctx;
-        }, function (_7) {
-            util = _7;
+            _createClass = _3["default"];
         }, function (_5) {
-            parseSpriteIntervals = _5.parseSpriteIntervals;
-        }, function (_e) {
-            _get = _e["default"];
-        }, function (_f) {
-            _inherits = _f["default"];
+            _Symbol = _5["default"];
+        }, function (_8) {
+            util = _8;
+        }, function (_6) {
+            parseSpriteIntervals = _6.parseSpriteIntervals;
+        }, function (_a) {
+            MediaElementPlayer = _a.MediaElementPlayer;
         }],
         execute: function () {
             /**
@@ -4801,27 +4793,27 @@ $__System.register("34", ["6", "10", "11", "12", "16", "17", "32", "e", "f"], fu
     };
 });
 
-$__System.register('35', ['9', '10', '11', '12', '16', 'e', 'f', 'a'], function (_export) {
-    var moduleExtensions, _classCallCheck, _createClass, _Symbol, AudioModule, ctx, _get, _inherits, audioNodes, AllPass, FeedbackCombFilter, schroederComb1, schroederComb2, schroederComb3, schroederComb4, schroederFeedbackCoeffMultiplier, schroederPAR_A_GAIN, schroederPAR_B_GAIN, schroederPAR_C_GAIN, schroederPAR_D_GAIN, SchroederReverb;
+$__System.register('35', ['5', '11', '12', '13', '14', '15', 'e', 'd'], function (_export) {
+    var AudioModule, ctx, _get, _inherits, _classCallCheck, _createClass, _Symbol, audioNodes, moduleExtensions, AllPass, FeedbackCombFilter, schroederComb1, schroederComb2, schroederComb3, schroederComb4, schroederFeedbackCoeffMultiplier, schroederPAR_A_GAIN, schroederPAR_B_GAIN, schroederPAR_C_GAIN, schroederPAR_D_GAIN, SchroederReverb;
 
     return {
-        setters: [function (_5) {
-            moduleExtensions = _5;
+        setters: [function (_6) {
+            AudioModule = _6.AudioModule;
+            ctx = _6.ctx;
         }, function (_) {
-            _classCallCheck = _['default'];
+            _get = _['default'];
         }, function (_2) {
-            _createClass = _2['default'];
+            _inherits = _2['default'];
         }, function (_3) {
-            _Symbol = _3['default'];
+            _classCallCheck = _3['default'];
         }, function (_4) {
-            AudioModule = _4.AudioModule;
-            ctx = _4.ctx;
+            _createClass = _4['default'];
+        }, function (_5) {
+            _Symbol = _5['default'];
         }, function (_e) {
-            _get = _e['default'];
-        }, function (_f) {
-            _inherits = _f['default'];
-        }, function (_a) {
-            audioNodes = _a;
+            audioNodes = _e;
+        }, function (_d) {
+            moduleExtensions = _d;
         }],
         execute: function () {
             /**
@@ -5025,34 +5017,34 @@ $__System.register('35', ['9', '10', '11', '12', '16', 'e', 'f', 'a'], function 
     };
 });
 
-$__System.register('5', ['10', '11', '12', '16', '17', '32', '36', 'e', 'f', '1d', '1c'], function (_export) {
-    var _classCallCheck, _createClass, _Symbol, AudioModule, ctx, util, parseSpriteIntervals, taffyFactory, _Promise, _get, _inherits, _getIterator, _Object$keys, sampleBuffer, gainNode, breakpoints, livingNodes, sampleDb, readyFn, SamplePlayer;
+$__System.register('9', ['5', '11', '12', '13', '14', '15', '19', '20', '32', '36', '1d'], function (_export) {
+    var AudioModule, ctx, _get, _inherits, _classCallCheck, _createClass, _Symbol, util, _getIterator, parseSpriteIntervals, taffyFactory, _Promise, _Object$keys, sampleBuffer, gainNode, breakpoints, livingNodes, sampleDb, readyFn, SamplePlayer;
 
     return {
-        setters: [function (_2) {
-            _classCallCheck = _2['default'];
+        setters: [function (_8) {
+            AudioModule = _8.AudioModule;
+            ctx = _8.ctx;
         }, function (_) {
-            _createClass = _['default'];
-        }, function (_3) {
-            _Symbol = _3['default'];
-        }, function (_5) {
-            AudioModule = _5.AudioModule;
-            ctx = _5.ctx;
-        }, function (_7) {
-            util = _7;
-        }, function (_6) {
-            parseSpriteIntervals = _6.parseSpriteIntervals;
-            taffyFactory = _6.taffyFactory;
+            _get = _['default'];
+        }, function (_2) {
+            _inherits = _2['default'];
         }, function (_4) {
-            _Promise = _4['default'];
-        }, function (_e) {
-            _get = _e['default'];
-        }, function (_f) {
-            _inherits = _f['default'];
+            _classCallCheck = _4['default'];
+        }, function (_3) {
+            _createClass = _3['default'];
+        }, function (_5) {
+            _Symbol = _5['default'];
+        }, function (_10) {
+            util = _10;
+        }, function (_7) {
+            _getIterator = _7['default'];
+        }, function (_9) {
+            parseSpriteIntervals = _9.parseSpriteIntervals;
+            taffyFactory = _9.taffyFactory;
+        }, function (_6) {
+            _Promise = _6['default'];
         }, function (_d) {
-            _getIterator = _d['default'];
-        }, function (_c) {
-            _Object$keys = _c['default'];
+            _Object$keys = _d['default'];
         }],
         execute: function () {
             /**
@@ -5245,21 +5237,21 @@ $__System.register('5', ['10', '11', '12', '16', '17', '32', '36', 'e', 'f', '1d
     };
 });
 
-$__System.register('37', ['9', '10', '16', 'e', 'f'], function (_export) {
-  var moduleExtensions, _classCallCheck, AudioModule, ctx, _get, _inherits, Osc;
+$__System.register('37', ['5', '11', '12', '13', 'd'], function (_export) {
+  var AudioModule, ctx, _get, _inherits, _classCallCheck, moduleExtensions, Osc;
 
   return {
-    setters: [function (_3) {
-      moduleExtensions = _3;
+    setters: [function (_4) {
+      AudioModule = _4.AudioModule;
+      ctx = _4.ctx;
     }, function (_) {
-      _classCallCheck = _['default'];
+      _get = _['default'];
     }, function (_2) {
-      AudioModule = _2.AudioModule;
-      ctx = _2.ctx;
-    }, function (_e) {
-      _get = _e['default'];
-    }, function (_f) {
-      _inherits = _f['default'];
+      _inherits = _2['default'];
+    }, function (_3) {
+      _classCallCheck = _3['default'];
+    }, function (_d) {
+      moduleExtensions = _d;
     }],
     execute: function () {
       /**
@@ -5362,27 +5354,27 @@ $__System.register('37', ['9', '10', '16', 'e', 'f'], function (_export) {
   };
 });
 
-$__System.register('8', ['9', '10', '11', '12', '16', 'e', 'f', 'a'], function (_export) {
-  var moduleExtensions, _classCallCheck, _createClass, _Symbol, AudioModule, ctx, _get, _inherits, audioNodes, buffer, srDivisor, calcBuffer, Noise;
+$__System.register('c', ['5', '11', '12', '13', '14', '15', 'e', 'd'], function (_export) {
+  var AudioModule, ctx, _get, _inherits, _classCallCheck, _createClass, _Symbol, audioNodes, moduleExtensions, buffer, srDivisor, calcBuffer, Noise;
 
   return {
-    setters: [function (_5) {
-      moduleExtensions = _5;
-    }, function (_2) {
-      _classCallCheck = _2['default'];
+    setters: [function (_6) {
+      AudioModule = _6.AudioModule;
+      ctx = _6.ctx;
     }, function (_) {
-      _createClass = _['default'];
-    }, function (_3) {
-      _Symbol = _3['default'];
+      _get = _['default'];
+    }, function (_2) {
+      _inherits = _2['default'];
     }, function (_4) {
-      AudioModule = _4.AudioModule;
-      ctx = _4.ctx;
+      _classCallCheck = _4['default'];
+    }, function (_3) {
+      _createClass = _3['default'];
+    }, function (_5) {
+      _Symbol = _5['default'];
     }, function (_e) {
-      _get = _e['default'];
-    }, function (_f) {
-      _inherits = _f['default'];
-    }, function (_a) {
-      audioNodes = _a;
+      audioNodes = _e;
+    }, function (_d) {
+      moduleExtensions = _d;
     }],
     execute: function () {
       /**
@@ -5396,7 +5388,7 @@ $__System.register('8', ['9', '10', '11', '12', '16', 'e', 'f', 'a'], function (
        * @extends audio.core.AudioModule
        * @constructor
        * @param {Number} amplitude - initial gain (0 to 1 inclusive)
-       * @param {Number} downsample - initial downsampling value (see: this.downsample)
+       * @param {Number} downsample - initial downsampling value
        */
       'use strict';
 
@@ -5498,23 +5490,23 @@ $__System.register('8', ['9', '10', '11', '12', '16', 'e', 'f', 'a'], function (
   };
 });
 
-$__System.register('6', ['10', '11', '12', '16', 'e', 'f'], function (_export) {
-    var _classCallCheck, _createClass, _Symbol, AudioModule, ctx, _get, _inherits, mediaElementPlayerPath, mediaElement, canPlay, canPlayFn, canPlayHasFired, loadFile, isPlaying, disableRangeReq, MediaElementPlayer;
+$__System.register('a', ['5', '11', '12', '13', '14', '15'], function (_export) {
+    var AudioModule, ctx, _get, _inherits, _classCallCheck, _createClass, _Symbol, mediaElementPlayerPath, mediaElement, canPlay, canPlayFn, canPlayHasFired, loadFile, isPlaying, disableRangeReq, MediaElementPlayer;
 
     return {
-        setters: [function (_2) {
-            _classCallCheck = _2['default'];
+        setters: [function (_6) {
+            AudioModule = _6.AudioModule;
+            ctx = _6.ctx;
         }, function (_) {
-            _createClass = _['default'];
-        }, function (_3) {
-            _Symbol = _3['default'];
+            _get = _['default'];
+        }, function (_2) {
+            _inherits = _2['default'];
         }, function (_4) {
-            AudioModule = _4.AudioModule;
-            ctx = _4.ctx;
-        }, function (_e) {
-            _get = _e['default'];
-        }, function (_f) {
-            _inherits = _f['default'];
+            _classCallCheck = _4['default'];
+        }, function (_3) {
+            _createClass = _3['default'];
+        }, function (_5) {
+            _Symbol = _5['default'];
         }],
         execute: function () {
             /**
@@ -5766,23 +5758,23 @@ $__System.register('6', ['10', '11', '12', '16', 'e', 'f'], function (_export) {
     };
 });
 
-$__System.register('18', ['9', '10', '16', 'e', 'f', 'a'], function (_export) {
-  var moduleExtensions, _classCallCheck, AudioModule, ctx, _get, _inherits, audioNodes, Convolution;
+$__System.register('1a', ['5', '11', '12', '13', 'e', 'd'], function (_export) {
+  var AudioModule, ctx, _get, _inherits, _classCallCheck, audioNodes, moduleExtensions, Convolution;
 
   return {
-    setters: [function (_3) {
-      moduleExtensions = _3;
+    setters: [function (_4) {
+      AudioModule = _4.AudioModule;
+      ctx = _4.ctx;
     }, function (_) {
-      _classCallCheck = _['default'];
+      _get = _['default'];
     }, function (_2) {
-      AudioModule = _2.AudioModule;
-      ctx = _2.ctx;
+      _inherits = _2['default'];
+    }, function (_3) {
+      _classCallCheck = _3['default'];
     }, function (_e) {
-      _get = _e['default'];
-    }, function (_f) {
-      _inherits = _f['default'];
-    }, function (_a) {
-      audioNodes = _a;
+      audioNodes = _e;
+    }, function (_d) {
+      moduleExtensions = _d;
     }],
     execute: function () {
       /**
@@ -5868,29 +5860,29 @@ $__System.register('18', ['9', '10', '16', 'e', 'f', 'a'], function (_export) {
   };
 });
 
-$__System.register('7', ['9', '10', '11', '12', '16', '17', '33', 'e', 'f'], function (_export) {
-    var moduleExtensions, _classCallCheck, _createClass, _Symbol, AudioModule, ctx, util, TWEEN, _get, _inherits, params, updateFrequency, updateQ, updateGain, Bandpass;
+$__System.register('b', ['5', '11', '12', '13', '14', '15', '19', '33', 'd'], function (_export) {
+    var AudioModule, ctx, _get, _inherits, _classCallCheck, _createClass, _Symbol, util, TWEEN, moduleExtensions, params, updateFrequency, updateQ, updateGain, Bandpass;
 
     return {
-        setters: [function (_5) {
-            moduleExtensions = _5;
-        }, function (_2) {
-            _classCallCheck = _2['default'];
+        setters: [function (_6) {
+            AudioModule = _6.AudioModule;
+            ctx = _6.ctx;
         }, function (_) {
-            _createClass = _['default'];
-        }, function (_3) {
-            _Symbol = _3['default'];
+            _get = _['default'];
+        }, function (_2) {
+            _inherits = _2['default'];
         }, function (_4) {
-            AudioModule = _4.AudioModule;
-            ctx = _4.ctx;
-        }, function (_6) {
-            util = _6;
+            _classCallCheck = _4['default'];
+        }, function (_3) {
+            _createClass = _3['default'];
+        }, function (_5) {
+            _Symbol = _5['default'];
         }, function (_7) {
-            TWEEN = _7['default'];
-        }, function (_e) {
-            _get = _e['default'];
-        }, function (_f) {
-            _inherits = _f['default'];
+            util = _7;
+        }, function (_8) {
+            TWEEN = _8['default'];
+        }, function (_d) {
+            moduleExtensions = _d;
         }],
         execute: function () {
             /**
@@ -6092,7 +6084,7 @@ $__System.register('7', ['9', '10', '11', '12', '16', '17', '33', 'e', 'f'], fun
     };
 });
 
-$__System.register('a', ['16', '32'], function (_export) {
+$__System.register('e', ['5', '32'], function (_export) {
   /**
    * Contains helper functions for getting AudioNodes prewrapped with AuddioModule.link
    * @module audio.nodes
@@ -6528,7 +6520,7 @@ $__System.registerDynamic("4f", ["4d"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("12", ["4f"], true, function(req, exports, module) {
+$__System.registerDynamic("15", ["4f"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -6589,7 +6581,7 @@ $__System.registerDynamic("54", ["3b"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("1b", ["54"], true, function(req, exports, module) {
+$__System.registerDynamic("55", ["54"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -6602,13 +6594,13 @@ $__System.registerDynamic("1b", ["54"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("f", ["1b", "53"], true, function(req, exports, module) {
+$__System.registerDynamic("12", ["55", "53"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   "use strict";
-  var _Object$create = req('1b')["default"];
+  var _Object$create = req('55')["default"];
   var _Object$setPrototypeOf = req('53')["default"];
   exports["default"] = function(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
@@ -6628,7 +6620,7 @@ $__System.registerDynamic("f", ["1b", "53"], true, function(req, exports, module
   return module.exports;
 });
 
-$__System.registerDynamic("e", ["31"], true, function(req, exports, module) {
+$__System.registerDynamic("11", ["31"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -6673,28 +6665,28 @@ $__System.registerDynamic("e", ["31"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.register('55', ['10', '11', '12', '16', 'e', 'f', '1d', '1c', 'a'], function (_export) {
-    var _classCallCheck, _createClass, _Symbol, AudioModule, _get, _inherits, _getIterator, _Object$keys, Gain, soloCount, soloEvent, trkDestroy, trkContents, trkEndpoint, trkCommand, trkSoloed, trkMuted, trkLastGain, Track, busTracks, busInput, busOutput, busChain, busTrkCount, busCommand, Bus;
+$__System.register('56', ['5', '11', '12', '13', '14', '15', '20', '1d', 'e'], function (_export) {
+    var AudioModule, _get, _inherits, _classCallCheck, _createClass, _Symbol, _getIterator, _Object$keys, Gain, soloCount, soloEvent, trkDestroy, trkContents, trkEndpoint, trkCommand, trkSoloed, trkMuted, trkLastGain, Track, busTracks, busInput, busOutput, busChain, busTrkCount, busCommand, Bus;
 
     return {
-        setters: [function (_2) {
-            _classCallCheck = _2['default'];
+        setters: [function (_7) {
+            AudioModule = _7.AudioModule;
         }, function (_) {
-            _createClass = _['default'];
-        }, function (_3) {
-            _Symbol = _3['default'];
+            _get = _['default'];
+        }, function (_2) {
+            _inherits = _2['default'];
         }, function (_4) {
-            AudioModule = _4.AudioModule;
-        }, function (_e) {
-            _get = _e['default'];
-        }, function (_f) {
-            _inherits = _f['default'];
+            _classCallCheck = _4['default'];
+        }, function (_3) {
+            _createClass = _3['default'];
+        }, function (_5) {
+            _Symbol = _5['default'];
+        }, function (_6) {
+            _getIterator = _6['default'];
         }, function (_d) {
-            _getIterator = _d['default'];
-        }, function (_c) {
-            _Object$keys = _c['default'];
-        }, function (_a) {
-            Gain = _a.Gain;
+            _Object$keys = _d['default'];
+        }, function (_e) {
+            Gain = _e.Gain;
         }],
         execute: function () {
             /**
@@ -7196,7 +7188,7 @@ $__System.register('55', ['10', '11', '12', '16', 'e', 'f', '1d', '1c', 'a'], fu
     };
 });
 
-$__System.registerDynamic("56", [], true, function(req, exports, module) {
+$__System.registerDynamic("57", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8505,7 +8497,7 @@ $__System.registerDynamic("56", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("57", ["49"], true, function(req, exports, module) {
+$__System.registerDynamic("58", ["49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8542,7 +8534,7 @@ $__System.registerDynamic("57", ["49"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("58", ["2f", "3b", "42", "49"], true, function(req, exports, module) {
+$__System.registerDynamic("59", ["2f", "3b", "42", "49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8566,7 +8558,7 @@ $__System.registerDynamic("58", ["2f", "3b", "42", "49"], true, function(req, ex
   return module.exports;
 });
 
-$__System.registerDynamic("59", ["44"], true, function(req, exports, module) {
+$__System.registerDynamic("5a", ["44"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8581,7 +8573,7 @@ $__System.registerDynamic("59", ["44"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("5a", [], true, function(req, exports, module) {
+$__System.registerDynamic("5b", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8673,22 +8665,12 @@ $__System.registerDynamic("5a", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("5b", ["5a"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = req('5a');
-  global.define = __define;
-  return module.exports;
-});
-
 $__System.registerDynamic("5c", ["5b"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  module.exports = $__System._nodeRequire ? process : req('5b');
+  module.exports = req('5b');
   global.define = __define;
   return module.exports;
 });
@@ -8698,12 +8680,22 @@ $__System.registerDynamic("5d", ["5c"], true, function(req, exports, module) {
   var global = this,
       __define = global.define;
   global.define = undefined;
-  module.exports = req('5c');
+  module.exports = $__System._nodeRequire ? process : req('5c');
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("5e", ["2c", "40"], true, function(req, exports, module) {
+$__System.registerDynamic("5e", ["5d"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = req('5d');
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("5f", ["2c", "40"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8718,7 +8710,7 @@ $__System.registerDynamic("5e", ["2c", "40"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("5f", ["40"], true, function(req, exports, module) {
+$__System.registerDynamic("60", ["40"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8728,7 +8720,7 @@ $__System.registerDynamic("5f", ["40"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("60", [], true, function(req, exports, module) {
+$__System.registerDynamic("61", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8753,17 +8745,17 @@ $__System.registerDynamic("60", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("61", ["62", "60", "5f", "5e", "40", "39", "5d"], true, function(req, exports, module) {
+$__System.registerDynamic("62", ["63", "61", "60", "5f", "40", "39", "5e"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   (function(process) {
     'use strict';
-    var ctx = req('62'),
-        invoke = req('60'),
-        html = req('5f'),
-        cel = req('5e'),
+    var ctx = req('63'),
+        invoke = req('61'),
+        html = req('60'),
+        cel = req('5f'),
         global = req('40'),
         process = global.process,
         setTask = global.setImmediate,
@@ -8832,19 +8824,19 @@ $__System.registerDynamic("61", ["62", "60", "5f", "5e", "40", "39", "5d"], true
       set: setTask,
       clear: clearTask
     };
-  })(req('5d'));
+  })(req('5e'));
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("63", ["40", "61", "39", "5d"], true, function(req, exports, module) {
+$__System.registerDynamic("64", ["40", "62", "39", "5e"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   (function(process) {
     var global = req('40'),
-        macrotask = req('61').set,
+        macrotask = req('62').set,
         Observer = global.MutationObserver || global.WebKitMutationObserver,
         process = global.process,
         isNode = req('39')(process) == 'process',
@@ -8901,18 +8893,18 @@ $__System.registerDynamic("63", ["40", "61", "39", "5d"], true, function(req, ex
       }
       last = task;
     };
-  })(req('5d'));
+  })(req('5e'));
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("64", ["4a", "65", "49"], true, function(req, exports, module) {
+$__System.registerDynamic("65", ["4a", "66", "49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   var anObject = req('4a'),
-      aFunction = req('65'),
+      aFunction = req('66'),
       SPECIES = req('49')('species');
   module.exports = function(O, D) {
     var C = anObject(O).constructor,
@@ -8923,7 +8915,7 @@ $__System.registerDynamic("64", ["4a", "65", "49"], true, function(req, exports,
   return module.exports;
 });
 
-$__System.registerDynamic("66", [], true, function(req, exports, module) {
+$__System.registerDynamic("67", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8935,7 +8927,7 @@ $__System.registerDynamic("66", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("51", ["3b", "2c", "4a", "62"], true, function(req, exports, module) {
+$__System.registerDynamic("51", ["3b", "2c", "4a", "63"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -8951,7 +8943,7 @@ $__System.registerDynamic("51", ["3b", "2c", "4a", "62"], true, function(req, ex
   module.exports = {
     set: Object.setPrototypeOf || ('__proto__' in {} ? function(test, buggy, set) {
       try {
-        set = req('62')(Function.call, getDesc(Object.prototype, '__proto__').set, 2);
+        set = req('63')(Function.call, getDesc(Object.prototype, '__proto__').set, 2);
         set(test, []);
         buggy = !(test instanceof Array);
       } catch (e) {
@@ -8972,12 +8964,12 @@ $__System.registerDynamic("51", ["3b", "2c", "4a", "62"], true, function(req, ex
   return module.exports;
 });
 
-$__System.registerDynamic("67", ["68"], true, function(req, exports, module) {
+$__System.registerDynamic("68", ["69"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var toInteger = req('68'),
+  var toInteger = req('69'),
       min = Math.min;
   module.exports = function(it) {
     return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0;
@@ -8986,12 +8978,12 @@ $__System.registerDynamic("67", ["68"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("69", ["6a", "49"], true, function(req, exports, module) {
+$__System.registerDynamic("6a", ["6b", "49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var Iterators = req('6a'),
+  var Iterators = req('6b'),
       ITERATOR = req('49')('iterator'),
       ArrayProto = Array.prototype;
   module.exports = function(it) {
@@ -9001,7 +8993,7 @@ $__System.registerDynamic("69", ["6a", "49"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("6b", ["4a"], true, function(req, exports, module) {
+$__System.registerDynamic("6c", ["4a"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -9021,17 +9013,17 @@ $__System.registerDynamic("6b", ["4a"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("6c", ["62", "6b", "69", "4a", "67", "6d"], true, function(req, exports, module) {
+$__System.registerDynamic("6d", ["63", "6c", "6a", "4a", "68", "6e"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var ctx = req('62'),
-      call = req('6b'),
-      isArrayIter = req('69'),
+  var ctx = req('63'),
+      call = req('6c'),
+      isArrayIter = req('6a'),
       anObject = req('4a'),
-      toLength = req('67'),
-      getIterFn = req('6d');
+      toLength = req('68'),
+      getIterFn = req('6e');
   module.exports = function(iterable, entries, fn, that) {
     var iterFn = getIterFn(iterable),
         f = ctx(fn, that, entries ? 2 : 1),
@@ -9054,7 +9046,7 @@ $__System.registerDynamic("6c", ["62", "6b", "69", "4a", "67", "6d"], true, func
   return module.exports;
 });
 
-$__System.registerDynamic("6e", [], true, function(req, exports, module) {
+$__System.registerDynamic("6f", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -9068,7 +9060,7 @@ $__System.registerDynamic("6e", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("65", [], true, function(req, exports, module) {
+$__System.registerDynamic("66", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -9082,12 +9074,12 @@ $__System.registerDynamic("65", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("62", ["65"], true, function(req, exports, module) {
+$__System.registerDynamic("63", ["66"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var aFunction = req('65');
+  var aFunction = req('66');
   module.exports = function(fn, that, length) {
     aFunction(fn);
     if (that === undefined)
@@ -9114,7 +9106,7 @@ $__System.registerDynamic("62", ["65"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("6f", ["3b", "4c", "40", "62", "70", "43", "2c", "4a", "65", "6e", "6c", "51", "66", "49", "64", "48", "63", "42", "59", "47", "58", "2f", "57", "5d"], true, function(req, exports, module) {
+$__System.registerDynamic("70", ["3b", "4c", "40", "63", "71", "43", "2c", "4a", "66", "6f", "6d", "51", "67", "49", "65", "48", "64", "42", "5a", "47", "59", "2f", "58", "5e"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -9124,20 +9116,20 @@ $__System.registerDynamic("6f", ["3b", "4c", "40", "62", "70", "43", "2c", "4a",
     var $ = req('3b'),
         LIBRARY = req('4c'),
         global = req('40'),
-        ctx = req('62'),
-        classof = req('70'),
+        ctx = req('63'),
+        classof = req('71'),
         $def = req('43'),
         isObject = req('2c'),
         anObject = req('4a'),
-        aFunction = req('65'),
-        strictNew = req('6e'),
-        forOf = req('6c'),
+        aFunction = req('66'),
+        strictNew = req('6f'),
+        forOf = req('6d'),
         setProto = req('51').set,
-        same = req('66'),
+        same = req('67'),
         SPECIES = req('49')('species'),
-        speciesConstructor = req('64'),
+        speciesConstructor = req('65'),
         RECORD = req('48')('record'),
-        asap = req('63'),
+        asap = req('64'),
         PROMISE = 'Promise',
         process = global.process,
         isNode = classof(process) == 'process',
@@ -9323,7 +9315,7 @@ $__System.registerDynamic("6f", ["3b", "4c", "40", "62", "70", "43", "2c", "4a",
           $reject.call(record, err);
         }
       };
-      req('59')(P.prototype, {
+      req('5a')(P.prototype, {
         then: function then(onFulfilled, onRejected) {
           var react = {
             ok: typeof onFulfilled == 'function' ? onFulfilled : true,
@@ -9350,7 +9342,7 @@ $__System.registerDynamic("6f", ["3b", "4c", "40", "62", "70", "43", "2c", "4a",
     }
     $def($def.G + $def.W + $def.F * !useNative, {Promise: P});
     req('47')(P, PROMISE);
-    req('58')(PROMISE);
+    req('59')(PROMISE);
     Wrapper = req('2f')[PROMISE];
     $def($def.S + $def.F * !useNative, PROMISE, {reject: function reject(r) {
         return new this(function(res, rej) {
@@ -9362,7 +9354,7 @@ $__System.registerDynamic("6f", ["3b", "4c", "40", "62", "70", "43", "2c", "4a",
           res(x);
         });
       }});
-    $def($def.S + $def.F * !(useNative && req('57')(function(iter) {
+    $def($def.S + $def.F * !(useNative && req('58')(function(iter) {
       P.all(iter)['catch'](function() {});
     })), PROMISE, {
       all: function all(iterable) {
@@ -9392,7 +9384,7 @@ $__System.registerDynamic("6f", ["3b", "4c", "40", "62", "70", "43", "2c", "4a",
         });
       }
     });
-  })(req('5d'));
+  })(req('5e'));
   global.define = __define;
   return module.exports;
 });
@@ -9407,35 +9399,35 @@ $__System.registerDynamic("4e", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("71", ["4e", "72", "73", "6f", "2f"], true, function(req, exports, module) {
+$__System.registerDynamic("72", ["4e", "73", "74", "70", "2f"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   req('4e');
-  req('72');
   req('73');
-  req('6f');
+  req('74');
+  req('70');
   module.exports = req('2f').Promise;
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("36", ["71"], true, function(req, exports, module) {
+$__System.registerDynamic("36", ["72"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   module.exports = {
-    "default": req('71'),
+    "default": req('72'),
     __esModule: true
   };
   global.define = __define;
   return module.exports;
 });
 
-$__System.register('32', ['10', '11', '16', '36', '56', '1d', '1c'], function (_export) {
-    var _classCallCheck, _createClass, AudioModule, _Promise, TAFFY, _getIterator, _Object$keys, units;
+$__System.register('32', ['5', '13', '14', '20', '36', '57', '1d'], function (_export) {
+    var AudioModule, _classCallCheck, _createClass, _getIterator, _Promise, TAFFY, _Object$keys, units;
 
     /**
      * @method taffyFactory
@@ -9552,20 +9544,20 @@ $__System.register('32', ['10', '11', '16', '36', '56', '1d', '1c'], function (_
      * @class units
      */
     return {
-        setters: [function (_2) {
+        setters: [function (_5) {
+            AudioModule = _5.AudioModule;
+        }, function (_2) {
             _classCallCheck = _2['default'];
         }, function (_) {
             _createClass = _['default'];
         }, function (_4) {
-            AudioModule = _4.AudioModule;
+            _getIterator = _4['default'];
         }, function (_3) {
             _Promise = _3['default'];
-        }, function (_5) {
-            TAFFY = _5['default'];
+        }, function (_6) {
+            TAFFY = _6['default'];
         }, function (_d) {
-            _getIterator = _d['default'];
-        }, function (_c) {
-            _Object$keys = _c['default'];
+            _Object$keys = _d['default'];
         }],
         execute: function () {
             /**
@@ -9633,7 +9625,7 @@ $__System.register('32', ['10', '11', '16', '36', '56', '1d', '1c'], function (_
     };
 });
 
-$__System.register('9', ['16', '32', '33'], function (_export) {
+$__System.register('d', ['5', '32', '33'], function (_export) {
     /**
      * Includes functions, usually called in an AudioModule's constructor,
      * that append commonly required methods onto it.
@@ -9785,7 +9777,7 @@ $__System.register('9', ['16', '32', '33'], function (_export) {
     };
 });
 
-$__System.register('16', ['10', '11'], function (_export) {
+$__System.register('5', ['13', '14'], function (_export) {
     var _classCallCheck, _createClass, ctx, out, AudioModule;
 
     /**
@@ -9968,7 +9960,7 @@ $__System.register('16', ['10', '11'], function (_export) {
     };
 });
 
-$__System.register("74", ["10", "11", "15"], function (_export) {
+$__System.register("75", ["13", "14", "18"], function (_export) {
     var _classCallCheck, _createClass, renderLoop, Effect;
 
     /**
@@ -10519,7 +10511,7 @@ $__System.registerDynamic("33", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("75", ["3d", "2d"], true, function(req, exports, module) {
+$__System.registerDynamic("76", ["3d", "2d"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -10534,13 +10526,13 @@ $__System.registerDynamic("75", ["3d", "2d"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("76", ["3b", "75"], true, function(req, exports, module) {
+$__System.registerDynamic("77", ["3b", "76"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   var $ = req('3b');
-  req('75');
+  req('76');
   module.exports = function getOwnPropertyDescriptor(it, key) {
     return $.getDesc(it, key);
   };
@@ -10548,33 +10540,7 @@ $__System.registerDynamic("76", ["3b", "75"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("31", ["76"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  module.exports = {
-    "default": req('76'),
-    __esModule: true
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("77", ["3b"], true, function(req, exports, module) {
-  ;
-  var global = this,
-      __define = global.define;
-  global.define = undefined;
-  var $ = req('3b');
-  module.exports = function defineProperty(it, key, desc) {
-    return $.setDesc(it, key, desc);
-  };
-  global.define = __define;
-  return module.exports;
-});
-
-$__System.registerDynamic("78", ["77"], true, function(req, exports, module) {
+$__System.registerDynamic("31", ["77"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -10587,13 +10553,39 @@ $__System.registerDynamic("78", ["77"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("11", ["78"], true, function(req, exports, module) {
+$__System.registerDynamic("78", ["3b"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  var $ = req('3b');
+  module.exports = function defineProperty(it, key, desc) {
+    return $.setDesc(it, key, desc);
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("79", ["78"], true, function(req, exports, module) {
+  ;
+  var global = this,
+      __define = global.define;
+  global.define = undefined;
+  module.exports = {
+    "default": req('78'),
+    __esModule: true
+  };
+  global.define = __define;
+  return module.exports;
+});
+
+$__System.registerDynamic("14", ["79"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   "use strict";
-  var _Object$defineProperty = req('78')["default"];
+  var _Object$defineProperty = req('79')["default"];
   exports["default"] = (function() {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
@@ -10618,7 +10610,7 @@ $__System.registerDynamic("11", ["78"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.register('17', ['10', '11', '15', '31', '33', '78', '1c'], function (_export) {
+$__System.register('19', ['13', '14', '18', '31', '33', '79', '1d'], function (_export) {
     var _classCallCheck, _createClass, renderLoop, _Object$getOwnPropertyDescriptor, TWEEN, _Object$defineProperty, _Object$keys, time, easing_keys, interpolation_keys, tween;
 
     /**
@@ -10849,8 +10841,8 @@ $__System.register('17', ['10', '11', '15', '31', '33', '78', '1c'], function (_
             TWEEN = _5['default'];
         }, function (_4) {
             _Object$defineProperty = _4['default'];
-        }, function (_c) {
-            _Object$keys = _c['default'];
+        }, function (_d) {
+            _Object$keys = _d['default'];
         }],
         execute: function () {
             /**
@@ -10990,7 +10982,7 @@ $__System.register('17', ['10', '11', '15', '31', '33', '78', '1c'], function (_
     };
 });
 
-$__System.register('15', [], function (_export) {
+$__System.register('18', [], function (_export) {
     /**
      * Contains utilities for managing visual-rate updates.
      * renderLoop calls createAnimationFrame to start the loop,
@@ -11114,7 +11106,7 @@ $__System.register('15', [], function (_export) {
     };
 });
 
-$__System.register("25", ["3", "4", "5", "6", "7", "8", "9", "15", "16", "17", "18", "19", "32", "34", "35", "37", "55", "74", "a", "1a", "c", "b"], function (_export) {
+$__System.register("25", ["5", "7", "8", "9", "10", "18", "19", "32", "34", "35", "37", "56", "75", "d", "e", "b", "1a", "a", "c", "1b", "1c", "f"], function (_export) {
     /**
      * Here as a convenience, although generally,
      * importing single modules is preferable.
@@ -11122,52 +11114,52 @@ $__System.register("25", ["3", "4", "5", "6", "7", "8", "9", "15", "16", "17", "
      */
     "use strict";
 
-    var Instrument, ParameterizedAction, SamplePlayer, MediaElementPlayer, Bandpass, Noise, moduleExtensions, renderLoop, audioCore, util, Convolution, Clock, audioUtil, SpritePlayer, SchroederReverb, Osc, mixer, visualCore, nodes, Generator, envelopeCore, asdr, audio, init, instrument, rhythm;
+    var audioCore, Instrument, ParameterizedAction, SamplePlayer, envelopeCore, renderLoop, util, audioUtil, SpritePlayer, SchroederReverb, Osc, mixer, visualCore, moduleExtensions, nodes, Bandpass, Convolution, MediaElementPlayer, Noise, Clock, Generator, asdr, audio, init, instrument, rhythm;
     return {
-        setters: [function (_16) {
-            Instrument = _16.Instrument;
-        }, function (_17) {
-            ParameterizedAction = _17.ParameterizedAction;
-        }, function (_13) {
-            SamplePlayer = _13.SamplePlayer;
-        }, function (_10) {
-            MediaElementPlayer = _10.MediaElementPlayer;
-        }, function (_8) {
-            Bandpass = _8.Bandpass;
+        setters: [function (_4) {
+            audioCore = _4;
         }, function (_11) {
-            Noise = _11.Noise;
-        }, function (_5) {
-            moduleExtensions = _5;
+            Instrument = _11.Instrument;
+        }, function (_12) {
+            ParameterizedAction = _12.ParameterizedAction;
+        }, function (_8) {
+            SamplePlayer = _8.SamplePlayer;
+        }, function (_13) {
+            envelopeCore = _13;
         }, function (_) {
             renderLoop = _;
-        }, function (_4) {
-            audioCore = _4;
         }, function (_2) {
             util = _2;
-        }, function (_9) {
-            Convolution = _9.Convolution;
-        }, function (_18) {
-            Clock = _18.Clock;
-        }, function (_7) {
-            audioUtil = _7;
-        }, function (_15) {
-            SpritePlayer = _15.SpritePlayer;
-        }, function (_14) {
-            SchroederReverb = _14.SchroederReverb;
-        }, function (_12) {
-            Osc = _12.Osc;
         }, function (_6) {
-            mixer = _6;
+            audioUtil = _6;
+        }, function (_10) {
+            SpritePlayer = _10.SpritePlayer;
+        }, function (_9) {
+            SchroederReverb = _9.SchroederReverb;
+        }, function (_7) {
+            Osc = _7.Osc;
+        }, function (_5) {
+            mixer = _5;
         }, function (_3) {
             visualCore = _3;
-        }, function (_a) {
-            nodes = _a;
-        }, function (_a2) {
-            Generator = _a2.Generator;
-        }, function (_c) {
-            envelopeCore = _c;
+        }, function (_d) {
+            moduleExtensions = _d;
+        }, function (_e) {
+            nodes = _e;
         }, function (_b) {
-            asdr = _b;
+            Bandpass = _b.Bandpass;
+        }, function (_a) {
+            Convolution = _a.Convolution;
+        }, function (_a2) {
+            MediaElementPlayer = _a2.MediaElementPlayer;
+        }, function (_c) {
+            Noise = _c.Noise;
+        }, function (_b2) {
+            Clock = _b2.Clock;
+        }, function (_c2) {
+            Generator = _c2.Generator;
+        }, function (_f) {
+            asdr = _f;
         }],
         execute: function () {
             _export("renderLoop", renderLoop);
@@ -11222,8 +11214,8 @@ $__System.register("25", ["3", "4", "5", "6", "7", "8", "9", "15", "16", "17", "
     };
 });
 
-$__System.register("79", ["10", "14", "17", "24", "25", "27", "29", "1d", "2a", "d"], function (_export) {
-    var _classCallCheck, gMap, util, posts, rudy, markershaders, markerData, _getIterator, markerMapPosition, featureDetection, marker_canvas, projection, z, updateViewport, buffer, clock, be_noise, beColoredNoise, a_hash, a_type, a_model, a_container, a_uv, a_velocity, Texture, textures, u_viewport, u_clock, u_translate, u_beNoise, u_beColoredNoise, vertices, current_anchor, start, delta, zeroPositions, queryMarkerPosition, updateDelta, updateStart, data32Arr, blank, getDataArray, glDataUpdate, markerPositionFailsafe, updateMarkers;
+$__System.register("7a", ["4", "13", "17", "19", "20", "24", "25", "27", "29", "2a"], function (_export) {
+    var featureDetection, _classCallCheck, gMap, util, _getIterator, posts, rudy, markershaders, markerData, markerMapPosition, marker_canvas, projection, z, updateViewport, buffer, clock, be_noise, beColoredNoise, a_hash, a_type, a_model, a_container, a_uv, a_velocity, Texture, textures, u_viewport, u_clock, u_translate, u_beNoise, u_beColoredNoise, vertices, current_anchor, start, delta, zeroPositions, queryMarkerPosition, updateDelta, updateStart, data32Arr, blank, getDataArray, glDataUpdate, markerPositionFailsafe, updateMarkers;
 
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -11274,26 +11266,26 @@ $__System.register("79", ["10", "14", "17", "24", "25", "27", "29", "1d", "2a", 
     }
 
     return {
-        setters: [function (_) {
+        setters: [function (_5) {
+            featureDetection = _5;
+        }, function (_) {
             _classCallCheck = _["default"];
-        }, function (_5) {
-            gMap = _5;
-        }, function (_6) {
-            util = _6;
-        }, function (_4) {
-            posts = _4;
-        }, function (_2) {
-            rudy = _2;
         }, function (_7) {
-            markershaders = _7["default"];
+            gMap = _7;
+        }, function (_8) {
+            util = _8;
+        }, function (_2) {
+            _getIterator = _2["default"];
+        }, function (_6) {
+            posts = _6;
         }, function (_3) {
-            markerData = _3;
-        }, function (_d) {
-            _getIterator = _d["default"];
+            rudy = _3;
+        }, function (_9) {
+            markershaders = _9["default"];
+        }, function (_4) {
+            markerData = _4;
         }, function (_a) {
             markerMapPosition = _a;
-        }, function (_d2) {
-            featureDetection = _d2;
         }],
         execute: function () {
             /**
@@ -11661,12 +11653,12 @@ $__System.registerDynamic("2d", ["43", "2f", "45"], true, function(req, exports,
   return module.exports;
 });
 
-$__System.registerDynamic("7a", ["7b"], true, function(req, exports, module) {
+$__System.registerDynamic("7b", ["7c"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var defined = req('7b');
+  var defined = req('7c');
   module.exports = function(it) {
     return Object(defined(it));
   };
@@ -11674,12 +11666,12 @@ $__System.registerDynamic("7a", ["7b"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("7c", ["7a", "2d"], true, function(req, exports, module) {
+$__System.registerDynamic("7d", ["7b", "2d"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var toObject = req('7a');
+  var toObject = req('7b');
   req('2d')('keys', function($keys) {
     return function keys(it) {
       return $keys(toObject(it));
@@ -11689,31 +11681,31 @@ $__System.registerDynamic("7c", ["7a", "2d"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("7d", ["7c", "2f"], true, function(req, exports, module) {
+$__System.registerDynamic("7e", ["7d", "2f"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  req('7c');
+  req('7d');
   module.exports = req('2f').Object.keys;
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("1c", ["7d"], true, function(req, exports, module) {
+$__System.registerDynamic("1d", ["7e"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   module.exports = {
-    "default": req('7d'),
+    "default": req('7e'),
     __esModule: true
   };
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("70", ["39", "49"], true, function(req, exports, module) {
+$__System.registerDynamic("71", ["39", "49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -11733,14 +11725,14 @@ $__System.registerDynamic("70", ["39", "49"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("6d", ["70", "49", "6a", "2f"], true, function(req, exports, module) {
+$__System.registerDynamic("6e", ["71", "49", "6b", "2f"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var classof = req('70'),
+  var classof = req('71'),
       ITERATOR = req('49')('iterator'),
-      Iterators = req('6a');
+      Iterators = req('6b');
   module.exports = req('2f').getIteratorMethod = function(it) {
     if (it != undefined)
       return it[ITERATOR] || it['@@iterator'] || Iterators[classof(it)];
@@ -11776,13 +11768,13 @@ $__System.registerDynamic("4a", ["2c"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("7e", ["4a", "6d", "2f"], true, function(req, exports, module) {
+$__System.registerDynamic("7f", ["4a", "6e", "2f"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   var anObject = req('4a'),
-      get = req('6d');
+      get = req('6e');
   module.exports = req('2f').getIterator = function(it) {
     var iterFn = get(it);
     if (typeof iterFn != 'function')
@@ -11793,7 +11785,7 @@ $__System.registerDynamic("7e", ["4a", "6d", "2f"], true, function(req, exports,
   return module.exports;
 });
 
-$__System.registerDynamic("68", [], true, function(req, exports, module) {
+$__System.registerDynamic("69", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -11807,13 +11799,13 @@ $__System.registerDynamic("68", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("7f", ["68", "7b"], true, function(req, exports, module) {
+$__System.registerDynamic("80", ["69", "7c"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var toInteger = req('68'),
-      defined = req('7b');
+  var toInteger = req('69'),
+      defined = req('7c');
   module.exports = function(TO_STRING) {
     return function(that, pos) {
       var s = String(defined(that)),
@@ -11831,14 +11823,14 @@ $__System.registerDynamic("7f", ["68", "7b"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("72", ["7f", "80"], true, function(req, exports, module) {
+$__System.registerDynamic("73", ["80", "81"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   'use strict';
-  var $at = req('7f')(true);
-  req('80')(String, 'String', function(iterated) {
+  var $at = req('80')(true);
+  req('81')(String, 'String', function(iterated) {
     this._t = String(iterated);
     this._i = 0;
   }, function() {
@@ -11880,7 +11872,7 @@ $__System.registerDynamic("47", ["3b", "41", "49"], true, function(req, exports,
   return module.exports;
 });
 
-$__System.registerDynamic("81", ["3b", "4b", "47", "82", "49"], true, function(req, exports, module) {
+$__System.registerDynamic("82", ["3b", "4b", "47", "83", "49"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -11890,7 +11882,7 @@ $__System.registerDynamic("81", ["3b", "4b", "47", "82", "49"], true, function(r
       descriptor = req('4b'),
       setToStringTag = req('47'),
       IteratorPrototype = {};
-  req('82')(IteratorPrototype, req('49')('iterator'), function() {
+  req('83')(IteratorPrototype, req('49')('iterator'), function() {
     return this;
   });
   module.exports = function(Constructor, NAME, next) {
@@ -12027,7 +12019,7 @@ $__System.registerDynamic("3b", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("82", ["3b", "4b", "42"], true, function(req, exports, module) {
+$__System.registerDynamic("83", ["3b", "4b", "42"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -12044,12 +12036,12 @@ $__System.registerDynamic("82", ["3b", "4b", "42"], true, function(req, exports,
   return module.exports;
 });
 
-$__System.registerDynamic("44", ["82"], true, function(req, exports, module) {
+$__System.registerDynamic("44", ["83"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  module.exports = req('82');
+  module.exports = req('83');
   global.define = __define;
   return module.exports;
 });
@@ -12146,7 +12138,7 @@ $__System.registerDynamic("4c", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("80", ["4c", "43", "44", "82", "41", "49", "6a", "81", "47", "3b"], true, function(req, exports, module) {
+$__System.registerDynamic("81", ["4c", "43", "44", "83", "41", "49", "6b", "82", "47", "3b"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -12155,11 +12147,11 @@ $__System.registerDynamic("80", ["4c", "43", "44", "82", "41", "49", "6a", "81",
   var LIBRARY = req('4c'),
       $def = req('43'),
       $redef = req('44'),
-      hide = req('82'),
+      hide = req('83'),
       has = req('41'),
       SYMBOL_ITERATOR = req('49')('iterator'),
-      Iterators = req('6a'),
-      $iterCreate = req('81'),
+      Iterators = req('6b'),
+      $iterCreate = req('82'),
       setToStringTag = req('47'),
       getProto = req('3b').getProto,
       BUGGY = !([].keys && 'next' in [].keys()),
@@ -12225,7 +12217,7 @@ $__System.registerDynamic("80", ["4c", "43", "44", "82", "41", "49", "6a", "81",
   return module.exports;
 });
 
-$__System.registerDynamic("7b", [], true, function(req, exports, module) {
+$__System.registerDynamic("7c", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -12252,7 +12244,7 @@ $__System.registerDynamic("39", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("83", ["39"], true, function(req, exports, module) {
+$__System.registerDynamic("84", ["39"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -12265,13 +12257,13 @@ $__System.registerDynamic("83", ["39"], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("3d", ["83", "7b"], true, function(req, exports, module) {
+$__System.registerDynamic("3d", ["84", "7c"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  var IObject = req('83'),
-      defined = req('7b');
+  var IObject = req('84'),
+      defined = req('7c');
   module.exports = function(it) {
     return IObject(defined(it));
   };
@@ -12279,7 +12271,7 @@ $__System.registerDynamic("3d", ["83", "7b"], true, function(req, exports, modul
   return module.exports;
 });
 
-$__System.registerDynamic("6a", [], true, function(req, exports, module) {
+$__System.registerDynamic("6b", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -12289,7 +12281,7 @@ $__System.registerDynamic("6a", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("84", [], true, function(req, exports, module) {
+$__System.registerDynamic("85", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -12304,7 +12296,7 @@ $__System.registerDynamic("84", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("85", [], true, function(req, exports, module) {
+$__System.registerDynamic("86", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -12314,17 +12306,17 @@ $__System.registerDynamic("85", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.registerDynamic("86", ["85", "84", "6a", "3d", "80"], true, function(req, exports, module) {
+$__System.registerDynamic("87", ["86", "85", "6b", "3d", "81"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   'use strict';
-  var addToUnscopables = req('85'),
-      step = req('84'),
-      Iterators = req('6a'),
+  var addToUnscopables = req('86'),
+      step = req('85'),
+      Iterators = req('6b'),
       toIObject = req('3d');
-  module.exports = req('80')(Array, 'Array', function(iterated, kind) {
+  module.exports = req('81')(Array, 'Array', function(iterated, kind) {
     this._t = toIObject(iterated);
     this._i = 0;
     this._k = kind;
@@ -12350,44 +12342,44 @@ $__System.registerDynamic("86", ["85", "84", "6a", "3d", "80"], true, function(r
   return module.exports;
 });
 
-$__System.registerDynamic("73", ["86", "6a"], true, function(req, exports, module) {
+$__System.registerDynamic("74", ["87", "6b"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
-  req('86');
-  var Iterators = req('6a');
+  req('87');
+  var Iterators = req('6b');
   Iterators.NodeList = Iterators.HTMLCollection = Iterators.Array;
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("87", ["73", "72", "7e"], true, function(req, exports, module) {
+$__System.registerDynamic("88", ["74", "73", "7f"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
+  req('74');
   req('73');
-  req('72');
-  module.exports = req('7e');
+  module.exports = req('7f');
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("1d", ["87"], true, function(req, exports, module) {
+$__System.registerDynamic("20", ["88"], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
   global.define = undefined;
   module.exports = {
-    "default": req('87'),
+    "default": req('88'),
     __esModule: true
   };
   global.define = __define;
   return module.exports;
 });
 
-$__System.registerDynamic("10", [], true, function(req, exports, module) {
+$__System.registerDynamic("13", [], true, function(req, exports, module) {
   ;
   var global = this,
       __define = global.define;
@@ -12403,7 +12395,7 @@ $__System.registerDynamic("10", [], true, function(req, exports, module) {
   return module.exports;
 });
 
-$__System.register("14", ["10", "23", "1d", "1c"], function (_export) {
+$__System.register("17", ["3", "13", "20", "1d"], function (_export) {
     var _classCallCheck, _getIterator, _Object$keys, events_added, event_locales, registeredEventCallback, addSingleEvent, map, overlay, events, zoom_plus, zoom_minus, randHex, plus_last, minus_last;
 
     function init() {
@@ -12451,12 +12443,12 @@ $__System.register("14", ["10", "23", "1d", "1c"], function (_export) {
     }
 
     return {
-        setters: [function (_) {
+        setters: [function (_3) {}, function (_) {
             _classCallCheck = _["default"];
-        }, function (_2) {}, function (_d) {
-            _getIterator = _d["default"];
-        }, function (_c) {
-            _Object$keys = _c["default"];
+        }, function (_2) {
+            _getIterator = _2["default"];
+        }, function (_d) {
+            _Object$keys = _d["default"];
         }],
         execute: function () {
             /**
@@ -12711,7 +12703,7 @@ $__System.register("14", ["10", "23", "1d", "1c"], function (_export) {
     };
 });
 
-$__System.registerDynamic("88", [], false, function(__require, __exports, __module) {
+$__System.registerDynamic("89", [], false, function(__require, __exports, __module) {
   var _retrieveGlobal = $__System.get("@@global-helpers").prepareGlobal(__module.id, null, null);
   (function() {
     ;
@@ -18705,7 +18697,7 @@ var _removeDefine = $__System.get("@@amd-helpers").createDefine();
   };
   jQuery.fn.andSelf = jQuery.fn.addBack;
   if (typeof define === "function" && define.amd) {
-    define("89", [], function() {
+    define("8a", [], function() {
       return jQuery;
     });
   }
@@ -18730,13 +18722,13 @@ _removeDefine();
 })();
 (function() {
 var _removeDefine = $__System.get("@@amd-helpers").createDefine();
-define("23", ["89"], function(main) {
+define("3", ["8a"], function(main) {
   return main;
 });
 
 _removeDefine();
 })();
-$__System.register("d", ["23", "88"], function (_export) {
+$__System.register("4", ["3", "89"], function (_export) {
   /**
    * @module featureDetection
    * detect status of webgl, webaudio, and webworkers
@@ -18773,26 +18765,28 @@ $__System.register("d", ["23", "88"], function (_export) {
   };
 });
 
-$__System.register("1", ["13", "14", "15", "22", "79", "d", "1f"], function (_export) {
+$__System.register("1", ["2", "4", "16", "17", "18", "23", "7a", "1f"], function (_export) {
 
     // initalize google map
     "use strict";
 
-    var audioScene, gMap, renderLoop, PrintAnalog, markersStart, forceDataUpdate, featureDetection, tableux, bounds, overlay, glow, flags, stock_list, loading;
+    var audioUI, featureDetection, audioScene, gMap, renderLoop, PrintAnalog, markersStart, forceDataUpdate, tableux, bounds, overlay, glow, flags, stock_list, loading;
     return {
-        setters: [function (_5) {
-            audioScene = _5;
+        setters: [function (_6) {
+            audioUI = _6;
         }, function (_) {
-            gMap = _;
+            featureDetection = _;
+        }, function (_5) {
+            audioScene = _5;
+        }, function (_2) {
+            gMap = _2;
         }, function (_3) {
             renderLoop = _3;
         }, function (_4) {
             PrintAnalog = _4.PrintAnalog;
-        }, function (_2) {
-            markersStart = _2.markersStart;
-            forceDataUpdate = _2.forceDataUpdate;
-        }, function (_d) {
-            featureDetection = _d;
+        }, function (_a) {
+            markersStart = _a.markersStart;
+            forceDataUpdate = _a.forceDataUpdate;
         }, function (_f) {
             tableux = _f;
         }],
@@ -18818,6 +18812,14 @@ $__System.register("1", ["13", "14", "15", "22", "79", "d", "1f"], function (_ex
             // start audio scene
             audioScene.init();
 
+            // init audioUI
+            // if audio fails, reflect error in UI
+            if (!featureDetection.audioext && !featureDetection.webaudio) {
+                audioUI.disableMuteButton();
+            } else {
+                audioUI.init();
+            }
+
             // init delegated events
             gMap.events.initQueuedEvents('map');
 
@@ -18825,7 +18827,7 @@ $__System.register("1", ["13", "14", "15", "22", "79", "d", "1f"], function (_ex
             loading = document.getElementById("loading-container");
 
             document.body.removeChild(loading);
-            window.setTimeout(forceDataUpdate, 2000);
+            window.setTimeout(forceDataUpdate, 4000);
         }
     };
 });
