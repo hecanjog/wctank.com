@@ -1,9 +1,10 @@
-from wctank import db, models, utils
+from wctank import db, models
 from flask import json
 import pytumblr
 import logging
 import os
 import re
+
 
 _pyClient = pytumblr.TumblrRestClient(
     os.environ['WES_TUMBLR_CONSUMER_KEY'],
@@ -12,12 +13,18 @@ _pyClient = pytumblr.TumblrRestClient(
     os.environ['WES_TUMBLR_OAUTH_SECRET']
 )
 
+
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 _handler = logging.FileHandler(os.path.expanduser('~/wctank.scheduled_jobs.log'))
 _handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 _logger.addHandler(_handler)
 _logger.addFilter(logging.Filter(name=__name__))
+
+
+def _is_close_enough(x, y):
+    return abs(x - y) < 0.000001
+
 
 def updateDb():
     all_posts = []
@@ -42,11 +49,23 @@ def updateDb():
                 post['long'] = tag[1]
                 
                 json_dump = json.dumps(post)
-                hash_id = utils.md5Hexdigest(json_dump)
+                
+                existing = models.Post.query.filter_by(tumblr_id=post['id']).first()
 
-                # don't add to database if hash exists
-                if models.Post.query.filter_by(md5=hash_id).first() is None: 
-                    db.session.add(models.Post(tag[0], tag[1], json_dump))
+                # if id isn't present at all, just add post
+                if existing is None: 
+                    db.session.add(models.Post(post['id'], post['lat'], post['long'], json_dump))
+                
+                # if it does exist, update to new version
+                else:
+                     if not _is_close_enough(post['lat'], existing.lat):
+                         existing.lat = post['lat']
+
+                     if not _is_close_enough(post['long'], existing.lng):
+                         existing.lng = post['long']
+
+                     if json_dump != existing.json:
+                         existing.json = json_dump
 
     db.session.commit()
 

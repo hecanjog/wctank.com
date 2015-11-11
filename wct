@@ -4,14 +4,12 @@
 WcTank.com
 
 Usage:
-    wct dev
     wct bootstrap
     wct run 
 
 Options:
-    dev         Bootstrap and run server locally, use raw source files.
     bootstrap   Create and populate posts db
-    run         Only run server, use compiled sources.
+    run         Run server.
 """
 
 from wctank import app, db, populate, controller
@@ -23,11 +21,6 @@ if __name__ == '__main__':
     def bootstrap():
         db.create_all()
         populate.updateDb()
-
-    if args['dev'] == True:
-        controller.dev_template = True
-        bootstrap()
-        app.run('0.0.0.0')
 
     if args['bootstrap'] == True:
         bootstrap()

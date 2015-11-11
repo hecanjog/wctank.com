@@ -9,8 +9,7 @@ import { Clock } from "lib/rudy/rhythm/Clock";
 import { Generator } from "lib/rudy/rhythm/Generator";
 
 
-// everything in here can only be executed if webaudio exists,
-// so... this is a big method.
+// mostly just here as a placeholder until I figure out something more interesting...
 export function init() 
 {
     audioCore.init();
