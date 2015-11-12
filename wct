@@ -18,12 +18,11 @@ from docopt import docopt
 if __name__ == '__main__':
     args = docopt(__doc__)
 
-    def bootstrap():
+    if args['bootstrap'] == True:
+        print "* * * creating and populating db..."
         db.create_all()
         populate.updateDb()
-
-    if args['bootstrap'] == True:
-        bootstrap()
+        print "* * * done."
     
     if args['run'] == True:
         app.run('0.0.0.0')

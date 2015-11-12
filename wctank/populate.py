@@ -23,7 +23,7 @@ _logger.addFilter(logging.Filter(name=__name__))
 
 
 def _is_close_enough(x, y):
-    return abs(x - y) < 0.000001
+    return abs(abs(x) - abs(y)) < 0.000001
 
 
 def updateDb():
